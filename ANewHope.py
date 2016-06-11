@@ -2,10 +2,9 @@ class ANewHope:
     def count(self, firstWeek, lastWeek, D):
         return None
 
-def is_dry(prev_week, shirt, week_day, D):
+def is_dry(prev_week, shirt, day_index, D):
     N = len(prev_week)
-    day_worn_prev_week = prev_week.index(shirt) + 1
-    drying_days = N - day_worn_prev_week + week_day - 1
+    drying_days = N - 1 - prev_week.index(shirt) + day_index
     return drying_days >= D
 
 
