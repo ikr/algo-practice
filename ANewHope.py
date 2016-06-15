@@ -16,13 +16,14 @@ def refine_count(D, prev_week, week, current_count):
         if first_wet == -1:
             return refine_count(D, middle_week, week, current_count + 1)
 
-        dryest = dryest_index(D, prev_week, middle_week, swaps_count)
-        middle_week[first_wet], middle_week[dryest] = middle_week[dryest], middle_week[first_wet]
+        dry = dry_index(D, prev_week, middle_week, swaps_count)
+        middle_week[first_wet], middle_week[dry] = middle_week[dry], middle_week[first_wet]
         swaps_count += 1
 
 
-def dryest_index(D, prev_week, week, starting_from):
-    return week.index(prev_week[starting_from])
+def dry_index(D, prev_week, week, offset):
+    N = len(prev_week)
+    return week.index(prev_week[N - D - offset])
 
 
 def first_wet_index(D, prev_week, week):
