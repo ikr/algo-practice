@@ -7,15 +7,15 @@ def refine_count(D, prev_week, week, current_count):
     if prev_week == week:
         return current_count
 
-    middle_week = week[:]
+    middle_week = list(week[:])
     swaps_count = 0
 
     while True:
         first_wet = first_wet_index(D, prev_week, middle_week)
 
         if first_wet == -1:
-            c = current_count if middle_week == week else current_count + 1
-            return refine_count(D, middle_week, week, c)
+            c = current_count if middle_week == list(week) else current_count + 1
+            return refine_count(D, tuple(middle_week), week, c)
 
         dry = dry_index(D, prev_week, middle_week, swaps_count)
         middle_week[first_wet], middle_week[dry] = middle_week[dry], middle_week[first_wet]
