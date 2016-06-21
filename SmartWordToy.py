@@ -3,6 +3,19 @@ class SmartWordToy:
         return 0
 
 
+def adjacent_unconstrained(word):
+    result = []
+
+    for index in range(len(word)):
+        prefix = word[0 : index]
+        suffix = word [index + 1 :]
+
+        for n in char_neighbours(word[index]):
+            result.append(prefix + n + suffix)
+
+    return result
+
+
 def matches_any(constraints, word):
     for c in constraints:
         if matches(c, word):
@@ -24,4 +37,5 @@ def char_neighbours(c):
     hi = chr(ord(c) + 1) if c != 'z' else 'a'
     return lo, hi
 
-print(char_neighbours('z'))
+
+print(adjacent_unconstrained('borg'))
