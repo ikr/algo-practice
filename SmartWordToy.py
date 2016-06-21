@@ -19,4 +19,9 @@ def matches(constraint, word):
     return True
 
 
-print(matches_any(('lf a tc a', 'a b c d'), 'fate'))
+def char_neighbours(c):
+    lo = chr(ord(c) - 1) if c != 'a' else 'z'
+    hi = chr(ord(c) + 1) if c != 'z' else 'a'
+    return lo, hi
+
+print(char_neighbours('z'))
