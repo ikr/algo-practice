@@ -3,6 +3,13 @@ class SmartWordToy:
         return 0
 
 
+def adjacent(forbid, word):
+    def is_allowed(x):
+        return not matches_any(forbid, x)
+
+    return tuple(filter(is_allowed, adjacent_unconstrained(word)))
+
+
 def adjacent_unconstrained(word):
     result = []
 
@@ -13,7 +20,7 @@ def adjacent_unconstrained(word):
         for n in char_neighbours(word[index]):
             result.append(prefix + n + suffix)
 
-    return result
+    return tuple(result)
 
 
 def matches_any(constraints, word):
@@ -38,4 +45,4 @@ def char_neighbours(c):
     return lo, hi
 
 
-print(adjacent_unconstrained('borg'))
+print(adjacent(('ac o r g'), 'borg'))
