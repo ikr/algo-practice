@@ -1,18 +1,40 @@
-import product from itertools
+from itertools import product
+from collections import deque
 
 class SmartWordToy:
-    def __init__(self):
-        self.G = init_graph()
-
     def minPresses(self, start, finish, forbid):
-        return 0
+        if (matches_any(forbid, finish)):
+            return -1
+
+        G = init_graph(forbid)
+        G[start]['d'] = 0
+        Q = deque()
+        Q.append(start)
+
+        while len(Q) > 0:
+            current = Q.popleft()
+
+            for a in G[current]['a']:
+                if G[a]['d'] < 0:
+                    G[a]['d'] = G[current]['d'] + 1
+                    Q.append(a)
+
+        return G[finish]['d']
 
 
-def init_graph():
+def init_graph(forbid):
     result = {}
-    az = ''.join(tuple(map(chr, range(ord('a'), ord('z') + 1))))
+
+    for vertexTuple in product(az(), az(), az(), az()):
+        vertexWord = ''.join(vertexTuple)
+
+        if not matches_any(forbid, vertexWord):
+            result[vertexWord] = {'a': adjacent(forbid, vertexWord), 'd': -1}
+
     return result
 
+def az():
+    return ''.join(tuple(map(chr, range(ord('a'), ord('z') + 1))))
 
 def adjacent(forbid, word):
     def is_allowed(x):
@@ -56,4 +78,9 @@ def char_neighbours(c):
     return lo, hi
 
 
-print(adjacent(('ac o r g'), 'borg'))
+forbid = ('ab bc cd ef', 'zgftyr zgfs qwertz zghjkl', 'az xy abcdef akgyuoqzx')
+print(matches_any(forbid, 'aaaa'))
+print(matches_any(forbid, 'ikrr'))
+
+swt = SmartWordToy();
+print(swt.minPresses('aaaa', 'ikrr', forbid))
