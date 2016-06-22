@@ -8,19 +8,19 @@ class SmartWordToy:
             return -1
 
         G = init_graph(forbid)
-        G[start]['d'] = 0
+        G[start] = 0
         Q = deque()
         Q.append(start)
 
         while len(Q) > 0:
             current = Q.popleft()
 
-            for a in G[current]['a']:
-                if G[a]['d'] < 0:
-                    G[a]['d'] = G[current]['d'] + 1
+            for a in adjacent(forbid, current):
+                if G[a] < 0:
+                    G[a] = G[current] + 1
                     Q.append(a)
 
-        return G[finish]['d']
+        return G[finish]
 
 
 def init_graph(forbid):
@@ -30,7 +30,7 @@ def init_graph(forbid):
         vertexWord = ''.join(vertexTuple)
 
         if not matches_any(forbid, vertexWord):
-            result[vertexWord] = {'a': adjacent(forbid, vertexWord), 'd': -1}
+            result[vertexWord] = -1
 
     return result
 
