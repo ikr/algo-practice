@@ -1,6 +1,17 @@
+import product from itertools
+
 class SmartWordToy:
+    def __init__(self):
+        self.G = init_graph()
+
     def minPresses(self, start, finish, forbid):
         return 0
+
+
+def init_graph():
+    result = {}
+    az = ''.join(tuple(map(chr, range(ord('a'), ord('z') + 1))))
+    return result
 
 
 def adjacent(forbid, word):
