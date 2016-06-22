@@ -1,5 +1,6 @@
 from itertools import product
 from collections import deque
+import resource
 
 class SmartWordToy:
     def minPresses(self, start, finish, forbid):
@@ -76,3 +77,13 @@ def char_neighbours(c):
     lo = chr(ord(c) - 1) if c != 'a' else 'z'
     hi = chr(ord(c) + 1) if c != 'z' else 'a'
     return lo, hi
+
+
+forbid = ('ab bc cd ef', 'zgftyr zgfs qwertz zghjkl', 'az xy abcdef akgyuoqzx')
+print(matches_any(forbid, 'aaaa'))
+print(matches_any(forbid, 'ikrr'))
+
+swt = SmartWordToy();
+print(swt.minPresses('aaaa', 'ikrr', forbid))
+
+print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000)
