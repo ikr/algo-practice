@@ -89,12 +89,13 @@ def distance(w1, w2):
 
     return result
 
-
-forbid = ('ab bc cd ef', 'zgftyr zgfs qwertz zghjkl', 'az xy abcdef akgyuoqzx')
-print(matches_any(forbid, 'aaaa'))
-print(matches_any(forbid, 'ikrr'))
+start = 'aaaa'
+finish = 'xxxx'
+forbid = ('xz xz xz z', 'xa xa xa b"')
+print(matches_any(forbid, start))
+print(matches_any(forbid, finish))
 
 swt = SmartWordToy();
-print(swt.minPresses('aaaa', 'mmnn', tuple()))
+print(swt.minPresses(start, finish, forbid))
 
 print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000)
