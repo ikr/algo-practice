@@ -70,6 +70,6 @@ print(matches_any(forbid, 'aaaa'))
 print(matches_any(forbid, 'ikrr'))
 
 swt = SmartWordToy();
-print(swt.minPresses('aaaa', 'ikrr', forbid))
+print(swt.minPresses('aaaa', 'mmnn', tuple()))
 
 print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000)
