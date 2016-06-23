@@ -3,6 +3,9 @@ from collections import deque
 
 class SmartWordToy:
     def minPresses(self, start, finish, forbid):
+        if not forbid:
+            return distance(start, finish)
+
         if (matches_any(forbid, finish)):
             return -1
 
@@ -76,6 +79,15 @@ def wordKey(w):
 
 def charKey(c):
     return ord(c) - ord('a')
+
+
+def distance(w1, w2):
+    result = 0
+
+    for i in range(4):
+        result += abs(ord(w1[i]) - ord(w2[i]))
+
+    return result
 
 
 forbid = ('ab bc cd ef', 'zgftyr zgfs qwertz zghjkl', 'az xy abcdef akgyuoqzx')
