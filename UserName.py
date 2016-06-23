@@ -1,5 +1,6 @@
 import re
 
+
 class UserName:
     def newMember(self, existingNames, newName):
         taken = existingNums(newName, existingNames)
