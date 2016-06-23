@@ -1,5 +1,6 @@
 from collections import deque
 
+
 class SmartWordToy:
     def minPresses(self, start, finish, forbid):
         if not forbid:
@@ -24,6 +25,7 @@ class SmartWordToy:
                     Q.append(a)
 
         return -1
+
 
 def adjacent(forbid, word):
     def is_allowed(x):
