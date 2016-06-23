@@ -1,5 +1,5 @@
-from collections import deque
 import resource
+from collections import deque
 
 class SmartWordToy:
     def minPresses(self, start, finish, forbid):
