@@ -1,4 +1,3 @@
-import resource
 from collections import deque
 
 class SmartWordToy:
@@ -88,14 +87,3 @@ def distance(w1, w2):
         result += abs(ord(w1[i]) - ord(w2[i]))
 
     return result
-
-start = 'aaaa'
-finish = 'xxxx'
-forbid = ('xz xz xz z', 'xa xa xa b"')
-print(matches_any(forbid, start))
-print(matches_any(forbid, finish))
-
-swt = SmartWordToy();
-print(swt.minPresses(start, finish, forbid))
-
-print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000)
