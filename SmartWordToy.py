@@ -1,4 +1,3 @@
-from itertools import product
 from collections import deque
 import resource
 
@@ -7,8 +6,8 @@ class SmartWordToy:
         if (matches_any(forbid, finish)):
             return -1
 
-        G = init_graph(forbid)
-        G[start] = 0
+        D = {}
+        D[start] = 0
         Q = deque()
         Q.append(start)
 
@@ -16,26 +15,13 @@ class SmartWordToy:
             current = Q.popleft()
 
             for a in adjacent(forbid, current):
-                if G[a] < 0:
-                    G[a] = G[current] + 1
+                if not a in D:
+                    D[a] = D[current] + 1
+                    if a == finish:
+                        return D[a]
                     Q.append(a)
 
-        return G[finish]
-
-
-def init_graph(forbid):
-    result = {}
-
-    for vertexTuple in product(az(), az(), az(), az()):
-        vertexWord = ''.join(vertexTuple)
-
-        if not matches_any(forbid, vertexWord):
-            result[vertexWord] = -1
-
-    return result
-
-def az():
-    return ''.join(tuple(map(chr, range(ord('a'), ord('z') + 1))))
+        return -1
 
 def adjacent(forbid, word):
     def is_allowed(x):
