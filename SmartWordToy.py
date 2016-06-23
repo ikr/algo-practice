@@ -7,7 +7,7 @@ class SmartWordToy:
             return -1
 
         D = {}
-        D[start] = 0
+        D[wordKey(start)] = 0
         Q = deque()
         Q.append(start)
 
@@ -15,10 +15,10 @@ class SmartWordToy:
             current = Q.popleft()
 
             for a in adjacent(forbid, current):
-                if not a in D:
-                    D[a] = D[current] + 1
+                if not wordKey(a) in D:
+                    D[wordKey(a)] = D[wordKey(current)] + 1
                     if a == finish:
-                        return D[a]
+                        return D[wordKey(a)]
                     Q.append(a)
 
         return -1
@@ -63,6 +63,19 @@ def char_neighbours(c):
     lo = chr(ord(c) - 1) if c != 'a' else 'z'
     hi = chr(ord(c) + 1) if c != 'z' else 'a'
     return lo, hi
+
+
+def wordKey(w):
+    result = 0
+
+    for i in range(4):
+        result += charKey(w[i]) * (26 ** (3 - i))
+
+    return result;
+
+
+def charKey(c):
+    return ord(c) - ord('a')
 
 
 forbid = ('ab bc cd ef', 'zgftyr zgfs qwertz zghjkl', 'az xy abcdef akgyuoqzx')
