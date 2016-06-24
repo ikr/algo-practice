@@ -1,6 +1,6 @@
 class BusinessTasks:
     def getTask(self, tasks, n):
-        return reduce_towards_one(tasks, 0, n - 1)[0]
+        return reduce_towards_one(list(tasks), 0, n - 1)[0]
 
 
 def reduce_towards_one(ringList, cursor, moves):
@@ -25,10 +25,3 @@ def move_cursor(ringList, cursor, moves):
             cursor = 0
 
     return cursor
-
-bt = BusinessTasks()
-
-print(bt.getTask(['a', 'b', 'c', 'd'], 2))
-print(bt.getTask(['a', 'b', 'c', 'd', 'e'], 3))
-print(bt.getTask(["alpha","beta","gamma","delta","epsilon"], 1))
-print(bt.getTask(['a', 'b'], 1000))
