@@ -28,9 +28,3 @@ def rows(people):
 
 def row(rowText):
     return tuple(map(int, rowText.split(' ')))
-
-
-tp = TallPeople()
-print(tp.getPeople(("9 2 3", "4 8 7")))
-print(tp.getPeople(("1 2", "4 5", "3 6")))
-print(tp.getPeople(("1 1", "1 1")))
