@@ -44,8 +44,3 @@ def rows(rows_data):
 
 def row(row_data):
     return ' '.join(map(str, row_data))
-
-
-mt = MedalTable()
-results = ("ITA JPN AUS", "KOR TPE UKR", "KOR KOR GBR", "KOR CHN TPE")
-print(mt.generate(results))
