@@ -3,27 +3,29 @@ from collections import deque
 
 class CaptureThemAll:
     def fastKnight(self, knight, rook, queen):
-        G = {position_to_coord(knight): vertex(0, None)}
-        Q = deque([position_to_coord(knight)])
+        G = {coord(knight): vertex(0, None)}
+        Q = deque([coord(knight)])
 
         while len(Q) > 0:
             current = Q.popleft()
             for a in adjacent(current):
                 if not a in G:
                     G[a] = vertex(G[current]['d'] + 1, current)
+                    qrCapture = a == coord(rook) and is_ancestor(G, coord(queen), a)
+                    rqCapture = a == coord(queen) and is_ancestor(G, coord(rook), a)
+                    if qrCapture or rqCapture:
+                        return G[a]['d']
                     Q.append(a)
 
-        return -1
 
-
-def is_ancestor(candidate, vertex):
-    if not vertex['p']:
+def is_ancestor(G, candidateCoord, vertexCoord):
+    if not vertexCoord in G or not G[vertexCoord]['p']:
         return False
 
-    if vertex['p'] == candidate:
+    if G[vertexCoord]['p'] == candidateCoord:
         return True
 
-    return is_ancestor(candidate, vertex['p'])
+    return is_ancestor(G, candidateCoord, G[vertexCoord]['p'])
 
 
 def adjacent(coord):
@@ -43,13 +45,14 @@ def adjacent_deltas():
     return ((-2, -1), (-2, 1), (2, -1), (2, 1), (-1, -2), (1, -2), (-1, 2), (1, 2))
 
 
-def position_to_coord(position):
+def coord(position):
     return ord(position[0]) - ord('a'), int(position[1]) - 1
 
 
-def vertex(distance, parent):
-    return {'d': distance, 'p': parent}
+def vertex(distance, parentCoord):
+    return {'d': distance, 'p': parentCoord}
 
 
 cta = CaptureThemAll()
 print(cta.fastKnight('a1', 'b3', 'c5'))
+print(cta.fastKnight('b1', 'c3', 'a3'))
