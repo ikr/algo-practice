@@ -19,7 +19,7 @@ class CaptureThemAll:
 
 
 def is_ancestor(G, candidateCoord, vertexCoord):
-    if not vertexCoord in G or not G[vertexCoord]['p']:
+    if not candidateCoord in G or not G[vertexCoord]['p']:
         return False
 
     if G[vertexCoord]['p'] == candidateCoord:
