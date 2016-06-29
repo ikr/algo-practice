@@ -56,3 +56,6 @@ def vertex(distance, parentCoord):
 cta = CaptureThemAll()
 print(cta.fastKnight('a1', 'b3', 'c5'))
 print(cta.fastKnight('b1', 'c3', 'a3'))
+print(cta.fastKnight('a1', 'a2', 'b2'))
+print(cta.fastKnight('a5', 'b7', 'e4'))
+print(cta.fastKnight('h8', 'e2', 'd2'))
