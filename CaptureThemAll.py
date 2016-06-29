@@ -16,6 +16,16 @@ class CaptureThemAll:
         return -1
 
 
+def is_ancestor(candidate, vertex):
+    if not vertex['p']:
+        return False
+
+    if vertex['p'] == candidate:
+        return True
+
+    return is_ancestor(candidate, vertex['p'])
+
+
 def adjacent(coord):
     result = []
 
