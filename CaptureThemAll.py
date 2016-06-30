@@ -3,29 +3,23 @@ from collections import deque
 
 class CaptureThemAll:
     def fastKnight(self, knight, rook, queen):
-        G = {coord(knight): vertex(0, None)}
-        Q = deque([coord(knight)])
-
-        while len(Q) > 0:
-            current = Q.popleft()
-            for a in adjacent(current):
-                if not a in G:
-                    G[a] = vertex(G[current]['d'] + 1, current)
-                    qrCapture = a == coord(rook) and is_ancestor(G, coord(queen), a)
-                    rqCapture = a == coord(queen) and is_ancestor(G, coord(rook), a)
-                    if qrCapture or rqCapture:
-                        return G[a]['d']
-                    Q.append(a)
+        rq = min_moves(coord(knight), coord(rook)) + min_moves(coord(rook), coord(queen))
+        qr = min_moves(coord(knight), coord(queen)) + min_moves(coord(queen), coord(rook))
+        return min(rq, qr)
 
 
-def is_ancestor(G, candidateCoord, vertexCoord):
-    if not candidateCoord in G or not G[vertexCoord]['p']:
-        return False
+def min_moves(srcCoord, destCoord):
+    M = {srcCoord: 0}
+    Q = deque([srcCoord])
 
-    if G[vertexCoord]['p'] == candidateCoord:
-        return True
-
-    return is_ancestor(G, candidateCoord, G[vertexCoord]['p'])
+    while len(Q) > 0:
+        current = Q.popleft()
+        for a in adjacent(current):
+            if not a in M:
+                M[a] = M[current] + 1
+                if a == destCoord:
+                    return M[a]
+                Q.append(a)
 
 
 def adjacent(coord):
@@ -47,10 +41,6 @@ def adjacent_deltas():
 
 def coord(position):
     return ord(position[0]) - ord('a'), int(position[1]) - 1
-
-
-def vertex(distance, parentCoord):
-    return {'d': distance, 'p': parentCoord}
 
 
 cta = CaptureThemAll()
