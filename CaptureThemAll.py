@@ -10,7 +10,6 @@ class CaptureThemAll:
 
 def min_moves(srcCoord, destCoord):
     M = {srcCoord: 0}
-    P = {srcCoord: None}
     Q = deque([srcCoord])
 
     while len(Q) > 0:
@@ -18,20 +17,9 @@ def min_moves(srcCoord, destCoord):
         for a in adjacent(current):
             if not a in M:
                 M[a] = M[current] + 1
-                P[a] = current
                 if a == destCoord:
-                    print(path(P, current, []))
                     return M[a]
                 Q.append(a)
-
-
-def path(P, a, agg):
-    if not a:
-        return agg
-
-    agg.insert(0, a)
-    return path(P, P[a], agg)
-
 
 
 def adjacent(coord):
@@ -56,8 +44,8 @@ def coord(position):
 
 
 cta = CaptureThemAll()
-# print(cta.fastKnight('a1', 'b3', 'c5'))
-# print(cta.fastKnight('b1', 'c3', 'a3'))
+print(cta.fastKnight('a1', 'b3', 'c5'))
+print(cta.fastKnight('b1', 'c3', 'a3'))
 print(cta.fastKnight('a1', 'a2', 'b2'))
-# print(cta.fastKnight('a5', 'b7', 'e4'))
-# print(cta.fastKnight('h8', 'e2', 'd2'))
+print(cta.fastKnight('a5', 'b7', 'e4'))
+print(cta.fastKnight('h8', 'e2', 'd2'))
