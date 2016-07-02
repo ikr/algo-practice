@@ -3,6 +3,12 @@ class RevolvingDoors:
         return -1
 
 
+def adjacent_coords(maze, coord):
+    x, y = coord
+
+    return tuple()
+
+
 def at(maze, coord):
     rowsCount = len(maze)
     columnsCount = len(maze[0])
@@ -14,8 +20,20 @@ def at(maze, coord):
     return '#'
 
 
-def adjacent_coords(maze, coord):
-    return tuple()
+def can_move_horizontally(to):
+    result = base_move_rules()
+    result.update({'-': False, '|': True})
+    return result[to]
+
+
+def can_move_vertically(to):
+    result = base_move_rules()
+    result.update({'-': True, '|': False})
+    return result[to]
+
+
+def base_move_rules():
+    return {' ': True, '#': False, 'O': False, 'E': True}
 
 
 maze = (
@@ -29,4 +47,4 @@ maze = (
     "########"
 )
 
-print(at(maze, (2, 4)))
+print(can_move_vertically('O'))
