@@ -38,6 +38,12 @@ def base_move_rules():
     return {' ': True, '#': False, 'O': False, 'E': True}
 
 
+def start_coord(maze):
+    for index, row in enumerate(maze):
+        if 'S' in row:
+            return maze[index].index('S'), index
+
+
 maze = (
     "    ### ",
     "    #E# ",
@@ -49,4 +55,4 @@ maze = (
     "########"
 )
 
-print(can_move_vertically('O'))
+print(start_coord(maze))
