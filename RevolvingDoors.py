@@ -7,7 +7,15 @@ def adjacent_coords(maze, coord):
     x, y = coord
     result = []
 
-    # for delta in (0, -1), (0, 1):
+    for delta in (0, -1), (0, 1):
+        to_coord = plus(coord, delta)
+        if can_move_vertically(at(maze, to_coord)):
+            result.append(to_coord)
+
+    for delta in (-1, 0), (1, 0):
+        to_coord = plus(coord, delta)
+        if can_move_horizontally(at(maze, to_coord)):
+            result.append(to_coord)
 
     return tuple(result)
 
@@ -62,4 +70,4 @@ maze = (
     "########"
 )
 
-print(plus((1, 2), (3, 4)))
+print(adjacent_coords(maze, (6, 5)))
