@@ -21,14 +21,16 @@ def at(maze, coord):
 
 
 def can_move_horizontally(to):
-    result = base_move_rules()
-    result.update({'-': False, '|': True})
-    return result[to]
+    return can_move({'-': False, '|': True}, to)
 
 
 def can_move_vertically(to):
+    return can_move({'-': True, '|': False}, to)
+
+
+def can_move(amend_rules, to):
     result = base_move_rules()
-    result.update({'-': True, '|': False})
+    result.update(amend_rules)
     return result[to]
 
 
