@@ -5,8 +5,11 @@ class RevolvingDoors:
 
 def adjacent_coords(maze, coord):
     x, y = coord
+    result = []
 
-    return tuple()
+    # for delta in (0, -1), (0, 1):
+
+    return tuple(result)
 
 
 def at(maze, coord):
@@ -35,13 +38,17 @@ def can_move(amend_rules, to):
 
 
 def base_move_rules():
-    return {' ': True, '#': False, 'O': False, 'E': True}
+    return {' ': True, '#': False, 'O': False, 'S': False, 'E': True}
 
 
 def start_coord(maze):
     for index, row in enumerate(maze):
         if 'S' in row:
             return maze[index].index('S'), index
+
+
+def plus(coord1, coord2):
+    return coord1[0] + coord2[0], coord1[1] + coord2[1]
 
 
 maze = (
@@ -55,4 +62,4 @@ maze = (
     "########"
 )
 
-print(start_coord(maze))
+print(plus((1, 2), (3, 4)))
