@@ -1,5 +1,6 @@
 from collections import deque
 
+
 class RevolvingDoors:
     def turns(self, maze):
         return -1
@@ -12,10 +13,10 @@ def can_reach_in_maze(maze, start_coord, end_coord):
     while len(Q) > 0:
         current = Q.popleft()
         for a in adjacent_coords(maze, current):
+            if a == end_coord:
+                return True
             if a not in R:
                 R[a] = True
-                if a == end_coord:
-                    return true
                 Q.append(a)
 
     return False
@@ -88,4 +89,5 @@ maze = (
     "########"
 )
 
-print(adjacent_coords(maze, (6, 5)))
+print(can_reach_in_maze(maze, (2, 4), (5, 1)))
+print(can_reach_in_maze(maze, (2, 4), (6, 6)))
