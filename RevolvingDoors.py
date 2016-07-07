@@ -6,6 +6,18 @@ class RevolvingDoors:
         return -1
 
 
+def search_turns(original_maze):
+    T = {original_maze: -1}
+    Q = deque([original_maze])
+
+    while len(Q) > 0:
+        current = Q.popleft()
+
+
+def is_passable(maze):
+    return can_reach_in_maze(maze, tile_coord(maze, 'S'), tile_coord(maze, 'E'))
+
+
 def can_reach_in_maze(maze, start_coord, end_coord):
     R = {start_coord: True}
     Q = deque([start_coord])
@@ -68,10 +80,10 @@ def base_move_rules():
     return {' ': True, '#': False, 'O': False, 'S': False, 'E': True}
 
 
-def start_coord(maze):
+def tile_coord(maze, tile):
     for index, row in enumerate(maze):
-        if 'S' in row:
-            return maze[index].index('S'), index
+        if tile in row:
+            return maze[index].index(tile), index
 
 
 def plus(coord1, coord2):
@@ -89,5 +101,4 @@ maze = (
     "########"
 )
 
-print(can_reach_in_maze(maze, (2, 4), (5, 1)))
-print(can_reach_in_maze(maze, (2, 4), (6, 6)))
+print(is_passable(maze))
