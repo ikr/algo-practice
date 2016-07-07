@@ -3,15 +3,26 @@ from collections import deque
 
 class RevolvingDoors:
     def turns(self, maze):
+        if is_passable(maze):
+            return True
+
+        T = {maze: 0}
+        Q = deque([maze])
+
+        while len(Q) > 0:
+            current = Q.popleft()
+            for a in adjacent_mazes(current):
+                if a not in T:
+                    T[a] = T[current] + 1
+                    if is_passable(a):
+                        return T[a]
+                    Q.append(a)
+
         return -1
 
 
-def search_turns(original_maze):
-    T = {original_maze: -1}
-    Q = deque([original_maze])
-
-    while len(Q) > 0:
-        current = Q.popleft()
+def adjacent_mazes(maze):
+    return tuple()
 
 
 def is_passable(maze):
@@ -101,4 +112,5 @@ maze = (
     "########"
 )
 
-print(is_passable(maze))
+rd = RevolvingDoors()
+print(rd.turns(maze))
