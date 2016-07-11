@@ -148,6 +148,7 @@ m0 = (
     "########"
 )
 
+print('m0 =====')
 print(possible_door_moves(m0, (5, 4)))
 
 m2 = (
@@ -156,7 +157,10 @@ m2 = (
     " |  |  |     |  |  |  |  |  | "
 )
 
+print('m2 =====')
+print(possible_door_moves(m2, (10, 1)))
 print(possible_door_moves(m2, (25, 1)))
+print(possible_door_moves(m2, (28, 1)))
 
 m6 = (
     "#############",
@@ -168,7 +172,9 @@ m6 = (
     "#############"
 )
 
+print('m6 =====')
 print(possible_door_moves(m6, (8, 4)))
+print(possible_door_moves(m6, (7, 2)))
 
 rd = RevolvingDoors()
 print(rd.turns(m0))
