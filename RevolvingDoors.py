@@ -155,7 +155,7 @@ def plus(coord1, coord2):
     return coord1[0] + coord2[0], coord1[1] + coord2[1]
 
 
-maze = (
+m0 = (
     "    ### ",
     "    #E# ",
     "   ## # ",
@@ -166,7 +166,19 @@ maze = (
     "########"
 )
 
-print(possible_door_moves(maze, (5, 4)))
+print(possible_door_moves(m0, (5, 4)))
+
+m6 = (
+    "#############",
+    "#  #|##|#   #",
+    "#   O  O    #",
+    "# E || || S #",
+    "#    O  O   #",
+    "#   #|##|#  #",
+    "#############"
+)
+
+print(possible_door_moves(m6, (4, 2)))
 
 rd = RevolvingDoors()
-print(rd.turns(maze))
+print(rd.turns(m0))
