@@ -168,6 +168,14 @@ m0 = (
 
 print(possible_door_moves(m0, (5, 4)))
 
+m2 = (
+    " |  |  |     |  |  |  |  |  | ",
+    " O  O EO -O- O  O  O  O  OS O ",
+    " |  |  |     |  |  |  |  |  | "
+)
+
+print(possible_door_moves(m2, (10, 1)))
+
 m6 = (
     "#############",
     "#  #|##|#   #",
