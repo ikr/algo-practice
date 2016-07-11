@@ -103,14 +103,9 @@ def adjacent_coords(maze, coord):
     x, y = coord
     result = []
 
-    for delta in (0, -1), (0, 1):
+    for delta in (0, -1), (0, 1), (-1, 0), (1, 0):
         to_coord = plus(coord, delta)
-        if can_move_vertically(at(maze, to_coord)):
-            result.append(to_coord)
-
-    for delta in (-1, 0), (1, 0):
-        to_coord = plus(coord, delta)
-        if can_move_horizontally(at(maze, to_coord)):
+        if can_move(at(maze, to_coord)):
             result.append(to_coord)
 
     return tuple(result)
@@ -127,22 +122,9 @@ def at(maze, coord):
     return '#'
 
 
-def can_move_horizontally(to):
-    return can_move({'-': False, '|': True}, to)
-
-
-def can_move_vertically(to):
-    return can_move({'-': True, '|': False}, to)
-
-
-def can_move(amend_rules, to):
-    result = base_move_rules()
-    result.update(amend_rules)
-    return result[to]
-
-
-def base_move_rules():
-    return {' ': True, '#': False, 'O': False, 'S': False, 'E': True}
+def can_move(to):
+    mv = {' ': True, 'E': True, 'S': False, '#': False, 'O': False, '-': False, '|': False}
+    return mv[to]
 
 
 def tile_coord(maze, tile):
@@ -174,7 +156,7 @@ m2 = (
     " |  |  |     |  |  |  |  |  | "
 )
 
-print(possible_door_moves(m2, (10, 1)))
+print(possible_door_moves(m2, (25, 1)))
 
 m6 = (
     "#############",
@@ -186,7 +168,7 @@ m6 = (
     "#############"
 )
 
-print(possible_door_moves(m6, (4, 2)))
+print(possible_door_moves(m6, (8, 4)))
 
 rd = RevolvingDoors()
 print(rd.turns(m0))
