@@ -25,6 +25,16 @@ def adjacent_mazes(maze):
     return tuple()
 
 
+def possible_door_moves(maze, door_coord):
+    is_horz = door_orientation(maze, door_coord) == '-'
+    all_moves = horz_door_moves(door_coord) if is_horz else vert_door_moves(door_coord)
+    start_coord = tile_coord(maze, 'S')
+
+    filtered = filter(lambda mv: can_reach_in_maze(maze, start_coord, mv['from']), all_moves)
+
+    return tuple(filtered)
+
+
 def door_orientation(maze, door_coord):
     left_neighbour_coord = plus(door_coord, (-1, 0))
     return '-' if at(maze, left_neighbour_coord) == '-' else '|'
@@ -156,7 +166,7 @@ maze = (
     "########"
 )
 
-print(horz_door_moves((5, 5)))
+print(possible_door_moves(maze, (5, 4)))
 
 rd = RevolvingDoors()
 print(rd.turns(maze))
