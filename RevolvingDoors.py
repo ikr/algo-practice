@@ -162,6 +162,19 @@ print(possible_door_moves(m2, (10, 1)))
 print(possible_door_moves(m2, (25, 1)))
 print(possible_door_moves(m2, (28, 1)))
 
+m3 = (
+    "###########",
+    "#    #    #",
+    "#  S | E  #",
+    "#    O    #",
+    "#    |    #",
+    "#         #",
+    "###########"
+)
+
+print('m3 =====')
+print(possible_door_moves(m3, (5, 3)))
+
 m6 = (
     "#############",
     "#  #|##|#   #",
