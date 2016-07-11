@@ -25,6 +25,14 @@ def adjacent_mazes(maze):
     return tuple()
 
 
+def door_orientation(maze, door_coord):
+    left_neighbour_coord = plus(door_coord, (-1, 0))
+    return '-' if at(maze, left_neighbour_coord) == '-' else '|'
+
+
+################################################################################
+
+
 def is_passable(maze):
     return can_reach_in_maze(maze, tile_coord(maze, 'S'), tile_coord(maze, 'E'))
 
@@ -111,6 +119,8 @@ maze = (
     "#      #",
     "########"
 )
+
+print(door_orientation(maze, (5, 4)))
 
 rd = RevolvingDoors()
 print(rd.turns(maze))
