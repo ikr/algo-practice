@@ -33,6 +33,42 @@ def door_orientation(maze, door_coord):
 ################################################################################
 
 
+def horz_door_moves(door_coord):
+    return door_moves(horz_door_moves_tos(door_coord), door_coord)
+
+
+def vert_door_moves(door_coord):
+    return door_moves(vert_door_moves_tos(door_coord), door_coord)
+
+
+def door_moves(tos, door_coord):
+    froms = door_moves_froms(door_coord)
+    return coord_pairs_to_door_moves(zip(froms, tos))
+
+
+def door_moves_froms(door_coord):
+    return apply_deltas(((-1, -1), (1, -1), (1, 1), (-1, 1)), door_coord)
+
+
+def horz_door_moves_tos(door_coord):
+    return apply_deltas(((-1, 0), (1, 0), (1, 0), (-1, 0)), door_coord)
+
+
+def vert_door_moves_tos(door_coord):
+    return apply_deltas(((0, -1), (0, -1), (0, 1), (0, 1)), door_coord)
+
+
+def apply_deltas(deltas, coord):
+    return tuple(map(lambda d: plus(coord, d), deltas))
+
+
+def coord_pairs_to_door_moves(coord_pairs):
+    return tuple(map(lambda p: {'from': p[0], 'to': p[1]}, coord_pairs))
+
+
+################################################################################
+
+
 def is_passable(maze):
     return can_reach_in_maze(maze, tile_coord(maze, 'S'), tile_coord(maze, 'E'))
 
@@ -120,7 +156,7 @@ maze = (
     "########"
 )
 
-print(door_orientation(maze, (5, 4)))
+print(horz_door_moves((5, 5)))
 
 rd = RevolvingDoors()
 print(rd.turns(maze))
