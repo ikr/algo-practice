@@ -47,6 +47,9 @@ def unique_door_moves(door_moves):
     return tuple(result)
 
 
+################################################################################
+
+
 def new_start(maze, coord):
     result = set_tile(maze, ' ', tile_coord(maze, 'S'))
     return set_tile(result, 'S', coord)
