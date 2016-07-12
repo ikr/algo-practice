@@ -192,5 +192,19 @@ print('m6 =====')
 print(possible_door_moves(m6, (8, 4)))
 print(possible_door_moves(m6, (7, 2)))
 
+mm = (
+    "###########",
+    "#    #    #",
+    "#   S| E  #",
+    "#    O    #",
+    "#    |    #",
+    "#         #",
+    "###########"
+)
+
+print('mm =====')
+print(possible_door_moves(m3, (5, 3)))
+print(can_reach_in_maze(mm, (1, 1), (1, 1)))
+
 rd = RevolvingDoors()
 print(rd.turns(m0))
