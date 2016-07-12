@@ -47,6 +47,11 @@ def unique_door_moves(door_moves):
     return tuple(result)
 
 
+def new_start(maze, coord):
+    result = set_tile(maze, ' ', tile_coord(maze, 'S'))
+    return set_tile(result, 'S', coord)
+
+
 def turn_door(maze, door_coord):
     result = maze
 
@@ -241,6 +246,7 @@ mm = (
 print('mm =====')
 print(possible_door_moves(m3, (5, 3)))
 print(unique_door_moves(possible_door_moves(m3, (5, 3))))
+print('\n'.join(new_start(mm, (1, 1))))
 
 
 rd = RevolvingDoors()
