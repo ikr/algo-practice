@@ -47,6 +47,17 @@ def unique_door_moves(door_moves):
     return tuple(result)
 
 
+def door_coords(maze):
+    result = []
+
+    for y, row in enumerate(maze):
+        for x, tile in enumerate(row):
+            if tile == 'O':
+                result.append((x, y))
+
+    return tuple(result)
+
+
 ################################################################################
 
 
@@ -240,6 +251,7 @@ m6 = (
 print('m6 =====')
 print(possible_door_moves(m6, (8, 4)))
 print(possible_door_moves(m6, (7, 2)))
+print(door_coords(m6))
 
 mm = (
     "###########",
