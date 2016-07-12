@@ -35,6 +35,23 @@ def possible_door_moves(maze, door_coord):
     return tuple(filtered)
 
 
+def turn_door(maze, door_coord):
+    result = maze
+
+    if door_orientation(maze, door_coord) == '-':
+        result = set_tile(result, ' ', plus(door_coord, (-1, 0)))
+        result = set_tile(result, ' ', plus(door_coord, (1, 0)))
+        result = set_tile(result, '|', plus(door_coord, (0, -1)))
+        result = set_tile(result, '|', plus(door_coord, (0, 1)))
+    else:
+        result = set_tile(result, ' ', plus(door_coord, (0, -1)))
+        result = set_tile(result, ' ', plus(door_coord, (0, 1)))
+        result = set_tile(result, '-', plus(door_coord, (-1, 0)))
+        result = set_tile(result, '-', plus(door_coord, (1, 0)))
+
+    return result
+
+
 def set_tile(maze, tile, coord):
     x, y = coord
     row = maze[y][:x] + tile + maze[y][x + 1:]
@@ -170,6 +187,7 @@ print('m2 =====')
 print(possible_door_moves(m2, (10, 1)))
 print(possible_door_moves(m2, (25, 1)))
 print(possible_door_moves(m2, (28, 1)))
+print('\n'.join(turn_door(m2, (1, 1))))
 
 m3 = (
     "###########",
