@@ -35,6 +35,12 @@ def possible_door_moves(maze, door_coord):
     return tuple(filtered)
 
 
+def set_tile(maze, tile, coord):
+    x, y = coord
+    row = maze[y][:x] + tile + maze[y][x + 1:]
+    return maze[:y] + (row, ) + maze[y + 1:]
+
+
 def door_orientation(maze, door_coord):
     left_neighbour_coord = plus(door_coord, (-1, 0))
     return '-' if at(maze, left_neighbour_coord) == '-' else '|'
