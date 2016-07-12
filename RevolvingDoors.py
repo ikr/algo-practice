@@ -35,6 +35,18 @@ def possible_door_moves(maze, door_coord):
     return tuple(filtered)
 
 
+def unique_door_moves(door_moves):
+    result = []
+    tos = set()
+
+    for door_move in door_moves:
+        if not door_move['to'] in tos:
+            result.append(door_move)
+            tos.add(door_move['to'])
+
+    return tuple(result)
+
+
 def turn_door(maze, door_coord):
     result = maze
 
@@ -228,7 +240,8 @@ mm = (
 
 print('mm =====')
 print(possible_door_moves(m3, (5, 3)))
-print(can_reach_in_maze(mm, (1, 1), (1, 1)))
+print(unique_door_moves(possible_door_moves(m3, (5, 3))))
+
 
 rd = RevolvingDoors()
 print(rd.turns(m0))
