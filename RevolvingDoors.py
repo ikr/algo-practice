@@ -251,8 +251,8 @@ m3 = (
     "###########"
 )
 
-print('m3 =====')
-print(possible_door_moves(m3, (5, 3)))
+print_maze(m3)
+print_mazes(adjacent_mazes(m3))
 
 m6 = (
     "#############",
@@ -264,10 +264,9 @@ m6 = (
     "#############"
 )
 
-print('m6 =====')
-print(possible_door_moves(m6, (8, 4)))
-print(possible_door_moves(m6, (7, 2)))
-print(door_coords(m6))
+print_maze(m6)
+print_mazes(adjacent_mazes(m6))
+print_mazes(adjacent_mazes(adjacent_mazes(m6)[0]))
 
-#rd = RevolvingDoors()
-#print(rd.turns(m0))
+rd = RevolvingDoors()
+print(rd.turns(m6))
