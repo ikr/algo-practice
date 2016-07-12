@@ -50,6 +50,10 @@ def unique_door_moves(door_moves):
 ################################################################################
 
 
+def make_a_move(maze, door_coord, to_coord):
+    return new_start(turn_door(maze, door_coord), to_coord)
+
+
 def new_start(maze, coord):
     result = set_tile(maze, ' ', tile_coord(maze, 'S'))
     return set_tile(result, 'S', coord)
@@ -196,6 +200,7 @@ m0 = (
 
 print('m0 =====')
 print(possible_door_moves(m0, (5, 4)))
+print('\n'.join(make_a_move(m0, (5, 4), (6, 4))))
 
 m2 = (
     " |  |  |     |  |  |  |  |  | ",
