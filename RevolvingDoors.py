@@ -22,7 +22,13 @@ class RevolvingDoors:
 
 
 def adjacent_mazes(maze):
-    return tuple()
+    result = []
+
+    for door_coord in door_coords(maze):
+        for door_move in unique_door_moves(possible_door_moves(maze, door_coord)):
+            result.append(make_a_move(maze, door_coord, door_move['to']))
+
+    return tuple(result)
 
 
 def possible_door_moves(maze, door_coord):
@@ -66,7 +72,12 @@ def make_a_move(maze, door_coord, to_coord):
 
 
 def new_start(maze, coord):
-    result = set_tile(maze, ' ', tile_coord(maze, 'S'))
+    old_coord = tile_coord(maze, 'S')
+    result = maze
+
+    if old_coord:
+        result = set_tile(result, ' ', old_coord)
+
     return set_tile(result, 'S', coord)
 
 
@@ -198,6 +209,15 @@ def plus(coord1, coord2):
 ################################################################################
 
 
+def print_mazes(mazes):
+    for maze in mazes:
+        print_maze(maze)
+
+
+def print_maze(maze):
+    return print('\n'.join(maze))
+
+
 m0 = (
     "    ### ",
     "    #E# ",
@@ -209,9 +229,8 @@ m0 = (
     "########"
 )
 
-print('m0 =====')
-print(possible_door_moves(m0, (5, 4)))
-print('\n'.join(make_a_move(m0, (5, 4), (6, 4))))
+print_maze(m0)
+print_mazes(adjacent_mazes(m0))
 
 m2 = (
     " |  |  |     |  |  |  |  |  | ",
@@ -219,11 +238,8 @@ m2 = (
     " |  |  |     |  |  |  |  |  | "
 )
 
-print('m2 =====')
-print(possible_door_moves(m2, (10, 1)))
-print(possible_door_moves(m2, (25, 1)))
-print(possible_door_moves(m2, (28, 1)))
-print('\n'.join(turn_door(m2, (1, 1))))
+print_maze(m2)
+print_mazes(adjacent_mazes(m2))
 
 m3 = (
     "###########",
@@ -253,21 +269,5 @@ print(possible_door_moves(m6, (8, 4)))
 print(possible_door_moves(m6, (7, 2)))
 print(door_coords(m6))
 
-mm = (
-    "###########",
-    "#    #    #",
-    "#   S| E  #",
-    "#    O    #",
-    "#    |    #",
-    "#         #",
-    "###########"
-)
-
-print('mm =====')
-print(possible_door_moves(m3, (5, 3)))
-print(unique_door_moves(possible_door_moves(m3, (5, 3))))
-print('\n'.join(new_start(mm, (1, 1))))
-
-
-rd = RevolvingDoors()
-print(rd.turns(m0))
+#rd = RevolvingDoors()
+#print(rd.turns(m0))
