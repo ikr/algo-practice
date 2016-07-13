@@ -211,11 +211,6 @@ def plus(coord1, coord2):
 ################################################################################
 
 
-def print_mazes(mazes):
-    for maze in mazes:
-        print_maze(maze)
-
-
 def print_maze(maze):
     return print('\n'.join(maze))
 
@@ -234,8 +229,18 @@ m0 = (
 )
 
 print_maze(m0)
-print_mazes(adjacent_mazes(m0))
 print(rd.turns(m0))
+
+m1 = (
+    "#### ",
+    "#S|##",
+    "# O #",
+    "##|E#",
+    " ####"
+)
+
+print_maze(m1)
+print(rd.turns(m1))
 
 m2 = (
     " |  |  |     |  |  |  |  |  | ",
@@ -244,7 +249,6 @@ m2 = (
 )
 
 print_maze(m2)
-print_mazes(adjacent_mazes(m2))
 print(rd.turns(m2))
 
 m3 = (
@@ -258,8 +262,22 @@ m3 = (
 )
 
 print_maze(m3)
-print_mazes(adjacent_mazes(m3))
 print(rd.turns(m3))
+
+m4 = (
+    "        E",
+    "    |    ",
+    "    O    ",
+    "    |    ",
+    " -O-S-O- ",
+    "    |    ",
+    "    O    ",
+    "    |    ",
+    "         "
+)
+
+print_maze(m4)
+print(rd.turns(m4))
 
 m5 = (
     "##E#   ",
@@ -274,7 +292,6 @@ m5 = (
 )
 
 print_maze(m5)
-print_mazes(adjacent_mazes(m5))
 print(rd.turns(m5))
 
 m6 = (
@@ -288,6 +305,4 @@ m6 = (
 )
 
 print_maze(m6)
-print_mazes(adjacent_mazes(m6))
-print_mazes(adjacent_mazes(adjacent_mazes(m6)[0]))
 print(rd.turns(m6))
