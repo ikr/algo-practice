@@ -3,7 +3,9 @@ from collections import deque
 
 class RevolvingDoors:
     def turns(self, maze):
-        if is_passable(maze):
+        end_coord = tile_coord(maze, 'E')
+
+        if is_passable(maze, end_coord):
             return 0
 
         T = {maze: 0}
@@ -14,7 +16,7 @@ class RevolvingDoors:
             for a in adjacent_mazes(current):
                 if a not in T:
                     T[a] = T[current] + 1
-                    if is_passable(a):
+                    if is_passable(a, end_coord):
                         return T[a]
                     Q.append(a)
 
@@ -148,8 +150,8 @@ def coord_pairs_to_door_moves(coord_pairs):
 ################################################################################
 
 
-def is_passable(maze):
-    return can_reach_in_maze(maze, tile_coord(maze, 'S'), tile_coord(maze, 'E'))
+def is_passable(maze, end_coord):
+    return can_reach_in_maze(maze, tile_coord(maze, 'S'), end_coord)
 
 
 def can_reach_in_maze(maze, start_coord, end_coord):
@@ -243,7 +245,7 @@ m2 = (
 
 print_maze(m2)
 print_mazes(adjacent_mazes(m2))
-#print(rd.turns(m2))
+print(rd.turns(m2))
 
 m3 = (
     "###########",
