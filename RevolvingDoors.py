@@ -192,7 +192,7 @@ def at(maze, coord):
 
 
 def can_move(to):
-    mv = {' ': True, 'E': True, 'S': False, '#': False, 'O': False, '-': False, '|': False}
+    mv = {' ': True, 'E': True, 'S': True, '#': False, 'O': False, '-': False, '|': False}
     return mv[to]
 
 
