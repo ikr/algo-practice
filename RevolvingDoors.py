@@ -4,7 +4,7 @@ from collections import deque
 class RevolvingDoors:
     def turns(self, maze):
         if is_passable(maze):
-            return True
+            return 0
 
         T = {maze: 0}
         Q = deque([maze])
@@ -218,6 +218,8 @@ def print_maze(maze):
     return print('\n'.join(maze))
 
 
+rd = RevolvingDoors()
+
 m0 = (
     "    ### ",
     "    #E# ",
@@ -231,6 +233,7 @@ m0 = (
 
 print_maze(m0)
 print_mazes(adjacent_mazes(m0))
+print(rd.turns(m0))
 
 m2 = (
     " |  |  |     |  |  |  |  |  | ",
@@ -240,6 +243,7 @@ m2 = (
 
 print_maze(m2)
 print_mazes(adjacent_mazes(m2))
+#print(rd.turns(m2))
 
 m3 = (
     "###########",
@@ -253,6 +257,23 @@ m3 = (
 
 print_maze(m3)
 print_mazes(adjacent_mazes(m3))
+print(rd.turns(m3))
+
+m5 = (
+    "##E#   ",
+    "#  ##  ",
+    " -O-## ",
+    " #  ## ",
+    " ##  ##",
+    "  -O-  ",
+    "##  ## ",
+    " # ### ",
+    " #  S  "
+)
+
+print_maze(m5)
+print_mazes(adjacent_mazes(m5))
+print(rd.turns(m5))
 
 m6 = (
     "#############",
@@ -267,6 +288,4 @@ m6 = (
 print_maze(m6)
 print_mazes(adjacent_mazes(m6))
 print_mazes(adjacent_mazes(adjacent_mazes(m6)[0]))
-
-rd = RevolvingDoors()
 print(rd.turns(m6))
