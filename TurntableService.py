@@ -18,10 +18,11 @@ def fully_serving_vertex_sequences(favorites_lists):
 
         for a_vertex in adjacent(current_vertex):
             if not a_vertex in visited:
+                visited.add(a_vertex)
                 parents[a_vertex] = current_vertex
 
                 if all_served(a_vertex):
-                    yield sequentialize_children(a_vertex, parents)
+                    yield root_to_leaf_sequence(a_vertex, parents)
 
                 q.append(a_vertex)
 
