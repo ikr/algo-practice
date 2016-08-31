@@ -3,7 +3,9 @@ from collections import deque
 
 class TurntableService:
     def calculateTime(favorites):
-        return -1
+        favorites_lists = tuple(map(favorites_list, favorites))
+        durations = map(duration, fully_serving_vertex_sequences(favorites_lists))
+        return min(durations)
 
 
 def fully_serving_vertex_sequences(favorites_lists):
