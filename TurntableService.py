@@ -16,7 +16,7 @@ def fully_serving_vertex_sequences(favorites_lists):
     while len(q) > 0:
         current_vertex = q.popleft()
 
-        for a_vertex in adjacent(current_vertex):
+        for a_vertex in adjacent(current_vertex, favorites_lists):
             if not a_vertex in visited:
                 visited.add(a_vertex)
                 parents[a_vertex] = current_vertex
