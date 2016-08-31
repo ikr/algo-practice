@@ -39,4 +39,9 @@ def turn_right(ttable):
     return (ttable[-1],) + ttable[0:-1]
 
 
-print(vertex((3, 0, 1, 2), False, {0, 1, 2, 3}));
+def favorites_list(favorites_string):
+    return tuple(set(map(int, favorites_string.split(' '))))
+
+
+print(favorites_list("0 004"));
+print(favorites_list("1 1 01 02 03"));
