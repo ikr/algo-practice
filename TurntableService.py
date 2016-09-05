@@ -30,9 +30,7 @@ def fully_serving_vertex_sequences(favorites_lists):
 
 
 def duration(vertex_sequence):
-    if len(vertex_sequence) < 2:
-        return 0
-
+    assert len(vertex_sequence) > 1
     assert not vertex_sequence[0]['s']
 
     result = 0
@@ -76,8 +74,6 @@ v1_ = vertex(tt1, True, idc)
 v2 = vertex(tt2, False, idc)
 v2_ = vertex(tt2, True, idc)
 
-assert duration(tuple()) == 0
-assert duration((v0,)) == 0
 assert duration((v0, v1)) == 2
 assert duration((v0, v1, v2)) == 3
 assert duration((v0, v0_)) == 15
