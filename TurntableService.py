@@ -62,17 +62,17 @@ def favorites_list(favorites_string):
     return tuple(set(map(int, favorites_string.split(' '))))
 
 
-tt0 = tuple(range(4))
+tt0 = (0, 1, 2, 3)
 idc = set(tt0)
 tt1 = turn_left(tt0)
 tt2 = turn_left(tt1)
 
 v0 = vertex(tt0, False, idc)
-v0_ = vertex(tt0, True, idc)
+v0_ = vertex(tt0, True, {1, 2})
 v1 = vertex(tt1, False, idc)
-v1_ = vertex(tt1, True, idc)
+v1_ = vertex(tt1, True, {2, 3})
 v2 = vertex(tt2, False, idc)
-v2_ = vertex(tt2, True, idc)
+v2_ = vertex(tt2, True, {2})
 
 assert duration((v0, v1)) == 2
 assert duration((v0, v1, v2)) == 3
