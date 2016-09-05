@@ -76,7 +76,7 @@ assert duration((v0, v0_, v1)) == 17
 
 
 ts = TurntableService()
-print(ts.calculateTime(("0 2", "1", "0 1")))
-print(ts.calculateTime(("0", "0", "0")))
-print(ts.calculateTime(("4", "1", "2", "3", "0")))
-print(ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")))
+assert ts.calculateTime(("0 2", "1", "0 1")) == 32
+assert ts.calculateTime(("0", "0", "0")) == 49
+assert ts.calculateTime(("4", "1", "2", "3", "0")) == 50
+assert ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")) == 35
