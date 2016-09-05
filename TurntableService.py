@@ -46,6 +46,10 @@ def duration(vertex_sequence):
     return result
 
 
+def adjacent(v, favorites_lists):
+    return tuple()
+
+
 def vertex(ttable, do_serve, hungry_indices):
     return {'t': ttable, 's': do_serve, 'h': hungry_indices}
 
@@ -62,25 +66,22 @@ def favorites_list(favorites_string):
     return tuple(set(map(int, favorites_string.split(' '))))
 
 
-tt0 = (0, 1, 2, 3)
-idc = set(tt0)
-tt1 = turn_left(tt0)
-tt2 = turn_left(tt1)
+v0 = vertex((0, 1, 2), False, {0, 1, 2})
+v0_ = vertex((0, 1, 2), True, {2})
+v1 = vertex((1, 2, 0), False, {0, 1, 2})
+v2 = vertex((2, 0, 1), False, {0, 1, 2})
+assert adjacent(v0, ((0, 2), (1,), (0, 1))) == (v0_, v1, v2)
+assert adjacent(v0, ((2,), (0,), (1,))) == (v1, v2)
 
-v0 = vertex(tt0, False, idc)
-v0_ = vertex(tt0, True, {1, 2})
-v1 = vertex(tt1, False, idc)
-v1_ = vertex(tt1, True, {2, 3})
-v2 = vertex(tt2, False, idc)
-v2_ = vertex(tt2, True, {2})
+u0 = vertex((0,), False, {0})
+u0_ = vertex((0,), True, set())
+assert adjacent(u0, ((0,),)) == (u0_,)
 
-assert duration((v0, v1)) == 2
-assert duration((v0, v1, v2)) == 3
-assert duration((v0, v0_)) == 15
-assert duration((v0, v0_, v1)) == 17
-assert duration((v0, v0_, v1, v1_)) == 32
-assert duration((v0, v1, v2, v2_)) == 18
-
+w0 = vertex((0, 1), False, {0, 1})
+w0_ = vertex((0, 1), True, set())
+w1 = vertex((1, 0), False, {0, 1})
+assert adjacent(w0, ((0,), (0, 1))) == (w0_,)
+assert adjacent(w0, ((1,), (0,))) == (w1,)
 
 ts = TurntableService()
 assert ts.calculateTime(("0 2", "1", "0 1")) == 32
