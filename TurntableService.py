@@ -80,7 +80,7 @@ assert adjacent(u0, ((0,),)) == (u0_,)
 w0 = vertex((0, 1), False, {0, 1})
 w0_ = vertex((0, 1), True, set())
 w1 = vertex((1, 0), False, {0, 1})
-assert adjacent(w0, ((0,), (0, 1))) == (w0_,)
+assert adjacent(w0, ((0, 1), (0, 1))) == (w0_, w1)
 assert adjacent(w0, ((1,), (0,))) == (w1,)
 
 ts = TurntableService()
