@@ -30,13 +30,20 @@ def fully_serving_vertex_sequences(favorites_lists):
 
 
 def duration(vertex_sequence):
-    if len(vertex_sequence) == 0:
+    if len(vertex_sequence) < 2:
         return 0
+
+    assert not vertex_sequence[0]['s']
 
     result = 0
 
-    for v in vertex_sequence:
-        result += 1
+    for u, v in zip(vertex_sequence, vertex_sequence[1:]):
+        assert not (u['s'] and v['s'])
+
+        if v['s']:
+            result += 15
+        else:
+            result += (2 if u['s'] or result == 0 else 1)
 
     return result
 
@@ -65,7 +72,9 @@ tt2 = turn_left(tt1)
 v0 = vertex(tt0, False, idc)
 v0_ = vertex(tt0, True, idc)
 v1 = vertex(tt1, False, idc)
+v1_ = vertex(tt1, True, idc)
 v2 = vertex(tt2, False, idc)
+v2_ = vertex(tt2, True, idc)
 
 assert duration(tuple()) == 0
 assert duration((v0,)) == 0
@@ -73,6 +82,8 @@ assert duration((v0, v1)) == 2
 assert duration((v0, v1, v2)) == 3
 assert duration((v0, v0_)) == 15
 assert duration((v0, v0_, v1)) == 17
+assert duration((v0, v0_, v1, v1_)) == 32
+assert duration((v0, v1, v2, v2_)) == 18
 
 
 ts = TurntableService()
