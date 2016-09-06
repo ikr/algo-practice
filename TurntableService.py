@@ -1,5 +1,4 @@
 from collections import deque
-import unittest
 
 
 class TurntableService:
@@ -51,6 +50,16 @@ def adjacent(v, favorites_lists):
     return tuple()
 
 
+def serve(ttable, favorites_lists, hungry_indices):
+    result = hungry_indices.copy()
+
+    for i, entree in zip(range(len(ttable)), ttable):
+        if entree in favorites_lists[i] and i in result:
+            result.remove(i)
+
+    return result
+
+
 def vertex(ttable, do_serve, hungry_indices):
     return {'t': ttable, 's': do_serve, 'h': hungry_indices}
 
@@ -66,40 +75,59 @@ def turn_right(ttable):
 def favorites_list(favorites_string):
     return tuple(set(map(int, favorites_string.split(' '))))
 
+####################################################################################################
 
-class TestAdjacentOnTurntableOfSize3(unittest.TestCase):
-    def setUp(self):
-        self.v0 = vertex((0, 1, 2), False, {0, 1, 2})
-        self.v0_ = vertex((0, 1, 2), True, {2})
-        self.v1 = vertex((1, 2, 0), False, {0, 1, 2})
-        self.v2 = vertex((2, 0, 1), False, {0, 1, 2})
+import unittest
 
-    def test_when_servable(self):
-        result = adjacent(self.v0, ((0, 2), (1,), (0, 1)))
-        expected = (self.v0_, self.v1, self.v2)
+class TestServe(unittest.TestCase):
+    def test_is_identical_when_cant_serve(self):
+        result = serve((0, 1), ((1,), (0,)), {0, 1})
+        expected = {0, 1}
         self.assertEqual(result, expected)
 
-    def test_when_not_servable(self):
-        result = adjacent(self.v0, ((2,), (0,), (1,)))
-        expected = (self.v1, self.v2)
+    def test_serves_one(self):
+        result = serve((0, 1, 2), ((2,), (0, 1, 2), (0,)), {0, 1, 2})
+        expected = {0, 2}
+        self.assertEqual(result, expected)
 
-class TestAdjacentOnTurntableOfSize2(unittest.TestCase):
-    def setUp(self):
-        self.w0 = vertex((0, 1), False, {0, 1})
-        self.w0_ = vertex((0, 1), True, set())
-        self.w1 = vertex((1, 0), False, {0, 1})
+    def test_does_nothing_if_person_is_already_served(self):
+        result = serve((0, 1, 2), ((2,), (1,), (0,)), {0})
+        expected = {0}
+        self.assertEqual(result, expected)
 
-    def test_when_servable(self):
-       self.assertEqual(adjacent(self.w0, ((0, 1), (0, 1))), (self.w0_, self.w1))
+# class TestAdjacentOnTurntableOfSize3(unittest.TestCase):
+#     def setUp(self):
+#         self.v0 = vertex((0, 1, 2), False, {0, 1, 2})
+#         self.v0_ = vertex((0, 1, 2), True, {2})
+#         self.v1 = vertex((1, 2, 0), False, {0, 1, 2})
+#         self.v2 = vertex((2, 0, 1), False, {0, 1, 2})
 
-    def test_when_not_servable(self):
-        self.assertEqual(adjacent(self.w0, ((1,), (0,))) == (self.w1,))
+#     def test_when_servable(self):
+#         result = adjacent(self.v0, ((0, 2), (1,), (0, 1)))
+#         expected = (self.v0_, self.v1, self.v2)
+#         self.assertEqual(result, expected)
 
-class TestAdjacentOnTurntableOfSize1(unittest.TestCase):
-    def test_for_sure_serving(self):
-        u0 = vertex((0,), False, {0})
-        u0_ = vertex((0,), True, set())
-        self.assertEqual(adjacent(u0, ((0,),)), (u0_,))
+#     def test_when_not_servable(self):
+#         result = adjacent(self.v0, ((2,), (0,), (1,)))
+#         expected = (self.v1, self.v2)
+
+# class TestAdjacentOnTurntableOfSize2(unittest.TestCase):
+#     def setUp(self):
+#         self.w0 = vertex((0, 1), False, {0, 1})
+#         self.w0_ = vertex((0, 1), True, set())
+#         self.w1 = vertex((1, 0), False, {0, 1})
+
+#     def test_when_servable(self):
+#        self.assertEqual(adjacent(self.w0, ((0, 1), (0, 1))), (self.w0_, self.w1))
+
+#     def test_when_not_servable(self):
+#         self.assertEqual(adjacent(self.w0, ((1,), (0,))) == (self.w1,))
+
+# class TestAdjacentOnTurntableOfSize1(unittest.TestCase):
+#     def test_for_sure_serving(self):
+#         u0 = vertex((0,), False, {0})
+#         u0_ = vertex((0,), True, set())
+#         self.assertEqual(adjacent(u0, ((0,),)), (u0_,))
 
 # ts = TurntableService()
 # assert ts.calculateTime(("0 2", "1", "0 1")) == 32
