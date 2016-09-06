@@ -47,7 +47,28 @@ def duration(vertex_sequence):
 
 
 def adjacent(v, favorites_lists):
-    return tuple()
+    v_l = vertex(turn_left(v['t']), False, v['h'])
+    v_r = vertex(turn_right(v['t']), False, v['h'])
+
+    if v['s']:
+        return (v_l, v_r)
+
+    result = []
+
+    if can_serve(v['t'], favorites_lists, v['h']):
+        result.append(vertex(v['t'], True, serve(v['t'], favorites_lists, v['h'])))
+
+    if v != v_l:
+        result.append(v_l)
+
+    if v_r != v_l:
+        result.append(v_r)
+
+    return tuple(result)
+
+
+def can_serve(ttable, favorites_lists, hungry_indices):
+    return serve(ttable, favorites_lists, hungry_indices) != hungry_indices
 
 
 def serve(ttable, favorites_lists, hungry_indices):
@@ -95,39 +116,45 @@ class TestServe(unittest.TestCase):
         expected = {0}
         self.assertEqual(result, expected)
 
-# class TestAdjacentOnTurntableOfSize3(unittest.TestCase):
-#     def setUp(self):
-#         self.v0 = vertex((0, 1, 2), False, {0, 1, 2})
-#         self.v0_ = vertex((0, 1, 2), True, {2})
-#         self.v1 = vertex((1, 2, 0), False, {0, 1, 2})
-#         self.v2 = vertex((2, 0, 1), False, {0, 1, 2})
+class TestAdjacentOnTurntableOfSize3(unittest.TestCase):
+    def setUp(self):
+        self.v0 = vertex((0, 1, 2), False, {0, 1, 2})
+        self.v0_ = vertex((0, 1, 2), True, {2})
+        self.v1 = vertex((1, 2, 0), False, {0, 1, 2})
+        self.v2 = vertex((2, 0, 1), False, {0, 1, 2})
 
-#     def test_when_servable(self):
-#         result = adjacent(self.v0, ((0, 2), (1,), (0, 1)))
-#         expected = (self.v0_, self.v1, self.v2)
-#         self.assertEqual(result, expected)
+    def test_when_servable(self):
+        result = adjacent(self.v0, ((0, 2), (1,), (0, 1)))
+        expected = (self.v0_, self.v1, self.v2)
+        self.assertEqual(result, expected)
 
-#     def test_when_not_servable(self):
-#         result = adjacent(self.v0, ((2,), (0,), (1,)))
-#         expected = (self.v1, self.v2)
+    def test_when_not_servable(self):
+        result = adjacent(self.v0, ((2,), (0,), (1,)))
+        expected = (self.v1, self.v2)
+        self.assertEqual(result, expected)
 
-# class TestAdjacentOnTurntableOfSize2(unittest.TestCase):
-#     def setUp(self):
-#         self.w0 = vertex((0, 1), False, {0, 1})
-#         self.w0_ = vertex((0, 1), True, set())
-#         self.w1 = vertex((1, 0), False, {0, 1})
+    def test_after_serving(self):
+        result = adjacent(self.v0_, ((0, 1, 2), (0, 1, 2), (0, 1, 2)))
+        expected = ({'t': (1, 2, 0), 's': False, 'h': {2}}, {'t': (2, 0, 1), 's': False, 'h': {2}})
+        self.assertEqual(result, expected)
 
-#     def test_when_servable(self):
-#        self.assertEqual(adjacent(self.w0, ((0, 1), (0, 1))), (self.w0_, self.w1))
+class TestAdjacentOnTurntableOfSize2(unittest.TestCase):
+    def setUp(self):
+        self.w0 = vertex((0, 1), False, {0, 1})
+        self.w0_ = vertex((0, 1), True, set())
+        self.w1 = vertex((1, 0), False, {0, 1})
 
-#     def test_when_not_servable(self):
-#         self.assertEqual(adjacent(self.w0, ((1,), (0,))) == (self.w1,))
+    def test_when_servable(self):
+       self.assertEqual(adjacent(self.w0, ((0, 1), (0, 1))), (self.w0_, self.w1))
 
-# class TestAdjacentOnTurntableOfSize1(unittest.TestCase):
-#     def test_for_sure_serving(self):
-#         u0 = vertex((0,), False, {0})
-#         u0_ = vertex((0,), True, set())
-#         self.assertEqual(adjacent(u0, ((0,),)), (u0_,))
+    def test_when_not_servable(self):
+        self.assertEqual(adjacent(self.w0, ((1,), (0,))), (self.w1,))
+
+class TestAdjacentOnTurntableOfSize1(unittest.TestCase):
+    def test_for_sure_serving(self):
+        u0 = vertex((0,), False, {0})
+        u0_ = vertex((0,), True, set())
+        self.assertEqual(adjacent(u0, ((0,),)), (u0_,))
 
 # ts = TurntableService()
 # assert ts.calculateTime(("0 2", "1", "0 1")) == 32
