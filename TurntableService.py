@@ -1,4 +1,5 @@
 from collections import deque
+import unittest
 
 
 class TurntableService:
@@ -66,25 +67,44 @@ def favorites_list(favorites_string):
     return tuple(set(map(int, favorites_string.split(' '))))
 
 
-v0 = vertex((0, 1, 2), False, {0, 1, 2})
-v0_ = vertex((0, 1, 2), True, {2})
-v1 = vertex((1, 2, 0), False, {0, 1, 2})
-v2 = vertex((2, 0, 1), False, {0, 1, 2})
-assert adjacent(v0, ((0, 2), (1,), (0, 1))) == (v0_, v1, v2)
-assert adjacent(v0, ((2,), (0,), (1,))) == (v1, v2)
+class TestAdjacentOnTurntableOfSize3(unittest.TestCase):
+    def setUp(self):
+        self.v0 = vertex((0, 1, 2), False, {0, 1, 2})
+        self.v0_ = vertex((0, 1, 2), True, {2})
+        self.v1 = vertex((1, 2, 0), False, {0, 1, 2})
+        self.v2 = vertex((2, 0, 1), False, {0, 1, 2})
 
-u0 = vertex((0,), False, {0})
-u0_ = vertex((0,), True, set())
-assert adjacent(u0, ((0,),)) == (u0_,)
+    def test_when_servable(self):
+        result = adjacent(self.v0, ((0, 2), (1,), (0, 1)))
+        expected = (self.v0_, self.v1, self.v2)
+        self.assertEqual(result, expected)
 
-w0 = vertex((0, 1), False, {0, 1})
-w0_ = vertex((0, 1), True, set())
-w1 = vertex((1, 0), False, {0, 1})
-assert adjacent(w0, ((0, 1), (0, 1))) == (w0_, w1)
-assert adjacent(w0, ((1,), (0,))) == (w1,)
+    def test_when_not_servable(self):
+        result = adjacent(self.v0, ((2,), (0,), (1,)))
+        expected = (self.v1, self.v2)
 
-ts = TurntableService()
-assert ts.calculateTime(("0 2", "1", "0 1")) == 32
-assert ts.calculateTime(("0", "0", "0")) == 49
-assert ts.calculateTime(("4", "1", "2", "3", "0")) == 50
-assert ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")) == 35
+class TestAdjacentOnTurntableOfSize2(unittest.TestCase):
+    def setUp(self):
+        self.w0 = vertex((0, 1), False, {0, 1})
+        self.w0_ = vertex((0, 1), True, set())
+        self.w1 = vertex((1, 0), False, {0, 1})
+
+    def test_when_servable(self):
+       self.assertEqual(adjacent(self.w0, ((0, 1), (0, 1))), (self.w0_, self.w1))
+
+    def test_when_not_servable(self):
+        self.assertEqual(adjacent(self.w0, ((1,), (0,))) == (self.w1,))
+
+class TestAdjacentOnTurntableOfSize1(unittest.TestCase):
+    def test_for_sure_serving(self):
+        u0 = vertex((0,), False, {0})
+        u0_ = vertex((0,), True, set())
+        self.assertEqual(adjacent(u0, ((0,),)), (u0_,))
+
+# ts = TurntableService()
+# assert ts.calculateTime(("0 2", "1", "0 1")) == 32
+# assert ts.calculateTime(("0", "0", "0")) == 49
+# assert ts.calculateTime(("4", "1", "2", "3", "0")) == 50
+# assert ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")) == 35
+
+unittest.main()
