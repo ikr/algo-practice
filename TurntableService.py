@@ -29,6 +29,17 @@ def fully_serving_vertex_sequences(favorites_lists):
                 q.append(a_vertex)
 
 
+def root_to_leaf_sequence(v, parents):
+    if not hashify(v) in parents:
+        return (v,)
+
+    return root_to_leaf_sequence(parents[hashify(v)], parents) + (v,)
+
+
+def all_served(v):
+    return len(v['h']) == 0
+
+
 def hashify(v):
     return (v['t'], v['s'], tuple(v['h']))
 
