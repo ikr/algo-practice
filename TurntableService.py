@@ -13,7 +13,7 @@ def fully_serving_vertex_sequences(favorites_lists):
     visited = set()
 
     initial_range = tuple(range(len(favorites_lists)))
-    q = deque((vertex(initial_range, False, initial_range),))
+    q = deque((vertex(initial_range, False, set(initial_range)),))
 
     while len(q) > 0:
         current_vertex = q.popleft()
@@ -156,10 +156,10 @@ class TestAdjacentOnTurntableOfSize1(unittest.TestCase):
         u0_ = vertex((0,), True, set())
         self.assertEqual(adjacent(u0, ((0,),)), (u0_,))
 
-# ts = TurntableService()
-# assert ts.calculateTime(("0 2", "1", "0 1")) == 32
-# assert ts.calculateTime(("0", "0", "0")) == 49
-# assert ts.calculateTime(("4", "1", "2", "3", "0")) == 50
-# assert ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")) == 35
+ts = TurntableService()
+assert ts.calculateTime(("0 2", "1", "0 1")) == 32
+assert ts.calculateTime(("0", "0", "0")) == 49
+assert ts.calculateTime(("4", "1", "2", "3", "0")) == 50
+assert ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")) == 35
 
 unittest.main()
