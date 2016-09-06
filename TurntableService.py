@@ -19,14 +19,18 @@ def fully_serving_vertex_sequences(favorites_lists):
         current_vertex = q.popleft()
 
         for a_vertex in adjacent(current_vertex, favorites_lists):
-            if not a_vertex in visited:
-                visited.add(a_vertex)
-                parents[a_vertex] = current_vertex
+            if not hashify(a_vertex) in visited:
+                visited.add(hashify(a_vertex))
+                parents[hashify(a_vertex)] = current_vertex
 
                 if all_served(a_vertex):
                     yield root_to_leaf_sequence(a_vertex, parents)
 
                 q.append(a_vertex)
+
+
+def hashify(v):
+    return (v['t'], v['s'], tuple(v['h']))
 
 
 def duration(vertex_sequence):
