@@ -10,10 +10,8 @@ class TurntableService:
 
 def fully_serving_vertex_sequences(favorites_lists):
     parents = {}
-    visited = set()
-
-    initial_range = tuple(range(len(favorites_lists)))
-    q = deque((vertex(initial_range, False, set(initial_range)),))
+    visited = set((hashify(source_vertex(favorites_lists)),))
+    q = deque((source_vertex(favorites_lists),))
 
     while len(q) > 0:
         current_vertex = q.popleft()
@@ -25,8 +23,13 @@ def fully_serving_vertex_sequences(favorites_lists):
 
                 if all_served(a_vertex):
                     yield root_to_leaf_sequence(a_vertex, parents)
+                else:
+                    q.append(a_vertex)
 
-                q.append(a_vertex)
+
+def source_vertex(favorites_lists):
+    initial_range = tuple(range(len(favorites_lists)))
+    return vertex(initial_range, False, set(initial_range))
 
 
 def root_to_leaf_sequence(v, parents):
@@ -177,8 +180,8 @@ class TestAdjacentOnTurntableOfSize1(unittest.TestCase):
 
 ts = TurntableService()
 assert ts.calculateTime(("0 2", "1", "0 1")) == 32
-# assert ts.calculateTime(("0", "0", "0")) == 49
-# assert ts.calculateTime(("4", "1", "2", "3", "0")) == 50
-# assert ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")) == 35
+assert ts.calculateTime(("0", "0", "0")) == 49
+assert ts.calculateTime(("4", "1", "2", "3", "0")) == 50
+assert ts.calculateTime(("0 004", "2 3", "0 01", "1 2 3 4", "1 1")) == 35
 
 unittest.main()
