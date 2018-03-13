@@ -4,38 +4,36 @@ from math import sqrt
 def turns_count(x, y):
     return int(sqrt(x + y))
 
-def next_seq(wins):
-    if 'A' not in wins:
-        return ''
-    result = list(wins)
-    for i in range(len(wins)):
-        if result[i] == 'A':
-            result[i] = 'K'
-            break
-        result[i] = 'A'
-    return ''.join(result)
-
-def scores(seq):
-    x = 0
-    y = 0
-    for i in range(len(seq)):
+def next_seq_scores_a_turns(n, seq, x, y, a_turns):
+    if x == 0:
+        return '', x, y, a_turns
+    for i in range(n):
+        d = 2 * i + 1
         if seq[i] == 'A':
-            x += 2 * i + 1
-        else:
-            y += 2 * i + 1
-    return x, y
+            seq[i] = 'K'
+            x -= d
+            y += d
+            a_turns -= 1
+            break
+        x += d
+        y -= d
+        a_turns += 1
+        seq[i] = 'A'
+    return seq, x, y, a_turns
 
 def min_alice_wins(a_score, k_score):
     if a_score == 0 and k_score == 0:
         return 0
     sz = turns_count(a_score, k_score)
-    seq = ''.join(repeat('A', sz))
+    seq = list(repeat('A', sz))
+    x = sz * sz
+    y = 0
+    a_turns = sz
     min_a_turns = float('inf')
     while seq:
-        x, y = scores(seq)
-        if x == a_score and y == k_score and seq.count('A') < min_a_turns:
-            min_a_turns = seq.count('A')
-        seq = next_seq(seq)
+        if x == a_score and y == k_score and a_turns < min_a_turns:
+            min_a_turns = a_turns
+        seq, x, y, a_turns = next_seq_scores_a_turns(sz, seq, x, y, a_turns)
     return min_a_turns if min_a_turns < float('inf') else -1
 
 class AliceGame:
@@ -43,4 +41,4 @@ class AliceGame:
         return min_alice_wins(x, y)
 
 if __name__ == '__main__':
-    print(min_alice_wins(0, 0))
+    print(min_alice_wins(300, 325))
