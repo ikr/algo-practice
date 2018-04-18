@@ -10,16 +10,19 @@ class Solution:
         l = self.length(A)
         if l == 1:
             return A
-        mid_next = self.move_to_mid_next(l, A)
+        mid_bound = self.move_to_mid_bound(l, A)
+        mid_reversed_h = self.reverse(mid_bound.next)
         n = A
+        m = mid_reversed_h
         for i in range(l // 2):
-            m = self.move_forward(mid_next, l // 2 - i - 1)
             n.val = m.val - n.val
             n = n.next
+            m = m.next
+        self.reverse(mid_reversed_h)
         return A
 
-    def move_to_mid_next(self, length, head):
-        return self.move_forward(head, length // 2 + (0 if length % 2 == 0 else 1))
+    def move_to_mid_bound(self, length, head):
+        return self.move_forward(head, length // 2 - (1 if length % 2 == 0 else 0))
 
     def length(self, head):
         if not head:
@@ -68,4 +71,4 @@ def print_list(head):
 
 
 s = Solution()
-print_list(s.reverse(l5))
+print_list(s.subtract(l5))
