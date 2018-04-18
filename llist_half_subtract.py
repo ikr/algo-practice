@@ -36,8 +36,36 @@ class Solution:
             n = n.next
         return n
 
+    def reverse(self, head):
+        new_head = None
+        n = head
+        while n:
+            nn = n.next
+            new_head = self.push(new_head, n)
+            n = nn
+        return new_head
+
+    def push(self, head, n):
+        if not head:
+            n.next = None
+            return n
+        n.next = head
+        return n
+
+
+l2 = Node(2, Node(3, None))
+l4 = Node(2, Node(3, Node(5, Node(7, None))))
+l5 = Node(2, Node(3, Node(5, Node(7, Node(11, None)))))
+
+
+def print_list(head):
+    items = []
+    n = head
+    while n:
+        items.append(str(n.val))
+        n = n.next
+    print('[' + ' '.join(items) + ']')
+
+
 s = Solution()
-print(s.move_to_mid_next(2, Node(2, Node(3, None))).val)
-print(s.move_to_mid_next(4, Node(2, Node(3, Node(5, Node(7, None))))).val)
-print(s.move_to_mid_next(5, Node(2, Node(3, Node(5, Node(7, Node(11, None)))))).val)
-print(s.subtract(Node(2, Node(3, Node(5, Node(7, Node(11, None)))))).val)
+print_list(s.reverse(l5))
