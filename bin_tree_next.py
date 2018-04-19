@@ -10,7 +10,22 @@ class Solution:
     # @param root, a tree node
     # @return nothing
     def connect(self, root):
-        return None
+        l = self.levels_count(root)
+        if l < 2:
+            return
+        prev = None
+        for p in self.enumerate_paths(l - 1):
+            n = self.walk_to(root, p)
+            if prev:
+                prev.next = n
+                print(prev.val, '->', n.val)
+            prev = n
+
+    def walk_to(self, root, path):
+        n = root
+        for d in path:
+            n = n.left if d else n.right
+        return n
 
     def enumerate_paths(self, length):
         p =  [True] * length
@@ -38,6 +53,22 @@ class Solution:
 
 
 s = Solution()
-for p in s.enumerate_paths(5):
-    print(p)
-    p = s.next_path(p)
+
+n1 = Node(1)
+n2 = Node(2)
+n3 = Node(3)
+n4 = Node(4)
+n5 = Node(5)
+n6 = Node(6)
+n7 = Node(7)
+
+n1.left = n2
+n1.right = n5
+
+n2.left = n3
+n2.right = n4
+
+n5.left = n6
+n5.right = n7
+
+s.connect(n1)
