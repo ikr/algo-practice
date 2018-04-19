@@ -26,28 +26,6 @@ class Solution:
         self.connect_recur(distance - 1, n.left, left_neigh_box)
         self.connect_recur(distance - 1, n.right, left_neigh_box)
 
-    def walk_to(self, root, path):
-        n = root
-        for d in path:
-            n = n.left if d else n.right
-        return n
-
-    def enumerate_paths(self, length):
-        p =  [True] * length
-        yield p
-        while True in p:
-            p = self.next_path(p)
-            yield p
-
-    def next_path(self, p):
-        result = list(p)
-        for i in range(len(result)):
-            if result[i]:
-                result[i] = False
-                break
-            result[i] = True
-        return result
-
     def levels_count(self, root):
         result = 0
         n = root
