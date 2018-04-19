@@ -36,6 +36,16 @@ class Solution:
                 n.right = r
                 self.recur(root, r, xs_r[0:i], xs_r[i + 1:], memo)
 
+    def build_tree(self, nodes_count, desc):
+        nodes = map(TreeNode, range(1, nodes_count + 1))
+        for i in range(1, len(desc)):
+            p, b, c = desc[i]
+            if b == 'L':
+                nodes[p - 1].left = nodes[c - 1]
+            else:
+                nodes[p - 1].right = nodes[c - 1]
+        return nodes[desc[0] - 1]
+
 
 def traverse(root, memo):
     if not root:
@@ -54,10 +64,9 @@ def print_trees(ts):
 n1 = TreeNode(1)
 n2 = TreeNode(2)
 n3 = TreeNode(3)
-n1.left = n2
-n1.right = n3
+n1.right = n2
+n2.right = n3
 
 s = Solution()
 print_trees([n1])
-print
-print_trees(s.generateTrees(3))
+print_trees([s.build_tree(3, (1, (1, 'R', 2), (2, 'R', 3)))])
