@@ -65,9 +65,8 @@ n2 = TreeNode(2)
 n3 = TreeNode(3)
 n1.right = n2
 n2.right = n3
-
-s = Solution()
 print_trees([n1])
+s = Solution()
 print_trees([s.build_tree(3, (1, (1, 'R', 2), (2, 'R', 3)))])
 
 print
