@@ -9,19 +9,24 @@ class Node:
 class Solution:
     # @param root, a tree node
     # @return nothing
-    def connect(self, r):
-        if not r.left:
-            return
-        r.left.next = r.right
-        connect(r.left)
-        connect(r.right)
+    def connect(self, root):
+        return None
 
-    def level(self, node, distance, memo):
-        if distance == 0:
-            memo.append(node)
-            return
-        self.level(node.left, distance - 1, memo)
-        self.level(node.right, distance - 1, memo)
+    def enumerate_paths(self, length):
+        p =  [True] * length
+        yield p
+        while True in p:
+            p = self.next_path(p)
+            yield p
+
+    def next_path(self, p):
+        result = list(p)
+        for i in range(len(result)):
+            if result[i]:
+                result[i] = False
+                break
+            result[i] = True
+        return result
 
     def levels_count(self, root):
         result = 0
@@ -30,3 +35,9 @@ class Solution:
             result += 1
             n = n.left
         return result
+
+
+s = Solution()
+for p in s.enumerate_paths(5):
+    print(p)
+    p = s.next_path(p)
