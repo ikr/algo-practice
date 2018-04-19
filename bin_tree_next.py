@@ -18,7 +18,6 @@ class Solution:
         if distance == 0:
             if left_neigh_box:
                 left_neigh_box[0].next = n
-                print(left_neigh_box[0].val, '->', n.val)
                 left_neigh_box[0] = n
             else:
                 left_neigh_box.append(n)
