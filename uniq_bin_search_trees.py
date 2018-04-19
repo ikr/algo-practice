@@ -10,30 +10,30 @@ class Solution:
     # @return a list of TreeNode
     def generateTrees(self, A):
         result = []
-        self.recur(-1, list(range(1, A + 1)), [], [], result)
-        return result
+        self.recur(A, -1, list(range(1, A + 1)), [], [], result)
+        return list(map(lambda d: self.build_tree(A, d), result))
 
-    def recur(self, n, xs_l, xs_r, desc, memo):
-        if not xs_l and not xs_r:
+    def recur(self, total_nodes, n, xs_l, xs_r, desc, memo):
+        if len(desc) == total_nodes:
             memo.append(desc)
             return
         if not desc:
             for i in range(len(xs_l)):
                 o = xs_l[i]
-                self.recur(o, xs_l[0:i], xs_l[i + 1:], [o], memo)
+                self.recur(total_nodes, o, xs_l[0:i], xs_l[i + 1:], [o], memo)
             return
         if xs_l:
             for i in range(len(xs_l)):
                 l = xs_l[i]
                 desc_prime = list(desc)
                 desc_prime.append((n, 'L', l))
-                self.recur(l, xs_l[0:i], xs_l[i + 1:], desc_prime, memo)
+                self.recur(total_nodes, l, xs_l[0:i], xs_l[i + 1:], desc_prime, memo)
         if xs_r:
             for i in range(len(xs_r)):
                 r = xs_r[i]
                 desc_prime = list(desc)
                 desc_prime.append((n, 'R', r))
-                self.recur(r, xs_r[0:i], xs_r[i + 1:], desc_prime, memo)
+                self.recur(total_nodes, r, xs_r[0:i], xs_r[i + 1:], desc_prime, memo)
 
     def build_tree(self, nodes_count, desc):
         nodes = map(TreeNode, range(1, nodes_count + 1))
@@ -72,5 +72,12 @@ print_trees([s.build_tree(3, (1, (1, 'R', 2), (2, 'R', 3)))])
 
 print
 
-for d in s.generateTrees(3):
+descs = []
+s.recur(3, -1, list(range(1, 3 + 1)), [], [], descs)
+
+for d in descs:
     print(d)
+
+print
+
+print_trees(s.generateTrees(3))
