@@ -11,15 +11,20 @@ class Solution:
     # @return nothing
     def connect(self, root):
         l = self.levels_count(root)
-        if l < 2:
+        for i in range(1, l):
+            self.connect_recur(i, root, [])
+
+    def connect_recur(self, distance, n, left_neigh_box):
+        if distance == 0:
+            if left_neigh_box:
+                left_neigh_box[0].next = n
+                print(left_neigh_box[0].val, '->', n.val)
+                left_neigh_box[0] = n
+            else:
+                left_neigh_box.append(n)
             return
-        prev = None
-        for p in self.enumerate_paths(l - 1):
-            n = self.walk_to(root, p)
-            if prev:
-                prev.next = n
-                print(prev.val, '->', n.val)
-            prev = n
+        self.connect_recur(distance - 1, n.left, left_neigh_box)
+        self.connect_recur(distance - 1, n.right, left_neigh_box)
 
     def walk_to(self, root, path):
         n = root
