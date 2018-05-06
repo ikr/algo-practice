@@ -53,4 +53,19 @@ public class SolutionTest {
     public void xs1ysEven() {
         assertEquals(10.0, s.findMedianSortedArrays(new int[] {10}, new int[]{5, 10, 12, 15}), 0.001);
     }
+
+    @org.junit.Test
+    public void xs2ys2() {
+        assertEquals(2.5, s.findMedianSortedArrays(new int[] {1, 3}, new int[]{2, 4}), 0.001);
+    }
+
+    @org.junit.Test
+    public void xs2ysOdd() {
+        assertEquals(12.0, s.findMedianSortedArrays(new int[] {2, 16}, new int[]{5, 10, 12, 15, 20}), 0.001);
+    }
+
+    @org.junit.Test
+    public void xs2ysEven() {
+        assertEquals(10.0, s.findMedianSortedArrays(new int[] {9, 10}, new int[]{5, 10, 12, 15}), 0.001);
+    }
 }
