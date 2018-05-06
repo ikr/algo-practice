@@ -68,4 +68,25 @@ public class SolutionTest {
     public void xs2ysEven() {
         assertEquals(10.0, s.findMedianSortedArrays(new int[] {9, 10}, new int[]{5, 10, 12, 15}), 0.001);
     }
+
+    @org.junit.Test
+    public void generalCase1() {
+        int[] xs = {5, 10, 20};
+        int[] ys = {13, 16, 25, 80};
+        assertEquals(Merge.median(Merge.merge(xs, ys)), s.findMedianSortedArrays(xs, ys), 0.001);
+    }
+
+    @org.junit.Test
+    public void generalCase1SwappedArgs() {
+        int[] xs = {13, 16, 25, 80};
+        int[] ys = {5, 10, 20};
+        assertEquals(Merge.median(Merge.merge(xs, ys)), s.findMedianSortedArrays(xs, ys), 0.001);
+    }
+
+    @org.junit.Test
+    public void generalCase2() {
+        int[] xs = {1, 2, 4, 6, 19, 23, 48, 48, 50};
+        int[] ys = {24, 25, 25, 30, 31, 32, 32, 32, 33};
+        assertEquals(Merge.median(Merge.merge(xs, ys)), s.findMedianSortedArrays(xs, ys), 0.001);
+    }
 }
