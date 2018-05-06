@@ -29,4 +29,10 @@ public class Merge {
 
         return result;
     }
+
+    public static double median(int[] xs) {
+        if (xs.length == 0) return -1.0;
+        if (xs.length % 2 == 0) return (xs[xs.length / 2 - 1] + xs[xs.length / 2]) / 2.0;
+        return (double)xs[xs.length / 2];
+    }
 }
