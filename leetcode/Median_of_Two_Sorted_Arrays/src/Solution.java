@@ -13,15 +13,7 @@ class Solution {
         if (xr - xl == 0) return median(ys, yl, yr);
 
         if (xr - xl < 3 && yr - yl < 3) {
-            int[] mArr = new int[xr - xl + yr - yl];
-
-            for (int i = 0; i < xr - xl; i++) {
-                mArr[i] = xs[xl + i];
-            }
-
-            for (int j = 0; j < yr - yl; j++) {
-                mArr[xr - xl + j] = ys[yl + j];
-            }
+            int[] mArr = concatArrays(xs, xl, xr, ys, yl, yr);
 
             Arrays.sort(mArr);
             return median(mArr, 0, mArr.length);
@@ -69,6 +61,19 @@ class Solution {
 
         int droppedCount = (xr - xl) - (xr - midx);
         return recur(xs, midx, xr, ys, yl, yr - droppedCount);
+    }
+
+    private static int[] concatArrays(int[] xs, int xl, int xr, int[] ys, int yl, int yr) {
+        int[] mArr = new int[xr - xl + yr - yl];
+
+        for (int i = 0; i < xr - xl; i++) {
+            mArr[i] = xs[xl + i];
+        }
+
+        for (int j = 0; j < yr - yl; j++) {
+            mArr[xr - xl + j] = ys[yl + j];
+        }
+        return mArr;
     }
 
     public static double median(int[] xs, int l, int r) {
