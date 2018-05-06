@@ -52,15 +52,14 @@ class Solution {
             return median(mArr, 0, 4);
         }
 
-        int midx = xl + (xr - xl) / 2;
+        int xsSz = (xr - xl);
+        int newXsSz = xsSz / 2 + 1;
 
-        if (xs[xl + (xr - xl - 1) / 2] > ys[yl + (yr - yl - 1) / 2]) {
-            int droppedCount = (xr - xl) - (midx + 1 - xl);
-            return recur(xs, xl, midx + 1, ys, yl + droppedCount, yr);
+        if (median(xs, xl, xr) >= median(ys, yl, yr)) {
+            return recur(xs, xl, xl + newXsSz, ys, yl + (xsSz - newXsSz), yr);
         }
 
-        int droppedCount = (xr - xl) - (xr - midx);
-        return recur(xs, midx, xr, ys, yl, yr - droppedCount);
+        return recur(xs, xl + (xsSz - newXsSz), xr, ys, yl, yr - (xsSz - newXsSz));
     }
 
     private static int[] concatArrays(int[] xs, int xl, int xr, int[] ys, int yl, int yr) {
