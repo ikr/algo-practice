@@ -24,7 +24,7 @@ public class SolutionTest {
     }
 
     @org.junit.Test
-    public void equivalentToTheControlImplementation() {
+    public void medianEquivalentToTheControlImplementation() {
         int[] xs = new int[] {3, 5, 6, 6, 7, 8};
         assertEquals(Merge.median(xs), Solution.median(xs, 0, xs.length), 0.001);
     }
@@ -36,6 +36,6 @@ public class SolutionTest {
 
     @org.junit.Test
     public void xs0ys2() {
-
+        assertEquals(5.0, s.findMedianSortedArrays(new int[0], new int[]{4, 6}), 0.001);
     }
 }

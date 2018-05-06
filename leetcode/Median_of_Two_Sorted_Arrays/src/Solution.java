@@ -5,6 +5,7 @@ class Solution {
     }
 
     private static double recur(int[] xs, int xl, int xr, int[] ys, int yl, int yr) {
+        if (xr - xl == 0 && yr - yl == 2) return median(ys, yl, yr);
         return -1.0;
     }
 
