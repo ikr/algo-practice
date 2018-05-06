@@ -54,7 +54,7 @@ class Solution {
 
         int midx = xl + (xr - xl) / 2;
 
-        if (xs[midx] > ys[midy]) {
+        if (xs[xl + (xr - xl - 1) / 2] > ys[yl + (yr - yl - 1) / 2]) {
             int droppedCount = (xr - xl) - (midx + 1 - xl);
             return recur(xs, xl, midx + 1, ys, yl + droppedCount, yr);
         }

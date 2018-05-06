@@ -116,4 +116,11 @@ public class SolutionTest {
         int[] ys = {2, 3, 7, 8};
         assertEquals(Merge.median(Merge.merge(xs, ys)), s.findMedianSortedArrays(xs, ys), 0.001);
     }
+
+    @org.junit.Test
+    public void generalCase4() {
+        int[] xs = {1, 4, 5, 6};
+        int[] ys = {0, 1, 7, 8};
+        assertEquals(Merge.median(Merge.merge(xs, ys)), s.findMedianSortedArrays(xs, ys), 0.001);
+    }
 }
