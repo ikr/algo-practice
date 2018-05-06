@@ -1,3 +1,8 @@
+import java.util.Arrays;
+
+/**
+ * Based on https://www.geeksforgeeks.org/median-of-two-sorted-arrays-of-different-sizes/
+ */
 class Solution {
     public double findMedianSortedArrays(int[] xs, int[] ys) {
         if (ys.length < xs.length) return findMedianSortedArrays(ys, xs);
@@ -6,6 +11,22 @@ class Solution {
 
     private static double recur(int[] xs, int xl, int xr, int[] ys, int yl, int yr) {
         if (xr - xl == 0 && yr - yl == 2) return median(ys, yl, yr);
+        if (xr - xl == 1 && yr - yl == 1) return (xs[xl] + ys[yl]) / 2.0;
+
+        if (xr - xl == 1 && (yr - yl) % 2 == 1) {
+            int mid = yl + (yr - yl) / 2;
+            int[] mArr = new int[] {ys[mid - 1], ys[mid + 1], xs[xl]};
+            Arrays.sort(mArr);
+
+            return (median(mArr, 0, 3) + ys[mid]) / 2.0;
+        }
+
+        if (xr - xl == 1 && (yr - yl) % 2 == 0) {
+            int[] mArr = new int[] {ys[yl + (yr - yl) / 2 - 1], ys[yl + (yr - yl) / 2], xs[xl]};
+            Arrays.sort(mArr);
+            return median(mArr, 0, 3);
+        }
+
         return -1.0;
     }
 

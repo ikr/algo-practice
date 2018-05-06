@@ -38,4 +38,19 @@ public class SolutionTest {
     public void xs0ys2() {
         assertEquals(5.0, s.findMedianSortedArrays(new int[0], new int[]{4, 6}), 0.001);
     }
+
+    @org.junit.Test
+    public void xs1ys1() {
+        assertEquals(6.5, s.findMedianSortedArrays(new int[] {6}, new int[]{7}), 0.001);
+    }
+
+    @org.junit.Test
+    public void xs1ysOdd() {
+        assertEquals(11.0, s.findMedianSortedArrays(new int[] {5}, new int[]{5, 10, 12, 15, 20}), 0.001);
+    }
+
+    @org.junit.Test
+    public void xs1ysEven() {
+        assertEquals(10.0, s.findMedianSortedArrays(new int[] {10}, new int[]{5, 10, 12, 15}), 0.001);
+    }
 }
