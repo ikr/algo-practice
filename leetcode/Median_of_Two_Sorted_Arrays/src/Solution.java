@@ -10,10 +10,22 @@ class Solution {
 
     private static double recur(int[] xs, int xl, int xr, int[] ys, int yl, int yr) {
         if (xr - xl > yr - yl) return recur(ys, yl, yr, xs, xl, xr);
+        if (xr - xl == 0) return median(ys, yl, yr);
 
-        if (xr - xl == 0 && yr - yl == 0) return -1;
-        if (xr - xl == 0 && yr - yl == 2) return median(ys, yl, yr);
-        if (xr - xl == 1 && yr - yl == 1) return (xs[xl] + ys[yl]) / 2.0;
+        if (xr - xl < 3 && yr - yl < 3) {
+            int[] mArr = new int[xr - xl + yr - yl];
+
+            for (int i = 0; i < xr - xl; i++) {
+                mArr[i] = xs[xl + i];
+            }
+
+            for (int j = 0; j < yr - yl; j++) {
+                mArr[xr - xl + j] = ys[yl + j];
+            }
+
+            Arrays.sort(mArr);
+            return median(mArr, 0, mArr.length);
+        }
 
         int midy = yl + (yr - yl) / 2;
 
@@ -25,7 +37,7 @@ class Solution {
         }
 
         if (xr - xl == 1 && (yr - yl) % 2 == 0) {
-            int[] mArr = new int[] {ys[midy - 1], ys[midy / 2], xs[xl]};
+            int[] mArr = new int[] {ys[midy - 1], ys[midy], xs[xl]};
             Arrays.sort(mArr);
             return median(mArr, 0, 3);
         }
