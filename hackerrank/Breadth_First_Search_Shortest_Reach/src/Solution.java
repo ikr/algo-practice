@@ -78,7 +78,12 @@ public class Solution {
                 result.put(pair[0], new LinkedList<>());
             }
 
+            if (!result.containsKey(pair[1])) {
+                result.put(pair[1], new LinkedList<>());
+            }
+
             result.get(pair[0]).add(pair[1]);
+            result.get(pair[1]).add(pair[0]);
         }
 
         return result;
