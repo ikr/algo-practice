@@ -3,8 +3,9 @@ class Solution {
         if (s.length() == 0) return "";
         String result = s.substring(0, 1);
         if (s.length() == 1) return result;
+        if (s.length() == 2) return isPal(s) ? s : result;
 
-        for (int i = 0; i < s.length() - 1; ++i) {
+        for (int i = 0; i < s.length() - 2; ++i) {
             String sprout = s.substring(i, i + 2);
 
             if (isPal(sprout)) {
@@ -14,12 +15,8 @@ class Solution {
                     result = candidate;
                 }
             }
-        }
 
-        if (s.length() == 2) return result;
-
-        for (int i = 0; i < s.length() - 2; ++i) {
-            String sprout = s.substring(i, i + 3);
+            sprout = s.substring(i, i + 3);
 
             if (isPal(sprout)) {
                 String candidate = growPal(s, i, i + 3);
@@ -30,7 +27,8 @@ class Solution {
             }
         }
 
-        return result;
+        String candidate = s.substring(s.length() - 2, s.length());
+        return (isPal(candidate) && candidate.length() > result.length()) ? candidate : result;
     }
 
     private static boolean isPal(String s) {
@@ -39,7 +37,7 @@ class Solution {
 
     private static String growPal(String s, int left, int bound) {
         int l = left, b = bound;
-        while (left > 0 && bound < s.length() && s.charAt(left - 1) == s.charAt(bound)) {
+        while (l > 0 && b < s.length() && s.charAt(l - 1) == s.charAt(b)) {
             l--;
             b++;
         }
@@ -48,7 +46,7 @@ class Solution {
 
     public static void main(String[] args) {
         Solution s = new Solution();
-        System.out.println(s.longestPalindrome("babad"));
+        System.out.println(s.longestPalindrome("babadaaaaazzzff"));
     }
 }
 
