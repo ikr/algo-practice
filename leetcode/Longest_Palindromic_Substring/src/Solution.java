@@ -39,10 +39,16 @@ class Solution {
 
     private static String growPal(String s, int left, int bound) {
         int l = left, b = bound;
-        while (left > 0 && bound < s.length() && s.charAt(left) == s.charAt(bound - 1)) {
+        while (left > 0 && bound < s.length() && s.charAt(left - 1) == s.charAt(bound)) {
             l--;
             b++;
         }
         return s.substring(l, b);
     }
+
+    public static void main(String[] args) {
+        Solution s = new Solution();
+        System.out.println(s.longestPalindrome("babad"));
+    }
 }
+
