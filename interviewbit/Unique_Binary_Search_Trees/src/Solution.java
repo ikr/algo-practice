@@ -78,6 +78,26 @@ public class Solution {
 
             List<TreeDesc> leftTrees = gen(leftVertices);
             List<TreeDesc> rightTrees = gen(rightVertices);
+
+            if (leftTrees.size() == 0) {
+                for (TreeDesc r : rightTrees) {
+                    result.add(TreeDesc.join(root, null, r));
+                }
+                break;
+            }
+
+            if (rightTrees.size() == 0) {
+                for (TreeDesc l : leftTrees) {
+                    result.add(TreeDesc.join(root, l, null));
+                }
+                break;
+            }
+
+            for (TreeDesc l : leftTrees) {
+                for (TreeDesc r: rightTrees) {
+                    result.add(TreeDesc.join(root, l, r));
+                }
+            }
         }
 
         return result;
