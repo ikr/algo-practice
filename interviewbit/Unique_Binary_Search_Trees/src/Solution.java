@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Solution {
     static class TreeNode {
@@ -62,12 +63,21 @@ public class Solution {
     }
 
     public ArrayList<TreeNode> generateTrees(int a) {
-        return null;
+        int[] vertices = IntStream.rangeClosed(1, a).toArray();
+        List<TreeDesc> treeDescs = gen(vertices);
+
+        ArrayList<TreeNode> result = new ArrayList<>();
+
+        for (TreeDesc td : treeDescs) {
+            result.add(tree(td));
+        }
+
+        return result;
     }
 
     private static List<TreeDesc> gen(int[] vertices) {
-        if (vertices.length == 0) return List.of();
-        if (vertices.length == 1) return List.of(TreeDesc.of(vertices[0]));
+        if (vertices.length == 0) return listOf();
+        if (vertices.length == 1) return listOf(TreeDesc.of(vertices[0]));
 
         List<TreeDesc> result = new LinkedList<>();
 
@@ -100,6 +110,37 @@ public class Solution {
             }
         }
 
+        return result;
+    }
+
+    private static TreeNode tree(TreeDesc desc) {
+        Map<Integer, TreeNode> nodes = new HashMap<>();
+
+        for (int v : desc.vertices) {
+            nodes.put(v, new TreeNode(v));
+        }
+
+        for (EdgeDesc e : desc.edges) {
+            TreeNode srcNode = nodes.get(e.src);
+            TreeNode dstNode = nodes.get(e.dst);
+
+            if (e.dir == Dir.LEFT) {
+                srcNode.left = dstNode;
+            } else {
+                srcNode.right = dstNode;
+            }
+        }
+
+        return nodes.get(desc.root);
+    }
+
+    private static List<TreeDesc> listOf() {
+        return new LinkedList<>();
+    }
+
+    private static List<TreeDesc> listOf(TreeDesc td) {
+        List<TreeDesc> result = new LinkedList<>();
+        result.add(td);
         return result;
     }
 }
