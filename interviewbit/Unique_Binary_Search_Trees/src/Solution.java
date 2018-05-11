@@ -12,6 +12,12 @@ public class Solution {
         }
     }
 
+    public static void main(String[] args) {
+        Solution s = new Solution();
+        List<TreeNode> trees = s.generateTrees(Integer.parseInt(args[0]));
+        System.out.println(trees.size());
+    }
+
     enum Dir {LEFT, RIGHT}
 
     static class EdgeDesc {
@@ -93,14 +99,14 @@ public class Solution {
                 for (TreeDesc r : rightTrees) {
                     result.add(TreeDesc.join(root, null, r));
                 }
-                break;
+                continue;
             }
 
             if (rightTrees.size() == 0) {
                 for (TreeDesc l : leftTrees) {
                     result.add(TreeDesc.join(root, l, null));
                 }
-                break;
+                continue;
             }
 
             for (TreeDesc l : leftTrees) {
