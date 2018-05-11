@@ -36,6 +36,10 @@ public class Solution {
             this.edges = edges;
         }
 
+        static TreeDesc of(int root) {
+            return join(root, null, null);
+        }
+
         static TreeDesc join(int root, TreeDesc tdLeft, TreeDesc tdRight) {
             Set<Integer> vertices = new HashSet<>();
             vertices.add(root);
@@ -59,5 +63,23 @@ public class Solution {
 
     public ArrayList<TreeNode> generateTrees(int a) {
         return null;
+    }
+
+    private static List<TreeDesc> gen(int[] vertices) {
+        if (vertices.length == 0) return List.of();
+        if (vertices.length == 1) return List.of(TreeDesc.of(vertices[0]));
+
+        List<TreeDesc> result = new LinkedList<>();
+
+        for (int i = 0; i < vertices.length; ++i) {
+            int root = vertices[i];
+            int[] leftVertices = Arrays.copyOfRange(vertices, 0, i);
+            int[] rightVertices = Arrays.copyOfRange(vertices, i + 1, vertices.length);
+
+            List<TreeDesc> leftTrees = gen(leftVertices);
+            List<TreeDesc> rightTrees = gen(rightVertices);
+        }
+
+        return result;
     }
 }
