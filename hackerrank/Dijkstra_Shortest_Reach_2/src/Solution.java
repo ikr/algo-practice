@@ -1,12 +1,30 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Scanner;
+import java.util.*;
 
 public class Solution {
-    // Complete the shortestReach function below.
     static int[] shortestReach(int n, int[][] edges, int s) {
         return new int[0];
+    }
+
+    private static Map<Integer, List<Integer>> graph(int[][] edges) {
+        HashMap<Integer, List<Integer>> result = new HashMap<>();
+
+        for (int[] pair : edges) {
+            if (!result.containsKey(pair[0])) {
+                result.put(pair[0], new LinkedList<>());
+            }
+
+            if (!result.containsKey(pair[1])) {
+                result.put(pair[1], new LinkedList<>());
+            }
+
+            result.get(pair[0]).add(pair[1]);
+            result.get(pair[1]).add(pair[0]);
+        }
+
+        return result;
     }
 
     private static final Scanner scanner = new Scanner(System.in);
