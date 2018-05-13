@@ -4,26 +4,46 @@ import java.io.IOException;
 import java.util.*;
 
 public class Solution {
+    static class Graph {
+        Map<Integer, List<Integer>> neighs;
+        Map<Set<Integer>, Integer> edges;
+
+        Graph(Map<Integer, List<Integer>> neighs, Map<Set<Integer>, Integer> edges) {
+            this.neighs = neighs;
+            this.edges = edges;
+        }
+    }
+
     static int[] shortestReach(int n, int[][] edges, int s) {
         return new int[0];
     }
 
-    private static Map<Integer, List<Integer>> graph(int[][] edges) {
-        HashMap<Integer, List<Integer>> result = new HashMap<>();
+    private static Graph graph(int[][] rows) {
+        Map<Integer, List<Integer>> neighs = new HashMap<>();
+        Map<Set<Integer>, Integer> edges = new HashMap<>();
 
-        for (int[] pair : edges) {
-            if (!result.containsKey(pair[0])) {
-                result.put(pair[0], new LinkedList<>());
+        for (int[] triplet : rows) {
+            if (!neighs.containsKey(triplet[0])) {
+                neighs.put(triplet[0], new LinkedList<>());
             }
 
-            if (!result.containsKey(pair[1])) {
-                result.put(pair[1], new LinkedList<>());
+            if (!neighs.containsKey(triplet[1])) {
+                neighs.put(triplet[1], new LinkedList<>());
             }
 
-            result.get(pair[0]).add(pair[1]);
-            result.get(pair[1]).add(pair[0]);
+            neighs.get(triplet[0]).add(triplet[1]);
+            neighs.get(triplet[1]).add(triplet[0]);
+
+            edges.put(edge(triplet[0], triplet[1]), triplet[2]);
         }
 
+        return new Graph(neighs, edges);
+    }
+
+    private static Set<Integer> edge(int vertex1, int vertex2) {
+        Set<Integer> result = new HashSet<>();
+        result.add(vertex1);
+        result.add(vertex2);
         return result;
     }
 
