@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Solution {
     static class Graph {
@@ -14,8 +15,27 @@ public class Solution {
         }
     }
 
+    static class Dist {
+        int value;
+        int toVertex;
+
+        Dist(int value, int toVertex) {
+            this.value = value;
+            this.toVertex = toVertex;
+        }
+    }
+
     static int[] shortestReach(int n, int[][] edges, int s) {
         return new int[0];
+    }
+
+    private static SortedMap<Integer, Integer> distances(int vCount, Graph g, int source) {
+        Queue<Dist> q = new PriorityQueue<>((d1, d2) -> d1.value - d2.value);
+
+        IntStream.rangeClosed(1, vCount).forEach(i -> {
+        });
+
+        return null;
     }
 
     private static Graph graph(int[][] rows) {
