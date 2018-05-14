@@ -87,8 +87,9 @@ public class Solution {
                 int alt = dist.get(current) + g.edges.get(new Edge(current, adjacent));
 
                 if (alt < dist.get(adjacent)) {
-                    q.remove(new Dist(dist.get(adjacent), adjacent));
-                    q.add(new Dist(alt, adjacent));
+                    Dist alteredDist = new Dist(alt, adjacent);
+                    q.remove(alteredDist);
+                    q.add(alteredDist);
                     dist.put(adjacent, alt);
                 }
             }
@@ -125,7 +126,7 @@ public class Solution {
     private static final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     public static void main(String[] args) throws IOException {
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("/dev/stdout"));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
 
         int t = Integer.parseInt(reader.readLine());
 
