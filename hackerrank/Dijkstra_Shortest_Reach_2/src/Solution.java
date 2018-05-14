@@ -5,9 +5,9 @@ import java.util.stream.IntStream;
 public class Solution {
     static class Graph {
         Map<Integer, List<Integer>> neighs;
-        Map<Set<Integer>, Integer> edges;
+        Map<Edge, Integer> edges;
 
-        Graph(Map<Integer, List<Integer>> neighs, Map<Set<Integer>, Integer> edges) {
+        Graph(Map<Integer, List<Integer>> neighs, Map<Edge, Integer> edges) {
             this.neighs = neighs;
             this.edges = edges;
         }
@@ -30,6 +30,27 @@ public class Solution {
         @Override
         public boolean equals(Object other) {
             return this.vertex == ((Dist)other).vertex;
+        }
+    }
+
+    static class Edge {
+        int v1;
+        int v2;
+
+        @Override
+        public int hashCode() {
+            return v1 * v2;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            Edge other = (Edge)obj;
+            return (v1 == other.v1 && v2 == other.v2) || (v1 == other.v2 && v2 == other.v1);
+        }
+
+        public Edge(int v1, int v2) {
+            this.v1 = v1;
+            this.v2 = v2;
         }
     }
 
@@ -63,7 +84,7 @@ public class Solution {
             int current = q.poll().vertex;
 
             for (int adjacent : g.neighs.get(current)) {
-                int alt = dist.get(current) + g.edges.get(edge(current, adjacent));
+                int alt = dist.get(current) + g.edges.get(new Edge(current, adjacent));
 
                 if (alt < dist.get(adjacent)) {
                     q.remove(new Dist(dist.get(adjacent), adjacent));
@@ -78,7 +99,7 @@ public class Solution {
 
     private static Graph graph(int[][] rows) {
         Map<Integer, List<Integer>> neighs = new HashMap<>();
-        Map<Set<Integer>, Integer> edges = new HashMap<>();
+        Map<Edge, Integer> edges = new HashMap<>();
 
         for (int[] triplet : rows) {
             if (!neighs.containsKey(triplet[0])) {
@@ -92,20 +113,13 @@ public class Solution {
             neighs.get(triplet[0]).add(triplet[1]);
             neighs.get(triplet[1]).add(triplet[0]);
 
-            Set<Integer> e = edge(triplet[0], triplet[1]);
+            Edge e = new Edge(triplet[0], triplet[1]);
             if (!edges.containsKey(e) || edges.get(e) > triplet[2]) {
-                edges.put(edge(triplet[0], triplet[1]), triplet[2]);
+                edges.put(e, triplet[2]);
             }
         }
 
         return new Graph(neighs, edges);
-    }
-
-    private static Set<Integer> edge(int vertex1, int vertex2) {
-        Set<Integer> result = new HashSet<>();
-        result.add(vertex1);
-        result.add(vertex2);
-        return result;
     }
 
     private static final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
