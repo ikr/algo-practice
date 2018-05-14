@@ -53,7 +53,7 @@ public class Solution {
 
     private static SortedMap<Integer, Integer> distances(int vCount, Graph g, int source) {
         Queue<Dist> q = new PriorityQueue<>();
-        SortedMap<Integer, Integer> dist = new TreeMap<>();
+        Map<Integer, Integer> dist = new HashMap<>();
 
         IntStream.rangeClosed(1, vCount).forEach(i -> {
             int distValue = i == source ? 0 : Integer.MAX_VALUE;
@@ -75,7 +75,7 @@ public class Solution {
             }
         }
 
-        return dist;
+        return new TreeMap<>(dist);
     }
 
     private static Graph graph(int[][] rows) {
@@ -94,7 +94,10 @@ public class Solution {
             neighs.get(triplet[0]).add(triplet[1]);
             neighs.get(triplet[1]).add(triplet[0]);
 
-            edges.put(edge(triplet[0], triplet[1]), triplet[2]);
+            Set<Integer> e = edge(triplet[0], triplet[1]);
+            if (!edges.containsKey(e) || edges.get(e) > triplet[2]) {
+                edges.put(edge(triplet[0], triplet[1]), triplet[2]);
+            }
         }
 
         return new Graph(neighs, edges);
@@ -107,10 +110,66 @@ public class Solution {
         return result;
     }
 
-    private static final Scanner scanner = new Scanner(System.in);
+    private static final Scanner scanner = new Scanner("1\n" +
+            "20 54\n" +
+            "1 7 45\n" +
+            "2 14 15\n" +
+            "3 7 29\n" +
+            "4 1 48\n" +
+            "5 1 66\n" +
+            "6 7 17\n" +
+            "7 14 15\n" +
+            "8 14 43\n" +
+            "9 1 27\n" +
+            "10 1 33\n" +
+            "11 14 64\n" +
+            "12 14 27\n" +
+            "13 7 66\n" +
+            "14 7 54\n" +
+            "15 14 56\n" +
+            "16 7 21\n" +
+            "17 1 20\n" +
+            "18 1 34\n" +
+            "19 7 52\n" +
+            "20 14 14\n" +
+            "9 14 9\n" +
+            "15 1 39\n" +
+            "12 1 24\n" +
+            "9 1 16\n" +
+            "1 2 33\n" +
+            "18 1 46\n" +
+            "9 1 28\n" +
+            "15 14 3\n" +
+            "12 1 27\n" +
+            "1 2 5\n" +
+            "15 1 34\n" +
+            "1 2 28\n" +
+            "9 7 16\n" +
+            "3 7 23\n" +
+            "9 7 21\n" +
+            "9 14 19\n" +
+            "3 1 20\n" +
+            "3 1 5\n" +
+            "12 14 19\n" +
+            "3 14 2\n" +
+            "12 1 46\n" +
+            "3 14 5\n" +
+            "9 14 44\n" +
+            "6 14 26\n" +
+            "9 14 16\n" +
+            "9 14 34\n" +
+            "6 7 42\n" +
+            "3 14 27\n" +
+            "1 7 9\n" +
+            "1 7 41\n" +
+            "15 14 19\n" +
+            "12 7 13\n" +
+            "3 7 10\n" +
+            "1 7 2\n" +
+            "17\n");
 
     public static void main(String[] args) throws IOException {
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("/dev/stdout"));
 
         int t = scanner.nextInt();
         scanner.skip("(\r\n|[\n\r\u2028\u2029\u0085])?");
