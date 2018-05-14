@@ -101,11 +101,11 @@ public class Solution {
 
         for (int[] triplet : rows) {
             if (!neighs.containsKey(triplet[0])) {
-                neighs.put(triplet[0], new LinkedList<>());
+                neighs.put(triplet[0], new ArrayList<>());
             }
 
             if (!neighs.containsKey(triplet[1])) {
-                neighs.put(triplet[1], new LinkedList<>());
+                neighs.put(triplet[1], new ArrayList<>());
             }
 
             neighs.get(triplet[0]).add(triplet[1]);
