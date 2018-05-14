@@ -72,15 +72,16 @@ public class Solution {
 
     private static Map<Integer, Integer> distances(int vCount, Graph g, int source) {
         Queue<Dist> q = new PriorityQueue<>();
+        q.add(new Dist(0, source));
+
         Map<Integer, Integer> dist = new HashMap<>();
 
         IntStream.rangeClosed(1, vCount).forEach(i -> {
             int distValue = i == source ? 0 : Integer.MAX_VALUE;
-            q.add(new Dist(distValue, i));
             dist.put(i, distValue);
         });
 
-        while (q.size() > 0 && q.peek().value < Integer.MAX_VALUE) {
+        while (q.size() > 0) {
             int current = q.poll().vertex;
 
             for (int adjacent : g.neighs.get(current)) {
