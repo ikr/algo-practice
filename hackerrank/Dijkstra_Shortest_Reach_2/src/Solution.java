@@ -58,7 +58,7 @@ public class Solution {
         int[] result = new int[n - 1];
         int i = 0;
 
-        Map<Integer, Integer> dist = distances(n, graph(edges), s);
+        Map<Integer, Integer> dist = distances(graph(edges), s);
 
         for (int v = 1; v <= n; v++) {
             if (v == s) continue;
@@ -69,7 +69,7 @@ public class Solution {
         return result;
     }
 
-    private static Map<Integer, Integer> distances(int vCount, Graph g, int source) {
+    private static Map<Integer, Integer> distances(Graph g, int source) {
         Queue<Dist> q = new PriorityQueue<>();
         q.add(new Dist(0, source));
 
