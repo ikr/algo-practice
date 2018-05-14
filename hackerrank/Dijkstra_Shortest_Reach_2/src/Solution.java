@@ -15,27 +15,67 @@ public class Solution {
         }
     }
 
-    static class Dist {
+    static class Dist implements Comparable<Dist> {
         int value;
-        int toVertex;
+        int vertex;
 
-        Dist(int value, int toVertex) {
+        Dist(int value, int vertex) {
             this.value = value;
-            this.toVertex = toVertex;
+            this.vertex = vertex;
+        }
+
+        @Override
+        public int compareTo(Dist other) {
+            return this.value - other.value;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return this.vertex == ((Dist)other).vertex;
         }
     }
 
     static int[] shortestReach(int n, int[][] edges, int s) {
-        return new int[0];
+        int[] result = new int[n - 1];
+        int i = 0;
+
+        SortedMap<Integer, Integer> dist = distances(n, graph(edges), s);
+
+        for (int v : dist.keySet()) {
+            if (v == s) continue;
+            int d = dist.get(v);
+            result[i] = d == Integer.MAX_VALUE ? -1 : d;
+            i++;
+        }
+
+        return result;
     }
 
     private static SortedMap<Integer, Integer> distances(int vCount, Graph g, int source) {
-        Queue<Dist> q = new PriorityQueue<>((d1, d2) -> d1.value - d2.value);
+        Queue<Dist> q = new PriorityQueue<>();
+        SortedMap<Integer, Integer> dist = new TreeMap<>();
 
         IntStream.rangeClosed(1, vCount).forEach(i -> {
+            int distValue = i == source ? 0 : Integer.MAX_VALUE;
+            q.add(new Dist(distValue, i));
+            dist.put(i, distValue);
         });
 
-        return null;
+        while (q.size() > 0 && q.peek().value < Integer.MAX_VALUE) {
+            int current = q.poll().vertex;
+
+            for (int adjacent : g.neighs.get(current)) {
+                int alt = dist.get(current) + g.edges.get(edge(current, adjacent));
+
+                if (alt < dist.get(adjacent)) {
+                    q.remove(new Dist(dist.get(adjacent), adjacent));
+                    q.add(new Dist(alt, adjacent));
+                    dist.put(adjacent, alt);
+                }
+            }
+        }
+
+        return dist;
     }
 
     private static Graph graph(int[][] rows) {
