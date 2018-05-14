@@ -58,9 +58,9 @@ public class Solution {
         int[] result = new int[n - 1];
         int i = 0;
 
-        SortedMap<Integer, Integer> dist = distances(n, graph(edges), s);
+        Map<Integer, Integer> dist = distances(n, graph(edges), s);
 
-        for (int v : dist.keySet()) {
+        for (int v = 1; v <= n; v++) {
             if (v == s) continue;
             int d = dist.get(v);
             result[i] = d == Integer.MAX_VALUE ? -1 : d;
@@ -70,7 +70,7 @@ public class Solution {
         return result;
     }
 
-    private static SortedMap<Integer, Integer> distances(int vCount, Graph g, int source) {
+    private static Map<Integer, Integer> distances(int vCount, Graph g, int source) {
         Queue<Dist> q = new PriorityQueue<>();
         Map<Integer, Integer> dist = new HashMap<>();
 
@@ -94,7 +94,7 @@ public class Solution {
             }
         }
 
-        return new TreeMap<>(dist);
+        return dist;
     }
 
     private static Graph graph(int[][] rows) {
