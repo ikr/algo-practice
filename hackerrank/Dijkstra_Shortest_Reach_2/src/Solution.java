@@ -62,8 +62,7 @@ public class Solution {
 
         for (int v = 1; v <= n; v++) {
             if (v == s) continue;
-            int d = dist.get(v);
-            result[i] = d == Integer.MAX_VALUE ? -1 : d;
+            result[i] = dist.containsKey(v) ? dist.get(v) : -1;
             i++;
         }
 
@@ -75,11 +74,8 @@ public class Solution {
         q.add(new Dist(0, source));
 
         Map<Integer, Integer> dist = new HashMap<>();
+        dist.put(source, 0);
 
-        IntStream.rangeClosed(1, vCount).forEach(i -> {
-            int distValue = i == source ? 0 : Integer.MAX_VALUE;
-            dist.put(i, distValue);
-        });
 
         while (q.size() > 0) {
             int current = q.poll().vertex;
@@ -87,7 +83,7 @@ public class Solution {
             for (int adjacent : g.neighs.get(current)) {
                 int alt = dist.get(current) + g.edges.get(new Edge(current, adjacent));
 
-                if (alt < dist.get(adjacent)) {
+                if (alt < (dist.containsKey(adjacent) ? dist.get(adjacent) : Integer.MAX_VALUE)) {
                     Dist alteredDist = new Dist(alt, adjacent);
                     q.remove(alteredDist);
                     q.add(alteredDist);
