@@ -82,7 +82,7 @@ public class Solution {
             for (int adjacent : g.neighs.get(current)) {
                 int alt = dist.get(current) + g.edges.get(new Edge(current, adjacent));
 
-                if (alt < (dist.containsKey(adjacent) ? dist.get(adjacent) : Integer.MAX_VALUE)) {
+                if (!dist.containsKey(adjacent) || alt < dist.get(adjacent)) {
                     Dist alteredDist = new Dist(alt, adjacent);
                     q.remove(alteredDist);
                     q.add(alteredDist);
