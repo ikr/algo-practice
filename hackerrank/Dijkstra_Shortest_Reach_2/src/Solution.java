@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Solution {
     static class Graph {
@@ -57,24 +58,26 @@ public class Solution {
         int[] result = new int[n - 1];
         int i = 0;
 
-        Map<Integer, Integer> dist = distances(graph(edges), s);
+        Map<Integer, Integer> dist = distances(n, graph(edges), s);
 
         for (int v = 1; v <= n; v++) {
             if (v == s) continue;
-            result[i] = dist.containsKey(v) ? dist.get(v) : -1;
+            result[i] = dist.get(v) == Integer.MAX_VALUE ? -1 : dist.get(v);
             i++;
         }
 
         return result;
     }
 
-    private static Map<Integer, Integer> distances(Graph g, int source) {
+    private static Map<Integer, Integer> distances(int vCount, Graph g, int source) {
         Queue<Dist> q = new PriorityQueue<>();
         q.add(new Dist(0, source));
 
         Map<Integer, Integer> dist = new HashMap<>();
         dist.put(source, 0);
-
+        IntStream.rangeClosed(1, vCount).filter(i -> i != source).forEach(i -> {
+            dist.put(i, Integer.MAX_VALUE);
+        });
 
         while (q.size() > 0) {
             int current = q.poll().vertex;
@@ -82,7 +85,7 @@ public class Solution {
             for (int adjacent : g.neighs.get(current)) {
                 int alt = dist.get(current) + g.edges.get(new Edge(current, adjacent));
 
-                if (!dist.containsKey(adjacent) || alt < dist.get(adjacent)) {
+                if (alt < dist.get(adjacent)) {
                     Dist alteredDist = new Dist(alt, adjacent);
                     q.remove(alteredDist);
                     q.add(alteredDist);
