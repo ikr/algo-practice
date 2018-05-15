@@ -14,8 +14,8 @@ public class Solution {
     }
 
     static class Dist implements Comparable<Dist> {
-        int value;
-        int vertex;
+        final int value;
+        final int vertex;
 
         Dist(int value, int vertex) {
             this.value = value;
@@ -34,8 +34,8 @@ public class Solution {
     }
 
     static class Edge {
-        int v1;
-        int v2;
+        final int v1;
+        final int v2;
 
         @Override
         public int hashCode() {
