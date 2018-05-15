@@ -58,38 +58,36 @@ public class Solution {
         int[] result = new int[n - 1];
         int i = 0;
 
-        Map<Integer, Integer> dist = distances(n, graph(edges), s);
+        int[] dist = distances(n, graph(edges), s);
 
         for (int v = 1; v <= n; v++) {
             if (v == s) continue;
-            result[i] = dist.get(v) == Integer.MAX_VALUE ? -1 : dist.get(v);
+            result[i] = dist[v] == Integer.MAX_VALUE ? -1 : dist[v];
             i++;
         }
 
         return result;
     }
 
-    private static Map<Integer, Integer> distances(int vCount, Graph g, int source) {
+    private static int[] distances(int vCount, Graph g, int source) {
         Queue<Dist> q = new PriorityQueue<>();
         q.add(new Dist(0, source));
 
-        Map<Integer, Integer> dist = new HashMap<>();
-        dist.put(source, 0);
-        IntStream.rangeClosed(1, vCount).filter(i -> i != source).forEach(i -> {
-            dist.put(i, Integer.MAX_VALUE);
-        });
+        int[] dist = new int[vCount + 1];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[source] = 0;
 
         while (q.size() > 0) {
             int current = q.poll().vertex;
 
             for (int adjacent : g.neighs.get(current)) {
-                int alt = dist.get(current) + g.edges.get(new Edge(current, adjacent));
+                int alt = dist[current] + g.edges.get(new Edge(current, adjacent));
 
-                if (alt < dist.get(adjacent)) {
+                if (alt < dist[adjacent]) {
                     Dist alteredDist = new Dist(alt, adjacent);
                     q.remove(alteredDist);
                     q.add(alteredDist);
-                    dist.put(adjacent, alt);
+                    dist[adjacent] = alt;
                 }
             }
         }
@@ -127,14 +125,14 @@ public class Solution {
     public static void main(String[] args) throws IOException {
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
 
-        int t = Integer.parseInt(reader.readLine());
+        int t = Integer.parseInt(reader.readLine(), 10);
 
         for (int tItr = 0; tItr < t; tItr++) {
             String[] nm = reader.readLine().split(" ");
 
-            int n = Integer.parseInt(nm[0]);
+            int n = Integer.parseInt(nm[0], 10);
 
-            int m = Integer.parseInt(nm[1]);
+            int m = Integer.parseInt(nm[1], 10);
 
             int[][] edges = new int[m][3];
 
@@ -142,12 +140,12 @@ public class Solution {
                 String[] edgesRowItems = reader.readLine().split(" ");
 
                 for (int j = 0; j < 3; j++) {
-                    int edgesItem = Integer.parseInt(edgesRowItems[j]);
+                    int edgesItem = Integer.parseInt(edgesRowItems[j], 10);
                     edges[i][j] = edgesItem;
                 }
             }
 
-            int s = Integer.parseInt(reader.readLine());
+            int s = Integer.parseInt(reader.readLine(), 10);
 
             int[] result = shortestReach(n, edges, s);
 
