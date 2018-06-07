@@ -21,6 +21,8 @@ class Solution {
             digits = justNum;
         }
 
+        digits = dropOpeningZeros(digits);
+
         if (definitelyHuge(digits)) {
             return sign == -1 ? Integer.MIN_VALUE : Integer.MAX_VALUE;
         }
@@ -36,6 +38,16 @@ class Solution {
         }
 
         return (int)result * sign;
+    }
+
+    private static String dropOpeningZeros(String digits) {
+        int i = 0;
+
+        while (digits.charAt(i) == '0') {
+            i++;
+        }
+
+        return digits.substring(i);
     }
 
     private static long digitsVal(String digits) {
@@ -76,5 +88,6 @@ class Solution {
         System.out.println(s.myAtoi("-91283472332"));
         System.out.println(s.myAtoi("91283472332"));
         System.out.println(s.myAtoi("+1"));
+        System.out.println(s.myAtoi("  0000000000012345678"));
     }
 }
