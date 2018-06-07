@@ -2,7 +2,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Solution {
-    private static Pattern dryPattern = Pattern.compile("^ *(-?\\d+)");
+    private static Pattern dryPattern = Pattern.compile("^ *([+\\-]?\\d+)");
 
     public int myAtoi(String str) {
         String justNum = dry(str);
@@ -12,6 +12,9 @@ class Solution {
         String digits;
         if (justNum.substring(0, 1).equals("-")) {
             sign = -1;
+            digits = justNum.substring(1);
+        } else if (justNum.substring(0, 1).equals("+")) {
+            sign = 1;
             digits = justNum.substring(1);
         } else {
             sign = 1;
@@ -72,5 +75,6 @@ class Solution {
         System.out.println(s.myAtoi("words and 987"));
         System.out.println(s.myAtoi("-91283472332"));
         System.out.println(s.myAtoi("91283472332"));
+        System.out.println(s.myAtoi("+1"));
     }
 }
