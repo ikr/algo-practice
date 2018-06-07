@@ -43,7 +43,7 @@ class Solution {
     private static String dropOpeningZeros(String digits) {
         int i = 0;
 
-        while (digits.charAt(i) == '0') {
+        while (i < digits.length() - 1 && digits.charAt(i) == '0') {
             i++;
         }
 
@@ -89,5 +89,6 @@ class Solution {
         System.out.println(s.myAtoi("91283472332"));
         System.out.println(s.myAtoi("+1"));
         System.out.println(s.myAtoi("  0000000000012345678"));
+        System.out.println(s.myAtoi("        00000000000    "));
     }
 }
