@@ -1,6 +1,30 @@
 class Solution {
     public boolean isMatch(String s, String p) {
-        return false;
+        return match(s, 0, p, 0);
+    }
+
+    private static boolean match(String s, int sidx, String p, int pidx) {
+        if (sidx == s.length() && pidx == p.length()) return true;
+        if (sidx == s.length() || pidx == p.length()) return false;
+
+        if (p.charAt(pidx) == '.' && p.indexOf(".*") != pidx) {
+            return match(s, sidx + 1, p, pidx + 1);
+        }
+
+        if (p.indexOf(".*") == pidx) {
+            return match(s, sidx + 1, p, pidx) || match(s, sidx, p, pidx + 2);
+        }
+
+        if (pidx + 1 < p.length() && p.charAt(pidx + 1) == '*') {
+            return (
+                    (s.charAt(sidx) == p.charAt(pidx) && match(s, sidx + 1, p, pidx))
+                            || match(s, sidx, p, pidx + 2)
+            );
+        }
+
+        if (s.charAt(sidx) != p.charAt(pidx)) return false;
+
+        return match(s, sidx + 1, p, pidx + 1);
     }
 
     public static void main(String[] args) {
@@ -8,6 +32,7 @@ class Solution {
 
         String[][] cases = new String[][]{
                 {"aa", "a"},
+                {"aa", "aa"},
                 {"aa", "a*"},
                 {"ab", ".*"},
                 {"aab", "c*a*b"},
