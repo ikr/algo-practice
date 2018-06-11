@@ -4,8 +4,13 @@ class Solution {
     }
 
     private static boolean match(String s, int sidx, String p, int pidx) {
-        if (sidx == s.length() && pidx == p.length()) return true;
-        if (sidx == s.length() || pidx == p.length()) return false;
+        if (sidx == s.length()) {
+            if (pidx == p.length()) return true;
+            if (pidx == p.length() - 2 && p.charAt(pidx + 1) == '*') return true;
+            return false;
+        }
+
+        if (pidx == p.length()) return false;
 
         if (p.charAt(pidx) == '.' && p.indexOf(".*") != pidx) {
             return match(s, sidx + 1, p, pidx + 1);
@@ -31,12 +36,14 @@ class Solution {
         Solution s = new Solution();
 
         String[][] cases = new String[][]{
+                {"", ""},
                 {"aa", "a"},
                 {"aa", "aa"},
                 {"aa", "a*"},
                 {"ab", ".*"},
                 {"aab", "c*a*b"},
-                {"mississippi", "mis*is*p*."}
+                {"mississippi", "mis*is*p*."},
+                {"mississippi", "mis*is*ip*."}
         };
 
         for (String[] c : cases) {
