@@ -36,14 +36,15 @@ class Solution {
         Solution s = new Solution();
 
         String[][] cases = new String[][]{
-                {"", ""},
-                {"aa", "a"},
-                {"aa", "aa"},
-                {"aa", "a*"},
-                {"ab", ".*"},
-                {"aab", "c*a*b"},
-                {"mississippi", "mis*is*p*."},
-                {"mississippi", "mis*is*ip*."}
+//                {"", ""},
+//                {"aa", "a"},
+//                {"aa", "aa"},
+//                {"aa", "a*"},
+//                {"ab", ".*"},
+//                {"aab", "c*a*b"},
+//                {"mississippi", "mis*is*p*."},
+//                {"mississippi", "mis*is*ip*."},
+                {"aasdfasdfasdfasdfas", "aasdf.*asdf.*asdf.*asdf.*s"}
         };
 
         for (String[] c : cases) {
