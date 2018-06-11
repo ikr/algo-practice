@@ -44,7 +44,8 @@ class Solution {
 //                {"aab", "c*a*b"},
 //                {"mississippi", "mis*is*p*."},
 //                {"mississippi", "mis*is*ip*."},
-                {"aasdfasdfasdfasdfas", "aasdf.*asdf.*asdf.*asdf.*s"}
+//                {"aasdfasdfasdfasdfas", "aasdf.*asdf.*asdf.*asdf.*s"},
+                {"abc", "a.*b.*c"}
         };
 
         for (String[] c : cases) {
