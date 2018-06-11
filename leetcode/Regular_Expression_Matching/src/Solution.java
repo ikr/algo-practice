@@ -12,11 +12,11 @@ class Solution {
 
         if (pidx == p.length()) return false;
 
-        if (p.charAt(pidx) == '.' && p.indexOf(".*") != pidx) {
+        if (p.charAt(pidx) == '.' && p.indexOf(".*", pidx) != pidx) {
             return match(s, sidx + 1, p, pidx + 1);
         }
 
-        if (p.indexOf(".*") == pidx) {
+        if (p.indexOf(".*", pidx) == pidx) {
             return match(s, sidx + 1, p, pidx) || match(s, sidx, p, pidx + 2);
         }
 
@@ -36,16 +36,17 @@ class Solution {
         Solution s = new Solution();
 
         String[][] cases = new String[][]{
-//                {"", ""},
-//                {"aa", "a"},
-//                {"aa", "aa"},
-//                {"aa", "a*"},
-//                {"ab", ".*"},
-//                {"aab", "c*a*b"},
-//                {"mississippi", "mis*is*p*."},
-//                {"mississippi", "mis*is*ip*."},
-//                {"aasdfasdfasdfasdfas", "aasdf.*asdf.*asdf.*asdf.*s"},
-                {"abc", "a.*b.*c"}
+                {"", ""},
+                {"aa", "a"},
+                {"aa", "aa"},
+                {"aa", "a*"},
+                {"ab", ".*"},
+                {"aab", "c*a*b"},
+                {"mississippi", "mis*is*p*."},
+                {"mississippi", "mis*is*ip*."},
+                {"aasdfasdfasdfasdfas", "aasdf.*asdf.*asdf.*asdf.*s"},
+                {"bc", ".*b.*c"},
+                {"abc", ".*a.*b.*c.*"}
         };
 
         for (String[] c : cases) {
