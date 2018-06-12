@@ -6,7 +6,11 @@ class Solution {
     private static boolean match(String s, int sidx, String p, int pidx) {
         if (sidx == s.length()) {
             if (pidx == p.length()) return true;
-            if (pidx == p.length() - 2 && p.charAt(pidx + 1) == '*') return true;
+
+            if (pidx + 1 < p.length() && p.charAt(pidx + 1) == '*') {
+                return match(s, sidx, p, pidx + 2);
+            }
+
             return false;
         }
 
