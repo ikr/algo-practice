@@ -1,11 +1,10 @@
 class Solution {
     public static void main(String[] args) {
         Solution s = new Solution();
-        System.out.println(s.maxArea(testArray1()));
-    }
-
-    private static int[] testArray1() {
-        return new int[]{1, 1};
+        System.out.println(s.maxArea(new int[]{1, 5, 4, 3}));
+        System.out.println(s.maxArea(new int[]{3, 1, 2, 4, 5}));
+        System.out.println(s.maxArea(new int[0]));
+        System.out.println(s.maxArea(new int[]{1, 1}));
     }
 
     public int maxArea(int[] height) {
