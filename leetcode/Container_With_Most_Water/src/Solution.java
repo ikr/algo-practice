@@ -8,16 +8,19 @@ class Solution {
     }
 
     public int maxArea(int[] height) {
-        int result = 0;
+        int result = 0, l = 0, r = height.length - 1;
 
-        for (int i = 0; i < height.length; ++i) {
-            for (int j = i + 1; j < height.length; ++j) {
-                int h = Math.min(height[i], height[j]);
-                int w = j - i;
+        while (l < r) {
+            int w = r - l;
+            int h = Math.min(height[l], height[r]);
+            if (w * h > result) {
+                result = w * h;
+            }
 
-                if (h * w > result) {
-                    result = h * w;
-                }
+            if (height[l] < height[r]) {
+                l++;
+            } else {
+                r--;
             }
         }
 
