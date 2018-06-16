@@ -22,7 +22,8 @@ class Solution {
                 limiters.push(i);
             } else {
                 while (!limiters.empty() && limiters.peek() > heights[i]) {
-                    limiters.pop();
+                    int lim = limiters.pop();
+                    if (heights[lim] > result) result = heights[lim];
                 }
 
                 int lim = limiters.empty() ? -1 : limiters.pop();
