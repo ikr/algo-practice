@@ -1,16 +1,33 @@
+import java.util.ArrayList;
 import java.util.Stack;
 
 class Solution {
+    private static class TestCase {
+        public int[] heights;
+        public int expectedResult;
+
+        public TestCase(int[] heights, int expectedResult) {
+            this.heights = heights;
+            this.expectedResult = expectedResult;
+        }
+    }
+
     public static void main(String[] args) {
+        ArrayList<TestCase> cases = new ArrayList<>();
+        cases.add(new TestCase(new int[]{2, 1, 5, 6, 2, 3}, 10));
+        cases.add(new TestCase(new int[]{6, 2, 5, 4, 5, 1, 6}, 12));
+        cases.add(new TestCase(new int[]{0, 0, 1, 0, 0, 1, 0}, 1));
+        cases.add(new TestCase(new int[0], 0));
+        cases.add(new TestCase(new int[]{0}, 0));
+        cases.add(new TestCase(new int[]{2}, 2));
+        cases.add(new TestCase(new int[]{2, 2, 2}, 6));
+        cases.add(new TestCase(new int[]{0, 0}, 0));
+
         Solution s = new Solution();
-        System.out.println(s.largestRectangleArea(new int[]{2, 1, 5, 6, 2, 3})); // 10
-        System.out.println(s.largestRectangleArea(new int[]{6, 2, 5, 4, 5, 1, 6})); // 12
-        System.out.println(s.largestRectangleArea(new int[]{0, 0, 1, 0, 0, 1, 0})); // 1
-        System.out.println(s.largestRectangleArea(new int[0])); // 0
-        System.out.println(s.largestRectangleArea(new int[]{0})); // 0
-        System.out.println(s.largestRectangleArea(new int[]{2})); // 2
-        System.out.println(s.largestRectangleArea(new int[]{2, 2, 2})); // 6
-        System.out.println(s.largestRectangleArea(new int[]{0, 0, 0})); // 0
+        for (TestCase tc : cases) {
+            int result = s.largestRectangleArea(tc.heights);
+            System.out.printf("Expected %d, got %d -- %b\n", tc.expectedResult, result, tc.expectedResult == result);
+        }
     }
 
     public int largestRectangleArea(int[] heights) {
