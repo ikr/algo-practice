@@ -21,15 +21,19 @@ class Solution {
             if (limiters.empty() || heights[limiters.peek()] <= heights[i]) {
                 limiters.push(i);
             } else {
+                int left = -1, lim = -1;
+
                 while (!limiters.empty() && heights[limiters.peek()] > heights[i]) {
-                    int lim = limiters.pop();
+                    lim = limiters.pop();
                     int area = heights[lim] * (i - lim);
                     if (area > result) result = area;
+                    left = lim - 1;
                 }
 
-                int lim = limiters.empty() ? -1 : limiters.pop();
-                int left = limiters.empty() ? -1 : limiters.pop();
-                int area = lim >= 0 ? heights[lim] * (i - left - 1) : 0;
+                if (!limiters.empty()) lim = limiters.pop();
+                if (!limiters.empty()) left = limiters.pop();
+
+                int area = heights[lim] * (i - left - 1);
                 if (area > result) result = area;
 
                 if (lim >= 0) limiters.push(lim);
