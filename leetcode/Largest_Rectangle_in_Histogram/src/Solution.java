@@ -18,10 +18,10 @@ class Solution {
         cases.add(new TestCase(new int[]{6, 2, 5, 4, 5, 1, 6}, 12));
         cases.add(new TestCase(new int[]{0, 0, 1, 0, 0, 1, 0}, 1));
         cases.add(new TestCase(new int[0], 0));
-        cases.add(new TestCase(new int[]{0}, 0));
         cases.add(new TestCase(new int[]{2}, 2));
         cases.add(new TestCase(new int[]{2, 2, 2}, 6));
         cases.add(new TestCase(new int[]{0, 0}, 0));
+        cases.add(new TestCase(new int[]{3, 2, 1, 0, 1, 2, 3}, 4));
 
         Solution s = new Solution();
         for (TestCase tc : cases) {
