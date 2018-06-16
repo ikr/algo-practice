@@ -25,11 +25,21 @@ class Solution {
                     limiters.pop();
                 }
 
-                int limiter = limiters.empty() ? i : limiters.pop() + 1;
-                int left = limiters.empty() ? i : limiters.peek() + 1;
-                int area = limiter * (i - left + 1);
+                int lim = limiters.empty() ? -1 : limiters.pop();
+                int left = limiters.empty() ? -1 : limiters.pop();
+                int area = lim >= 0 ? heights[lim] * (i - left - 1) : 0;
                 if (area > result) result = area;
+
+                if (lim >= 0) limiters.push(lim);
+                limiters.push(i);
             }
+        }
+
+        while (!limiters.empty()) {
+            int lim = limiters.pop();
+            int left = limiters.empty() ? lim - 1 : limiters.peek();
+            int area = heights[lim] * (heights.length - left - 1);
+            if (area > result) result = area;
         }
 
         return result;
