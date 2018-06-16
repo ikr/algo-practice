@@ -4,13 +4,13 @@ class Solution {
     public static void main(String[] args) {
         Solution s = new Solution();
         System.out.println(s.largestRectangleArea(new int[]{2, 1, 5, 6, 2, 3})); // 10
-//        System.out.println(s.largestRectangleArea(new int[]{6, 2, 5, 4, 5, 1, 6})); // 12
-//        System.out.println(s.largestRectangleArea(new int[]{0, 0, 1, 0, 0, 1, 0})); // 1
-//        System.out.println(s.largestRectangleArea(new int[0])); // 0
-//        System.out.println(s.largestRectangleArea(new int[]{0})); // 0
-//        System.out.println(s.largestRectangleArea(new int[]{2})); // 2
-//        System.out.println(s.largestRectangleArea(new int[]{2, 2, 2})); // 6
-//        System.out.println(s.largestRectangleArea(new int[]{0, 0, 0})); // 0
+        System.out.println(s.largestRectangleArea(new int[]{6, 2, 5, 4, 5, 1, 6})); // 12
+        System.out.println(s.largestRectangleArea(new int[]{0, 0, 1, 0, 0, 1, 0})); // 1
+        System.out.println(s.largestRectangleArea(new int[0])); // 0
+        System.out.println(s.largestRectangleArea(new int[]{0})); // 0
+        System.out.println(s.largestRectangleArea(new int[]{2})); // 2
+        System.out.println(s.largestRectangleArea(new int[]{2, 2, 2})); // 6
+        System.out.println(s.largestRectangleArea(new int[]{0, 0, 0})); // 0
     }
 
     public int largestRectangleArea(int[] heights) {
@@ -23,7 +23,8 @@ class Solution {
             } else {
                 while (!limiters.empty() && heights[limiters.peek()] > heights[i]) {
                     int lim = limiters.pop();
-                    if (heights[lim] > result) result = heights[lim];
+                    int area = heights[lim] * (i - lim);
+                    if (area > result) result = area;
                 }
 
                 int lim = limiters.empty() ? -1 : limiters.pop();
