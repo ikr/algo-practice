@@ -22,6 +22,7 @@ class Solution {
         cases.add(new TestCase(new int[]{2, 2, 2}, 6));
         cases.add(new TestCase(new int[]{0, 0}, 0));
         cases.add(new TestCase(new int[]{3, 2, 1, 0, 1, 2, 3}, 4));
+        cases.add(new TestCase(new int[]{2, 1, 2}, 3));
 
         Solution s = new Solution();
         for (TestCase tc : cases) {
@@ -31,30 +32,17 @@ class Solution {
     }
 
     public int largestRectangleArea(int[] heights) {
-        int result = 0;
+        int result = 0, i = 0;
         Stack<Integer> limiters = new Stack<>();
 
-        for (int i = 0; i < heights.length; i++) {
+        while (i < heights.length) {
             if (limiters.empty() || heights[limiters.peek()] <= heights[i]) {
                 limiters.push(i);
+                i++;
             } else {
-                int left = -1, lim = -1;
-
-                while (!limiters.empty() && heights[limiters.peek()] > heights[i]) {
-                    lim = limiters.pop();
-                    int area = heights[lim] * (i - lim);
-                    if (area > result) result = area;
-                    left = lim - 1;
-                }
-
-                if (!limiters.empty()) lim = limiters.pop();
-                if (!limiters.empty()) left = limiters.pop();
-
-                int area = heights[lim] * (i - left - 1);
+                int lim = limiters.pop();
+                int area = heights[lim] * (limiters.empty() ? i : i - limiters.peek() - 1);
                 if (area > result) result = area;
-
-                if (lim >= 0) limiters.push(lim);
-                limiters.push(i);
             }
         }
 
