@@ -48,8 +48,7 @@ class Solution {
 
         while (!limiters.empty()) {
             int lim = limiters.pop();
-            int left = limiters.empty() ? lim - 1 : limiters.peek();
-            int area = heights[lim] * (heights.length - left - 1);
+            int area = heights[lim] * (limiters.empty() ? heights.length : heights.length - limiters.peek() - 1);
             if (area > result) result = area;
         }
 
