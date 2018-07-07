@@ -29,14 +29,6 @@ class Solution {
             }
         }
 
-        Collections.sort(
-            result,
-
-            Comparator.comparingInt((List<Integer> t) -> t.get(0))
-                .thenComparingInt(t -> t.get(1))
-                .thenComparingInt(t -> t.get(2))
-        );
-
         return result;
     }
 
@@ -114,8 +106,6 @@ class Solution {
     }
 
     private static List<Integer> triplet(int a, int b, int c) {
-        List<Integer> result = Arrays.asList(a, b, c);
-        Collections.sort(result);
-        return result;
+        return Arrays.asList(a, b, c);
     }
 }
