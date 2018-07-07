@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class Solution {
     public static void main(String[] args) {
@@ -13,7 +10,21 @@ class Solution {
     }
 
     public List<List<Integer>> threeSum(int[] nums) {
-        return new ArrayList<>();
+        Map<Integer, List<Pair>> ips = indexPairsBySum(nums);
+        List<List<Integer>> result = new ArrayList<>();
+
+        for (int i = 0; i < nums.length; i++) {
+            int key = -nums[i];
+            if (ips.containsKey(key)) {
+                for (Pair pair : ips.get(key)) {
+                    if (pair.isDistinct(i)) {
+                        result.add(triplet(nums[pair.a], nums[pair.b], nums[i]));
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private static Map<Integer, List<Pair>> indexPairsBySum(int[] nums) {
@@ -40,9 +51,17 @@ class Solution {
         final int a;
         final int b;
 
-        public Pair(int a, int b) {
+        Pair(int a, int b) {
             this.a = a;
             this.b = b;
         }
+
+        boolean isDistinct(int c) {
+            return c != a && c != b;
+        }
+    }
+
+    private static List<Integer> triplet(int a, int b, int c) {
+        return Arrays.asList(a, b, c);
     }
 }
