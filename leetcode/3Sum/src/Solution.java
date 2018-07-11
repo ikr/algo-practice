@@ -10,46 +10,38 @@ class Solution {
     }
 
     public List<List<Integer>> threeSum(int[] nums) {
-        Map<Integer, List<Pair>> ips = indexPairsBySum(nums);
+        Map<Integer, List<Integer>> indicesByValue = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            if (!indicesByValue.containsKey(nums[i])) {
+                indicesByValue.put(nums[i], new ArrayList<>());
+            }
+
+            indicesByValue.get(nums[i]).add(i);
+        }
+
         List<List<Integer>> result = new ArrayList<>();
         HashSet<TriSet> trisets = new HashSet<>();
 
-        for (int i = 0; i < nums.length; i++) {
-            int key = -nums[i];
-            if (ips.containsKey(key)) {
-                for (Pair pair : ips.get(key)) {
-                    final List<Integer> t = triplet(nums[pair.a], nums[pair.b], nums[i]);
-                    final TriSet ts = new TriSet(t);
+        for (int i = 0; i < nums.length - 1; i++) {
+            for (int j = i + 1; j < nums.length; j++) {
+                int key = -(nums[i] + nums[j]);
+                if (indicesByValue.containsKey(key)) {
+                    for (int r : indicesByValue.get(key)) {
+                        if (r == i || r == j) continue;
 
-                    if (pair.isDistinct(i) && !trisets.contains(ts)) {
-                        result.add(t);
-                        trisets.add(ts);
+                        List<Integer> t = triplet(nums[r], nums[i], nums[j]);
+                        TriSet ts = new TriSet(t);
+
+                        if (!trisets.contains(ts)) {
+                            result.add(t);
+                            trisets.add(ts);
+                        }
                     }
                 }
             }
         }
 
         return result;
-    }
-
-    private static Map<Integer, List<Pair>> indexPairsBySum(int[] nums) {
-        Map<Integer, List<Pair>> result = new HashMap<>();
-
-        for (int i = 0; i < nums.length - 1; i++) {
-            for (int j = i + 1; j < nums.length; j++) {
-                final int key = nums[i] + nums[j];
-                ensureContainer(result, key);
-                result.get(key).add(new Pair(i, j));
-            }
-        }
-
-        return result;
-    }
-
-    private static void ensureContainer(Map<Integer, List<Pair>> m, int key) {
-        if (!m.containsKey(key)) {
-            m.put(key, new ArrayList<>());
-        }
     }
 
     private static class TriSet {
@@ -84,24 +76,6 @@ class Solution {
 
         @Override public String toString() {
             return String.format("{%d, %d, %d}", a, b, c);
-        }
-    }
-
-    private static class Pair {
-        final int a;
-        final int b;
-
-        Pair(int a, int b) {
-            this.a = a;
-            this.b = b;
-        }
-
-        boolean isDistinct(int c) {
-            return c != a && c != b;
-        }
-
-        @Override public String toString() {
-            return String.format("{%d, %d}", a, b);
         }
     }
 
