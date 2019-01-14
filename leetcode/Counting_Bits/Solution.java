@@ -15,7 +15,8 @@ class Solution {
                 lastPow2 *= 2;
             } else {
                 result[x] = 1 + result[x - lastPow2];
-    }
+            }
+
             x++;
         }
 
