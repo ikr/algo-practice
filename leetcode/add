@@ -1,0 +1,27 @@
+#!/bin/bash
+
+name=$(echo -n "$1" | sed 's/ /_/g')
+
+code=$(cat <<EOF
+#include <iostream>
+
+using std::cout;
+
+class Solution {
+  public:
+};
+
+int main() {
+    Solution s;
+
+    cout << '\n';
+
+    return 0;
+}
+EOF
+)
+
+mkdir "./$name"
+cd "./$name"
+echo "$code" > ./solution.cc
+echo "cd ./$name && make solution && ./solution"
