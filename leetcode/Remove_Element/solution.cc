@@ -29,7 +29,7 @@ int main() {
     int result = s.removeElement(v, 2);
     cout << result << "\n";
 
-    for (auto i : v) {
+    for (int i : v) {
         cout << i << " ";
     }
 
