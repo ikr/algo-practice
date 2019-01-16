@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$#" -ne 1 ]; then
+    echo "Usage: ./add 'Problem Title With Spaces'"
+    exit 1
+fi
+
 name=$(echo -n "$1" | sed 's/ /_/g')
 
 code=$(cat <<EOF
