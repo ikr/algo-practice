@@ -5,15 +5,17 @@ using std::cout;
 using std::vector;
 
 class Solution {
-   public:
+  public:
     int removeElement(vector<int> &nums, int val) {
         int length = 0;
 
         for (int i = 0; i < nums.size(); ++i) {
-            if (nums[i] == val) continue;
+            if (nums[i] == val)
+                continue;
 
             nums[length] = nums[i];
-            if (length != i) nums[i] = val;
+            if (length != i)
+                nums[i] = val;
 
             ++length;
         }
