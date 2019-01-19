@@ -8,9 +8,13 @@ fi
 name=$(echo -n "$1" | sed 's/ /_/g')
 
 code=$(cat <<EOF
+#include <algorithm>
+#include <climits>
+#include <cmath>
 #include <iostream>
+#include <vector>
 
-using std::cout;
+using namespace std;
 
 class Solution {
   public:
