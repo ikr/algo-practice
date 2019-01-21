@@ -12,6 +12,7 @@ code=$(cat <<EOF
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
