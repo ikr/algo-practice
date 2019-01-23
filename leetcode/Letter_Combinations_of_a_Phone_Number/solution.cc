@@ -12,11 +12,13 @@ class Solution {
   public:
     vector<string> letterCombinations(string digits) {}
 
+    static void increment(string::reverse_iterator r) { bool carry = false; }
+
     static string::reverse_iterator rightmost_non_final(string &s) {
         string::reverse_iterator result = s.rbegin();
 
         while (result != s.rend()) {
-            if (!is_final(*result)) {
+            if (!is_closing(*result)) {
                 return result;
             }
 
@@ -28,13 +30,13 @@ class Solution {
         string result = digits;
 
         for (char &d : result) {
-            d = inc(d);
+            d = next(d);
         }
 
         return result;
     }
 
-    static char inc(char x) {
+    static char next(char x) {
         if (increments_by_char.count(x) == 0) {
             return -1;
         }
@@ -42,10 +44,11 @@ class Solution {
         return increments_by_char.at(x);
     }
 
-    static bool is_final(char x) { return inc(x) == -1; }
+    static bool is_closing(char x) { return next(x) == -1; }
 
   private:
     static const unordered_map<char, char> increments_by_char;
+    static const unordered_map<char, char> opening_by_char;
 };
 
 const unordered_map<char, char> Solution::increments_by_char{
@@ -64,6 +67,10 @@ const unordered_map<char, char> Solution::increments_by_char{
     {'8', 't'}, {'t', 'u'}, {'u', 'v'},
 
     {'9', 'w'}, {'w', 'x'}, {'x', 'y'}, {'y', 'z'}};
+
+const unordered_map<char, char> Solution::opening_by_char{
+    {'c', 'a'}, {'f', 'd'}, {'i', 'g'}, {'l', 'j'},
+    {'o', 'm'}, {'s', 'p'}, {'v', 't'}, {'z', 'w'}};
 
 int main() {
     Solution s;
