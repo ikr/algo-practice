@@ -12,7 +12,23 @@ class Solution {
   public:
     vector<string> letterCombinations(string digits) {}
 
-    static void increment(string::reverse_iterator r) { bool carry = false; }
+    static bool increment_in_place(string::const_reverse_iterator rend,
+                                   string::reverse_iterator r) {
+        bool carry = true;
+
+        while (carry && r != rend) {
+            if (next(*r) == -1) {
+                *r = opening_by_char.at(*r);
+            } else {
+                *r = next(*r);
+                carry = false;
+            }
+
+            r++;
+        }
+
+        return !(carry && r == rend);
+    }
 
     static string::reverse_iterator rightmost_non_final(string &s) {
         string::reverse_iterator result = s.rbegin();
@@ -76,8 +92,10 @@ int main() {
     Solution s;
     string combination = Solution::first_combination("234");
 
-    cout << *Solution::rightmost_non_final(combination);
-    cout << endl;
+    while (Solution::increment_in_place(combination.rend(),
+                                        combination.rbegin())) {
+        cout << combination << endl;
+    };
 
     return 0;
 }
