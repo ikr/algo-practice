@@ -11,6 +11,10 @@ using namespace std;
 class Solution {
   public:
     vector<string> letterCombinations(string digits) {
+        if (digits.size() == 0) {
+            return vector<string>();
+        }
+
         first_combination_in_place(digits.end(), digits.begin());
         vector<string> result{digits};
 
