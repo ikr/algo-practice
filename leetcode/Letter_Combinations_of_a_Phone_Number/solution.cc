@@ -10,8 +10,18 @@ using namespace std;
 
 class Solution {
   public:
-    vector<string> letterCombinations(string digits) {}
+    vector<string> letterCombinations(string digits) {
+        first_combination_in_place(digits.end(), digits.begin());
+        vector<string> result{digits};
 
+        while (increment_in_place(digits.rend(), digits.rbegin())) {
+            result.push_back(digits);
+        }
+
+        return result;
+    }
+
+  private:
     static bool increment_in_place(string::const_reverse_iterator rend,
                                    string::reverse_iterator r) {
         bool carry = true;
@@ -30,26 +40,12 @@ class Solution {
         return !(carry && r == rend);
     }
 
-    static string::reverse_iterator rightmost_non_final(string &s) {
-        string::reverse_iterator result = s.rbegin();
-
-        while (result != s.rend()) {
-            if (!is_closing(*result)) {
-                return result;
-            }
-
-            result++;
+    static void first_combination_in_place(string::const_iterator end,
+                                           string::iterator i) {
+        while (i != end) {
+            *i = next(*i);
+            i++;
         }
-    }
-
-    static string first_combination(const string &digits) {
-        string result = digits;
-
-        for (char &d : result) {
-            d = next(d);
-        }
-
-        return result;
     }
 
     static char next(char x) {
@@ -60,9 +56,6 @@ class Solution {
         return increments_by_char.at(x);
     }
 
-    static bool is_closing(char x) { return next(x) == -1; }
-
-  private:
     static const unordered_map<char, char> increments_by_char;
     static const unordered_map<char, char> opening_by_char;
 };
@@ -90,12 +83,11 @@ const unordered_map<char, char> Solution::opening_by_char{
 
 int main() {
     Solution s;
-    string combination = Solution::first_combination("234");
+    vector<string> result = s.letterCombinations("23");
 
-    while (Solution::increment_in_place(combination.rend(),
-                                        combination.rbegin())) {
-        cout << combination << endl;
-    };
+    for (auto s : result) {
+        cout << s << endl;
+    }
 
     return 0;
 }
