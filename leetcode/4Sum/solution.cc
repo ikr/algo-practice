@@ -41,7 +41,7 @@ class BruteForceSolution {
     }
 };
 
-class OptimalConstantSpaceSolution {
+class Solution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
         sort(nums.begin(), nums.end());
@@ -82,7 +82,7 @@ class OptimalConstantSpaceSolution {
 };
 
 int main() {
-    OptimalConstantSpaceSolution s;
+    Solution s;
     vector<int> nums{1, 0, -1, 0, -2, 2};
     auto result = s.fourSum(nums, 0);
 
