@@ -41,7 +41,7 @@ class BruteForceSolution {
     }
 };
 
-class Solution {
+class NCubeSolution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
         if (nums.size() < 4) {
@@ -84,7 +84,7 @@ class Solution {
 };
 
 int main() {
-    Solution s;
+    NCubeSolution s;
     vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
     auto result = s.fourSum(nums, 0);
 
