@@ -44,6 +44,10 @@ class BruteForceSolution {
 class Solution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
+        if (nums.size() < 4) {
+            return vector<vector<int>>();
+        }
+
         sort(nums.begin(), nums.end());
         set<vector<int>> result_set;
 
@@ -58,10 +62,8 @@ class Solution {
                     if (candidate == target) {
                         result_set.insert(
                             vector<int>{nums[i], nums[j], nums[l], nums[r]});
-                        break;
-                    }
-
-                    if (candidate < target) {
+                        ++l;
+                    } else if (candidate < target) {
                         ++l;
                     } else {
                         --r;
@@ -83,7 +85,7 @@ class Solution {
 
 int main() {
     Solution s;
-    vector<int> nums{1, 0, -1, 0, -2, 2};
+    vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
     auto result = s.fourSum(nums, 0);
 
     for (auto quad : result) {
