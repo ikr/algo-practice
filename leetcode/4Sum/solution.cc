@@ -14,8 +14,11 @@ using namespace std;
 class VectorHash {
   public:
     int operator()(const vector<int> &v) const {
+        if (v.empty()) return 0;
+
         vector<int>::const_iterator it = v.begin();
         int result = *it;
+        ++it;
 
         while (it != v.end()) {
             result = 31 * result + *it;
