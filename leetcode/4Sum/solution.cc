@@ -14,7 +14,8 @@ using namespace std;
 class VectorHash {
   public:
     int operator()(const vector<int> &v) const {
-        if (v.empty()) return 0;
+        if (v.empty())
+            return 0;
 
         vector<int>::const_iterator it = v.begin();
         int result = *it;
@@ -29,10 +30,12 @@ class VectorHash {
     }
 };
 
+using QuadsSet = unordered_set<vector<int>, VectorHash>;
+
 class BruteForceSolution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
-        unordered_set<vector<int>, VectorHash> result_set;
+        QuadsSet result_set;
 
         for (auto i = 0; i < nums.size() - 3; ++i) {
             for (auto j = i + 1; j < nums.size() - 2; ++j) {
@@ -52,8 +55,7 @@ class BruteForceSolution {
     }
 
   private:
-    static vector<vector<int>>
-    vectorize(const unordered_set<vector<int>, VectorHash> &source) {
+    static vector<vector<int>> vectorize(const QuadsSet &source) {
         vector<vector<int>> result;
         copy(source.begin(), source.end(), back_inserter(result));
         return result;
