@@ -14,8 +14,9 @@ using namespace std;
 class VectorHash {
   public:
     int operator()(const vector<int> &v) const {
-        if (v.empty())
+        if (v.empty()) {
             return 0;
+        }
 
         vector<int>::const_iterator it = v.begin();
         int result = *it;
@@ -70,7 +71,7 @@ class NCubeSolution {
         }
 
         sort(nums.begin(), nums.end());
-        set<vector<int>> result_set;
+        QuadsSet result_set;
 
         for (auto i = 0; i < nums.size() - 3; ++i) {
             for (auto j = i + 1; j < nums.size() - 2; ++j) {
@@ -97,7 +98,7 @@ class NCubeSolution {
     }
 
   private:
-    static vector<vector<int>> vectorize(const set<vector<int>> &source) {
+    static vector<vector<int>> vectorize(const QuadsSet &source) {
         vector<vector<int>> result;
         copy(source.begin(), source.end(), back_inserter(result));
         return result;
@@ -105,7 +106,7 @@ class NCubeSolution {
 };
 
 int main() {
-    BruteForceSolution s;
+    NCubeSolution s;
     vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
     auto result = s.fourSum(nums, 0);
 
