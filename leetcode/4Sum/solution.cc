@@ -105,20 +105,15 @@ class NCubeSolution {
     }
 };
 
-class PairHash {
-  public:
-    int operator()(const pair<int, int> &p) const {
-        return p.first + 31 * p.second;
-    }
-};
-
-using PairsBySum = unordered_map<int, unordered_set<pair<int, int>, PairHash>>;
+using PairsBySum = unordered_multimap<int, pair<int, int>>;
 
 class NSquareLogNSolution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
+        QuadsSet result_set;
         PairsBySum pairsBySum = all_pairs_by_their_sum(nums);
-        return vector<vector<int>>();
+
+        return vectorize(result_set);
     }
 
   private:
@@ -127,7 +122,7 @@ class NSquareLogNSolution {
 
         for (auto i = 0; i < xs.size() - 1; ++i) {
             for (auto j = i; j < xs.size(); ++j) {
-                result[xs[i] + xs[j]].insert({xs[i], xs[j]});
+                result.insert({xs[i] + xs[j], {xs[i], xs[j]}});
             }
         }
 
