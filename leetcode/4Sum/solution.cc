@@ -115,7 +115,7 @@ class NSquareLogNSolution {
         unordered_set<int> keys = unique_keys(pairsBySum);
 
         for (auto i = keys.begin(); i != keys.end(); ++i) {
-            if (keys.count(target - *i)) {
+            if (keys.count(target - *i) == 1) {
                 QuadsSet qs = combine_quads(
                     *i, pairsBySum.find(*i), target - *i,
                     pairsBySum.find(target - *i), pairsBySum.end());
@@ -196,6 +196,12 @@ class NSquareLogNSolution {
 int main() {
     NSquareLogNSolution s;
     vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
+
+    for (auto x : nums) {
+            cout << x << ' ';
+    }
+    cout << endl;
+
     auto result = s.fourSum(nums, 0);
 
     for (auto quad : result) {
