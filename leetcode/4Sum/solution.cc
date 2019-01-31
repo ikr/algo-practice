@@ -105,20 +105,43 @@ class NCubeSolution {
     }
 };
 
-using PairsBySum = unordered_multimap<int, pair<int, int>>;
+using KeyedPairs = unordered_multimap<int, pair<int, int>>;
 
 class NSquareLogNSolution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
         QuadsSet result_set;
-        PairsBySum pairsBySum = all_pairs_by_their_sum(nums);
+        KeyedPairs pairsBySum = all_pairs_by_their_sum(nums);
 
         return vectorize(result_set);
     }
 
   private:
-    static PairsBySum all_pairs_by_their_sum(const vector<int> &xs) {
-        PairsBySum result;
+    static QuadsSet combine_quads(int pair_one_sum,
+                                  KeyedPairs::const_iterator pair_one_it,
+                                  int pair_two_sum,
+                                  KeyedPairs::const_iterator pair_two_it,
+                                  KeyedPairs::const_iterator end) {
+        QuadsSet result;
+
+        if (pair_one_it == pair_two_it) {
+
+        } else {
+            while (pair_one_it != end && pair_one_it->first == pair_one_sum) {
+                while (pair_two_it != end &&
+                       pair_two_it->first == pair_two_sum) {
+                    ++pair_two_it;
+                }
+
+                ++pair_one_it;
+            }
+        }
+
+        return result;
+    }
+
+    static KeyedPairs all_pairs_by_their_sum(const vector<int> &xs) {
+        KeyedPairs result;
 
         for (auto i = 0; i < xs.size() - 1; ++i) {
             for (auto j = i; j < xs.size(); ++j) {
