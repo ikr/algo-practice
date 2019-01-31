@@ -105,8 +105,44 @@ class NCubeSolution {
     }
 };
 
+class PairHash {
+  public:
+    int operator()(const pair<int, int> &p) const {
+        return p.first + 31 * p.second;
+    }
+};
+
+using PairsBySum = unordered_map<int, unordered_set<pair<int, int>, PairHash>>;
+
+class NSquareLogNSolution {
+  public:
+    vector<vector<int>> fourSum(vector<int> &nums, int target) {
+        PairsBySum pairsBySum = all_pairs_by_their_sum(nums);
+        return vector<vector<int>>();
+    }
+
+  private:
+    static PairsBySum all_pairs_by_their_sum(const vector<int> &xs) {
+        PairsBySum result;
+
+        for (auto i = 0; i < xs.size() - 1; ++i) {
+            for (auto j = i; j < xs.size(); ++j) {
+                result[xs[i] + xs[j]].insert({xs[i], xs[j]});
+            }
+        }
+
+        return result;
+    }
+
+    static vector<vector<int>> vectorize(const QuadsSet &source) {
+        vector<vector<int>> result;
+        copy(source.begin(), source.end(), back_inserter(result));
+        return result;
+    }
+};
+
 int main() {
-    NCubeSolution s;
+    NSquareLogNSolution s;
     vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
     auto result = s.fourSum(nums, 0);
 
