@@ -125,19 +125,30 @@ class NSquareLogNSolution {
         QuadsSet result;
 
         if (pair_one_it == pair_two_it) {
-
-        } else {
-            while (pair_one_it != end && pair_one_it->first == pair_one_sum) {
-                while (pair_two_it != end &&
-                       pair_two_it->first == pair_two_sum) {
-                    ++pair_two_it;
+            for (auto i = pair_one_it; i != end && i->first == pair_one_sum;
+                 ++i) {
+                for (auto j = i; ++j != end && j->first == pair_two_sum;) {
+                    result.insert(quad(i, j));
                 }
-
-                ++pair_one_it;
+            }
+        } else {
+            for (auto i = pair_one_it; i != end && i->first == pair_one_sum; ++i) {
+                for (auto j = pair_two_it;  j != end && j->first == pair_two_sum; ++j) {
+                    result.insert(quad(i, j));
+                }
             }
         }
 
         return result;
+    }
+
+    static vector<int> quad(KeyedPairs::const_iterator i,
+                            KeyedPairs::const_iterator j) {
+        vector<int> v{i->second.first, i->second.second, j->second.first,
+                      j->second.second};
+
+        sort(v.begin(), v.end());
+        return v;
     }
 
     static KeyedPairs all_pairs_by_their_sum(const vector<int> &xs) {
