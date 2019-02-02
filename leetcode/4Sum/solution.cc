@@ -110,6 +110,10 @@ using KeyedPairs = unordered_multimap<int, pair<int, int>>;
 class NSquareLogNSolution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
+        if (nums.size() < 4) {
+            return vector<vector<int>>();
+        }
+
         QuadsSet result_set;
         KeyedPairs pairsBySum = all_index_pairs_by_elements_sum(nums);
         unordered_set<int> keys = unique_keys(pairsBySum);
@@ -198,24 +202,6 @@ class NSquareLogNSolution {
         return result;
     }
 };
-
-void print_multimap(const KeyedPairs &mm) {
-    auto current_key = INT_MAX;
-
-    for (auto i : mm) {
-        if (i.first != current_key) {
-            if (current_key != INT_MAX) {
-                cout << endl;
-            }
-            current_key = i.first;
-            cout << i.first << ": ";
-        }
-
-        cout << '{' << i.second.first << ',' << i.second.second << "} ";
-    }
-
-    cout << endl;
-}
 
 int main() {
     NSquareLogNSolution s;
