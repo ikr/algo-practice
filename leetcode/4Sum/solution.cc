@@ -105,7 +105,18 @@ class NCubeSolution {
     }
 };
 
-using KeyedPairs = unordered_multimap<int, pair<int, int>>;
+struct IndexPair {
+    int sum_of_elements;
+    int i;
+    int j;
+
+    IndexPair(int sum_of_elements_, int i_, int j_)
+        : sum_of_elements(sum_of_elements_), i(i_), j(j_) {}
+
+    bool operator<(const IndexPair &other) const {
+        return sum_of_elements < other.sum_of_elements;
+    }
+};
 
 class NSquareLogNSolution {
   public:
@@ -114,17 +125,37 @@ class NSquareLogNSolution {
             return vector<vector<int>>();
         }
 
+        vector<IndexPair> index_pairs;
+
+        for (auto i = 0; i < nums.size() - 1; ++i) {
+            for (auto j = i + 1; j < nums.size(); ++j) {
+                index_pairs.push_back(IndexPair(nums[i] + nums[j], i, j));
+            }
+        }
+
+        sort(index_pairs.begin(), index_pairs.end());
+
         QuadsSet result_set;
-        KeyedPairs pairsBySum = all_index_pairs_by_elements_sum(nums);
-        unordered_set<int> keys = unique_keys(pairsBySum);
+        auto l = 0;
+        auto r = index_pairs.size() - 1;
 
-        for (auto i = keys.begin(); i != keys.end(); ++i) {
-            if (keys.count(target - *i) == 1) {
-                QuadsSet qs = combine_quads(
-                    nums, *i, pairsBySum.find(*i), target - *i,
-                    pairsBySum.find(target - *i), pairsBySum.end());
+        while (l < r) {
+            auto lp = index_pairs[l];
+            auto rp = index_pairs[r];
 
-                result_set.insert(qs.begin(), qs.end());
+            if (lp.sum_of_elements + rp.sum_of_elements == target) {
+                unordered_set<int> candidate{lp.i, lp.j, rp.i, rp.j};
+                if (candidate.size() == 4) {
+                    vector<int> v{nums[lp.i], nums[lp.j], nums[rp.i],
+                                  nums[rp.j]};
+                    sort(v.begin(), v.end());
+                    result_set.insert(v);
+                }
+                ++l;
+            } else if (lp.sum_of_elements + rp.sum_of_elements < target) {
+                ++l;
+            } else {
+                --r;
             }
         }
 
@@ -132,70 +163,6 @@ class NSquareLogNSolution {
     }
 
   private:
-    static unordered_set<int> unique_keys(const KeyedPairs &m) {
-        unordered_set<int> result;
-
-        for (auto i = m.begin(); i != m.end(); ++i) {
-            result.insert(i->first);
-        }
-
-        return result;
-    }
-
-    static QuadsSet combine_quads(const vector<int> &nums, int pair_one_sum,
-                                  KeyedPairs::const_iterator pair_one_it,
-                                  int pair_two_sum,
-                                  KeyedPairs::const_iterator pair_two_it,
-                                  KeyedPairs::const_iterator end) {
-        QuadsSet result;
-
-        for (auto i = pair_one_it; i != end && i->first == pair_one_sum; ++i) {
-            for (auto j = pair_two_it; j != end && j->first == pair_two_sum;
-                 ++j) {
-                auto indices = set_of_indices(i, j);
-                if (indices.size() == 4) {
-                    result.insert(quad(nums, indices));
-                }
-            }
-        }
-
-        return result;
-    }
-
-    static unordered_set<int> set_of_indices(KeyedPairs::const_iterator i,
-                                             KeyedPairs::const_iterator j) {
-        unordered_set<int> result;
-
-        result.insert({i->second.first, i->second.second, j->second.first,
-                       j->second.second});
-
-        return result;
-    }
-
-    static vector<int> quad(const vector<int> &nums,
-                            const unordered_set<int> &indices) {
-        vector<int> v;
-
-        for (auto i : indices) {
-            v.push_back(nums[i]);
-        }
-
-        sort(v.begin(), v.end());
-        return v;
-    }
-
-    static KeyedPairs all_index_pairs_by_elements_sum(const vector<int> &xs) {
-        KeyedPairs result;
-
-        for (auto i = 0; i < xs.size() - 1; ++i) {
-            for (auto j = i + 1; j < xs.size(); ++j) {
-                result.insert({xs[i] + xs[j], {i, j}});
-            }
-        }
-
-        return result;
-    }
-
     static vector<vector<int>> vectorize(const QuadsSet &source) {
         vector<vector<int>> result;
         copy(source.begin(), source.end(), back_inserter(result));
@@ -205,7 +172,7 @@ class NSquareLogNSolution {
 
 int main() {
     NSquareLogNSolution s;
-    vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
+    vector<int> nums{1, 0, -1, 0, -2, 2};
 
     for (auto x : nums) {
         cout << x << ' ';
