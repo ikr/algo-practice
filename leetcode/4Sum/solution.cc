@@ -135,33 +135,15 @@ class NSquareLogNSolution {
 
         sort(index_pairs.begin(), index_pairs.end());
 
+        QuadsSet result_set;
         auto l = 0;
         auto r = index_pairs.size() - 1;
-        unordered_set<int> index_pairs_indices;
 
         while (l < r) {
             auto lp = index_pairs[l];
             auto rp = index_pairs[r];
 
             if (lp.sum_of_elements + rp.sum_of_elements == target) {
-                index_pairs_indices.insert(l);
-                index_pairs_indices.insert(r);
-                ++l;
-            } else if (lp.sum_of_elements + rp.sum_of_elements < target) {
-                ++l;
-            } else {
-                --r;
-            }
-        }
-
-        QuadsSet result_set;
-
-        for (auto i = index_pairs_indices.begin();
-             i != index_pairs_indices.end();) {
-            for (auto j = ++i; j != index_pairs_indices.end(); ++j) {
-                auto lp = index_pairs[*i];
-                auto rp = index_pairs[*j];
-
                 unordered_set<int> candidate{lp.i, lp.j, rp.i, rp.j};
                 if (candidate.size() == 4) {
                     vector<int> v{nums[lp.i], nums[lp.j], nums[rp.i],
@@ -169,6 +151,11 @@ class NSquareLogNSolution {
                     sort(v.begin(), v.end());
                     result_set.insert(v);
                 }
+                --r;
+            } else if (lp.sum_of_elements + rp.sum_of_elements < target) {
+                ++l;
+            } else {
+                --r;
             }
         }
 
@@ -186,8 +173,8 @@ class NSquareLogNSolution {
 int main() {
     NSquareLogNSolution s;
     // vector<int> nums{1, 0, -1, 0, -2, 2};
-    vector<int> nums{-3, -1, 0, 2, 4, 5};
-    // vector<int> nums{-4, -3, -2, -1, 0, 0, 1, 2, 3, 4};
+    // vector<int> nums{-3, -1, 0, 2, 4, 5};
+    vector<int> nums{-4, -3, -2, -1, 0, 0, 1, 2, 3, 4};
 
     for (auto x : nums) {
         cout << x << ' ';
