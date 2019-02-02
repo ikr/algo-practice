@@ -151,7 +151,7 @@ class NSquareLogNSolution {
                     sort(v.begin(), v.end());
                     result_set.insert(v);
                 }
-                ++l;
+                --r;
             } else if (lp.sum_of_elements + rp.sum_of_elements < target) {
                 ++l;
             } else {
@@ -172,7 +172,9 @@ class NSquareLogNSolution {
 
 int main() {
     NSquareLogNSolution s;
-    vector<int> nums{1, 0, -1, 0, -2, 2};
+    // vector<int> nums{1, 0, -1, 0, -2, 2};
+    // vector<int> nums{-3, -1, 0, 2, 4, 5};
+    vector<int> nums{-4, -3, -2, -1, 0, 0, 1, 2, 3, 4};
 
     for (auto x : nums) {
         cout << x << ' ';
