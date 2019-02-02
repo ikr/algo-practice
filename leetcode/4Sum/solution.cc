@@ -174,6 +174,7 @@ class NSquareLogNSolution {
         return v;
     }
 
+  public:
     static KeyedPairs all_pairs_by_their_sum(const vector<int> &xs) {
         KeyedPairs result;
 
@@ -193,12 +194,32 @@ class NSquareLogNSolution {
     }
 };
 
+void print_multimap(const KeyedPairs &mm) {
+    auto current_key = INT_MAX;
+
+    for (auto i : mm) {
+        if (i.first != current_key) {
+            if (current_key != INT_MAX) {
+                cout << endl;
+            }
+
+            current_key = i.first;
+        }
+
+        cout << '{' << i.second.first << ',' << i.second.second << "} ";
+    }
+
+    cout << endl;
+}
+
 int main() {
+    print_multimap(NSquareLogNSolution::all_pairs_by_their_sum({1, 2, 3}));
+
     NSquareLogNSolution s;
     vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
 
     for (auto x : nums) {
-            cout << x << ' ';
+        cout << x << ' ';
     }
     cout << endl;
 
