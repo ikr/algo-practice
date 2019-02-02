@@ -111,13 +111,13 @@ class NSquareLogNSolution {
   public:
     vector<vector<int>> fourSum(vector<int> &nums, int target) {
         QuadsSet result_set;
-        KeyedPairs pairsBySum = all_pairs_by_their_sum(nums);
+        KeyedPairs pairsBySum = all_index_pairs_by_elements_sum(nums);
         unordered_set<int> keys = unique_keys(pairsBySum);
 
         for (auto i = keys.begin(); i != keys.end(); ++i) {
             if (keys.count(target - *i) == 1) {
                 QuadsSet qs = combine_quads(
-                    *i, pairsBySum.find(*i), target - *i,
+                    nums, *i, pairsBySum.find(*i), target - *i,
                     pairsBySum.find(target - *i), pairsBySum.end());
 
                 result_set.insert(qs.begin(), qs.end());
@@ -138,26 +138,19 @@ class NSquareLogNSolution {
         return result;
     }
 
-    static QuadsSet combine_quads(int pair_one_sum,
+    static QuadsSet combine_quads(const vector<int> &nums, int pair_one_sum,
                                   KeyedPairs::const_iterator pair_one_it,
                                   int pair_two_sum,
                                   KeyedPairs::const_iterator pair_two_it,
                                   KeyedPairs::const_iterator end) {
         QuadsSet result;
 
-        if (pair_one_it == pair_two_it) {
-            for (auto i = pair_one_it; i != end && i->first == pair_one_sum;
-                 ++i) {
-                for (auto j = i; ++j != end && j->first == pair_two_sum;) {
-                    result.insert(quad(i, j));
-                }
-            }
-        } else {
-            for (auto i = pair_one_it; i != end && i->first == pair_one_sum;
-                 ++i) {
-                for (auto j = pair_two_it; j != end && j->first == pair_two_sum;
-                     ++j) {
-                    result.insert(quad(i, j));
+        for (auto i = pair_one_it; i != end && i->first == pair_one_sum; ++i) {
+            for (auto j = pair_two_it; j != end && j->first == pair_two_sum;
+                 ++j) {
+                auto indices = set_of_indices(i, j);
+                if (indices.size() == 4) {
+                    result.insert(quad(nums, indices));
                 }
             }
         }
@@ -165,22 +158,34 @@ class NSquareLogNSolution {
         return result;
     }
 
-    static vector<int> quad(KeyedPairs::const_iterator i,
-                            KeyedPairs::const_iterator j) {
-        vector<int> v{i->second.first, i->second.second, j->second.first,
-                      j->second.second};
+    static unordered_set<int> set_of_indices(KeyedPairs::const_iterator i,
+                                             KeyedPairs::const_iterator j) {
+        unordered_set<int> result;
+
+        result.insert({i->second.first, i->second.second, j->second.first,
+                       j->second.second});
+
+        return result;
+    }
+
+    static vector<int> quad(const vector<int> &nums,
+                            const unordered_set<int> &indices) {
+        vector<int> v;
+
+        for (auto i : indices) {
+            v.push_back(nums[i]);
+        }
 
         sort(v.begin(), v.end());
         return v;
     }
 
-  public:
-    static KeyedPairs all_pairs_by_their_sum(const vector<int> &xs) {
+    static KeyedPairs all_index_pairs_by_elements_sum(const vector<int> &xs) {
         KeyedPairs result;
 
         for (auto i = 0; i < xs.size() - 1; ++i) {
             for (auto j = i + 1; j < xs.size(); ++j) {
-                result.insert({xs[i] + xs[j], {xs[i], xs[j]}});
+                result.insert({xs[i] + xs[j], {i, j}});
             }
         }
 
@@ -213,9 +218,6 @@ void print_multimap(const KeyedPairs &mm) {
 }
 
 int main() {
-    print_multimap(
-        NSquareLogNSolution::all_pairs_by_their_sum({-2, -1, 0, 0, 1, 2}));
-
     NSquareLogNSolution s;
     vector<int> nums{-3, -2, -1, 0, 0, 1, 2, 3};
 
