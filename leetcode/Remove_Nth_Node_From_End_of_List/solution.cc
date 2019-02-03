@@ -19,7 +19,46 @@ struct ListNode {
 
 class Solution {
   public:
-    ListNode *removeNthFromEnd(ListNode *head, int n) { return nullptr; }
+    ListNode *removeNthFromEnd(ListNode *head, int n) {
+        ListNode *pre_p1 = nullptr;
+        auto p1 = head;
+        auto p2 = head;
+        auto seek = n;
+
+        while (seek--) {
+            if (p2 == nullptr) {
+                return head;
+            }
+            p2 = p2->next;
+        }
+
+        while (p2 != nullptr) {
+            pre_p1 = p1;
+            p1 = p1->next;
+            p2 = p2->next;
+        }
+
+        if (p1 == head) {
+            auto result = p1->next;
+            delete p1;
+            return result;
+        } else {
+            delete_next(pre_p1);
+            return head;
+        }
+    }
+
+  private:
+    void delete_next(ListNode *n) {
+        ListNode *m = n->next;
+
+        if (m == nullptr) {
+            return;
+        }
+
+        n->next = m->next;
+        delete m;
+    }
 };
 
 ListNode *make_list(const vector<int> xs) {
@@ -65,6 +104,8 @@ int main() {
     Solution s;
 
     auto head = make_list({1, 2, 3, 4, 5, 6});
+    println(head);
+    head = s.removeNthFromEnd(head, 4);
     println(head);
     delete_list(head);
 
