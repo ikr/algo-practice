@@ -105,76 +105,11 @@ class NCubeSolution {
     }
 };
 
-struct IndexPair {
-    int sum_of_elements;
-    int i;
-    int j;
-
-    IndexPair(int sum_of_elements_, int i_, int j_)
-        : sum_of_elements(sum_of_elements_), i(i_), j(j_) {}
-
-    bool operator<(const IndexPair &other) const {
-        return sum_of_elements < other.sum_of_elements;
-    }
-};
-
-class NSquareLogNSolution {
-  public:
-    vector<vector<int>> fourSum(vector<int> &nums, int target) {
-        if (nums.size() < 4) {
-            return vector<vector<int>>();
-        }
-
-        vector<IndexPair> index_pairs;
-
-        for (auto i = 0; i < nums.size() - 1; ++i) {
-            for (auto j = i + 1; j < nums.size(); ++j) {
-                index_pairs.push_back(IndexPair(nums[i] + nums[j], i, j));
-            }
-        }
-
-        sort(index_pairs.begin(), index_pairs.end());
-
-        QuadsSet result_set;
-        auto l = 0;
-        auto r = index_pairs.size() - 1;
-
-        while (l < r) {
-            auto lp = index_pairs[l];
-            auto rp = index_pairs[r];
-
-            if (lp.sum_of_elements + rp.sum_of_elements == target) {
-                unordered_set<int> candidate{lp.i, lp.j, rp.i, rp.j};
-                if (candidate.size() == 4) {
-                    vector<int> v{nums[lp.i], nums[lp.j], nums[rp.i],
-                                  nums[rp.j]};
-                    sort(v.begin(), v.end());
-                    result_set.insert(v);
-                }
-                --r;
-            } else if (lp.sum_of_elements + rp.sum_of_elements < target) {
-                ++l;
-            } else {
-                --r;
-            }
-        }
-
-        return vectorize(result_set);
-    }
-
-  private:
-    static vector<vector<int>> vectorize(const QuadsSet &source) {
-        vector<vector<int>> result;
-        copy(source.begin(), source.end(), back_inserter(result));
-        return result;
-    }
-};
-
 int main() {
-    NSquareLogNSolution s;
+    NCubeSolution s;
     // vector<int> nums{1, 0, -1, 0, -2, 2};
-    // vector<int> nums{-3, -1, 0, 2, 4, 5};
-    vector<int> nums{-4, -3, -2, -1, 0, 0, 1, 2, 3, 4};
+    vector<int> nums{-3, -1, 0, 2, 4, 5};
+    // vector<int> nums{-4, -3, -2, -1, 0, 0, 1, 2, 3, 4};
 
     for (auto x : nums) {
         cout << x << ' ';
