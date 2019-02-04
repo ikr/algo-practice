@@ -37,6 +37,8 @@ class CompareHeads {
 class Solution {
   public:
     ListNode *mergeKLists(vector<ListNode *> &lists) {
+        remove_empty(lists);
+
         make_heap(lists.begin(), lists.end(), CompareHeads());
         ListNode *head = nullptr;
         ListNode *tail = nullptr;
@@ -60,8 +62,18 @@ class Solution {
     }
 
   private:
+    static void remove_empty(vector<ListNode *> &lists) {
+        for (auto i = lists.begin(); i != lists.end();) {
+            if (*i == nullptr) {
+                i = lists.erase(i);
+            } else {
+                ++i;
+            }
+        }
+    }
+
     static ListNode *chain_in(ListNode *head, ListNode *tail,
-                            ListNode *new_node) {
+                              ListNode *new_node) {
         new_node->next = nullptr;
 
         if (tail == nullptr)
@@ -116,7 +128,7 @@ int main() {
     auto l1 = make_list({1, 4, 5});
     auto l2 = make_list({1, 3, 4});
     auto l3 = make_list({2, 6});
-    vector<ListNode *> v{l1, l2, l3};
+    vector<ListNode *> v{l1, l2, l3, nullptr};
     auto result = s.mergeKLists(v);
     println(result);
 
