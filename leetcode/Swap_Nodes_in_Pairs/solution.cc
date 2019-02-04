@@ -21,7 +21,26 @@ struct ListNode {
 class Solution {
   public:
     ListNode *swapPairs(ListNode *head) {
-        return head;
+        if (!head || !head->next) return head;
+
+        ListNode *result = nullptr;
+        ListNode *before = nullptr;
+        auto *a = head;
+        auto *b = head->next;
+        auto after = b->next;
+
+        return result;
+    }
+
+  private:
+    static void swap(ListNode *before, ListNode *a, ListNode *b,
+                     ListNode *after) {
+        b->next = a;
+        a->next = after;
+
+        if (before) {
+            before->next = b;
+        }
     }
 };
 
@@ -55,7 +74,7 @@ void delete_list(ListNode *head) {
     }
 }
 
-ostream& operator<<(ostream &os, ListNode *head) {
+ostream &operator<<(ostream &os, ListNode *head) {
     auto p = head;
     while (p != nullptr) {
         os << p->val << ' ';
