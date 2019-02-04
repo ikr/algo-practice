@@ -18,13 +18,58 @@ struct ListNode {
     ListNode(int x) : val(x), next(nullptr) {}
 };
 
-bool operator<(const ListNode &n1, const ListNode &n2) {
-    return n1.val < n2.val;
-}
+class CompareHeads {
+  public:
+    bool operator()(ListNode *n1, ListNode *n2) const {
+        if (n1 == nullptr && n2 == nullptr)
+            return false;
+
+        if (n1 == nullptr)
+            return true;
+
+        if (n2 == nullptr)
+            return false;
+
+        return n1->val > n2->val;
+    }
+};
 
 class Solution {
   public:
-    ListNode *mergeKLists(vector<ListNode *> &lists) { return nullptr; }
+    ListNode *mergeKLists(vector<ListNode *> &lists) {
+        make_heap(lists.begin(), lists.end(), CompareHeads());
+        ListNode *head = nullptr;
+        ListNode *tail = nullptr;
+
+        while (!lists.empty()) {
+            pop_heap(lists.begin(), lists.end(), CompareHeads());
+            auto minimal = lists.back();
+            lists.pop_back();
+
+            auto new_head = minimal->next;
+            head = chain_in(head, tail, minimal);
+            tail = minimal;
+
+            if (new_head != nullptr) {
+                lists.push_back(new_head);
+                push_heap(lists.begin(), lists.end(), CompareHeads());
+            }
+        }
+
+        return head;
+    }
+
+  private:
+    static ListNode *chain_in(ListNode *head, ListNode *tail,
+                            ListNode *new_node) {
+        new_node->next = nullptr;
+
+        if (tail == nullptr)
+            return new_node;
+
+        tail->next = new_node;
+        return head;
+    }
 };
 
 ListNode *make_list(const vector<int> xs) {
@@ -68,8 +113,14 @@ void println(ListNode *head) {
 
 int main() {
     Solution s;
+    auto l1 = make_list({1, 4, 5});
+    auto l2 = make_list({1, 3, 4});
+    auto l3 = make_list({2, 6});
+    vector<ListNode *> v{l1, l2, l3};
+    auto result = s.mergeKLists(v);
+    println(result);
 
-    cout << endl;
+    delete_list(result);
 
     return 0;
 }
