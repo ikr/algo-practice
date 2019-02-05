@@ -22,8 +22,37 @@ struct ListNode {
 
 class Solution {
   public:
-    ListNode *reverseKGroup(ListNode *head, int k) {
-        return head;
+    ListNode *reverseKGroup(ListNode *head, int k) { return head; }
+
+    ListNode *reverse(ListNode *head) {
+        if (!head || !head->next)
+            return head;
+
+        ListNode *result = nullptr;
+        auto a = head;
+        auto b = a->next;
+        auto c = b->next;
+
+        while (true) {
+            a->next = result;
+            b->next = a;
+            result = b;
+
+            a = c;
+            if (!a)
+                break;
+
+            b = a->next;
+            if (!b) {
+                a->next = result;
+                result = a;
+                break;
+            }
+
+            c = b->next;
+        }
+
+        return result;
     }
 };
 
@@ -68,10 +97,9 @@ ostream &operator<<(ostream &os, ListNode *head) {
 }
 
 int main() {
-    auto l = Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7}), 2);
+    auto l = Solution().reverse(make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}));
     cout << l << endl;
     delete_list(l);
-
 
     return 0;
 }
