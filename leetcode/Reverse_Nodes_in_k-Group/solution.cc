@@ -128,7 +128,7 @@ ostream &operator<<(ostream &os, ListNode *head) {
 }
 
 int main() {
-    auto l = Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7, 8}), 4);
+    auto l = Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}), 4);
     cout << l << endl;
     delete_list(l);
 
