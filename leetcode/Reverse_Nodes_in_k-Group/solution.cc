@@ -28,19 +28,14 @@ class Solution {
             return head;
 
         auto h = head;
-        head = nullptr;
+        auto t = seek(h, k);
+        auto p = t->next;
+        t->next = nullptr;
+        reverse(h);
 
-        while (true) {
-            auto t = seek(h, k);
-            auto p = t->next;
-            t->next = nullptr;
+        h->next = reverseKGroup(p, k);
 
-            reverse(h);
-            if (!head)
-                head = t;
-        }
-
-        return head;
+        return t;
     }
 
   private:
@@ -57,7 +52,7 @@ class Solution {
 
     static void reverse(ListNode *head) {
         if (!head || !head->next)
-            return head;
+            return;
 
         auto a = head;
         auto b = a->next;
@@ -127,7 +122,7 @@ ostream &operator<<(ostream &os, ListNode *head) {
 
 int main() {
     auto l =
-        Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}), 1);
+        Solution().reverseKGroup(make_list({1, 2}), 3);
     cout << l << endl;
     delete_list(l);
 
