@@ -9,11 +9,12 @@ name=$(echo -n "$1" | sed 's/ /_/g')
 
 code=$(cat <<EOF
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <iterator>
-#include <numeric>
 #include <limits>
+#include <numeric>
 #include <set>
 #include <stack>
 #include <string>

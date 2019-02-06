@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <iterator>
@@ -22,21 +23,51 @@ struct ListNode {
 
 class Solution {
   public:
-    ListNode *reverseKGroup(ListNode *head, int k) { return head; }
+    ListNode *reverseKGroup(ListNode *head, int k) {
+        if (k < 2 || !head || !head->next)
+            return head;
 
-    ListNode *reverse(ListNode *head) {
+        auto h = head;
+        head = nullptr;
+
+        while (true) {
+            auto t = seek(h, k);
+            auto p = t->next;
+            t->next = nullptr;
+
+            reverse(h);
+            if (!head)
+                head = t;
+        }
+
+        return head;
+    }
+
+  private:
+    static ListNode *seek(ListNode *head, int k) {
+        assert(head);
+        auto p = head;
+
+        while (--k && p->next) {
+            p = p->next;
+        }
+
+        return p;
+    }
+
+    static void reverse(ListNode *head) {
         if (!head || !head->next)
             return head;
 
-        ListNode *result = nullptr;
         auto a = head;
         auto b = a->next;
         auto c = b->next;
+        head = nullptr;
 
         while (true) {
-            a->next = result;
+            a->next = head;
             b->next = a;
-            result = b;
+            head = b;
 
             a = c;
             if (!a)
@@ -44,15 +75,13 @@ class Solution {
 
             b = a->next;
             if (!b) {
-                a->next = result;
-                result = a;
+                a->next = head;
+                head = a;
                 break;
             }
 
             c = b->next;
         }
-
-        return result;
     }
 };
 
@@ -97,7 +126,8 @@ ostream &operator<<(ostream &os, ListNode *head) {
 }
 
 int main() {
-    auto l = Solution().reverse(make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}));
+    auto l =
+        Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}), 1);
     cout << l << endl;
     delete_list(l);
 
