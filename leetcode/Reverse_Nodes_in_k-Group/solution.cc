@@ -28,7 +28,13 @@ class Solution {
             return head;
 
         auto h = head;
-        auto t = seek(h, k);
+        auto seek_res = seek(h, k);
+        auto t = seek_res.first;
+        auto gsize = seek_res.second;
+
+        if (gsize < k)
+            return h;
+
         auto p = t->next;
         t->next = nullptr;
         reverse(h);
@@ -39,15 +45,16 @@ class Solution {
     }
 
   private:
-    static ListNode *seek(ListNode *head, int k) {
+    static pair<ListNode *, int> seek(ListNode *head, int k) {
         assert(head);
         auto p = head;
+        auto countdown = k;
 
-        while (--k && p->next) {
+        while (--countdown && p->next) {
             p = p->next;
         }
 
-        return p;
+        return make_pair(p, k - countdown);
     }
 
     static void reverse(ListNode *head) {
@@ -121,8 +128,7 @@ ostream &operator<<(ostream &os, ListNode *head) {
 }
 
 int main() {
-    auto l =
-        Solution().reverseKGroup(make_list({1, 2}), 3);
+    auto l = Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7, 8}), 4);
     cout << l << endl;
     delete_list(l);
 
