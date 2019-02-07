@@ -87,6 +87,93 @@ class LinearSpaceSolution {
     }
 };
 
+class Solution {
+  public:
+    ListNode *reverseKGroup(ListNode *head, int k) {
+        if (k < 2 || !head || !head->next)
+            return head;
+
+        ListNode *result = nullptr;
+        ListNode *result_tail = nullptr;
+        auto h = head;
+
+        while (true) {
+            auto seek_res = seek(h, k);
+            auto t = seek_res.first;
+            auto next_h = t->next;
+            auto gsize = seek_res.second;
+
+            if (gsize < k) {
+                if (!result)
+                    result = h;
+                else
+                    result_tail->next = h;
+
+                break;
+            } else {
+                t->next = nullptr;
+                reverse(h);
+
+                if (!result) {
+                    result = t;
+                    result_tail = h;
+                } else
+                    result_tail->next = t;
+
+                result_tail = h;
+                h = next_h;
+
+                if (!h)
+                    break;
+            }
+        }
+
+        return result;
+    }
+
+  private:
+    static pair<ListNode *, int> seek(ListNode *head, int k) {
+        assert(head);
+        auto p = head;
+        auto countdown = k;
+
+        while (--countdown && p->next) {
+            p = p->next;
+        }
+
+        return make_pair(p, k - countdown);
+    }
+
+    static void reverse(ListNode *head) {
+        if (!head || !head->next)
+            return;
+
+        auto a = head;
+        auto b = a->next;
+        auto c = b->next;
+        head = nullptr;
+
+        while (true) {
+            a->next = head;
+            b->next = a;
+            head = b;
+
+            a = c;
+            if (!a)
+                break;
+
+            b = a->next;
+            if (!b) {
+                a->next = head;
+                head = a;
+                break;
+            }
+
+            c = b->next;
+        }
+    }
+};
+
 ListNode *make_list(const vector<int> xs) {
     ListNode *head = nullptr;
     ListNode *tail = nullptr;
@@ -128,8 +215,8 @@ ostream &operator<<(ostream &os, ListNode *head) {
 }
 
 int main() {
-    auto l = LinearSpaceSolution().reverseKGroup(
-        make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}), 4);
+    auto l =
+        Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}), 3);
 
     cout << l << endl;
     delete_list(l);
