@@ -21,7 +21,7 @@ struct ListNode {
     ListNode(int x) : val(x), next(nullptr) {}
 };
 
-class Solution {
+class LinearSpaceSolution {
   public:
     ListNode *reverseKGroup(ListNode *head, int k) {
         if (k < 2 || !head || !head->next)
@@ -128,7 +128,9 @@ ostream &operator<<(ostream &os, ListNode *head) {
 }
 
 int main() {
-    auto l = Solution().reverseKGroup(make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}), 4);
+    auto l = LinearSpaceSolution().reverseKGroup(
+        make_list({1, 2, 3, 4, 5, 6, 7, 8, 9}), 4);
+
     cout << l << endl;
     delete_list(l);
 
