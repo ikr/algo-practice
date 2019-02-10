@@ -50,7 +50,7 @@ class Solution {
         auto r = v.begin() + 1;
 
         while (true) {
-            while (*r == *(r - 1))
+            while (r != v.end() && *r == *(r - 1))
                 ++r;
 
             if (r == v.end()) break;
