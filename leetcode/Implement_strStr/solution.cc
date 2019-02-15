@@ -17,7 +17,34 @@ using namespace std;
 
 class KMPSolution {
   public:
-    int strStr(const string &haystack, const string &needle) { return -1; }
+    int strStr(const string &hst, const string &ndl) {
+        if (ndl.size() == 0)
+            return 0;
+
+        if (hst.size() < ndl.size())
+            return -1;
+
+        const vector<int> lps = build_lps(ndl);
+        int i = 0;
+        int j = 0;
+        while (i <= hst.size() - ndl.size()) {
+            while (j < ndl.size() && hst[i + j] == ndl[j])
+                ++j;
+
+            if (j == ndl.size())
+                return i;
+
+            if (j > 0 && lps[j - 1] > 1) {
+                const int jump = ndl.size() - lps[j - 1];
+            } else {
+                j = 0;
+            }
+
+            ++i;
+        }
+
+        return -1;
+    }
 
     static vector<int> build_lps(const string &s) {
         const int sz = s.size();
@@ -63,7 +90,6 @@ ostream &operator<<(ostream &os, const vector<int> &v) {
 
 int main() {
     KMPSolution s;
-    cout << KMPSolution::build_lps("abababca") << endl;
 
     cout << s.strStr("hello", "ll") << endl;
     cout << s.strStr("aaaaa", "bba") << endl;
