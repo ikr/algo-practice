@@ -35,7 +35,7 @@ class KMPSolution {
                 return i;
 
             if (j > 0 && lps[j - 1] > 1) {
-                const int jump = ndl.size() - lps[j - 1];
+                j = ndl.size() - lps[j - 1];
             } else {
                 j = 0;
             }
@@ -46,6 +46,7 @@ class KMPSolution {
         return -1;
     }
 
+  private:
     static vector<int> build_lps(const string &s) {
         const int sz = s.size();
         vector<int> lps(sz);
@@ -94,6 +95,7 @@ int main() {
     cout << s.strStr("hello", "ll") << endl;
     cout << s.strStr("aaaaa", "bba") << endl;
     cout << s.strStr("bacbababababcabcbab", "abababca") << endl;
+    cout << s.strStr("AAABAAAABA", "AAAA") << endl;
 
     return 0;
 }
