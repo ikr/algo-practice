@@ -97,5 +97,11 @@ int main() {
     cout << s.strStr("bacbababababcabcbab", "abababca") << endl;
     cout << s.strStr("AAABAAAABA", "AAAA") << endl;
 
+    cout << s.strStr("bbbbbbbaababbbaaaabbbbaabaaaababaababaaabababaababbbbbbaa"
+                     "baaaabbaabaab"
+                     "abbbbabbabbbaaaaaabaaaaabbaabbbbaaaaaabababaaaaa",
+                     "babbbbaababababbabaaaaabaabaaaabab")
+         << endl;
+
     return 0;
 }
