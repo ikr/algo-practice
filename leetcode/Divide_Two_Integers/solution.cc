@@ -53,8 +53,7 @@ class Solution {
             return fprod.first;
         assert(fprod.second < p);
 
-        fprod = closest_incremented(p, q, fprod);
-        return fprod.first;
+        return fprod.first + div_positive(p - fprod.second, q);
     }
 
     static pair<long, long> closest_doubled(long target, long q) {
@@ -74,36 +73,14 @@ class Solution {
         return make_pair(factor, prod);
     }
 
-    static pair<int, int>
-    closest_incremented(long target, long q,
-                        const pair<long, long> &start_with) {
-        long factor = start_with.first;
-        long prod = start_with.second;
-
-        while (true) {
-            const long prod1 = prod + q;
-            if (prod1 > target)
-                break;
-
-            prod = prod1;
-            ++factor;
-        }
-
-        return make_pair(factor, prod);
-    }
-
     static bool changes_sign(long p, long q) {
         return !(p == 0L || (p > 0L && q > 0L) || (p < 0L && q < 0L));
     }
 };
 
-ostream &operator<<(ostream &os, pair<long, long> p) {
-    return os << '(' << p.first << ", " << p.second << ')';
-}
-
 int main() {
-    const int dividend = 1026117192;
-    const int divisor = -874002063;
+    const int dividend = 123 * 95 + 13;
+    const int divisor = 123;
     const int result = Solution().divide(dividend, divisor);
 
     cout << dividend << " / " << divisor << " = " << result << endl;
