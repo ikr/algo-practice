@@ -85,11 +85,6 @@ class KMPSolution {
     }
 };
 
-class RKSolution {
-  public:
-    int strStr(const string &haystack, const string &needle) { return -1; }
-};
-
 ostream &operator<<(ostream &os, const vector<int> &v) {
     for (auto x : v) {
         os << x << ' ';
