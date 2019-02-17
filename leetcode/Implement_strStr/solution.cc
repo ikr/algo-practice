@@ -24,6 +24,9 @@ class KMPSolution {
         if (hst.size() < ndl.size())
             return -1;
 
+        if (hst.size() == ndl.size())
+            return hst == ndl ? 0 : -1;
+
         const vector<int> lps = build_lps(ndl);
         int i = 0;
         int j = 0;
@@ -34,13 +37,13 @@ class KMPSolution {
             if (j == ndl.size())
                 return i;
 
-            if (j > 0 && lps[j - 1] > 1) {
-                j = ndl.size() - lps[j - 1];
+            ++i;
+
+            if (j > 0) {
+                j = lps[j - 1];
             } else {
                 j = 0;
             }
-
-            ++i;
         }
 
         return -1;
