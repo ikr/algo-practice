@@ -37,12 +37,18 @@ class KMPSolution {
             if (j == ndl.size())
                 return i;
 
-            ++i;
-
             if (j > 0) {
-                j = lps[j - 1];
+                const int jump = lps[j - 1];
+                if (jump > 0) {
+                    j = jump;
+                    ++i;
+                } else {
+                    i += j;
+                    j = 0;
+                }
             } else {
                 j = 0;
+                ++i;
             }
         }
 
