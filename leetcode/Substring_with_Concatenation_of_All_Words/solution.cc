@@ -47,7 +47,18 @@ class Solution {
   private:
     static pair<bool, int> degen_case(const string &hst,
                                       const vector<string> &words) {
-        // TODO
+        if (!words.size())
+            return make_pair(true, 0);
+
+        if (!words.begin()->size())
+            return make_pair(true, 0);
+
+        if (hst.size() < words.size() * words.begin()->size())
+            return make_pair(true, -1);
+
+        if (words.size() == 1 && words.begin()->size() == hst.size())
+            return make_pair(true, *words.begin() == hst ? 0 : -1);
+
         return make_pair(false, -1);
     }
 
