@@ -45,6 +45,10 @@ class Solution {
     }
 
   private:
+    static_assert(sizeof(char) < sizeof(int));
+    static constexpr int base = numeric_limits<char>::max() + 1;
+    static constexpr int bprime = 10000019;
+
     static pair<bool, int> degen_case(const string &hst,
                                       const vector<string> &words) {
         if (!words.size())
@@ -63,8 +67,13 @@ class Solution {
     }
 
     static unordered_set<int> hash_all(const vector<string> &words) {
-        // TODO
-        return unordered_set<int>{};
+        unordered_set<int> result;
+
+        for (const string &w : words) {
+            result.insert(hash_one(w));
+        }
+
+        return result;
     }
 
     static unordered_set<string> make_set(const vector<string> &words) {
@@ -73,8 +82,12 @@ class Solution {
     }
 
     static int hash_one(const string &s) {
-        // TODO
-        return 0;
+        if (!s.size())
+            return 0;
+
+        return (hash_one(s.substr(0, s.size() - 1)) * base +
+                static_cast<int>(s.back())) %
+               bprime;
     }
 
     static int rolling_hash(const string &s, const int prev_hash,
