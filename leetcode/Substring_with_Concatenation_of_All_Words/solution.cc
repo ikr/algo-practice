@@ -77,8 +77,13 @@ class Solution {
     }
 
     static unordered_set<string> make_set(const vector<string> &words) {
-        // TODO
-        return unordered_set<string>{};
+        unordered_set<string> result;
+
+        for (const string &w : words) {
+            result.insert(words);
+        }
+
+        return result;
     }
 
     static int hash_one(const string &s) {
