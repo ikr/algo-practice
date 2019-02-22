@@ -87,10 +87,16 @@ class Solution {
         return result;
     }
 
-    static int rolling_hash(const string &s, const int prev_hash,
-                            const int start_index, const int sz) {
-        // TODO
-        return 0;
+    static int rolling_hash(const string &s, const int prev_hash, const int i,
+                            const int sz) {
+        if (!i)
+            return hash_one(s.substr(0, sz));
+
+        return ((prev_hash -
+                 modulo_pow(base, sz - 1) * static_cast<int>(s[i - 1])) *
+                    base +
+                s[i + sz - 1]) %
+               bprime;
     }
 
     static bool stamping_match(const string &hst, int index,
