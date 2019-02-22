@@ -101,8 +101,25 @@ class Solution {
 
     static bool stamping_match(const string &hst, int i,
                                const vector<string> &words) {
-        // TODO
-        return false;
+        const int sz = words.begin()->size();
+        unordered_map<string, int> w_count;
+        for (const string &w : words) {
+            ++w_count[w];
+        }
+
+        while (w_count.size()) {
+            const string sub = hst.substr(i, sz);
+            if (!w_count.count(sub))
+                return false;
+
+            --w_count[sub];
+            if (!w_count.count(sub))
+                w_count.erase(sub);
+
+            i += sz;
+        }
+
+        return true;
     }
 
     static int hash_one(const string &s) {
