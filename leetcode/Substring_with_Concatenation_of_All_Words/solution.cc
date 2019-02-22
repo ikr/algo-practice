@@ -99,7 +99,7 @@ class Solution {
                bprime;
     }
 
-    static bool stamping_match(const string &hst, int index,
+    static bool stamping_match(const string &hst, int i,
                                const vector<string> &words) {
         // TODO
         return false;
