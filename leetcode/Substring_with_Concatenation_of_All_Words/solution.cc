@@ -46,6 +46,7 @@ class Solution {
 
   private:
     static_assert(sizeof(char) < sizeof(int));
+    static_assert(sizeof(int) < sizeof(long));
     static constexpr int base = numeric_limits<char>::max() + 1;
     static constexpr int bprime = 10000019;
 
@@ -80,19 +81,10 @@ class Solution {
         unordered_set<string> result;
 
         for (const string &w : words) {
-            result.insert(words);
+            result.insert(w);
         }
 
         return result;
-    }
-
-    static int hash_one(const string &s) {
-        if (!s.size())
-            return 0;
-
-        return (hash_one(s.substr(0, s.size() - 1)) * base +
-                static_cast<int>(s.back())) %
-               bprime;
     }
 
     static int rolling_hash(const string &s, const int prev_hash,
@@ -105,6 +97,26 @@ class Solution {
                                const vector<string> &words) {
         // TODO
         return false;
+    }
+
+    static int hash_one(const string &s) {
+        if (!s.size())
+            return 0;
+
+        return (hash_one(s.substr(0, s.size() - 1)) * base +
+                static_cast<int>(s.back())) %
+               bprime;
+    }
+
+    static int modulo_pow(int base, int power) {
+        if (!power)
+            return 1;
+
+        if (power % 2)
+            return (base * modulo_pow(base, power - 1)) % bprime;
+
+        const long sqr = modulo_pow(base, power / 2);
+        return static_cast<int>((sqr * sqr) % bprime);
     }
 };
 
