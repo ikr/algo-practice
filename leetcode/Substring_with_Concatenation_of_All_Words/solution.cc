@@ -91,9 +91,8 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        return ((prev_hash - modulo_pow(base, sz - 1) * int{s[i - 1]}) * base +
-                s[i + sz - 1]) %
-               bprime;
+        const int leftmost = (modulo_pow(base, sz - 1) * int{s[i - 1]}) % bprime;
+        return ((prev_hash - leftmost) * base + s[i + sz - 1]) % bprime;
     }
 
     static bool stamping_match(const string &hst, int i,
@@ -142,8 +141,9 @@ class Solution {
 int main() {
     Solution s;
 
-    cout << Solution::hash_one("abab") << endl;
-    cout << Solution::rolling_hash("aababbbb", Solution::hash_one("aaba"), 1, 4)
+    cout << Solution::hash_one("aaaa") << endl;
+    cout << Solution::rolling_hash("aaaaaaaaaaa", Solution::hash_one("aaaa"), 1,
+                                   4)
          << endl;
 
     return 0;
