@@ -44,7 +44,6 @@ class Solution {
         return result;
     }
 
-  private:
     static_assert(sizeof(char) < sizeof(int));
     static_assert(sizeof(int) < sizeof(long));
     static constexpr int base = numeric_limits<char>::max() + 1;
@@ -92,9 +91,7 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        return ((prev_hash -
-                 modulo_pow(base, sz - 1) * static_cast<int>(s[i - 1])) *
-                    base +
+        return ((prev_hash - modulo_pow(base, sz - 1) * int{s[i - 1]}) * base +
                 s[i + sz - 1]) %
                bprime;
     }
@@ -126,8 +123,7 @@ class Solution {
         if (!s.size())
             return 0;
 
-        return (hash_one(s.substr(0, s.size() - 1)) * base +
-                static_cast<int>(s.back())) %
+        return (hash_one(s.substr(0, s.size() - 1)) * base + int{s.back()}) %
                bprime;
     }
 
@@ -146,7 +142,9 @@ class Solution {
 int main() {
     Solution s;
 
-    cout << endl;
+    cout << Solution::hash_one("abab") << endl;
+    cout << Solution::rolling_hash("aababbbb", Solution::hash_one("aaba"), 1, 4)
+         << endl;
 
     return 0;
 }
