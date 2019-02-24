@@ -19,7 +19,7 @@ using namespace std;
 class Solution {
   public:
     vector<int> findSubstring(const string &hst, const vector<string> &words) {
-        auto degenerate_case_index = degen_case(hst, words);
+        auto degenerate_case_index = degenerate_case_find(hst, words);
         if (degenerate_case_index)
             return vector<int>{*degenerate_case_index};
 
@@ -51,7 +51,7 @@ class Solution {
     static constexpr int base = numeric_limits<char>::max() + 1;
     static constexpr int bprime = 10000019;
 
-    static optional<int> degen_case(const string &hst,
+    static optional<int> degenerate_case_find(const string &hst,
                                     const vector<string> &words) {
         if (!words.size())
             return {0};
@@ -155,7 +155,7 @@ int main() {
     const vector<string> words{"foo", "bar"};
 
     cout << hst << endl << words << endl;
-    cout << s.findSubstring(hst, words);
+    cout << s.findSubstring(hst, words) << endl;
 
     return 0;
 }
