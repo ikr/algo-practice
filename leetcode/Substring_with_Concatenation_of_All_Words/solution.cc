@@ -60,10 +60,9 @@ class Solution {
             const int h = (i == 0) ? hash_one(hst.substr(0, sz))
                                    : rolling_hash(hst, h0, i, sz);
 
-            if (word_hashes.count(h)) {
-                if (stamping_match(hst, i, words, w_count_proto))
-                    result.push_back(i);
-            }
+            if (word_hashes.count(h) &&
+                stamping_match(hst, i, words, w_count_proto))
+                result.push_back(i);
 
             h0 = h;
         }
@@ -73,7 +72,6 @@ class Solution {
 
   private:
     static_assert(sizeof(char) < sizeof(int));
-    static_assert(sizeof(int) < sizeof(long));
     static constexpr int base{numeric_limits<char>::max() + 1};
     static constexpr int bprime{10000019};
     static constexpr int max_word_size = 64;
@@ -112,15 +110,9 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        const long leftmost{(modulo_pows[sz - 1] * long{s[i - 1]}) % bprime};
-
-        const long head{modulo_minus(prev_hash, leftmost) * base};
-
-        const int result =
-            static_cast<int>((head + long{s[i + sz - 1]}) % bprime);
-
-        assert(result >= 0);
-        return result;
+        const int leftmost{(modulo_pows[sz - 1] * int{s[i - 1]}) % bprime};
+        const int head{modulo_minus(prev_hash, leftmost) * base};
+        return (head + int{s[i + sz - 1]}) % bprime;
     }
 
     static bool
@@ -159,12 +151,8 @@ class Solution {
         if (!s.size())
             return 0;
 
-        const int result =
-            (hash_one(s.substr(0, s.size() - 1)) * base + int{s.back()}) %
-            bprime;
-
-        assert(result >= 0);
-        return result;
+        return (hash_one(s.substr(0, s.size() - 1)) * base + int{s.back()}) %
+               bprime;
     }
 
     static vector<int> precompute_modulo_pows(int power_bound) {
@@ -178,8 +166,8 @@ class Solution {
         return result;
     }
 
-    static long modulo_minus(long a, long b) {
-        const long result = a - b;
+    static int modulo_minus(int a, int b) {
+        const int result = a - b;
         return result < 0 ? bprime + result : result;
     }
 };
