@@ -65,8 +65,8 @@ class Solution {
   private:
     static_assert(sizeof(char) < sizeof(int));
     static_assert(sizeof(int) < sizeof(long));
-    static constexpr int base = numeric_limits<char>::max() + 1;
-    static constexpr int bprime = 10000019;
+    static constexpr int base{numeric_limits<char>::max() + 1};
+    static constexpr int bprime{10000019};
 
     static optional<int> degenerate_case_find(const string &hst,
                                               const vector<string> &words) {
@@ -110,9 +110,11 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        const int leftmost =
-            (modulo_pow(base, sz - 1) * int{s[i - 1]}) % bprime;
-        return ((prev_hash - leftmost) * base + s[i + sz - 1]) % bprime;
+        const long leftmost{(modulo_pow(base, sz - 1) * int{s[i - 1]}) %
+                            bprime};
+        const long head{(prev_hash - leftmost) * base};
+
+        return static_cast<int>((head + long{s[i + sz - 1]}) % bprime);
     }
 
     static bool stamping_match(const string &hst, int i,
@@ -150,10 +152,12 @@ class Solution {
         if (!power)
             return 1;
 
-        if (power % 2)
-            return (base * modulo_pow(base, power - 1)) % bprime;
+        if (power % 2) {
+            return static_cast<int>((long{base} * modulo_pow(base, power - 1)) %
+                                    bprime);
+        }
 
-        const long sqr = modulo_pow(base, power / 2);
+        const long sqr{modulo_pow(base, power / 2)};
         return static_cast<int>((sqr * sqr) % bprime);
     }
 };
