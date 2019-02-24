@@ -76,6 +76,8 @@ class Solution {
     static_assert(sizeof(int) < sizeof(long));
     static constexpr int base{numeric_limits<char>::max() + 1};
     static constexpr int bprime{10000019};
+    static constexpr int max_word_size = 64;
+    static const vector<int> modulo_pows;
 
     static optional<vector<int>>
     degenerate_case_find(const string &hst, const vector<string> &words) {
@@ -120,8 +122,7 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        const long leftmost{(modulo_pow(sz - 1) * long{s[i - 1]}) %
-                            bprime};
+        const long leftmost{(modulo_pows[sz - 1] * long{s[i - 1]}) % bprime};
 
         const long head{modulo_minus(prev_hash, leftmost) * base};
 
@@ -167,19 +168,14 @@ class Solution {
         return result;
     }
 
-    static int modulo_pow(int power) {
-        if (!power)
-            return 1;
+    static vector<int> precompute_modulo_pows(int power_bound) {
+        vector<int> result(power_bound);
 
-        if (power % 2) {
-            return static_cast<int>((long{base} * modulo_pow(power - 1)) %
-                                    bprime);
+        for (int i = 0, value = 1; i != power_bound;
+             ++i, value = (value * base) % bprime) {
+            result[i] = value;
         }
 
-        const long sqr{modulo_pow(power / 2)};
-        const int result = static_cast<int>((sqr * sqr) % bprime);
-
-        assert(result >= 0);
         return result;
     }
 
@@ -188,6 +184,9 @@ class Solution {
         return result < 0 ? bprime + result : result;
     }
 };
+
+const vector<int> Solution::modulo_pows =
+    Solution::precompute_modulo_pows(Solution::max_word_size);
 
 void testcase1() {
     const string hst{"barfoothefoobarman"};
