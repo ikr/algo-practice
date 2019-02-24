@@ -16,6 +16,23 @@
 
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (const T &x : xs) {
+        os << x << ' ';
+    }
+
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const unordered_map<K, V> &m) {
+    for (auto i = m.begin(); i != m.end(); ++i) {
+        os << i->first << ":" << i->second << " ";
+    }
+
+    return os;
+}
+
 class Solution {
   public:
     vector<int> findSubstring(const string &hst, const vector<string> &words) {
@@ -52,7 +69,7 @@ class Solution {
     static constexpr int bprime = 10000019;
 
     static optional<int> degenerate_case_find(const string &hst,
-                                    const vector<string> &words) {
+                                              const vector<string> &words) {
         if (!words.size())
             return {0};
 
@@ -112,13 +129,13 @@ class Solution {
                 return false;
 
             --w_count[sub];
-            if (!w_count.count(sub))
+            if (!w_count[sub])
                 w_count.erase(sub);
 
             i += sz;
         }
 
-        return true;
+        return !w_count.size();
     }
 
     static int hash_one(const string &s) {
@@ -140,14 +157,6 @@ class Solution {
         return static_cast<int>((sqr * sqr) % bprime);
     }
 };
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (const T &x : xs) {
-        os << x << ' ';
-    }
-
-    return os;
-}
 
 int main() {
     Solution s;
