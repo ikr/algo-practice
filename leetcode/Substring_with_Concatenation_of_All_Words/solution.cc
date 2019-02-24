@@ -120,7 +120,7 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        const long leftmost{(modulo_pow(base, sz - 1) * long{s[i - 1]}) %
+        const long leftmost{(modulo_pow(sz - 1) * long{s[i - 1]}) %
                             bprime};
 
         const long head{modulo_minus(prev_hash, leftmost) * base};
@@ -167,16 +167,16 @@ class Solution {
         return result;
     }
 
-    static int modulo_pow(int base, int power) {
+    static int modulo_pow(int power) {
         if (!power)
             return 1;
 
         if (power % 2) {
-            return static_cast<int>((long{base} * modulo_pow(base, power - 1)) %
+            return static_cast<int>((long{base} * modulo_pow(power - 1)) %
                                     bprime);
         }
 
-        const long sqr{modulo_pow(base, power / 2)};
+        const long sqr{modulo_pow(power / 2)};
         const int result = static_cast<int>((sqr * sqr) % bprime);
 
         assert(result >= 0);
