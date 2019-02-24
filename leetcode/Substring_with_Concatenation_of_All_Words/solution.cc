@@ -47,7 +47,7 @@ class Solution {
     vector<int> findSubstring(const string &hst, const vector<string> &words) {
         auto degenerate_case_index = degenerate_case_find(hst, words);
         if (degenerate_case_index)
-            return vector<int>{*degenerate_case_index};
+            return *degenerate_case_index;
 
         vector<int> result;
         auto word_hashes = hash_all(words);
@@ -77,19 +77,20 @@ class Solution {
     static constexpr int base{numeric_limits<char>::max() + 1};
     static constexpr int bprime{10000019};
 
-    static optional<int> degenerate_case_find(const string &hst,
-                                              const vector<string> &words) {
-        if (!words.size())
-            return {0};
+    static optional<vector<int>>
+    degenerate_case_find(const string &hst, const vector<string> &words) {
+        if (!hst.size() || !words.size() ||
+            hst.size() < words.size() * words.begin()->size())
+            return vector<int>{};
 
-        if (!words.begin()->size())
-            return {0};
-
-        if (hst.size() < words.size() * words.begin()->size())
-            return {-1};
+        if (!words.begin()->size()) {
+            vector<int> result(hst.size() + 1);
+            iota(result.begin(), result.end(), 0);
+            return result;
+        }
 
         if (words.size() == 1 && words.begin()->size() == hst.size())
-            return {*words.begin() == hst ? 0 : -1};
+            return {*words.begin() == hst ? vector<int>{0} : vector<int>{}};
 
         return nullopt;
     }
@@ -212,10 +213,28 @@ void testcase3() {
     cout << Solution().findSubstring(hst, words) << endl << endl;
 }
 
+void testcase4() {
+    const string hst{""};
+    const vector<string> words{};
+
+    cout << hst << endl << words << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
+void testcase5() {
+    const string hst{"01234567"};
+    const vector<string> words{"", "", ""};
+
+    cout << hst << endl << words << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
 int main() {
     testcase1();
     testcase2();
     testcase3();
+    testcase4();
+    testcase5();
 
     return 0;
 }
