@@ -229,12 +229,21 @@ void testcase5() {
     cout << Solution().findSubstring(hst, words) << endl << endl;
 }
 
+void testcase6() {
+    const string hst{"aaaaaaaa"};
+    const vector<string> words{"aa", "aa", "aa"};
+
+    cout << hst << endl << words << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
 int main() {
     testcase1();
     testcase2();
     testcase3();
     testcase4();
     testcase5();
+    testcase6();
 
     return 0;
 }
