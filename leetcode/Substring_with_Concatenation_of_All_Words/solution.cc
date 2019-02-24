@@ -61,7 +61,7 @@ class Solution {
                                    : rolling_hash(hst, h0, i, sz);
 
             if (word_hashes.count(h) &&
-                stamping_match(hst, i, words, w_count_proto))
+                stamping_match(hst, i, sz, w_count_proto))
                 result.push_back(i);
 
             h0 = h;
@@ -116,9 +116,8 @@ class Solution {
     }
 
     static bool
-    stamping_match(const string &hst, int i, const vector<string> &words,
+    stamping_match(const string &hst, int i, int sz,
                    const unordered_map<string, int> &w_count_proto) {
-        const int sz = words.begin()->size();
         unordered_map<string, int> w_count{w_count_proto};
 
         while (w_count.size()) {
