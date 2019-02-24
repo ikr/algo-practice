@@ -24,6 +24,14 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
+    for (const T &x : xs) {
+        os << x << ' ';
+    }
+
+    return os;
+}
+
 template <typename K, typename V>
 ostream &operator<<(ostream &os, const unordered_map<K, V> &m) {
     for (auto i = m.begin(); i != m.end(); ++i) {
@@ -47,9 +55,15 @@ class Solution {
         auto cnt = words.size();
         auto bound = hst.size() - cnt * sz + 1;
 
+        cout << "word_hashes is " << word_hashes << endl;
+        cout << "words_set is " << words_set << endl;
+
         for (int i = 0, h0 = 0; i != bound; ++i) {
             const int h = (i == 0) ? hash_one(hst.substr(0, sz))
                                    : rolling_hash(hst, h0, i, sz);
+
+            cout << "i is " << i << endl;
+            cout << "h is " << h << endl;
 
             if (word_hashes.count(h) && words_set.count(hst.substr(i, sz))) {
                 if (stamping_match(hst, i, words))
@@ -164,8 +178,8 @@ class Solution {
 
 int main() {
     Solution s;
-    const string hst{"barfoothefoobarman"};
-    const vector<string> words{"foo", "bar"};
+    const string hst{"wordgoodgoodgoodbestword"};
+    const vector<string> words{"word", "good", "best", "good"};
 
     cout << hst << endl << words << endl;
     cout << s.findSubstring(hst, words) << endl;
