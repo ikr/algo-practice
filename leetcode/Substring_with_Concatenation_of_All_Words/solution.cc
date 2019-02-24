@@ -24,7 +24,8 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
+template <typename T>
+ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
     for (const T &x : xs) {
         os << x << ' ';
     }
@@ -55,15 +56,9 @@ class Solution {
         auto cnt = words.size();
         auto bound = hst.size() - cnt * sz + 1;
 
-        cout << "word_hashes is " << word_hashes << endl;
-        cout << "words_set is " << words_set << endl;
-
         for (int i = 0, h0 = 0; i != bound; ++i) {
             const int h = (i == 0) ? hash_one(hst.substr(0, sz))
                                    : rolling_hash(hst, h0, i, sz);
-
-            cout << "i is " << i << endl;
-            cout << "h is " << h << endl;
 
             if (word_hashes.count(h) && words_set.count(hst.substr(i, sz))) {
                 if (stamping_match(hst, i, words))
@@ -124,11 +119,16 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        const long leftmost{(modulo_pow(base, sz - 1) * int{s[i - 1]}) %
+        const long leftmost{(modulo_pow(base, sz - 1) * long{s[i - 1]}) %
                             bprime};
-        const long head{(prev_hash - leftmost) * base};
 
-        return static_cast<int>((head + long{s[i + sz - 1]}) % bprime);
+        const long head{modulo_minus(prev_hash, leftmost) * base};
+
+        const int result =
+            static_cast<int>((head + long{s[i + sz - 1]}) % bprime);
+
+        assert(result >= 0);
+        return result;
     }
 
     static bool stamping_match(const string &hst, int i,
@@ -158,8 +158,12 @@ class Solution {
         if (!s.size())
             return 0;
 
-        return (hash_one(s.substr(0, s.size() - 1)) * base + int{s.back()}) %
-               bprime;
+        const int result =
+            (hash_one(s.substr(0, s.size() - 1)) * base + int{s.back()}) %
+            bprime;
+
+        assert(result >= 0);
+        return result;
     }
 
     static int modulo_pow(int base, int power) {
@@ -172,17 +176,46 @@ class Solution {
         }
 
         const long sqr{modulo_pow(base, power / 2)};
-        return static_cast<int>((sqr * sqr) % bprime);
+        const int result = static_cast<int>((sqr * sqr) % bprime);
+
+        assert(result >= 0);
+        return result;
+    }
+
+    static long modulo_minus(long a, long b) {
+        const long result = a - b;
+        return result < 0 ? bprime + result : result;
     }
 };
 
-int main() {
-    Solution s;
+void testcase1() {
+    const string hst{"barfoothefoobarman"};
+    const vector<string> words{"foo", "bar"};
+
+    cout << hst << endl << words << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
+void testcase2() {
+    const string hst{"wordgoodgoodgoodbestword"};
+    const vector<string> words{"word", "good", "best", "word"};
+
+    cout << hst << endl << words << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
+void testcase3() {
     const string hst{"wordgoodgoodgoodbestword"};
     const vector<string> words{"word", "good", "best", "good"};
 
     cout << hst << endl << words << endl;
-    cout << s.findSubstring(hst, words) << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
+int main() {
+    testcase1();
+    testcase2();
+    testcase3();
 
     return 0;
 }
