@@ -51,17 +51,17 @@ class Solution {
 
         vector<int> result;
         auto word_hashes = hash_all(words);
-        auto words_set = make_set(words);
         auto sz = words.begin()->size();
         auto cnt = words.size();
         auto bound = hst.size() - cnt * sz + 1;
+        const auto w_count_proto = initialize_w_count_map(words);
 
         for (int i = 0, h0 = 0; i != bound; ++i) {
             const int h = (i == 0) ? hash_one(hst.substr(0, sz))
                                    : rolling_hash(hst, h0, i, sz);
 
-            if (word_hashes.count(h) && words_set.count(hst.substr(i, sz))) {
-                if (stamping_match(hst, i, words))
+            if (word_hashes.count(h)) {
+                if (stamping_match(hst, i, words, w_count_proto))
                     result.push_back(i);
             }
 
@@ -107,16 +107,6 @@ class Solution {
         return result;
     }
 
-    static unordered_set<string> make_set(const vector<string> &words) {
-        unordered_set<string> result;
-
-        for (const string &w : words) {
-            result.insert(w);
-        }
-
-        return result;
-    }
-
     static int rolling_hash(const string &s, const int prev_hash, const int i,
                             const int sz) {
         if (!i)
@@ -133,13 +123,11 @@ class Solution {
         return result;
     }
 
-    static bool stamping_match(const string &hst, int i,
-                               const vector<string> &words) {
+    static bool
+    stamping_match(const string &hst, int i, const vector<string> &words,
+                   const unordered_map<string, int> &w_count_proto) {
         const int sz = words.begin()->size();
-        unordered_map<string, int> w_count;
-        for (const string &w : words) {
-            ++w_count[w];
-        }
+        unordered_map<string, int> w_count{w_count_proto};
 
         while (w_count.size()) {
             const string sub = hst.substr(i, sz);
@@ -154,6 +142,17 @@ class Solution {
         }
 
         return !w_count.size();
+    }
+
+    static unordered_map<string, int>
+    initialize_w_count_map(const vector<string> &words) {
+        unordered_map<string, int> w_count;
+
+        for (const string &w : words) {
+            ++w_count[w];
+        }
+
+        return w_count;
     }
 
     static int hash_one(const string &s) {
