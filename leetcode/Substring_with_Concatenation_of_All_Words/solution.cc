@@ -5,6 +5,7 @@
 #include <iterator>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <set>
 #include <stack>
 #include <string>
@@ -18,9 +19,9 @@ using namespace std;
 class Solution {
   public:
     vector<int> findSubstring(const string &hst, const vector<string> &words) {
-        auto degenerate_case_res = degen_case(hst, words);
-        if (degenerate_case_res.first)
-            return vector<int>{degenerate_case_res.second};
+        auto degenerate_case_index = degen_case(hst, words);
+        if (degenerate_case_index)
+            return vector<int>{*degenerate_case_index};
 
         vector<int> result;
         auto word_hashes = hash_all(words);
@@ -44,26 +45,27 @@ class Solution {
         return result;
     }
 
+  private:
     static_assert(sizeof(char) < sizeof(int));
     static_assert(sizeof(int) < sizeof(long));
     static constexpr int base = numeric_limits<char>::max() + 1;
     static constexpr int bprime = 10000019;
 
-    static pair<bool, int> degen_case(const string &hst,
-                                      const vector<string> &words) {
+    static optional<int> degen_case(const string &hst,
+                                    const vector<string> &words) {
         if (!words.size())
-            return make_pair(true, 0);
+            return {0};
 
         if (!words.begin()->size())
-            return make_pair(true, 0);
+            return {0};
 
         if (hst.size() < words.size() * words.begin()->size())
-            return make_pair(true, -1);
+            return {-1};
 
         if (words.size() == 1 && words.begin()->size() == hst.size())
-            return make_pair(true, *words.begin() == hst ? 0 : -1);
+            return {*words.begin() == hst ? 0 : -1};
 
-        return make_pair(false, -1);
+        return nullopt;
     }
 
     static unordered_set<int> hash_all(const vector<string> &words) {
@@ -91,7 +93,8 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        const int leftmost = (modulo_pow(base, sz - 1) * int{s[i - 1]}) % bprime;
+        const int leftmost =
+            (modulo_pow(base, sz - 1) * int{s[i - 1]}) % bprime;
         return ((prev_hash - leftmost) * base + s[i + sz - 1]) % bprime;
     }
 
@@ -138,13 +141,21 @@ class Solution {
     }
 };
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (const T &x : xs) {
+        os << x << ' ';
+    }
+
+    return os;
+}
+
 int main() {
     Solution s;
+    const string hst{"barfoothefoobarman"};
+    const vector<string> words{"foo", "bar"};
 
-    cout << Solution::hash_one("aaaa") << endl;
-    cout << Solution::rolling_hash("aaaaaaaaaaa", Solution::hash_one("aaaa"), 1,
-                                   4)
-         << endl;
+    cout << hst << endl << words << endl;
+    cout << s.findSubstring(hst, words);
 
     return 0;
 }
