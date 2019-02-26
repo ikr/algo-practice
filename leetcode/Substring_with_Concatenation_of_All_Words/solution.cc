@@ -50,18 +50,17 @@ class Solution {
             return *degenerate_case_index;
 
         vector<int> result;
-        auto word_hashes = hash_all(words);
+        auto words_hash = hash_all(words);
         auto sz = words.begin()->size();
         auto cnt = words.size();
         auto bound = hst.size() - cnt * sz + 1;
         const auto w_count_proto = initialize_w_count_map(words);
 
         for (int i = 0, h0 = 0; i != bound; ++i) {
-            const int h = (i == 0) ? hash_one(hst.substr(0, sz))
-                                   : rolling_hash(hst, h0, i, sz);
+            const int h = (i == 0) ? hash_one(hst.substr(0, cnt * sz))
+                                   : rolling_hash(hst, h0, i, cnt * sz);
 
-            if (word_hashes.count(h) &&
-                stamping_match(hst, i, sz, w_count_proto))
+            if (words_hash == h && stamping_match(hst, i, sz, w_count_proto))
                 result.push_back(i);
 
             h0 = h;
@@ -71,11 +70,7 @@ class Solution {
     }
 
   private:
-    static_assert(sizeof(char) < sizeof(int));
-    static constexpr int base{numeric_limits<char>::max() + 1};
     static constexpr int bprime{10000019};
-    static constexpr int max_word_size = 64;
-    static const vector<int> modulo_pows;
 
     static optional<vector<int>>
     degenerate_case_find(const string &hst, const vector<string> &words) {
@@ -95,11 +90,11 @@ class Solution {
         return nullopt;
     }
 
-    static unordered_set<int> hash_all(const vector<string> &words) {
-        unordered_set<int> result;
+    static int hash_all(const vector<string> &words) {
+        int result = 0;
 
         for (const string &w : words) {
-            result.insert(hash_one(w));
+            result = (result + hash_one(w)) % bprime;
         }
 
         return result;
@@ -110,9 +105,8 @@ class Solution {
         if (!i)
             return hash_one(s.substr(0, sz));
 
-        const int leftmost{(modulo_pows[sz - 1] * int{s[i - 1]}) % bprime};
-        const int head{modulo_minus(prev_hash, leftmost) * base};
-        return (head + int{s[i + sz - 1]}) % bprime;
+        return (modulo_minus(prev_hash, int{s[i - 1]}) + int{s[i + sz - 1]}) %
+               bprime;
     }
 
     static bool
@@ -147,19 +141,10 @@ class Solution {
     }
 
     static int hash_one(const string &s) {
-        if (!s.size())
-            return 0;
+        int result = 0;
 
-        return (hash_one(s.substr(0, s.size() - 1)) * base + int{s.back()}) %
-               bprime;
-    }
-
-    static vector<int> precompute_modulo_pows(int power_bound) {
-        vector<int> result(power_bound);
-
-        for (int i = 0, value = 1; i != power_bound;
-             ++i, value = (value * base) % bprime) {
-            result[i] = value;
+        for (char c : s) {
+            result = (result + int{c}) % bprime;
         }
 
         return result;
@@ -170,9 +155,6 @@ class Solution {
         return result < 0 ? bprime + result : result;
     }
 };
-
-const vector<int> Solution::modulo_pows =
-    Solution::precompute_modulo_pows(Solution::max_word_size);
 
 void testcase1() {
     const string hst{"barfoothefoobarman"};
