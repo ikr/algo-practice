@@ -11,6 +11,7 @@ code=$(cat <<EOF
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
