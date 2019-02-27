@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -100,8 +101,7 @@ class Solution {
         return result;
     }
 
-    static int rolling_hash(const string &s, const int prev_hash, const int i,
-                            const int sz) {
+    static int rolling_hash(const string &s, int prev_hash, int i, int sz) {
         if (!i)
             return hash_one(s.substr(0, sz));
 
