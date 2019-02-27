@@ -204,6 +204,14 @@ void testcase6() {
     cout << Solution().findSubstring(hst, words) << endl << endl;
 }
 
+void testcase7() {
+    const string hst{"barfoofoobarthefoobarman"};
+    const vector<string> words{"bar","foo","the"};
+
+    cout << hst << endl << words << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
 int main() {
     testcase1();
     testcase2();
@@ -211,6 +219,7 @@ int main() {
     testcase4();
     testcase5();
     testcase6();
+    testcase7();
 
     return 0;
 }
