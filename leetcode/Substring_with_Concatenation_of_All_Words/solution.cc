@@ -58,15 +58,13 @@ class Solution {
         auto bound = hst.size() - cnt * sz + 1;
         const auto w_count_proto = initialize_w_count_map(words);
 
-        vector<int> h0{};
+        vector<int> h(cnt);
         for (int i = 0; i != bound; ++i) {
-            const vector<int> h = rolling_hash(hst, h0, i, cnt, sz);
+            rolling_hash(hst, h, i, cnt, sz);
 
             if (words_hash == total_hash(h) &&
                 stamping_match(hst, i, sz, w_count_proto))
                 result.push_back(i);
-
-            h0 = h;
         }
 
         return result;
@@ -116,20 +114,15 @@ class Solution {
         return result;
     }
 
-    static vector<int> rolling_hash(const string &s,
-                                    const vector<int> &prev_hash, int i,
-                                    int cnt, int sz) {
+    static void rolling_hash(const string &s, vector<int> &result, int i,
+                             int cnt, int sz) {
         if (!i) {
-            vector<int> result(cnt);
-
             for (int j = 0; j < cnt; ++j) {
                 result[j] = hash_one(s.substr(j * sz, sz));
             }
 
-            return result;
+            return;
         }
-
-        vector<int> result(prev_hash);
 
         for (int j = 0; j < cnt; ++j) {
             const int leftmost{(modulo_pows[sz - 1] * int{s[j * sz + i - 1]}) %
@@ -139,8 +132,6 @@ class Solution {
                          int{s[j * sz + i + sz - 1]}) %
                         bprime;
         }
-
-        return result;
     }
 
     static bool
