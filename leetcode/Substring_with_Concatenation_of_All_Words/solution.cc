@@ -47,7 +47,7 @@ class Solution {
         auto cnt = words.size();
         const auto w_count_proto = initialize_w_count_map(words);
 
-        for (int j = 0; j != sz; ++j) {
+        for (int j = 0; j != sz && j + cnt * sz <= hst.size(); ++j) {
             auto rmatch_indices = rolling_match(hst, j, words, w_hash);
 
             for (int i : rmatch_indices) {
@@ -151,79 +151,24 @@ class Solution {
     }
 };
 
-void testcase1() {
-    const string hst{"barfoothefoobarman"};
-    const vector<string> words{"foo", "bar"};
-
-    cout << hst << endl << words << endl;
-    cout << Solution().findSubstring(hst, words) << endl << endl;
-}
-
-void testcase2() {
-    const string hst{"wordgoodgoodgoodbestword"};
-    const vector<string> words{"word", "good", "best", "word"};
-
-    cout << hst << endl << words << endl;
-    cout << Solution().findSubstring(hst, words) << endl << endl;
-}
-
-void testcase3() {
-    const string hst{"wordgoodgoodgoodbestword"};
-    const vector<string> words{"word", "good", "best", "good"};
-
-    cout << hst << endl << words << endl;
-    cout << Solution().findSubstring(hst, words) << endl << endl;
-}
-
-void testcase4() {
-    const string hst{""};
-    const vector<string> words{};
-
-    cout << hst << endl << words << endl;
-    cout << Solution().findSubstring(hst, words) << endl << endl;
-}
-
-void testcase5() {
-    const string hst{"01234567"};
-    const vector<string> words{"", "", ""};
-
-    cout << hst << endl << words << endl;
-    cout << Solution().findSubstring(hst, words) << endl << endl;
-}
-
-void testcase6() {
-    const string hst{"aaaaaaaa"};
-    const vector<string> words{"aa", "aa", "aa"};
-
-    cout << hst << endl << words << endl;
-    cout << Solution().findSubstring(hst, words) << endl << endl;
-}
-
-void testcase7() {
-    const string hst{"barfoofoobarthefoobarman"};
-    const vector<string> words{"bar", "foo", "the"};
-
-    cout << hst << endl << words << endl;
-    cout << Solution().findSubstring(hst, words) << endl << endl;
-}
-
-void testcase8() {
-    const string hst{"aaaaaa"};
-    const vector<string> words{"aaa","aaa"};
-
+void testcase(const string &hst, const vector<string> &words) {
     cout << hst << endl << words << endl;
     cout << Solution().findSubstring(hst, words) << endl << endl;
 }
 
 int main() {
-    testcase1();
-    testcase2();
-    testcase3();
-    testcase4();
-    testcase5();
-    testcase6();
-    testcase7();
-    testcase8();
+    vector<pair<string, vector<string>>> samples = {
+        {"barfoothefoobarman", {"foo", "bar"}},
+        {"wordgoodgoodgoodbestword", {"word", "good", "best", "word"}},
+        {"wordgoodgoodgoodbestword", {"word", "good", "best", "good"}},
+        {"aaaaaaaa", {"aa", "aa", "aa"}},
+        {"barfoofoobarthefoobarman", {"bar", "foo", "the"}},
+        {"aaaaaa", {"aaa", "aaa"}},
+        {"bbabbbab", {"ab", "bb", "bc", "ac"}}};
+
+    for (auto s : samples) {
+        testcase(s.first, s.second);
+    }
 
     return 0;
 }
