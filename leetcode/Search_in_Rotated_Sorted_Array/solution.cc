@@ -68,7 +68,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int main() {
-    vector<int> xs{4, 5, 6, 7, 0, 1, 2};
+    vector<int> xs{9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8};
     const int target = 0;
 
     cout << "xs are " << xs << "target is " << target << endl;
