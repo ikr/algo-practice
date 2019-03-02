@@ -32,21 +32,18 @@ class Solution {
             return -1;
 
         if (sz == 1)
-            return xs[begin] == target;
+            return xs[begin] == target ? begin : -1;
 
         const int mid{(sz % 2) ? (sz / 2 + 1) : (sz / 2)};
 
-        if (xs[mid] == target)
-            return mid;
-
         if (is_ordered(xs, mid, end)) {
-            if (target > xs[mid])
+            if (xs[mid] <= target && target <= xs[end - 1])
                 return search(xs, mid, end, target);
 
             return search(xs, begin, mid, target);
         }
 
-        if (target <= xs[mid - 1])
+        if (xs[begin] <= target && target <= xs[mid - 1])
             return search(xs, begin, mid, target);
 
         return search(xs, mid, end, target);
@@ -54,8 +51,10 @@ class Solution {
 
     bool is_ordered(const vector<int> &xs, const int begin, const int end) {
         assert(end - begin > 0);
+
         if (end - begin == 1)
             return true;
+
         return xs[begin] < xs[end - 1];
     }
 };
@@ -69,11 +68,11 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int main() {
-    vector<int> xs{4, 5, 6, 7, 0, 1, 2};
+    vector<int> xs{3, 4, 5, 6, 7, 0, 1, 2};
     const int target = 0;
 
     cout << "xs are " << xs << "target is " << target << endl;
-    cout << Solution().search(xs, target) << endl;
+    cout << "result is " << Solution().search(xs, target) << endl;
 
     return 0;
 }
