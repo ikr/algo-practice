@@ -25,6 +25,15 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const optional<T> &o) {
+    if (o)
+        os << *o;
+    else
+        os << '-';
+
+    return os;
+}
+
 class Solution {
   public:
     vector<int> findSubstring(const string &hst, const vector<string> &words) {
@@ -39,17 +48,17 @@ class Solution {
         const auto w_count_proto = initialize_w_count_map(words);
 
         for (int j = 0; j != sz; ++j) {
-            auto rmatch_index = rolling_match(hst, j, words, w_hash);
+            auto rmatch_indices = rolling_match(hst, j, words, w_hash);
 
-            if (rmatch_index &&
-                stamping_match(hst, *rmatch_index, sz, w_count_proto))
-                result.push_back(*rmatch_index);
+            for (int i : rmatch_indices) {
+                if (stamping_match(hst, i, sz, w_count_proto))
+                    result.push_back(i);
+            }
         }
 
         return result;
     }
 
-  private:
     static optional<vector<int>>
     degenerate_case_find(const string &hst, const vector<string> &words) {
         if (!hst.size() || !words.size() ||
@@ -87,24 +96,27 @@ class Solution {
         return result;
     }
 
-    static optional<int> rolling_match(const string &hst, int start,
-                                       const vector<string> &words, int whash) {
+    static vector<int> rolling_match(const string &hst, int start,
+                                     const vector<string> &words, int whash) {
         auto sz = words.begin()->size();
         auto cnt = words.size();
         int th = total_hash(hst.substr(start, cnt * sz), sz);
+        vector<int> result{};
 
         for (;;) {
             if (th == whash)
-                return {start};
+                result.push_back(start);
 
-            if (start + (cnt + 1) * sz >= hst.size())
-                return nullopt;
+            if (start + (cnt + 1) * sz > hst.size())
+                break;
 
             th = th - hash<string>{}(hst.substr(start, sz)) +
                  hash<string>{}(hst.substr(start + cnt * sz, sz));
 
             start += sz;
         }
+
+        return result;
     }
 
     static bool
@@ -195,6 +207,14 @@ void testcase7() {
     cout << Solution().findSubstring(hst, words) << endl << endl;
 }
 
+void testcase8() {
+    const string hst{"aaaaaa"};
+    const vector<string> words{"aaa","aaa"};
+
+    cout << hst << endl << words << endl;
+    cout << Solution().findSubstring(hst, words) << endl << endl;
+}
+
 int main() {
     testcase1();
     testcase2();
@@ -203,6 +223,7 @@ int main() {
     testcase5();
     testcase6();
     testcase7();
+    testcase8();
 
     return 0;
 }
