@@ -34,7 +34,7 @@ class Solution {
         if (sz == 1)
             return xs[begin] == target ? begin : -1;
 
-        const int mid{(sz % 2) ? (sz / 2 + 1) : (sz / 2)};
+        const int mid{begin + sz / 2};
 
         if (is_ordered(xs, mid, end)) {
             if (xs[mid] <= target && target <= xs[end - 1])
@@ -68,7 +68,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int main() {
-    vector<int> xs{3, 4, 5, 6, 7, 0, 1, 2};
+    vector<int> xs{4, 5, 6, 7, 0, 1, 2};
     const int target = 0;
 
     cout << "xs are " << xs << "target is " << target << endl;
