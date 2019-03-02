@@ -66,12 +66,17 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int main() {
-    vector<int> xs{1, 2, 3, 4};
+    // vector<int> xs{1, 2, 3, 4};
 
-    do {
-        cout << xs << endl;
-        Solution().nextPermutation(xs);
-    } while (xs != vector<int>{1, 2, 3, 4});
+    // do {
+    //     cout << xs << endl;
+    //     Solution().nextPermutation(xs);
+    // } while (xs != vector<int>{1, 2, 3, 4});
+
+    vector<int> xs{1, 3, 4, 2};
+    cout << xs << endl;
+    Solution().nextPermutation(xs);
+    cout << xs << endl;
 
     return 0;
 }
