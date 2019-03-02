@@ -59,6 +59,7 @@ class Solution {
         return result;
     }
 
+  private:
     static optional<vector<int>>
     degenerate_case_find(const string &hst, const vector<string> &words) {
         if (!hst.size() || !words.size() ||
@@ -77,11 +78,13 @@ class Solution {
         return nullopt;
     }
 
+    static hash<string> chunk_hash;
+
     static int total_hash(const vector<string> &words) {
         int result = 0;
 
         for (const string &w : words) {
-            result += hash<string>{}(w);
+            result += chunk_hash(w);
         }
 
         return result;
@@ -91,7 +94,7 @@ class Solution {
         int result = 0;
 
         for (int i = 0; i != joined_words.size(); i += wsize)
-            result += hash<string>{}(joined_words.substr(i, wsize));
+            result += chunk_hash(joined_words.substr(i, wsize));
 
         return result;
     }
@@ -110,8 +113,8 @@ class Solution {
             if (start + (cnt + 1) * sz > hst.size())
                 break;
 
-            th = th - hash<string>{}(hst.substr(start, sz)) +
-                 hash<string>{}(hst.substr(start + cnt * sz, sz));
+            th = th - chunk_hash(hst.substr(start, sz)) +
+                 chunk_hash(hst.substr(start + cnt * sz, sz));
 
             start += sz;
         }
@@ -150,6 +153,8 @@ class Solution {
         return w_count;
     }
 };
+
+hash<string> Solution::chunk_hash{};
 
 void testcase(const string &hst, const vector<string> &words) {
     cout << hst << endl << words << endl;
