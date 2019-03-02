@@ -19,7 +19,45 @@ using namespace std;
 
 class Solution {
   public:
-    int search(const vector<int> &xs, int target) { return -1; }
+    int search(const vector<int> &xs, const int target) {
+        return search(xs, 0, xs.size(), target);
+    }
+
+  private:
+    int search(const vector<int> &xs, const int begin, const int end,
+               const int target) {
+        const int sz = end - begin;
+
+        if (sz == 0)
+            return -1;
+
+        if (sz == 1)
+            return xs[begin] == target;
+
+        const int mid{(sz % 2) ? (sz / 2 + 1) : (sz / 2)};
+
+        if (xs[mid] == target)
+            return mid;
+
+        if (is_ordered(xs, mid, end)) {
+            if (target > xs[mid])
+                return search(xs, mid, end, target);
+
+            return search(xs, begin, mid, target);
+        }
+
+        if (target <= xs[mid - 1])
+            return search(xs, begin, mid, target);
+
+        return search(xs, mid, end, target);
+    }
+
+    bool is_ordered(const vector<int> &xs, const int begin, const int end) {
+        assert(end - begin > 0);
+        if (end - begin == 1)
+            return true;
+        return xs[begin] < xs[end - 1];
+    }
 };
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
