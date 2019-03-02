@@ -23,7 +23,9 @@ class Solution {
         const int rotation_group_idx = first_asc_pair(xs);
 
         if (rotation_group_idx != -1) {
-            const int tail_min_idx = min_idx(xs, rotation_group_idx + 1);
+            const int tail_min_idx = idx_of_min_successor(
+                xs[rotation_group_idx], xs, rotation_group_idx + 1);
+
             swap(xs[rotation_group_idx], xs[tail_min_idx]);
         }
 
@@ -42,11 +44,13 @@ class Solution {
         return -1;
     }
 
-    static int min_idx(const vector<int> &xs, const int starting_from) {
+    static int idx_of_min_successor(const int of_value,
+                                    const vector<int> &in_xs,
+                                    const int starting_from) {
         int result = starting_from;
 
-        for (int i = starting_from + 1; i != xs.size(); ++i)
-            if (xs[i] < xs[result])
+        for (int i = starting_from + 1; i != in_xs.size(); ++i)
+            if (in_xs[i] > of_value && in_xs[i] < in_xs[result])
                 result = i;
 
         return result;
@@ -66,17 +70,12 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int main() {
-    // vector<int> xs{1, 2, 3, 4};
+    vector<int> xs{1, 2, 3, 4};
 
-    // do {
-    //     cout << xs << endl;
-    //     Solution().nextPermutation(xs);
-    // } while (xs != vector<int>{1, 2, 3, 4});
-
-    vector<int> xs{1, 3, 4, 2};
-    cout << xs << endl;
-    Solution().nextPermutation(xs);
-    cout << xs << endl;
+    do {
+        cout << xs << endl;
+        Solution().nextPermutation(xs);
+    } while (xs != vector<int>{1, 2, 3, 4});
 
     return 0;
 }
