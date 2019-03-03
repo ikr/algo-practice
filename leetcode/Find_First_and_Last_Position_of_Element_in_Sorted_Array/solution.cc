@@ -19,8 +19,21 @@ using namespace std;
 
 class Solution {
   public:
-    vector<int> searchRange(const vector<int> &xs, const int target) {}
+    vector<int> searchRange(const vector<int> &xs, const int target) {
+        const int sz = xs.size();
 
+        if (!sz || !binary_search(xs.begin(), xs.end(), target))
+            return {-1, -1};
+
+        const int lo = xs[0] == target ? 0 : search_lo(xs, 0, sz, target);
+
+        const int hi =
+            xs.back() == target ? sz - 1 : search_hi(xs, 0, sz, target);
+
+        return {lo, hi};
+    }
+
+  private:
     static int search_lo(const vector<int> &xs, const int begin, const int end,
                          const int target) {
         assert(xs[begin] < target);
@@ -66,8 +79,7 @@ int main() {
     vector<int> xs{7, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10};
 
     cout << xs << endl;
-    cout << Solution::search_lo(xs, 0, xs.size(), 9) << ' ';
-    cout << Solution::search_hi(xs, 0, xs.size(), 9) << endl;
+    cout << Solution().searchRange(xs, 7) << endl;
 
     return 0;
 }
