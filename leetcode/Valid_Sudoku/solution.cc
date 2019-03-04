@@ -22,6 +22,9 @@ class RepeatReg {
     RepeatReg() : xs{}, repeated{false} {}
 
     void register_element(char x) {
+        if (x == '.')
+            return;
+
         if (xs.count(x)) {
             repeated = true;
             return;
