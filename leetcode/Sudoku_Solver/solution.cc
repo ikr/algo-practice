@@ -18,9 +18,36 @@
 using namespace std;
 
 class Solution {
+    using Rows = vector<vector<char>>;
+
   public:
-    void solveSudoku(vector<vector<char>> &board) const {}
+    void solveSudoku(vector<vector<char>> &rows) const;
+
+  private:
+    static bool search_recur(Rows &rows);
 };
+
+void Solution::solveSudoku(vector<vector<char>> &rows) const {}
+
+bool Solution::search_recur(Rows &rows) {
+    optional<const Coord> v_coord = first_absent_coord(rows);
+
+    if (!v_coord)
+        return true;
+
+    for (const char d : digits()) {
+        if (is_valid(rows, v_coord, d)) {
+            rows[v_coord.row()][v_coord.col()] = d;
+
+            if (search_recur(rows))
+                return true;
+
+            rows[v_coord.row()][v_coord.col()] = '.';
+        }
+    }
+
+    return false;
+}
 
 vector<vector<char>> input1() {
     return {{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
