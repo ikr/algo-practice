@@ -54,7 +54,7 @@ struct Solution {
 
 const vector<char> Solution::digits = Solution::init_digits();
 
-void Solution::solveSudoku(Rows &rows) const {}
+void Solution::solveSudoku(Rows &rows) const { search_recur(rows); }
 
 bool Solution::search_recur(Rows &rows) {
     optional<const Coord> v_coord = first_absent_coord(rows);
@@ -90,9 +90,25 @@ bool Solution::is_valid(const Rows &rows, const Coord &coord, const char x) {
     return true;
 }
 
-vector<Coord> Solution::row_coords(const Coord &x) { return {}; }
+vector<Coord> Solution::row_coords(const Coord &x) {
+    vector<Coord> result;
 
-vector<Coord> Solution::col_coords(const Coord &x) { return {}; }
+    for (int i = 0; i != bsize; ++i) {
+        result.push_back({x.row(), i});
+    }
+
+    return result;
+}
+
+vector<Coord> Solution::col_coords(const Coord &x) {
+    vector<Coord> result;
+
+    for (int i = 0; i != bsize; ++i) {
+        result.push_back({i, x.col()});
+    }
+
+    return result;
+}
 
 vector<Coord> Solution::box_coords(const Coord &x) {
     const Coord o = {bsize * (x.row() / bsize), bsize * (x.col() / bsize)};
@@ -106,7 +122,13 @@ vector<Coord> Solution::box_coords(const Coord &x) {
 
 unordered_set<char> Solution::elements_set(const Rows &rows,
                                            const vector<Coord> &coords) {
-    return {};
+    unordered_set<char> result;
+
+    for (const Coord &x : coords)
+        if (rows[x.row()][x.col()] != '.')
+            result.insert(rows[x.row()][x.col()]);
+
+    return result;
 }
 
 optional<Coord> Solution::first_absent_coord(const Rows &rows) {
@@ -139,9 +161,10 @@ vector<vector<char>> input1() {
             {'.', '.', '.', '.', '8', '.', '.', '7', '9'}};
 }
 
-template<typename T> ostream& operator<<(ostream& os, const vector<vector<T>> &rows) {
-    for (auto row: rows) {
-        for (T x: row) {
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
+    for (auto row : rows) {
+        for (T x : row) {
             os << x << ' ';
         }
 
