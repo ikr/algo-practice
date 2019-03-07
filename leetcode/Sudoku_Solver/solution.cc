@@ -20,8 +20,12 @@ using namespace std;
 namespace {
 struct Coord {
     Coord(int row, int col) : r{row}, c{col} {}
-    int row() const;
-    int col() const;
+
+    int row() const { return r; }
+    int col() const { return c; }
+
+    Coord next_row() const { return {r + 1, c}; }
+    Coord next_col() const { return {r, c + 1}; }
 
   private:
     int r;
@@ -38,8 +42,14 @@ struct Solution {
     static const vector<char> digits;
 
     static bool search_recur(Rows &rows);
+    static bool is_valid(const Rows &rows, const Coord &coord, const char x);
+    static vector<Coord> row_coords(const Coord &x);
+    static vector<Coord> col_coords(const Coord &x);
+    static vector<Coord> box_coords(const Coord &x);
+    static unordered_set<char> elements_set(const Rows &rows,
+                                            const vector<Coord> &coords);
     static optional<Coord> first_absent_coord(const Rows &rows);
-    static const vector<char> init_digits();
+    static vector<char> init_digits();
 };
 
 const vector<char> Solution::digits = Solution::init_digits();
@@ -53,7 +63,7 @@ bool Solution::search_recur(Rows &rows) {
         return true;
 
     for (const char d : digits) {
-        if (is_valid(rows, v_coord, d)) {
+        if (is_valid(rows, *v_coord, d)) {
             rows[v_coord->row()][v_coord->col()] = d;
 
             if (search_recur(rows))
@@ -64,6 +74,39 @@ bool Solution::search_recur(Rows &rows) {
     }
 
     return false;
+}
+
+bool Solution::is_valid(const Rows &rows, const Coord &coord, const char x) {
+    const vector<unordered_set<char>> linked_el_sets{
+        elements_set(rows, row_coords(coord)),
+        elements_set(rows, col_coords(coord)),
+        elements_set(rows, box_coords(coord))};
+
+    for (auto s : linked_el_sets) {
+        if (s.count(x))
+            return false;
+    }
+
+    return true;
+}
+
+vector<Coord> Solution::row_coords(const Coord &x) { return {}; }
+
+vector<Coord> Solution::col_coords(const Coord &x) { return {}; }
+
+vector<Coord> Solution::box_coords(const Coord &x) {
+    const Coord o = {bsize * (x.row() / bsize), bsize * (x.col() / bsize)};
+    const Coord o1 = o.next_row();
+    const Coord o2 = o1.next_row();
+
+    return {o,  o.next_col(),  o.next_col().next_col(),
+            o1, o1.next_col(), o1.next_col().next_col(),
+            o2, o2.next_col(), o2.next_col().next_col()};
+}
+
+unordered_set<char> Solution::elements_set(const Rows &rows,
+                                           const vector<Coord> &coords) {
+    return {};
 }
 
 optional<Coord> Solution::first_absent_coord(const Rows &rows) {
@@ -77,7 +120,7 @@ optional<Coord> Solution::first_absent_coord(const Rows &rows) {
     return nullopt;
 }
 
-const vector<char> Solution::init_digits() {
+vector<char> Solution::init_digits() {
     vector<char> result(gsize);
     iota(result.begin(), result.end(), '1');
     return result;
@@ -96,10 +139,24 @@ vector<vector<char>> input1() {
             {'.', '.', '.', '.', '8', '.', '.', '7', '9'}};
 }
 
-int main() {
-    Solution s;
+template<typename T> ostream& operator<<(ostream& os, const vector<vector<T>> &rows) {
+    for (auto row: rows) {
+        for (T x: row) {
+            os << x << ' ';
+        }
 
-    cout << endl;
+        os << endl;
+    }
+
+    return os;
+}
+
+int main() {
+    auto rows = input1();
+    cout << rows << endl;
+
+    Solution().solveSudoku(rows);
+    cout << rows << endl;
 
     return 0;
 }
