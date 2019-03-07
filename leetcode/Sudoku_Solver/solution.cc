@@ -17,23 +17,6 @@
 
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (T x : xs) {
-        os << x << ' ';
-    }
-
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
-    for (auto row : rows) {
-        os << row << endl;
-    }
-
-    return os;
-}
-
 namespace {
 struct Coord {
     Coord(int row, int col) : r{row}, c{col} {}
@@ -48,11 +31,6 @@ struct Coord {
     int r;
     int c;
 };
-
-ostream &operator<<(ostream &os, const Coord &x) {
-    os << '(' << x.row() << ' ' << x.col() << ')';
-    return os;
-}
 
 struct Solution {
     void solveSudoku(vector<vector<char>> &rows) const;
@@ -115,7 +93,7 @@ bool Solution::is_valid(const Rows &rows, const Coord &coord, const char x) {
 vector<Coord> Solution::row_coords(const Coord &x) {
     vector<Coord> result;
 
-    for (int i = 0; i != bsize; ++i) {
+    for (int i = 0; i != gsize; ++i) {
         result.push_back({x.row(), i});
     }
 
@@ -125,7 +103,7 @@ vector<Coord> Solution::row_coords(const Coord &x) {
 vector<Coord> Solution::col_coords(const Coord &x) {
     vector<Coord> result;
 
-    for (int i = 0; i != bsize; ++i) {
+    for (int i = 0; i != gsize; ++i) {
         result.push_back({i, x.col()});
     }
 
@@ -181,6 +159,15 @@ vector<vector<char>> input1() {
             {'.', '6', '.', '.', '.', '.', '2', '8', '.'},
             {'.', '.', '.', '4', '1', '9', '.', '.', '5'},
             {'.', '.', '.', '.', '8', '.', '.', '7', '9'}};
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
+    for (auto row : rows) {
+        os << row << endl;
+    }
+
+    return os;
 }
 
 int main() {
