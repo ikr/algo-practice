@@ -76,16 +76,15 @@ bool Solution::search_recur(Rows &rows) {
     return false;
 }
 
-bool Solution::is_valid(const Rows &rows, const Coord &coord, const char x) {
-    const vector<unordered_set<char>> linked_el_sets{
-        elements_set(rows, row_coords(coord)),
-        elements_set(rows, col_coords(coord)),
-        elements_set(rows, box_coords(coord))};
+bool Solution::is_valid(const Rows &rows, const Coord &coord, char x) {
+    if (elements_set(rows, row_coords(coord)).count(x))
+        return false;
 
-    for (auto s : linked_el_sets) {
-        if (s.count(x))
-            return false;
-    }
+    if (elements_set(rows, col_coords(coord)).count(x))
+        return false;
+
+    if (elements_set(rows, box_coords(coord)).count(x))
+        return false;
 
     return true;
 }
