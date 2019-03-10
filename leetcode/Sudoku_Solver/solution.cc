@@ -151,6 +151,39 @@ vector<char> Solution::init_digits() {
 namespace crook {
 struct Solution {
     void solveSudoku(vector<vector<char>> &rows) const;
+
+  private:
+    bool save_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
+        for (;;) {
+            optional<Coord> v_coord = min_potential_coord(pots_by_coord);
+
+            if (!v_coord)
+                return is_complete(rows);
+
+            const Potentials pots = pots_by_coord[*v_coord];
+
+            if (pots.size() == 1) {
+                rows[v_coord->row()][v_coord->col()] = *pots.begin();
+                assume_presence(pots_by_coord, *pots.begin());
+            } else {
+                const vector<char> pots_list(pots.size());
+                copy(pots.begin(), pots.end(), back_inserter(pots_list));
+
+                for (char el : pots_list) {
+                    rows[v_coord->row()][v_coord->col()] = el;
+                    assume_presence(pots_by_coord, *v_coord, el);
+
+                    if (solve_recur(rows, pots_by_coord))
+                        return true;
+
+                    rows[v_coord->row()][v_coord->col()] = '.';
+                    assume_absence(pots_by_coord, *v_coord, el);
+                }
+
+                return false;
+            }
+        }
+    }
 };
 
 void Solution::solveSudoku(vector<vector<char>> &rows) const {}
