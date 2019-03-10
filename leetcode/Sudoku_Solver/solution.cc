@@ -204,6 +204,20 @@ struct Solution {
                                const Coord &coord, const char el);
 };
 
+template <int N> vector<char> Potentials<N>::elements() const {
+    vector<char> result{};
+
+    if (!impl.count())
+        return result;
+
+    for (char i = 0; i <= N; ++i) {
+        if (impl[i])
+            result.push_back('1' + i);
+    }
+
+    return result;
+}
+
 void Solution::solveSudoku(vector<vector<char>> &rows) const {}
 
 bool Solution::solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
@@ -241,7 +255,7 @@ Solution::min_potential_coord(const PotentialsByCoord &pots_by_coord) {
     int min_size = gsize + 1;
     optional<Coord> result{nullopt};
 
-    for (const auto &kv: pots_by_coord) {
+    for (const auto &kv : pots_by_coord) {
         if (kv.second.size() < min_size) {
             min_size = kv.second.size();
             result = kv.first;
@@ -249,6 +263,17 @@ Solution::min_potential_coord(const PotentialsByCoord &pots_by_coord) {
     }
 
     return result;
+}
+
+bool Solution::is_complete(const Rows &rows) {
+    for (const auto &r : rows) {
+        for (const char el : r) {
+            if (el == '.')
+                return false;
+        }
+    }
+
+    return true;
 }
 } // namespace crook
 
