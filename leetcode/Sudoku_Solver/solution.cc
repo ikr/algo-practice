@@ -226,6 +226,19 @@ template <int N> Potentials<N> Potentials<N>::full() {
     return bitset<N>{(1 << N) - 1};
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (T x : xs) {
+        os << x << ' ';
+    }
+
+    return os;
+}
+
+ostream &operator<<(ostream &os, const Coord &coord) {
+    os << coord.row() << ',' << coord.col();
+    return os;
+}
+
 template <int N> vector<char> Potentials<N>::elements() const {
     vector<char> result{};
 
@@ -252,6 +265,7 @@ Solution::PotentialsByCoord Solution::all_potentials(const Rows &rows) {
             if (rows[row][col] == '.') {
                 Coord coord{row, col};
                 result[coord] = potentials(rows, coord);
+                cout << coord << " - " << result[coord].elements() << endl;
             }
 
     return result;
