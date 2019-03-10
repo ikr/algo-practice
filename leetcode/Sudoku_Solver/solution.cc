@@ -17,7 +17,7 @@
 
 using namespace std;
 
-namespace {
+namespace bruteforce{
 struct Coord {
     Coord(int row, int col) : r{row}, c{col} {}
 
@@ -193,13 +193,13 @@ int main() {
     auto rows = input1();
     cout << rows << endl;
 
-    Solution().solveSudoku(rows);
+    bruteforce::Solution().solveSudoku(rows);
     cout << rows << endl;
 
     rows = input2();
     cout << rows << endl;
 
-    Solution().solveSudoku(rows);
+    bruteforce::Solution().solveSudoku(rows);
     cout << rows << endl;
 
     return 0;
