@@ -307,7 +307,7 @@ void Solution::assume_absence(const Rows &rows,
                               PotentialsByCoord &pots_by_coord,
                               const Coord &coord, const char el) {
     for (const Coord &x : linked_coords(coord))
-        if (rows[coord.row()][coord.col()] == '.')
+        if (rows[x.row()][x.col()] == '.')
             pots_by_coord[x].insert(el);
 }
 
