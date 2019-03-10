@@ -17,7 +17,7 @@
 
 using namespace std;
 
-namespace bruteforce{
+namespace bruteforce {
 struct Coord {
     Coord(int row, int col) : r{row}, c{col} {}
 
@@ -146,7 +146,15 @@ vector<char> Solution::init_digits() {
     iota(result.begin(), result.end(), '1');
     return result;
 }
-} // namespace
+} // namespace bruteforce
+
+namespace crook {
+struct Solution {
+    void solveSudoku(vector<vector<char>> &rows) const;
+};
+
+void Solution::solveSudoku(vector<vector<char>> &rows) const {}
+} // namespace crook
 
 vector<vector<char>> input1() {
     return {{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
@@ -193,13 +201,13 @@ int main() {
     auto rows = input1();
     cout << rows << endl;
 
-    bruteforce::Solution().solveSudoku(rows);
+    crook::Solution().solveSudoku(rows);
     cout << rows << endl;
 
     rows = input2();
     cout << rows << endl;
 
-    bruteforce::Solution().solveSudoku(rows);
+    crook::Solution().solveSudoku(rows);
     cout << rows << endl;
 
     return 0;
