@@ -174,6 +174,8 @@ struct CoordHasher {
 template <int N> struct Potentials {
     vector<char> elements() const;
     int size() const { return impl.count(); };
+    void insert(const char el) { impl[el - '1'] = true; }
+    void erase(const char el) { impl[el - '1'] = false; }
 
   private:
     bitset<N> impl;
@@ -275,6 +277,12 @@ bool Solution::is_complete(const Rows &rows) {
 
     return true;
 }
+
+void Solution::assume_presence(PotentialsByCoord &pots_by_coord,
+                               const Coord &coord, const char el) {}
+
+void Solution::assume_absence(PotentialsByCoord &pots_by_coord,
+                              const Coord &coord, const char el) {}
 } // namespace crook
 
 vector<vector<char>> input1() {
