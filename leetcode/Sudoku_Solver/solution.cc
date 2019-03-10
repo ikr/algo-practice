@@ -258,8 +258,17 @@ Solution::PotentialsByCoord Solution::all_potentials(const Rows &rows) {
 }
 
 Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
-                                                           const Coord &coord) {
-    return Potentials<gsize>::full();
+                                                 const Coord &coord) {
+    auto result = Potentials<gsize>::full();
+
+    for (const Coord &x : linked_coords(coord)) {
+        const char el = rows[x.row()][x.col()];
+
+        if (el != '.')
+            result.erase(el);
+    }
+
+    return result;
 }
 
 bool Solution::solve_recur(Rows &rows,
