@@ -257,7 +257,7 @@ Solution::PotentialsByCoord Solution::all_potentials(const Rows &rows) {
     return result;
 }
 
-Solution::Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
+Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
                                                            const Coord &coord) {
     return Potentials<gsize>::full();
 }
