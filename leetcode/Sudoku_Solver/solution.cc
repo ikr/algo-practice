@@ -176,12 +176,14 @@ struct CoordHasher {
 };
 
 template <int N> struct Potentials {
+    Potentials();
     vector<char> elements() const;
     int size() const { return impl.count(); };
-    void insert(const char el) { impl[el - '1'] = true; }
     void erase(const char el) { impl[el - '1'] = false; }
+    static Potentials full();
 
   private:
+    Potentials(const bitset<N> &the_impl);
     bitset<N> impl;
 };
 
@@ -196,6 +198,8 @@ struct Solution {
     using PotentialsByCoord =
         unordered_map<Coord, Potentials<gsize>, CoordHasher>;
 
+    static PotentialsByCoord all_potentials(const Rows &rows);
+    static Potentials<gsize> potentials(const Rows &rows, const Coord &coord);
     static bool solve_recur(Rows &rows, const PotentialsByCoord &pots_by_coord);
 
     static optional<Coord>
@@ -215,6 +219,13 @@ struct Solution {
     static vector<Coord> box_coords(const Coord &x);
 };
 
+template <int N> Potentials<N>::Potentials() : impl{} {}
+template <int N>
+Potentials<N>::Potentials(const bitset<N> &the_impl) : impl{the_impl} {}
+template <int N> Potentials<N> Potentials<N>::full() {
+    return bitset<N>{(1 << N) - 1};
+}
+
 template <int N> vector<char> Potentials<N>::elements() const {
     vector<char> result{};
 
@@ -229,7 +240,27 @@ template <int N> vector<char> Potentials<N>::elements() const {
     return result;
 }
 
-void Solution::solveSudoku(vector<vector<char>> &rows) const {}
+void Solution::solveSudoku(vector<vector<char>> &rows) const {
+    solve_recur(rows, all_potentials(rows));
+}
+
+Solution::PotentialsByCoord Solution::all_potentials(const Rows &rows) {
+    PotentialsByCoord result;
+
+    for (int row = 0; row != gsize; ++row)
+        for (int col = 0; col != gsize; ++col)
+            if (rows[row][col] == '.') {
+                Coord coord{row, col};
+                result[coord] = potentials(rows, coord);
+            }
+
+    return result;
+}
+
+Solution::Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
+                                                           const Coord &coord) {
+    return Potentials<gsize>::full();
+}
 
 bool Solution::solve_recur(Rows &rows,
                            const PotentialsByCoord &pots_by_coord_proto) {
