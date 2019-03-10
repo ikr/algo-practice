@@ -160,6 +160,10 @@ struct Coord {
         return r == other.r && c == other.c;
     }
 
+    bool operator!=(const Coord &other) const {
+        return r != other.r || c != other.c;
+    }
+
   private:
     int r;
     int c;
@@ -205,6 +209,7 @@ struct Solution {
     static void assume_absence(PotentialsByCoord &pots_by_coord,
                                const Coord &coord, const char el);
 
+    static vector<Coord> linked_coords(const Coord &x);
     static vector<Coord> row_coords(const Coord &x);
     static vector<Coord> col_coords(const Coord &x);
     static vector<Coord> box_coords(const Coord &x);
@@ -288,11 +293,22 @@ void Solution::assume_presence(PotentialsByCoord &pots_by_coord,
 void Solution::assume_absence(PotentialsByCoord &pots_by_coord,
                               const Coord &coord, const char el) {}
 
+vector<Coord> Solution::linked_coords(const Coord &x) {
+    vector<Coord> result{x};
+
+    for (auto xs : {row_coords(x), col_coords(x), box_coords(x)})
+        result.insert(result.end(), make_move_iterator(xs.begin()),
+                      make_move_iterator(xs.end()));
+
+    return result;
+}
+
 vector<Coord> Solution::row_coords(const Coord &x) {
     vector<Coord> result;
 
     for (int i = 0; i != gsize; ++i) {
-        result.push_back({x.row(), i});
+        if (x.col() != i)
+            result.push_back({x.row(), i});
     }
 
     return result;
@@ -302,7 +318,8 @@ vector<Coord> Solution::col_coords(const Coord &x) {
     vector<Coord> result;
 
     for (int i = 0; i != gsize; ++i) {
-        result.push_back({i, x.col()});
+        if (x.row() != i)
+            result.push_back({i, x.col()});
     }
 
     return result;
@@ -314,13 +331,15 @@ vector<Coord> Solution::box_coords(const Coord &x) {
 
     for (int row = 0; row != bsize; ++row) {
         for (int col = 0; col != bsize; ++col) {
-            result.push_back({o.row() + row, o.col()});
+            const Coord y{o.row() + row, o.col() + col};
+
+            if (x != y)
+                result.push_back(y);
         }
     }
 
     return result;
 }
-
 } // namespace crook
 
 vector<vector<char>> input1() {
