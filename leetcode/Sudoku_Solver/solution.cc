@@ -204,6 +204,10 @@ struct Solution {
 
     static void assume_absence(PotentialsByCoord &pots_by_coord,
                                const Coord &coord, const char el);
+
+    static vector<Coord> row_coords(const Coord &x);
+    static vector<Coord> col_coords(const Coord &x);
+    static vector<Coord> box_coords(const Coord &x);
 };
 
 template <int N> vector<char> Potentials<N>::elements() const {
@@ -283,6 +287,40 @@ void Solution::assume_presence(PotentialsByCoord &pots_by_coord,
 
 void Solution::assume_absence(PotentialsByCoord &pots_by_coord,
                               const Coord &coord, const char el) {}
+
+vector<Coord> Solution::row_coords(const Coord &x) {
+    vector<Coord> result;
+
+    for (int i = 0; i != gsize; ++i) {
+        result.push_back({x.row(), i});
+    }
+
+    return result;
+}
+
+vector<Coord> Solution::col_coords(const Coord &x) {
+    vector<Coord> result;
+
+    for (int i = 0; i != gsize; ++i) {
+        result.push_back({i, x.col()});
+    }
+
+    return result;
+}
+
+vector<Coord> Solution::box_coords(const Coord &x) {
+    vector<Coord> result;
+    const Coord o = {bsize * (x.row() / bsize), bsize * (x.col() / bsize)};
+
+    for (int row = 0; row != bsize; ++row) {
+        for (int col = 0; col != bsize; ++col) {
+            result.push_back({o.row() + row, o.col()});
+        }
+    }
+
+    return result;
+}
+
 } // namespace crook
 
 vector<vector<char>> input1() {
