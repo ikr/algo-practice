@@ -9,6 +9,7 @@ name=$(echo -n "$1" | sed 's/ /_/g')
 
 code=$(cat <<EOF
 #include <algorithm>
+#include <bitset>
 #include <cassert>
 #include <cmath>
 #include <functional>

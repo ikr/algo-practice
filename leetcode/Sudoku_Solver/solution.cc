@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <bitset>
 #include <cassert>
 #include <cmath>
 #include <functional>
@@ -149,44 +150,106 @@ vector<char> Solution::init_digits() {
 } // namespace bruteforce
 
 namespace crook {
+struct Coord {
+    Coord(int row, int col) : r{row}, c{col} {}
+
+    int row() const { return r; }
+    int col() const { return c; }
+
+    bool operator==(const Coord &other) const {
+        return r == other.r && c == other.c;
+    }
+
+  private:
+    int r;
+    int c;
+};
+
+struct CoordHasher {
+    int operator()(const Coord &coord) const {
+        return coord.row() + 31 * coord.col();
+    }
+};
+
+template <int N> struct Potentials {
+    vector<char> elements() const;
+    int size() const { return impl.count(); };
+
+  private:
+    bitset<N> impl;
+};
+
 struct Solution {
     void solveSudoku(vector<vector<char>> &rows) const;
 
   private:
-    bool save_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
-        for (;;) {
-            optional<Coord> v_coord = min_potential_coord(pots_by_coord);
+    static constexpr int bsize = 3;
+    static constexpr int gsize = bsize * bsize;
+    using Rows = vector<vector<char>>;
 
-            if (!v_coord)
-                return is_complete(rows);
+    using PotentialsByCoord =
+        unordered_map<Coord, Potentials<gsize>, CoordHasher>;
 
-            const Potentials pots = pots_by_coord[*v_coord];
+    static bool solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord);
 
-            if (pots.size() == 1) {
-                rows[v_coord->row()][v_coord->col()] = *pots.begin();
-                assume_presence(pots_by_coord, *pots.begin());
-            } else {
-                const vector<char> pots_list(pots.size());
-                copy(pots.begin(), pots.end(), back_inserter(pots_list));
+    static optional<Coord>
+    min_potential_coord(const PotentialsByCoord &pots_by_coord);
 
-                for (char el : pots_list) {
-                    rows[v_coord->row()][v_coord->col()] = el;
-                    assume_presence(pots_by_coord, *v_coord, el);
+    static bool is_complete(const Rows &rows);
 
-                    if (solve_recur(rows, pots_by_coord))
-                        return true;
+    static void assume_presence(PotentialsByCoord &pots_by_coord,
+                                const Coord &coord, const char el);
 
-                    rows[v_coord->row()][v_coord->col()] = '.';
-                    assume_absence(pots_by_coord, *v_coord, el);
-                }
-
-                return false;
-            }
-        }
-    }
+    static void assume_absence(PotentialsByCoord &pots_by_coord,
+                               const Coord &coord, const char el);
 };
 
 void Solution::solveSudoku(vector<vector<char>> &rows) const {}
+
+bool Solution::solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
+    for (;;) {
+        optional<Coord> v_coord = min_potential_coord(pots_by_coord);
+
+        if (!v_coord)
+            return is_complete(rows);
+
+        const Potentials pots = pots_by_coord[*v_coord];
+
+        if (pots.size() == 1) {
+            const char el{*pots.elements().begin()};
+            rows[v_coord->row()][v_coord->col()] = el;
+            assume_presence(pots_by_coord, *v_coord, el);
+        } else {
+            for (char el : pots.elements()) {
+                rows[v_coord->row()][v_coord->col()] = el;
+                assume_presence(pots_by_coord, *v_coord, el);
+
+                if (solve_recur(rows, pots_by_coord))
+                    return true;
+
+                rows[v_coord->row()][v_coord->col()] = '.';
+                assume_absence(pots_by_coord, *v_coord, el);
+            }
+
+            return false;
+        }
+    }
+}
+
+optional<Coord>
+Solution::min_potential_coord(const PotentialsByCoord &pots_by_coord) {
+    int min_size = gsize + 1;
+    optional<Coord> result{nullopt};
+
+    for (const auto &kv: pots_by_coord) {
+        if (kv.second.size() < min_size) {
+            min_size = kv.second.size();
+            result = kv.first;
+        }
+    }
+
+    return result;
+}
 } // namespace crook
 
 vector<vector<char>> input1() {
