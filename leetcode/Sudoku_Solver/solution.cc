@@ -206,7 +206,8 @@ struct Solution {
     static void assume_presence(PotentialsByCoord &pots_by_coord,
                                 const Coord &coord, const char el);
 
-    static void assume_absence(PotentialsByCoord &pots_by_coord,
+    static void assume_absence(const Rows &rows,
+                               PotentialsByCoord &pots_by_coord,
                                const Coord &coord, const char el);
 
     static vector<Coord> linked_coords(const Coord &x);
@@ -247,13 +248,16 @@ bool Solution::solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
         } else {
             for (char el : pots.elements()) {
                 rows[v_coord->row()][v_coord->col()] = el;
+                pots_by_coord.erase(*v_coord);
                 assume_presence(pots_by_coord, *v_coord, el);
 
                 if (solve_recur(rows, pots_by_coord))
                     return true;
 
                 rows[v_coord->row()][v_coord->col()] = '.';
-                assume_absence(pots_by_coord, *v_coord, el);
+                pots_by_coord[*v_coord] = pots;
+                pots_by_coord[*v_coord].erase(el);
+                assume_absence(rows, pots_by_coord, *v_coord, el);
             }
 
             return false;
@@ -289,8 +293,6 @@ bool Solution::is_complete(const Rows &rows) {
 
 void Solution::assume_presence(PotentialsByCoord &pots_by_coord,
                                const Coord &coord, const char el) {
-    pots_by_coord.erase(coord);
-
     for (const Coord &x : linked_coords(coord)) {
         if (pots_by_coord.count(x)) {
             pots_by_coord[x].erase(el);
@@ -301,8 +303,13 @@ void Solution::assume_presence(PotentialsByCoord &pots_by_coord,
     }
 }
 
-void Solution::assume_absence(PotentialsByCoord &pots_by_coord,
-                              const Coord &coord, const char el) {}
+void Solution::assume_absence(const Rows &rows,
+                              PotentialsByCoord &pots_by_coord,
+                              const Coord &coord, const char el) {
+    for (const Coord &x : linked_coords(coord))
+        if (rows[coord.row()][coord.col()] == '.')
+            pots_by_coord[x].insert(el);
+}
 
 vector<Coord> Solution::linked_coords(const Coord &x) {
     vector<Coord> result;
