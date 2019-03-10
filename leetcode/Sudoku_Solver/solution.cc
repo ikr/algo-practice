@@ -288,13 +288,24 @@ bool Solution::is_complete(const Rows &rows) {
 }
 
 void Solution::assume_presence(PotentialsByCoord &pots_by_coord,
-                               const Coord &coord, const char el) {}
+                               const Coord &coord, const char el) {
+    pots_by_coord.erase(coord);
+
+    for (const Coord &x : linked_coords(coord)) {
+        if (pots_by_coord.count(x)) {
+            pots_by_coord[x].erase(el);
+
+            if (!pots_by_coord[x].size())
+                pots_by_coord.erase(x);
+        }
+    }
+}
 
 void Solution::assume_absence(PotentialsByCoord &pots_by_coord,
                               const Coord &coord, const char el) {}
 
 vector<Coord> Solution::linked_coords(const Coord &x) {
-    vector<Coord> result{x};
+    vector<Coord> result;
 
     for (auto xs : {row_coords(x), col_coords(x), box_coords(x)})
         result.insert(result.end(), make_move_iterator(xs.begin()),
