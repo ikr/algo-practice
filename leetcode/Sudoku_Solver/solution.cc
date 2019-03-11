@@ -200,7 +200,7 @@ struct Solution {
 
     static PotentialsByCoord all_potentials(const Rows &rows);
     static Potentials<gsize> potentials(const Rows &rows, const Coord &coord);
-    static bool solve_recur(Rows &rows, const PotentialsByCoord &pots_by_coord);
+    static bool solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord);
 
     static optional<Coord>
     min_potential_coord(const PotentialsByCoord &pots_by_coord);
@@ -274,7 +274,8 @@ template <int N> vector<char> Potentials<N>::elements() const {
 }
 
 void Solution::solveSudoku(vector<vector<char>> &rows) const {
-    solve_recur(rows, all_potentials(rows));
+    auto pots_by_coord = all_potentials(rows);
+    solve_recur(rows, pots_by_coord);
 }
 
 Solution::PotentialsByCoord Solution::all_potentials(const Rows &rows) {
@@ -304,10 +305,7 @@ Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
     return result;
 }
 
-bool Solution::solve_recur(Rows &rows,
-                           const PotentialsByCoord &pots_by_coord_proto) {
-    PotentialsByCoord pots_by_coord(pots_by_coord_proto);
-
+bool Solution::solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
     for (;;) {
         optional<Coord> v_coord = min_potential_coord(pots_by_coord);
 
@@ -321,12 +319,12 @@ bool Solution::solve_recur(Rows &rows,
             rows[v_coord->row()][v_coord->col()] = el;
             assume_presence_in_place(pots_by_coord, *v_coord, el);
         } else {
-            cout << pots_by_coord << endl;
-            return false;
             for (char el : pots.elements()) {
+                assert(rows[v_coord->row()][v_coord->col()] == '.');
                 rows[v_coord->row()][v_coord->col()] = el;
-                if (solve_recur(rows,
-                                assume_presence(pots_by_coord, *v_coord, el)))
+
+                auto assumed_pots_by_coord = assume_presence(pots_by_coord, *v_coord, el);
+                if (solve_recur(rows, assumed_pots_by_coord))
                     return true;
 
                 rows[v_coord->row()][v_coord->col()] = '.';
