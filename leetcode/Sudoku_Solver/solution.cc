@@ -234,6 +234,15 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
+    for (auto row : rows) {
+        os << row << endl;
+    }
+
+    return os;
+}
+
 ostream &operator<<(ostream &os, const Coord &coord) {
     os << coord.row() << ',' << coord.col();
     return os;
@@ -265,7 +274,6 @@ Solution::PotentialsByCoord Solution::all_potentials(const Rows &rows) {
             if (rows[row][col] == '.') {
                 Coord coord{row, col};
                 result[coord] = potentials(rows, coord);
-                cout << coord << " - " << result[coord].elements() << endl;
             }
 
     return result;
@@ -287,13 +295,14 @@ Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
 
 bool Solution::solve_recur(Rows &rows,
                            const PotentialsByCoord &pots_by_coord_proto) {
+    PotentialsByCoord pots_by_coord(pots_by_coord_proto);
+
     for (;;) {
-        optional<Coord> v_coord = min_potential_coord(pots_by_coord_proto);
+        optional<Coord> v_coord = min_potential_coord(pots_by_coord);
 
         if (!v_coord)
             return is_complete(rows);
 
-        PotentialsByCoord pots_by_coord(pots_by_coord_proto);
         const Potentials pots = pots_by_coord[*v_coord];
 
         if (pots.size() == 1) {
