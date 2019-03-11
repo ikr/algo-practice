@@ -248,13 +248,24 @@ ostream &operator<<(ostream &os, const Coord &coord) {
     return os;
 }
 
+template <int N>
+ostream &
+operator<<(ostream &os,
+           const unordered_map<Coord, Potentials<N>, CoordHasher> &pots) {
+    for (const auto &kv : pots) {
+        cout << kv.first << " - " << kv.second.elements() << endl;
+    }
+
+    return os;
+}
+
 template <int N> vector<char> Potentials<N>::elements() const {
     vector<char> result{};
 
     if (!impl.count())
         return result;
 
-    for (char i = 0; i <= N; ++i) {
+    for (char i = 0; i != N; ++i) {
         if (impl[i])
             result.push_back('1' + i);
     }
@@ -306,10 +317,12 @@ bool Solution::solve_recur(Rows &rows,
         const Potentials pots = pots_by_coord[*v_coord];
 
         if (pots.size() == 1) {
-            const char el{*pots.elements().begin()};
+            const char el{pots.elements().back()};
             rows[v_coord->row()][v_coord->col()] = el;
             assume_presence_in_place(pots_by_coord, *v_coord, el);
         } else {
+            cout << pots_by_coord << endl;
+            return false;
             for (char el : pots.elements()) {
                 rows[v_coord->row()][v_coord->col()] = el;
                 if (solve_recur(rows,
@@ -360,18 +373,19 @@ Solution::assume_presence(const PotentialsByCoord &pots_by_coord_proto,
 
 void Solution::assume_presence_in_place(PotentialsByCoord &pots_by_coord,
                                         const Coord &coord, const char el) {
-    for (const Coord &x : linked_coords(coord)) {
+    for (const Coord &x : linked_coords(coord))
         if (pots_by_coord.count(x)) {
             pots_by_coord[x].erase(el);
 
             if (!pots_by_coord[x].size())
                 pots_by_coord.erase(x);
         }
-    }
+
+    pots_by_coord.erase(coord);
 }
 
 vector<Coord> Solution::linked_coords(const Coord &x) {
-    vector<Coord> result{x};
+    vector<Coord> result;
 
     for (auto xs : {row_coords(x), col_coords(x), box_coords(x)})
         result.insert(result.end(), make_move_iterator(xs.begin()),
