@@ -207,11 +207,12 @@ struct Solution {
 
     static bool is_complete(const Rows &rows);
 
-    static PotentialsByCoord
-    assume_presence(const PotentialsByCoord &pots_by_coord_proto,
-                    const Coord &coord, const char el);
-    static void assume_presence_in_place(PotentialsByCoord &pots_by_coord,
-                                         const Coord &coord, const char el);
+    static void assume_presence(PotentialsByCoord &pots_by_coord,
+                                const Coord &coord, const char el);
+
+    static void assume_absence(const Rows &rows,
+                               PotentialsByCoord &pots_by_coord,
+                               const Coord &coord, const char el);
 
     static vector<Coord> linked_coords(const Coord &x);
     static vector<Coord> row_coords(const Coord &x);
@@ -306,6 +307,8 @@ Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
 }
 
 bool Solution::solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
+    vector<Coord> singletons;
+
     for (;;) {
         optional<Coord> v_coord = min_potential_coord(pots_by_coord);
 
@@ -317,13 +320,15 @@ bool Solution::solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
         if (pots.size() == 1) {
             const char el{pots.elements().back()};
             rows[v_coord->row()][v_coord->col()] = el;
-            assume_presence_in_place(pots_by_coord, *v_coord, el);
+            assume_presence(pots_by_coord, *v_coord, el);
+            singletons.push_back(*v_coord);
         } else {
             for (char el : pots.elements()) {
                 assert(rows[v_coord->row()][v_coord->col()] == '.');
                 rows[v_coord->row()][v_coord->col()] = el;
 
-                auto assumed_pots_by_coord = assume_presence(pots_by_coord, *v_coord, el);
+                auto assumed_pots_by_coord =
+                    assume_presence(pots_by_coord, *v_coord, el);
                 if (solve_recur(rows, assumed_pots_by_coord))
                     return true;
 
