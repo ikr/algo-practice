@@ -151,16 +151,16 @@ vector<char> Solution::init_digits() {
 
 namespace crook {
 struct Coord {
-    Coord(int row, int col) : r{row}, c{col} {}
+    constexpr Coord(int row, int col) : r{row}, c{col} {}
 
-    int row() const { return r; }
-    int col() const { return c; }
+    constexpr int row() const { return r; }
+    constexpr int col() const { return c; }
 
-    bool operator==(const Coord &other) const {
+    constexpr bool operator==(const Coord &other) const {
         return r == other.r && c == other.c;
     }
 
-    bool operator!=(const Coord &other) const {
+    constexpr bool operator!=(const Coord &other) const {
         return r != other.r || c != other.c;
     }
 
@@ -170,7 +170,7 @@ struct Coord {
 };
 
 struct CoordHasher {
-    int operator()(const Coord &coord) const {
+    constexpr int operator()(const Coord &coord) const {
         return coord.row() + 31 * coord.col();
     }
 };
