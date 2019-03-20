@@ -259,6 +259,14 @@ void Solution::solveSudoku(Rows &rows) const {
         write_result(*result, rows);
 }
 
+void Solution::write_result(const PotentialRows &pots, Rows &rows) {
+    for (int row = 0; row != gsize; ++row) {
+        for (int col = 0; col != gsize; ++col) {
+            rows[row][col] = pots[row][col].elements().back();
+        }
+    }
+}
+
 Solution::PotentialRows Solution::all_potentials(const Rows &rows) {
     PotentialRows result;
 
