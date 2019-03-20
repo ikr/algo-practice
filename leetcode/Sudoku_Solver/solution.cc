@@ -268,7 +268,11 @@ void Solution::write_result(const PotentialRows &pots, Rows &rows) {
 }
 
 Solution::PotentialRows Solution::all_potentials(const Rows &rows) {
-    PotentialRows result;
+    PotentialRows result(gsize);
+
+    for (auto &r : result) {
+        r = vector<Potential<gsize>>(gsize);
+    }
 
     for (int row = 0; row != gsize; ++row)
         for (int col = 0; col != gsize; ++col)
