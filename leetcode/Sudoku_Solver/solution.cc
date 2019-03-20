@@ -175,57 +175,46 @@ struct CoordHasher {
     }
 };
 
-template <int N> struct Potentials {
-    Potentials();
+template <char N> struct Potential {
+    constexpr Potential() : impl{} {}
+    constexpr explicit Potential(const char only_one)
+        : impl{1UL << (only_one - '1')} {}
+
     vector<char> elements() const;
-    int size() const { return impl.count(); };
+    constexpr size_t size() const { return impl.count(); };
     void erase(const char el) { impl[el - '1'] = false; }
-    static Potentials full();
+    void insert(const char el) { impl[el - '1'] = true; }
+    static constexpr Potential full() { return bitset<N>{(1 << N) - 1}; }
 
   private:
-    Potentials(const bitset<N> &the_impl);
+    constexpr Potential(const bitset<N> &the_impl) : impl{the_impl} {}
     bitset<N> impl;
 };
 
 struct Solution {
-    void solveSudoku(vector<vector<char>> &rows) const;
+    using Rows = vector<vector<char>>;
+    void solveSudoku(Rows &rows) const;
 
   private:
     static constexpr int bsize = 3;
     static constexpr int gsize = bsize * bsize;
-    using Rows = vector<vector<char>>;
+    using PotentialRows = vector<vector<Potential<gsize>>>;
 
-    using PotentialsByCoord =
-        unordered_map<Coord, Potentials<gsize>, CoordHasher>;
+    static PotentialRows all_potentials(const Rows &rows);
+    static Potential<gsize> potential(const Rows &rows, const Coord &coord);
+    static optional<PotentialRows> solve_recur(const PotentialRows &pots);
+    static optional<Coord> min_ambiguous_coord(const PotentialRows &pots);
+    static bool is_definite(const PotentialRows &pots);
+    static void write_result(const PotentialRows &pots, Rows &rows);
 
-    static PotentialsByCoord all_potentials(const Rows &rows);
-    static Potentials<gsize> potentials(const Rows &rows, const Coord &coord);
-    static bool solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord);
-
-    static optional<Coord>
-    min_potential_coord(const PotentialsByCoord &pots_by_coord);
-
-    static bool is_complete(const Rows &rows);
-
-    static void assume_presence(PotentialsByCoord &pots_by_coord,
-                                const Coord &coord, const char el);
-
-    static void assume_absence(const Rows &rows,
-                               PotentialsByCoord &pots_by_coord,
-                               const Coord &coord, const char el);
+    static PotentialRows assume_presence(const PotentialRows &pots,
+                                         const Coord &coord, const char el);
 
     static vector<Coord> linked_coords(const Coord &x);
     static vector<Coord> row_coords(const Coord &x);
     static vector<Coord> col_coords(const Coord &x);
     static vector<Coord> box_coords(const Coord &x);
 };
-
-template <int N> Potentials<N>::Potentials() : impl{} {}
-template <int N>
-Potentials<N>::Potentials(const bitset<N> &the_impl) : impl{the_impl} {}
-template <int N> Potentials<N> Potentials<N>::full() {
-    return bitset<N>{(1 << N) - 1};
-}
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (T x : xs) {
@@ -249,18 +238,7 @@ ostream &operator<<(ostream &os, const Coord &coord) {
     return os;
 }
 
-template <int N>
-ostream &
-operator<<(ostream &os,
-           const unordered_map<Coord, Potentials<N>, CoordHasher> &pots) {
-    for (const auto &kv : pots) {
-        cout << kv.first << " - " << kv.second.elements() << endl;
-    }
-
-    return os;
-}
-
-template <int N> vector<char> Potentials<N>::elements() const {
+template <char N> vector<char> Potential<N>::elements() const {
     vector<char> result{};
 
     if (!impl.count())
@@ -268,33 +246,34 @@ template <int N> vector<char> Potentials<N>::elements() const {
 
     for (char i = 0; i != N; ++i) {
         if (impl[i])
-            result.push_back('1' + i);
+            result.push_back(static_cast<char>('1' + i));
     }
 
     return result;
 }
 
-void Solution::solveSudoku(vector<vector<char>> &rows) const {
-    auto pots_by_coord = all_potentials(rows);
-    solve_recur(rows, pots_by_coord);
+void Solution::solveSudoku(Rows &rows) const {
+    auto result = solve_recur(all_potentials(rows));
+
+    if (result)
+        write_result(*result, rows);
 }
 
-Solution::PotentialsByCoord Solution::all_potentials(const Rows &rows) {
-    PotentialsByCoord result;
+Solution::PotentialRows Solution::all_potentials(const Rows &rows) {
+    PotentialRows result;
 
     for (int row = 0; row != gsize; ++row)
         for (int col = 0; col != gsize; ++col)
-            if (rows[row][col] == '.') {
-                Coord coord{row, col};
-                result[coord] = potentials(rows, coord);
-            }
+            result[row][col] = rows[row][col] == '.'
+                                   ? potential(rows, {row, col})
+                                   : Potential<gsize>{rows[row][col]};
 
     return result;
 }
 
-Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
-                                                 const Coord &coord) {
-    auto result = Potentials<gsize>::full();
+Potential<Solution::gsize> Solution::potential(const Rows &rows,
+                                               const Coord &coord) {
+    auto result = Potential<gsize>::full();
 
     for (const Coord &x : linked_coords(coord)) {
         const char el = rows[x.row()][x.col()];
@@ -306,59 +285,46 @@ Potentials<Solution::gsize> Solution::potentials(const Rows &rows,
     return result;
 }
 
-bool Solution::solve_recur(Rows &rows, PotentialsByCoord &pots_by_coord) {
-    vector<Coord> singletons;
-
+optional<Solution::PotentialRows>
+Solution::solve_recur(const PotentialRows &pots) {
     for (;;) {
-        optional<Coord> v_coord = min_potential_coord(pots_by_coord);
+        auto v_coord = min_ambiguous_coord(pots);
 
         if (!v_coord)
-            return is_complete(rows);
+            return is_definite(pots) ? optional<Solution::PotentialRows>{pots}
+                                     : nullopt;
 
-        const Potentials pots = pots_by_coord[*v_coord];
+        for (char el : pots[v_coord->row()][v_coord->col()].elements()) {
+            auto result = solve_recur(assume_presence(pots, *v_coord, el));
 
-        if (pots.size() == 1) {
-            const char el{pots.elements().back()};
-            rows[v_coord->row()][v_coord->col()] = el;
-            assume_presence(pots_by_coord, *v_coord, el);
-            singletons.push_back(*v_coord);
-        } else {
-            for (char el : pots.elements()) {
-                assert(rows[v_coord->row()][v_coord->col()] == '.');
-                rows[v_coord->row()][v_coord->col()] = el;
-
-                auto assumed_pots_by_coord =
-                    assume_presence(pots_by_coord, *v_coord, el);
-                if (solve_recur(rows, assumed_pots_by_coord))
-                    return true;
-
-                rows[v_coord->row()][v_coord->col()] = '.';
-            }
-
-            return false;
+            if (result)
+                return result;
         }
+
+        return nullopt;
     }
 }
 
-optional<Coord>
-Solution::min_potential_coord(const PotentialsByCoord &pots_by_coord) {
-    int min_size = gsize + 1;
+optional<Coord> Solution::min_ambiguous_coord(const PotentialRows &pots) {
+    size_t min_size = gsize + 1;
     optional<Coord> result{nullopt};
 
-    for (const auto &kv : pots_by_coord) {
-        if (kv.second.size() < min_size) {
-            min_size = kv.second.size();
-            result = kv.first;
+    for (int row = 0; row != gsize; ++row) {
+        for (int col = 0; col != gsize; ++col) {
+            auto p = pots[row][col];
+
+            if (p.size() > 1 && p.size() < min_size)
+                result = {row, col};
         }
     }
 
     return result;
 }
 
-bool Solution::is_complete(const Rows &rows) {
-    for (const auto &r : rows) {
-        for (const char el : r) {
-            if (el == '.')
+bool Solution::is_definite(const PotentialRows &pots) {
+    for (const auto &r : pots) {
+        for (const auto &p : r) {
+            if (p.size() != 1)
                 return false;
         }
     }
@@ -366,25 +332,16 @@ bool Solution::is_complete(const Rows &rows) {
     return true;
 }
 
-Solution::PotentialsByCoord
-Solution::assume_presence(const PotentialsByCoord &pots_by_coord_proto,
-                          const Coord &coord, const char el) {
-    PotentialsByCoord result(pots_by_coord_proto);
-    assume_presence_in_place(result, coord, el);
-    return result;
-}
+Solution::PotentialRows Solution::assume_presence(const PotentialRows &pots,
+                                                  const Coord &coord,
+                                                  const char el) {
+    PotentialRows result(pots);
+    result[coord.row()][coord.col()] = Potential<gsize>{el};
 
-void Solution::assume_presence_in_place(PotentialsByCoord &pots_by_coord,
-                                        const Coord &coord, const char el) {
     for (const Coord &x : linked_coords(coord))
-        if (pots_by_coord.count(x)) {
-            pots_by_coord[x].erase(el);
+        result[x.row()][x.col()].erase(el);
 
-            if (!pots_by_coord[x].size())
-                pots_by_coord.erase(x);
-        }
-
-    pots_by_coord.erase(coord);
+    return result;
 }
 
 vector<Coord> Solution::linked_coords(const Coord &x) {
