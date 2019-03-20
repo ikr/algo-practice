@@ -45,13 +45,13 @@ EOF
 makefile=$(cat <<EOF
 build:
 	g++-8 -std=c++17 -g -O -Wall -Weffc++ -pedantic  \
-	-pedantic-errors -Wextra -Waggregate-return -Wcast-align \
+	-pedantic-errors -Wextra -Wcast-align \
 	-Wcast-qual  -Wchar-subscripts  -Wcomment -Wconversion \
 	-Wdisabled-optimization \
 	-Werror -Wfloat-equal -Wformat -Wformat=2 \
 	-Wformat-nonliteral -Wformat-security  \
 	-Wformat-y2k \
-	-Wimplicit -Wimport -Winit-self -Winline \
+	-Wimport -Winit-self -Winline \
 	-Winvalid-pch   \
 	-Wunsafe-loop-optimizations  -Wlong-long -Wmissing-braces \
 	-Wmissing-field-initializers -Wmissing-format-attribute   \
