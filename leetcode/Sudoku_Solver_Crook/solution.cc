@@ -64,6 +64,8 @@ struct Solution {
     static constexpr int gsize = bsize * bsize;
     using CoordPotential = pair<Coord, Potential<gsize>>;
 
+    static optional<Rows> solve_recur(const Rows &rows);
+
     static optional<CoordPotential>
     deduce_definite_return_variation(Rows &rows);
 
@@ -94,7 +96,33 @@ template <char N> char Potential<N>::any() const {
 }
 
 void Solution::solveSudoku(Rows &rows) const {
-    deduce_definite_return_variation(rows);
+    auto result = solve_recur(rows);
+
+    if (result)
+        rows = *result;
+}
+
+optional<Solution::Rows> Solution::solve_recur(const Rows &rows) {
+    Rows result(rows);
+    auto cp = deduce_definite_return_variation(result);
+
+    if (!cp)
+        return {rows};
+
+    const int row = cp->first.row();
+    const int col = cp->first.col();
+
+    for (const char el : cp->second.elements()) {
+        result[row][col] = el;
+        auto branch = solve_recur(rows);
+
+        if (branch)
+            return branch;
+
+        result[row][col] = '.';
+    }
+
+    return nullopt;
 }
 
 optional<Solution::CoordPotential>
