@@ -107,14 +107,14 @@ optional<Solution::Rows> Solution::solve_recur(const Rows &rows) {
     auto cp = deduce_definite_return_variation(result);
 
     if (!cp)
-        return {rows};
+        return {result};
 
     const int row = cp->first.row();
     const int col = cp->first.col();
 
     for (const char el : cp->second.elements()) {
         result[row][col] = el;
-        auto branch = solve_recur(rows);
+        auto branch = solve_recur(result);
 
         if (branch)
             return branch;
@@ -128,7 +128,8 @@ optional<Solution::Rows> Solution::solve_recur(const Rows &rows) {
 optional<Solution::CoordPotential>
 Solution::deduce_definite_return_variation(Rows &rows) {
     for (;;) {
-        auto cp = min_coord_potential(rows); // if 1 option, returns immediately
+        auto cp = min_coord_potential(rows);
+
         if (!cp)
             return nullopt;
 
@@ -142,7 +143,7 @@ Solution::deduce_definite_return_variation(Rows &rows) {
 optional<Solution::CoordPotential>
 Solution::min_coord_potential(const Rows &rows) {
     size_t min_size{gsize + 1};
-    optional<CoordPotential> result{};
+    optional<CoordPotential> result{nullopt};
 
     for (int row = 0; row != gsize; ++row) {
         for (int col = 0; col != gsize; ++col) {
