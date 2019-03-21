@@ -28,14 +28,12 @@ code=$(cat <<EOF
 
 using namespace std;
 
-class Solution {
-  public:
+struct Solution {
+    constexpr int answer() const { return 42; }
 };
 
 int main() {
-    Solution s;
-
-    cout << endl;
+    cout << Solution().answer() << endl;
 
     return 0;
 }
