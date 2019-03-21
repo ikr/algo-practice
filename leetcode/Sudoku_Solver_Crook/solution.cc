@@ -56,7 +56,6 @@ template <char N> struct Potential {
 };
 
 struct Solution {
-    constexpr int answer() const { return 42; }
     using Rows = vector<vector<char>>;
     void solveSudoku(Rows &rows) const;
 
@@ -92,6 +91,10 @@ template <char N> char Potential<N>::any() const {
             return static_cast<char>('1' + i);
 
     abort();
+}
+
+void Solution::solveSudoku(Rows &rows) const {
+    deduce_definite_return_variation(rows);
 }
 
 optional<Solution::CoordPotential>
@@ -195,8 +198,59 @@ vector<Coord> Solution::box_coords(const Coord &x) {
     return result;
 }
 
+vector<vector<char>> input1() {
+    return {{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
+            {'6', '.', '.', '1', '9', '5', '.', '.', '.'},
+            {'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+            {'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+            {'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+            {'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+            {'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+            {'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+            {'.', '.', '.', '.', '8', '.', '.', '7', '9'}};
+}
+
+vector<vector<char>> input2() {
+    return {{'.', '.', '.', '.', '.', '7', '.', '.', '9'},
+            {'.', '4', '.', '.', '8', '1', '2', '.', '.'},
+            {'.', '.', '.', '9', '.', '.', '.', '1', '.'},
+            {'.', '.', '5', '3', '.', '.', '.', '7', '2'},
+            {'2', '9', '3', '.', '.', '.', '.', '5', '.'},
+            {'.', '.', '.', '.', '.', '5', '3', '.', '.'},
+            {'8', '.', '.', '.', '2', '3', '.', '.', '.'},
+            {'7', '.', '.', '.', '5', '.', '.', '4', '.'},
+            {'5', '3', '1', '.', '7', '.', '.', '.', '.'}};
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (T x : xs) {
+        os << x << ' ';
+    }
+
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
+    for (auto row : rows) {
+        os << row << endl;
+    }
+
+    return os;
+}
+
 int main() {
-    cout << Solution().answer() << endl;
+    auto rows = input1();
+    cout << rows << endl;
+
+    Solution().solveSudoku(rows);
+    cout << rows << endl;
+
+    rows = input2();
+    cout << rows << endl;
+
+    Solution().solveSudoku(rows);
+    cout << rows << endl;
 
     return 0;
 }
