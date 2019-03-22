@@ -20,10 +20,21 @@ using namespace std;
 
 struct Solution {
     string countAndSay(int n) const;
+
+  private:
     static string next(const string &xs);
 };
 
-string Solution::countAndSay(int n) const { return to_string(n); }
+string Solution::countAndSay(int n) const {
+    string result;
+
+    while (n) {
+        result = next(result);
+        --n;
+    }
+
+    return result;
+}
 
 string Solution::next(const string &xs) {
     if (xs.empty())
@@ -55,7 +66,7 @@ string Solution::next(const string &xs) {
 }
 
 int main() {
-    cout << Solution().next("1113213211") << endl;
+    cout << Solution().countAndSay(20) << endl;
 
     return 0;
 }
