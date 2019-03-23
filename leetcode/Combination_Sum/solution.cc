@@ -41,28 +41,23 @@ struct Solution {
 
   private:
     static void enum_change(const vector<int> &denoms, const size_t dused,
-                            const int target, const vector<int> &cand,
+                            const int target, vector<int> &cand,
                             const int cand_sum, vector<vector<int>> &result);
-
-    template <typename T>
-    static std::vector<T> prefixed(std::vector<T> xs, const T x) {
-        xs.insert(xs.begin(), x);
-        return xs;
-    }
 };
 
 vector<vector<int>> Solution::combinationSum(const vector<int> &denoms,
                                              const int target) {
     vector<vector<int>> result;
+    vector<int> cand;
 
-    enum_change(denoms, denoms.size(), target, vector<int>{}, 0, result);
+    enum_change(denoms, denoms.size(), target, cand, 0, result);
 
     sort(result.begin(), result.end());
     return result;
 }
 
 void Solution::enum_change(const vector<int> &denoms, const size_t dused,
-                           const int target, const vector<int> &cand,
+                           const int target, vector<int> &cand,
                            const int cand_sum, vector<vector<int>> &result) {
     if (target == 0) {
         result.push_back(cand);
@@ -73,9 +68,10 @@ void Solution::enum_change(const vector<int> &denoms, const size_t dused,
         return;
 
     const int d = denoms[dused - 1];
-    enum_change(denoms, dused, target - d, prefixed(cand, d), cand_sum + d,
-                result);
+    cand.insert(cand.begin(), d);
+    enum_change(denoms, dused, target - d, cand, cand_sum + d, result);
 
+    cand.erase(cand.begin());
     enum_change(denoms, dused - 1, target, cand, cand_sum, result);
 }
 
