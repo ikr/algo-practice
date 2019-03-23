@@ -44,7 +44,7 @@ struct Solution {
                             const int target, const vector<int> &cand,
                             const int cand_sum, vector<vector<int>> &result);
 
-    template<typename T>
+    template <typename T>
     static std::vector<T> augmented(std::vector<T> xs, const T x) {
         xs.push_back(x);
         return xs;
@@ -63,23 +63,23 @@ vector<vector<int>> Solution::combinationSum(const vector<int> &denoms,
 void Solution::enum_change(const vector<int> &denoms, const size_t dused,
                            const int target, const vector<int> &cand,
                            const int cand_sum, vector<vector<int>> &result) {
-    cout << "cand is " << cand << " cand_sum is " << cand_sum << endl;
-
-    if (cand_sum == target) {
+    if (target == 0) {
         result.push_back(cand);
         return;
     }
 
-    if (target < 0 || cand_sum > target || !dused)
+    if (target < 0 || !dused)
         return;
 
     const int d = denoms[dused - 1];
-    enum_change(denoms, dused, target - d, augmented(cand, d), cand_sum + d, result);
+    enum_change(denoms, dused, target - d, augmented(cand, d), cand_sum + d,
+                result);
+
     enum_change(denoms, dused - 1, target, cand, cand_sum, result);
 }
 
 int main() {
-    cout << Solution().combinationSum({2, 3, 6, 7}, 6) << endl;
+    cout << Solution().combinationSum({2, 3, 5}, 8) << endl;
 
     return 0;
 }
