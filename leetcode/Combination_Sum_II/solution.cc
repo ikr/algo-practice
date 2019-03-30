@@ -19,16 +19,50 @@
 
 using namespace std;
 
-struct Solution {
-    using vvec = vector<vector<int>>;
+using vec = vector<int>;
+using vvec = vector<vector<int>>;
 
-    vvec combinationSum2(const vector<int> &xs, const int target);
+namespace {
+
+vec tail_excluding(const vec &xs, vec::const_iterator i) {
+    ++i;
+
+    vec res;
+    copy(i, xs.end(), back_inserter(res));
+    return res;
+}
+
+void summands_recur(const vec &xs, const int target, vec &sprout, vvec &res) {
+    if (!target) {
+        res.push_back(sprout);
+        return;
+    }
+
+    if (!xs.size() || target < 0)
+        return;
+
+    for (auto i = xs.begin(); i != xs.end(); ++i) {
+        vec ys = tail_excluding(xs, i);
+
+        summands_recur(ys, target, sprout, res);
+
+        if (*i <= target) {
+            sprout.push_back(*i);
+            summands_recur(ys, target - *i, sprout, res);
+            sprout.pop_back();
+        }
+    }
+}
+
+} // namespace
+
+struct Solution {
+    vvec combinationSum2(const vec &xs, const int target);
 };
 
-Solution::vvec Solution::combinationSum2(const vector<int> &xs,
-                                         const int target) {
+vvec Solution::combinationSum2(const vec &xs, const int target) {
     vvec result;
-    vector<int> sprout;
+    vec sprout;
     summands_recur(xs, target, sprout, result);
 
     for (auto &ys : result) {
@@ -40,8 +74,25 @@ Solution::vvec Solution::combinationSum2(const vector<int> &xs,
     return result;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (T x : xs) {
+        os << x << ' ';
+    }
+
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
+    for (auto row : rows) {
+        os << row << endl;
+    }
+
+    return os;
+}
+
 int main() {
-    cout << 42 << endl;
+    cout << Solution().combinationSum2({10, 1, 2, 7, 6, 1, 5}, 8) << endl;
 
     return 0;
 }
