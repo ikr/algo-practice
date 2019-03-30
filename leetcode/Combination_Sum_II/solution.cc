@@ -20,14 +20,16 @@
 using namespace std;
 
 struct Solution {
-    vector<vector<int>> combinationSum2(const vector<int> &xs,
-                                        const int target);
+    using vvec = vector<vector<int>>;
+
+    vvec combinationSum2(const vector<int> &xs, const int target);
 };
 
-vector<vector<int>> Solution::combinationSum2(const vector<int> &xs,
-                                             const int target) {
-    vector<vector<int>> result;
-    summands_recur(xs, target, result);
+Solution::vvec Solution::combinationSum2(const vector<int> &xs,
+                                         const int target) {
+    vvec result;
+    vector<int> sprout;
+    summands_recur(xs, target, sprout, result);
 
     for (auto &ys : result) {
         sort(ys.begin(), ys.end());
