@@ -19,6 +19,24 @@
 
 using namespace std;
 
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (T x : xs) {
+        os << x << ' ';
+    }
+
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
+    for (auto row : rows) {
+        os << row << endl;
+    }
+
+    return os;
+}
+
 using vec = vector<int>;
 using vvec = vector<vector<int>>;
 
@@ -72,23 +90,6 @@ vvec Solution::combinationSum2(const vec &xs, const int target) {
     sort(result.begin(), result.end());
     unique(result.begin(), result.end());
     return result;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (T x : xs) {
-        os << x << ' ';
-    }
-
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &rows) {
-    for (auto row : rows) {
-        os << row << endl;
-    }
-
-    return os;
 }
 
 int main() {
