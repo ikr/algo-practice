@@ -84,6 +84,12 @@ int main() {
     cout << Solution().combinationSum2({2, 5, 2, 1, 2}, 5) << endl;
     cout << Solution().combinationSum2({}, 5) << endl;
 
+    cout << Solution().combinationSum2({10, 1,  2, 7, 6,  1, 5, 10, 1, 2,
+                                        7,  6,  1, 5, 10, 1, 2, 7,  6, 1,
+                                        5,  10, 1, 2, 7,  6, 1, 5,  10},
+                                       8)
+         << endl;
+
     cout << Solution().combinationSum2(
                 {14, 6,  25, 9,  30, 20, 33, 34, 28, 30, 16, 12, 31, 9,
                  9,  12, 34, 16, 25, 32, 8,  7,  30, 12, 33, 20, 21, 29,
