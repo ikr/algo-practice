@@ -19,7 +19,6 @@
 
 using namespace std;
 
-
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (T x : xs) {
         os << x << ' ';
@@ -42,34 +41,21 @@ using vvec = vector<vector<int>>;
 
 namespace {
 
-vec tail_excluding(const vec &xs, vec::const_iterator i) {
-    ++i;
+void summands_recur(vec::const_iterator ixs, vec::const_iterator ixs_end,
+                    const int target, vec &sprout, vvec &res) {
+    if (ixs == ixs_end)
+        return;
 
-    vec res;
-    copy(i, xs.end(), back_inserter(res));
-    return res;
-}
-
-void summands_recur(const vec &xs, const int target, vec &sprout, vvec &res) {
     if (!target) {
         res.push_back(sprout);
         return;
     }
 
-    if (!xs.size() || target < 0)
-        return;
+    summands_recur(ixs + 1, ixs_end, target, sprout, res);
 
-    for (auto i = xs.begin(); i != xs.end(); ++i) {
-        vec ys = tail_excluding(xs, i);
-
-        summands_recur(ys, target, sprout, res);
-
-        if (*i <= target) {
-            sprout.push_back(*i);
-            summands_recur(ys, target - *i, sprout, res);
-            sprout.pop_back();
-        }
-    }
+    sprout.push_back(*ixs);
+    summands_recur(ixs + 1, ixs_end, target - *ixs, sprout, res);
+    sprout.pop_back();
 }
 
 } // namespace
@@ -81,14 +67,7 @@ struct Solution {
 vvec Solution::combinationSum2(const vec &xs, const int target) {
     vvec result;
     vec sprout;
-    summands_recur(xs, target, sprout, result);
-
-    for (auto &ys : result) {
-        sort(ys.begin(), ys.end());
-    }
-
-    sort(result.begin(), result.end());
-    unique(result.begin(), result.end());
+    summands_recur(xs.begin(), xs.end(), target, sprout, result);
     return result;
 }
 
