@@ -43,19 +43,18 @@ namespace {
 
 void summands_recur(vec::const_iterator ixs, vec::const_iterator ixs_end,
                     const int target, vec &sprout, vvec &res) {
-    if (ixs == ixs_end)
-        return;
-
     if (!target) {
         res.push_back(sprout);
         return;
     }
 
-    summands_recur(ixs + 1, ixs_end, target, sprout, res);
+    if (ixs != ixs_end) {
+        summands_recur(ixs + 1, ixs_end, target, sprout, res);
 
-    sprout.push_back(*ixs);
-    summands_recur(ixs + 1, ixs_end, target - *ixs, sprout, res);
-    sprout.pop_back();
+        sprout.push_back(*ixs);
+        summands_recur(ixs + 1, ixs_end, target - *ixs, sprout, res);
+        sprout.pop_back();
+    }
 }
 
 } // namespace
@@ -68,11 +67,22 @@ vvec Solution::combinationSum2(const vec &xs, const int target) {
     vvec result;
     vec sprout;
     summands_recur(xs.begin(), xs.end(), target, sprout, result);
+
+    for (vec &solution : result) {
+        sort(solution.begin(), solution.end());
+    }
+
+    sort(result.begin(), result.end());
+    auto new_end = unique(result.begin(), result.end());
+    result.erase(new_end, result.end());
+
     return result;
 }
 
 int main() {
     cout << Solution().combinationSum2({10, 1, 2, 7, 6, 1, 5}, 8) << endl;
+    cout << Solution().combinationSum2({2, 5, 2, 1, 2}, 5) << endl;
+    cout << Solution().combinationSum2({}, 5) << endl;
 
     return 0;
 }
