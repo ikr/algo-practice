@@ -43,6 +43,9 @@ namespace {
 
 void summands_recur(vec::const_iterator ixs, vec::const_iterator ixs_end,
                     const int target, vec &sprout, vvec &res) {
+    if (target < 0)
+        return;
+
     if (!target) {
         res.push_back(sprout);
         return;
