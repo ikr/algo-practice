@@ -27,13 +27,60 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-using vec = vector<string>;
+namespace {
+
+vector<int> count_chars(const string &w) {
+    vector<int> res('z' - 'a' + 1);
+
+    for (const char c : w) {
+        ++res[c - 'a'];
+    }
+
+    return res;
+}
+
+vector<char> common_chars(const vector<string> &ws) {
+    vector<vector<int>> counts;
+
+    for (const string &w : ws) {
+        counts.push_back(count_chars(w));
+    }
+
+    vector<int> min_counts('z' - 'a' + 1, numeric_limits<int>::max());
+
+    for (const auto &cc : counts) {
+        for (size_t i = 0; i != cc.size(); ++i) {
+            min_counts[i] = min(min_counts[i], cc[i]);
+        }
+    }
+
+    vector<char> res;
+
+    for (size_t i = 0; i != min_counts.size(); ++i) {
+        for (int j = 0; j != min_counts[i]; ++j) {
+            res.push_back(static_cast<char>('a' + i));
+        }
+    }
+
+    return res;
+}
+
+} // namespace
 
 struct Solution {
-    vec commonChars(const vec &words);
+    vector<string> commonChars(const vector<string> &words);
 };
 
-vec Solution::commonChars(const vec &words) { return words; }
+vector<string> Solution::commonChars(const vector<string> &words) {
+    const vector<char> cc = common_chars(words);
+    vector<string> res(cc.size());
+
+    for (size_t i = 0; i != cc.size(); ++i) {
+        res[i] = string{cc[i]};
+    }
+
+    return res;
+}
 
 int main() {
     cout << Solution().commonChars({"bella", "label", "roller"}) << endl;
