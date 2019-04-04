@@ -80,5 +80,8 @@ int main() {
     xs = {3, 2, 1, 6, 5, 4, 7, 9, 9, 9, 9, 8, 11, 12, 11, 11};
     cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
 
+    xs = {2147483647};
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
+
     return 0;
 }
