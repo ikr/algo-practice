@@ -19,29 +19,38 @@
 
 using namespace std;
 
-namespace {
-
-int place_x(vector<int> &xs, const int index) {
-    assert(index >= 0);
-    const int x = xs[index];
-
-    int res = -1;
-
-    if (x >= 0) {
-        res = xs[x];
-        xs[x] = x;
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (T x : xs) {
+        os << x << ' ';
     }
 
-    return res;
+    return os;
 }
 
-void place_chain(vector<int> &xs, const int start_index) {
-    assert(start_index >= 0 && start_index < static_cast<int>(xs.size()));
-    int i = start_index;
+namespace {
 
-    while (i >= 0 && xs[i] > 0) {
-        i = place_x(xs, i);
+int place_all_return_max(vector<int> &xs) {
+    int max_x = numeric_limits<int>::min();
+
+    cout << xs << endl;
+
+    for (int i = 0; i != static_cast<int>(xs.size()); ++i) {
+        if (xs[i] >= 0) {
+            if (xs[i] >= static_cast<int>(xs.size()))
+                xs.resize(xs[i] + 1);
+
+            swap(xs[i], xs[xs[i]]);
+        }
+
+        if (xs[i] > max_x)
+            max_x = xs[i];
+
+        cout << xs << endl;
     }
+
+    cout << "max_x is " << max_x << endl;
+
+    return max_x;
 }
 
 } // namespace
@@ -51,11 +60,16 @@ struct Solution {
 };
 
 int Solution::firstMissingPositive(vector<int> &xs) {
-    assert(xs.size());
+    if (!xs.size())
+        return 1;
 
-    const int max_x = *max(xs.begin(), xs.end());
+    int max_x = place_all_return_max(xs);
 
-    return max_x + 1;
+    for (int i = 1; i != static_cast<int>(xs.size()); ++i)
+        if (xs[i] != i)
+            return i;
+
+    return max(1, max_x + 1);
 }
 
 int main() {
