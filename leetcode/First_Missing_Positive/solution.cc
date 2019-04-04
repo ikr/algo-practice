@@ -32,8 +32,6 @@ namespace {
 int place_all_return_max(vector<int> &xs) {
     int max_x = numeric_limits<int>::min();
 
-    cout << xs << endl;
-
     for (int i = 0; i != static_cast<int>(xs.size()); ++i) {
         if (xs[i] >= 0) {
             if (xs[i] >= static_cast<int>(xs.size()))
@@ -44,11 +42,7 @@ int place_all_return_max(vector<int> &xs) {
 
         if (xs[i] > max_x)
             max_x = xs[i];
-
-        cout << xs << endl;
     }
-
-    cout << "max_x is " << max_x << endl;
 
     return max_x;
 }
@@ -64,6 +58,7 @@ int Solution::firstMissingPositive(vector<int> &xs) {
         return 1;
 
     int max_x = place_all_return_max(xs);
+    place_all_return_max(xs);
 
     for (int i = 1; i != static_cast<int>(xs.size()); ++i)
         if (xs[i] != i)
@@ -74,13 +69,16 @@ int Solution::firstMissingPositive(vector<int> &xs) {
 
 int main() {
     vector<int> xs{1, 2, 0};
-    cout << Solution().firstMissingPositive(xs) << endl;
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
 
     xs = {3, 4, -1, 1};
-    cout << Solution().firstMissingPositive(xs) << endl;
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
 
     xs = {7, 8, 9, 11, 12};
-    cout << Solution().firstMissingPositive(xs) << endl;
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
+
+    xs = {3, 2, 1, 6, 5, 4, 7, 9, 9, 9, 9, 8, 11, 12, 11, 11};
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
 
     return 0;
 }
