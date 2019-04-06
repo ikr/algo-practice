@@ -29,19 +29,36 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 namespace {
 
-int place_all_return_max(vector<int> &xs) {
-    int max_x = numeric_limits<int>::min();
+void place_oob(vector<int> &xs, const int x) {
+    const int sz = static_cast<int>(xs.size());
+    assert(x >= sz);
 
-    for (int i = 0; i != static_cast<int>(xs.size()); ++i) {
-        if (xs[i] >= 0 && xs[i] < static_cast<int>(xs.size())) {
-            swap(xs[i], xs[xs[i]]);
-        }
-
-        if (xs[i] > max_x)
-            max_x = xs[i];
+    if (xs[0] < sz) {
+        xs[0] = x;
+        return;
     }
 
-    return max_x;
+    xs[0] = min(xs[0], x);
+}
+
+void place_recur(vector<int> &xs, const int stash) {
+    assert(xs.size());
+    assert(stash > 0);
+    const int sz = static_cast<int>(xs.size());
+
+    if (stash >= sz) {
+        place_oob(xs, stash);
+        return;
+    }
+
+    const size_t idx = static_cast<size_t>(stash);
+    const int new_stash = xs[idx];
+    xs[idx] = stash;
+
+    if (new_stash <= 0 || new_stash == stash)
+        return;
+
+    place_recur(xs, new_stash);
 }
 
 } // namespace
@@ -51,24 +68,29 @@ struct Solution {
 };
 
 int Solution::firstMissingPositive(vector<int> &xs) {
+    assert(xs.size() < numeric_limits<int>::max());
+
     if (!xs.size())
         return 1;
 
-    xs.resize(xs.size() + 1);
+    if (xs.size() == 1)
+        return xs[0] == 1 ? 2 : 1;
 
-    int max_x = place_all_return_max(xs);
-    place_all_return_max(xs);
-    place_all_return_max(xs);
-    place_all_return_max(xs);
+    for (size_t i = 0; i != xs.size(); ++i) {
+        if (xs[i] <= 0 || xs[i] == static_cast<int>(i))
+            continue;
 
-    for (int i = 1; i != static_cast<int>(xs.size()); ++i)
-        if (xs[i] != i)
-            return i;
+        place_recur(xs, xs[i]);
+    }
 
-    if (max_x == numeric_limits<int>::max())
-        return 1;
+    for (size_t i = 1; i != xs.size(); ++i) {
+        const int ii = static_cast<int>(i);
 
-    return max(1, max_x + 1);
+        if (xs[i] != ii)
+            return ii;
+    }
+
+    return xs[0] == xs.back() + 1 ? xs[0] + 1 : xs.back() + 1;
 }
 
 int main() {
@@ -91,6 +113,15 @@ int main() {
     cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
 
     xs = {1, 3};
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
+
+    xs = {1, 2};
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
+
+    xs = {2, 3};
+    cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
+
+    xs = {0, 1, 2, 3, 4, 5};
     cout << xs << "| " << Solution().firstMissingPositive(xs) << endl;
 
     xs = {12, 34, 41, 9,  14, 9,  26, 13, 13, 4,  19, 5,  19, 18,
