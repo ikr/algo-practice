@@ -24,30 +24,35 @@ struct Solution {
 };
 
 int Solution::trap(const vector<int> &hs) const {
-    if (hs.size() < 3)
+    const size_t sz{hs.size()};
+
+    if (sz < 3)
         return 0;
 
-    int res = 0;
-    int left_max = 0;
-    int right_max = 0;
-    size_t l = 0;
-    size_t r = hs.size() - 1;
+    size_t l{0}, r{sz - 1};
+    int lmax{0}, rmax{0}, res{0};
 
-    while (l <= r) {
+    for (;;) {
+        if (l == r) {
+            const int vol = min(lmax, rmax) - hs[l];
+            if (vol > 0) res += vol;
+            break;
+        }
+
         if (hs[l] < hs[r]) {
-            if (hs[l] > left_max)
-                left_max = hs[l];
+            if (hs[l] > lmax)
+                lmax = hs[l];
             else
-                res += left_max - hs[l];
+                res += lmax - hs[l];
 
-            l++;
+            ++l;
         } else {
-            if (hs[r] > right_max)
-                right_max = hs[r];
+            if (hs[r] > rmax)
+                rmax = hs[r];
             else
-                res += right_max - hs[r];
+                res += rmax - hs[r];
 
-            r--;
+            --r;
         }
     }
 
@@ -56,8 +61,8 @@ int Solution::trap(const vector<int> &hs) const {
 
 int main() {
     cout << Solution().trap({1, 0, 1}) << endl;
-    // cout << Solution().trap({0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1}) << endl;
-    // cout << Solution().trap({0, 5, 6, 4, 6, 1, 0, 0, 2, 7}) << endl;
+    cout << Solution().trap({0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1}) << endl;
+    cout << Solution().trap({0, 5, 6, 4, 6, 1, 0, 0, 2, 7}) << endl;
 
     return 0;
 }
