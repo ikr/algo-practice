@@ -38,7 +38,7 @@ void multiply_digits(const size_t i, const int di, const size_t j, const int dj,
     int carry = carry1;
     size_t ii = out_idx + 2;
 
-    for (;;) {
+    while (ii < res.size()) {
         res[ii] += carry;
 
         if (res[ii] > 9)
@@ -106,14 +106,19 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 int main() {
     cout << from_digits(to_digits("000123456")) << endl;
 
-    vector<int> res(5, 0);
-    multiply_digits(0, 9, 0, 9, res);
-    cout << res << endl;
-
     cout << Solution().multiply("999", "99") << endl;
     cout << Solution().multiply("99", "999") << endl;
     cout << Solution().multiply("0", "1") << endl;
     cout << Solution().multiply("2", "3") << endl;
+
+    vector<int> res(5, 0);
+    multiply_digits(0, 9, 0, 9, res);
+    multiply_digits(1, 9, 0, 9, res);
+    multiply_digits(2, 9, 0, 9, res);
+
+    multiply_digits(0, 9, 1, 9, res);
+    multiply_digits(1, 9, 1, 9, res);
+    multiply_digits(2, 9, 1, 9, res);
 
     return 0;
 }
