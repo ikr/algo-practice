@@ -84,7 +84,15 @@ string from_digits(const vector<int> &ds) {
 }
 
 string Solution::multiply(const string &num1, const string &num2) {
-    return num1 + num2;
+    const vector<int> ds1 = to_digits(num1);
+    const vector<int> ds2 = to_digits(num2);
+    vector<int> res(ds1.size() + ds2.size(), 0);
+
+    for (size_t i = 0; i != ds1.size(); ++i)
+        for (size_t j = 0; j != ds2.size(); ++j)
+            multiply_digits(i, ds1[i], j, ds2[j], res);
+
+    return from_digits(res);
 }
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
@@ -102,7 +110,10 @@ int main() {
     multiply_digits(0, 9, 0, 9, res);
     cout << res << endl;
 
-    cout << Solution().multiply("12", "34") << endl;
+    cout << Solution().multiply("999", "99") << endl;
+    cout << Solution().multiply("99", "999") << endl;
+    cout << Solution().multiply("0", "1") << endl;
+    cout << Solution().multiply("2", "3") << endl;
 
     return 0;
 }
