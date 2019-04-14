@@ -50,6 +50,39 @@ void multiply_digits(const size_t i, const int di, const size_t j, const int dj,
     }
 }
 
+vector<int> to_digits(const string &num) {
+    vector<int> res;
+    auto i = num.begin();
+
+    while (i != num.end() && *i == '0')
+        ++i;
+
+    for (; i != num.end(); ++i)
+        res.push_back(*i - '0');
+
+    if (!res.size())
+        return {0};
+
+    reverse(res.begin(), res.end());
+    return res;
+}
+
+string from_digits(const vector<int> &ds) {
+    string res;
+    auto i = ds.rbegin();
+
+    while (i != ds.rend() && *i == 0)
+        ++i;
+
+    for (; i != ds.rend(); ++i)
+        res.push_back(static_cast<char>('0' + *i));
+
+    if (!res.size())
+        return "0";
+
+    return res;
+}
+
 string Solution::multiply(const string &num1, const string &num2) {
     return num1 + num2;
 }
@@ -63,6 +96,8 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int main() {
+    cout << from_digits(to_digits("000123456")) << endl;
+
     vector<int> res(5, 0);
     multiply_digits(0, 9, 0, 9, res);
     cout << res << endl;
