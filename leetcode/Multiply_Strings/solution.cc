@@ -20,7 +20,7 @@
 using namespace std;
 
 struct Solution {
-    string multiply(const string &num1, const string &num2);
+    string multiply(const string &num1, const string &num2) const;
 };
 
 void multiply_digits(const size_t i, const int di, const size_t j, const int dj,
@@ -83,7 +83,7 @@ string from_digits(const vector<int> &ds) {
     return res;
 }
 
-string Solution::multiply(const string &num1, const string &num2) {
+string Solution::multiply(const string &num1, const string &num2) const {
     const vector<int> ds1 = to_digits(num1);
     const vector<int> ds2 = to_digits(num2);
     vector<int> res(ds1.size() + ds2.size(), 0);
