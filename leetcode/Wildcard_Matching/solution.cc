@@ -72,18 +72,23 @@ struct TestCase {
 };
 
 vector<TestCase> test_cases() {
-    return {{"", "", true},
-            {"a", "aa", false},
-            {"z", "z", true},
-            {"*", "aa", true},
-            {"?a", "cb", false},
-            {"*a*b", "adceb", true},
-            {"a*c?b", "acdcb", false},
-            {"a*c??b", "acdcb", true},
-            {"abcd*zzz", "abcdzzz", true},
-            {"a?cd*z?z", "aocdooooooooooooooooooooooooooooooooooooozzz", true},
-            {"a?cd*z?z", "aacdcdooooooooooooozz", false},
-            {"ab*cd*ok", "abocodook", false}};
+    return {
+        {"", "", true},
+        {"a", "aa", false},
+        {"z", "z", true},
+        {"*", "aa", true},
+        {"?a", "cb", false},
+        {"*a*b", "adceb", true},
+        {"a*c?b", "acdcb", false},
+        {"a*c??b", "acdcb", true},
+        {"abcd*zzz", "abcdzzz", true},
+        {"a?cd*z?z", "aocdooooooooooooooooooooooooooooooooooooozzz", true},
+        {"a?cd*z?z", "aacdcdooooooooooooozz", false},
+        {"ab*cd*ok", "abocodook", false},
+        {"*aab", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", true},
+        {"?b*d**", "abed", true},
+        {"?b*d**?", "abed", false},
+        {"c*a*b", "aab", false}};
 }
 
 int main() {
