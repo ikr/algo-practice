@@ -111,7 +111,16 @@ bool Solution::isMatch(const string &s, const string &p) const {
         for (Iter si = sb; si != se; ++si)
             set_result(result, pb, pb, sb, si, true);
 
-        for (Iter pi = pb; pi != pe && *pi == '*'; ++pi)
+        Iter pi = pb;
+        for (; pi != pe && *pi == '*'; ++pi)
+            set_result(result, pb, pi, sb, sb, true);
+
+        if (pi != pe && *pi == *sb) {
+            set_result(result, pb, pi, sb, sb, true);
+            ++pi;
+        }
+
+        for (; pi != pe && *pi == '*'; ++pi)
             set_result(result, pb, pi, sb, sb, true);
     }
 
