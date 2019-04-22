@@ -98,26 +98,21 @@ bool Solution::isMatch(const string &s, const string &p) const {
     assert(is_alpha(*pb) || is_wildcard(*pb));
     assert(is_alpha(*sb));
 
-    for (Iter si = sb; si != se; ++si) {
-        if (is_alpha(*pb))
-            set_result(result, pb, pb, sb, si, *pb == *sb && si == sb);
-        else if (*pb == '?')
-            set_result(result, pb, pb, sb, si, si == sb);
-        else {
-            assert(*pb == '*');
-            set_result(result, pb, pb, sb, si, true);
-        }
-    }
+    if (is_alpha(*pb)) {
+        set_result(result, pb, pb, sb, sb, *pb == *sb);
 
-    for (Iter pi = pb; pi != pe; ++pi) {
-        if (is_alpha(*pb))
-            set_result(result, pb, pi, sb, sb, *pb == *sb && pi == pb);
-        else if (*pb == '?')
-            set_result(result, pb, pi, sb, sb, pi == pb);
-        else {
-            assert(*pi == '*');
-            set_result(result, pb, pi, sb, sb, are_all_stars(pb, pi));
-        }
+        for (Iter pi = pb + 1; pi != pe && *pi == '*'; ++pi)
+            set_result(result, pb, pi, sb, sb, true);
+    } else if (*pb == '?') {
+        set_result(result, pb, pb, sb, sb, true);
+    } else {
+        assert(*pb == '*');
+
+        for (Iter si = sb; si != se; ++si)
+            set_result(result, pb, pb, sb, si, true);
+
+        for (Iter pi = pb; pi != pe && *pi == '*'; ++pi)
+            set_result(result, pb, pi, sb, sb, true);
     }
 
     for (Iter pi = pb + 1; pi != pe; ++pi)
