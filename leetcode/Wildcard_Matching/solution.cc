@@ -34,23 +34,11 @@ bool is_wildcard(const char c) { return c == '*' || c == '?'; }
 
 void set_result(vector<vector<bool>> &result, Iter plo, Iter phi, Iter slo,
                 Iter shi, bool value) {
-    assert(result.size() > 0);
-    assert(distance(plo, phi) >= 0);
-    assert(static_cast<size_t>(distance(plo, phi)) < result.size());
-    assert(distance(slo, shi) >= 0);
-    assert(static_cast<size_t>(distance(slo, shi)) < result[0].size());
-
     result[distance(plo, phi)][distance(slo, shi)] = value;
 }
 
 bool get_result(vector<vector<bool>> &result, Iter plo, Iter phi, Iter slo,
                 Iter shi) {
-    assert(result.size() > 0);
-    assert(distance(plo, phi) >= 0);
-    assert(static_cast<size_t>(distance(plo, phi)) < result.size());
-    assert(distance(slo, shi) >= 0);
-    assert(static_cast<size_t>(distance(slo, shi)) < result[0].size());
-
     return result[distance(plo, phi)][distance(slo, shi)];
 }
 
@@ -71,9 +59,6 @@ bool Solution::isMatch(const string &s, const string &p) const {
 
     if (pb != pe && sb == se)
         return are_all_stars(pb, pe);
-
-    assert(is_alpha(*pb) || is_wildcard(*pb));
-    assert(is_alpha(*sb));
 
     if (is_alpha(*pb)) {
         if (*pb == *sb) {
@@ -109,9 +94,6 @@ bool Solution::isMatch(const string &s, const string &p) const {
 
     for (Iter pi = pb + 1; pi != pe; ++pi)
         for (Iter si = sb + 1; si != se; ++si) {
-            assert(is_alpha(*pi) || is_wildcard(*pi));
-            assert(is_alpha(*si));
-
             if (is_alpha(*pi))
                 set_result(result, pb, pi, sb, si,
                            *pi == *si &&
