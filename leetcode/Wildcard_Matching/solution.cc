@@ -169,7 +169,11 @@ vector<TestCase> test_cases() {
         {"foo?", "fooz", true},
         {"***?***?***", "ae", true},
         {"***?***?***", "a", false},
-        {"solution*", "solutioncc", true}};
+        {"solution*", "solutioncc", true},
+        {"*solution?", "solutioncc", false},
+        {"*tion*?", "solutionh", true},
+        {"*tion*?*", "solutionh", true},
+        {"*tion??*", "solutionh", false}};
 }
 
 int main() {
