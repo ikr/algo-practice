@@ -32,29 +32,6 @@ bool are_all_stars(Iter begin, Iter end) {
 bool is_alpha(const char c) { return c >= 'a' && c <= 'z'; }
 bool is_wildcard(const char c) { return c == '*' || c == '?'; }
 
-// bool is_match(Iter pi, Iter pe, Iter si, Iter se) {
-//     if (pi == pe && si == se)
-//         return true;
-
-//     if (pi == pe && si != se)
-//         return false;
-
-//     if (pi != pe && si == se)
-//         return are_all_stars(pi, pe);
-
-//     assert(is_alpha(*pi) || is_wildcard(*pi));
-//     assert(is_alpha(*si));
-
-//     if (is_alpha(*pi))
-//         return *pi == *si && is_match(pi + 1, pe, si + 1, se);
-
-//     if (*pi == '?')
-//         return is_match(pi + 1, pe, si + 1, se);
-
-//     assert(*pi == '*');
-//     return is_match(pi, pe, si + 1, se) || is_match(pi + 1, pe, si, se);
-// }
-
 void set_result(vector<vector<bool>> &result, Iter plo, Iter phi, Iter slo,
                 Iter shi, bool value) {
     assert(result.size() > 0);
@@ -179,7 +156,10 @@ vector<TestCase> test_cases() {
         {"*aab", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", true},
         {"?b*d**", "abed", true},
         {"?b*d**?", "abed", false},
-        {"c*a*b", "aab", false}};
+        {"c*a*b", "aab", false},
+        {"*b*", "b", true},
+        {"*?****", "", false},
+        {"*?****", "x", true}};
 }
 
 int main() {
