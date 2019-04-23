@@ -97,12 +97,13 @@ bool Solution::isMatch(const string &s, const string &p) const {
         for (; pi != pe && *pi == '*'; ++pi)
             set_result(result, pb, pi, sb, sb, true);
 
-        if (pi != pe && (*pi == *sb || *pi == '?')) {
+        const bool middle_match = pi != pe && (*pi == *sb || *pi == '?');
+        if (middle_match) {
             set_result(result, pb, pi, sb, sb, true);
             ++pi;
         }
 
-        for (; pi != pe && *pi == '*'; ++pi)
+        for (; pi != pe && middle_match && *pi == '*'; ++pi)
             set_result(result, pb, pi, sb, sb, true);
     }
 
@@ -176,7 +177,8 @@ vector<TestCase> test_cases() {
         {"*tion*?", "solutionh", true},
         {"*tion*?*", "solutionh", true},
         {"*tion??*", "solutionh", false},
-        {"*a", "ab", false}};
+        {"*a", "ab", false},
+        {"a*c*", "aba", false}};
 }
 
 int main() {
