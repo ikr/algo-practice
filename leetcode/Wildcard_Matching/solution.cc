@@ -82,6 +82,9 @@ bool Solution::isMatch(const string &s, const string &p) const {
             set_result(result, pb, pi, sb, sb, true);
     } else if (*pb == '?') {
         set_result(result, pb, pb, sb, sb, true);
+
+        for (Iter pi = pb + 1; pi != pe && *pi == '*'; ++pi)
+            set_result(result, pb, pi, sb, sb, true);
     } else {
         assert(*pb == '*');
 
@@ -92,7 +95,7 @@ bool Solution::isMatch(const string &s, const string &p) const {
         for (; pi != pe && *pi == '*'; ++pi)
             set_result(result, pb, pi, sb, sb, true);
 
-        if (pi != pe && *pi == *sb) {
+        if (pi != pe && (*pi == *sb || *pi == '?')) {
             set_result(result, pb, pi, sb, sb, true);
             ++pi;
         }
@@ -159,7 +162,14 @@ vector<TestCase> test_cases() {
         {"c*a*b", "aab", false},
         {"*b*", "b", true},
         {"*?****", "", false},
-        {"*?****", "x", true}};
+        {"*?****", "x", true},
+        {"*?", "x", true},
+        {"*??*", "x", false},
+        {"****f***", "g", false},
+        {"foo?", "fooz", true},
+        {"***?***?***", "ae", true},
+        {"***?***?***", "a", false},
+        {"solution*", "solutioncc", true}};
 }
 
 int main() {
