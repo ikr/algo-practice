@@ -76,10 +76,12 @@ bool Solution::isMatch(const string &s, const string &p) const {
     assert(is_alpha(*sb));
 
     if (is_alpha(*pb)) {
-        set_result(result, pb, pb, sb, sb, *pb == *sb);
+        if (*pb == *sb) {
+            set_result(result, pb, pb, sb, sb, true);
 
-        for (Iter pi = pb + 1; pi != pe && *pi == '*'; ++pi)
-            set_result(result, pb, pi, sb, sb, true);
+            for (Iter pi = pb + 1; pi != pe && *pi == '*'; ++pi)
+                set_result(result, pb, pi, sb, sb, true);
+        }
     } else if (*pb == '?') {
         set_result(result, pb, pb, sb, sb, true);
 
