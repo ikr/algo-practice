@@ -24,7 +24,54 @@ struct Solution {
 };
 
 bool Solution::isMatch(const string &s, const string &p) const {
-    return s == p;
+    const size_t npos = string::npos;
+
+    if (!p.size() && !s.size())
+        return true;
+    if (p.size() && !s.size())
+        return all_stars(p);
+    if (!p.size() && s.size())
+        return false;
+
+    size_t i = 0;
+    size_t j = npos;
+    size_t star_idx = npos;
+
+    for (;;) {
+        if (i == p.size())
+            return j == s.size();
+
+        if (p[i] == '*') {
+            i = skip_to_last_star(p, i);
+            star_idx = i;
+            ++i;
+            continue;
+        }
+
+        if (star_idx != npos) {
+            while (j != s.size() && !(p[i] == '?' || p[i] == s[j]))
+                ++j;
+
+            if (j == s.size())
+                return false;
+
+            star_idx = npos;
+            ++i;
+            ++j;
+            continue;
+        }
+
+        if (j == s.size())
+            return false;
+
+        if (p[j] == '?' || p[i] == s[j]) {
+            ++i;
+            ++j;
+            continue;
+        }
+
+        return false;
+    }
 }
 
 struct TestCase {
@@ -78,6 +125,9 @@ vector<TestCase> test_cases() {
 }
 
 int main() {
+    size_t x{string::npos};
+    cout << x << endl;
+
     for (const TestCase &tc : test_cases()) {
         const bool result = Solution().isMatch(tc.candidate, tc.pattern);
 
