@@ -55,8 +55,7 @@ struct Solution {
 
         for (;;) {
             if (i == psz && j == ssz) return true;
-            if (i == psz && j != ssz)
-                return psp_idx != npos && p[psp_idx - 1] == '*';
+            if (i == psz && j != ssz) return psp_idx != npos && p[i - 1] == '*';
             if (i != psz && j == ssz) return all_stars(p, i);
 
             if (p[i] == '*') {
