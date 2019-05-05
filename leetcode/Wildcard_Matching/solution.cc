@@ -19,60 +19,65 @@
 
 using namespace std;
 
-struct Solution {
-    bool isMatch(const string &s, const string &p) const;
-};
+namespace {
 
-bool Solution::isMatch(const string &s, const string &p) const {
-    const size_t npos = string::npos;
+const size_t npos = string::npos;
 
-    if (!p.size() && !s.size())
-        return true;
-    if (p.size() && !s.size())
-        return all_stars(p);
-    if (!p.size() && s.size())
-        return false;
+bool all_stars(const string &s, const size_t from_idx) {
+    assert(from_idx < s.size());
 
-    size_t i = 0;
-    size_t j = npos;
-    size_t star_idx = npos;
-
-    for (;;) {
-        if (i == p.size())
-            return j == s.size();
-
-        if (p[i] == '*') {
-            i = skip_to_last_star(p, i);
-            star_idx = i;
-            ++i;
-            continue;
-        }
-
-        if (star_idx != npos) {
-            while (j != s.size() && !(p[i] == '?' || p[i] == s[j]))
-                ++j;
-
-            if (j == s.size())
-                return false;
-
-            star_idx = npos;
-            ++i;
-            ++j;
-            continue;
-        }
-
-        if (j == s.size())
-            return false;
-
-        if (p[j] == '?' || p[i] == s[j]) {
-            ++i;
-            ++j;
-            continue;
-        }
-
-        return false;
-    }
+    return all_of(s.begin() + from_idx, s.end(),
+                  [](const char c) { return c == '*'; });
 }
+
+size_t skip_to_last_star(const string &p, const size_t idx) {
+    assert(idx < p.size());
+    assert(p[idx] == '*');
+
+    size_t i = idx;
+    while (i + 1 != p.size() && p[idx + 1] == '*') ++i;
+    return i;
+}
+
+} // namespace
+
+struct Solution {
+    bool isMatch(const string &s, const string &p) const {
+        const size_t psz = p.size();
+        const size_t ssz = s.size();
+
+        if (!psz && !ssz) return true;
+        if (psz && !ssz) return all_stars(p, 0);
+        if (!psz && ssz) return false;
+
+        size_t i = 0;
+        size_t j = 0;
+        size_t psp_idx = npos;
+        size_t psm_idx = npos;
+
+        for (;;) {
+            if (i == psz && j == ssz) return true;
+            if (i == psz && j != ssz) return psp_idx != npos;
+            if (i != psz && j == ssz) return all_stars(p, i);
+
+            if (p[i] == '*') {
+                i = skip_to_last_star(p, i);
+                psp_idx = i + 1;
+                psm_idx = npos;
+                continue;
+            }
+
+            if (p[i] == '?' || p[i] == s[j]) {
+                if (psp_idx != npos && psm_idx == npos) psm_idx = j;
+                ++i;
+                ++j;
+                continue;
+            }
+
+            if (psp_idx == npos) return false;
+        }
+    }
+};
 
 struct TestCase {
     string pattern;
@@ -121,7 +126,8 @@ vector<TestCase> test_cases() {
         {"*tion*?*", "solutionh", true},
         {"*tion??*", "solutionh", false},
         {"*a", "ab", false},
-        {"a*c*", "aba", false}};
+        {"a*c*", "aba", false},
+        {"*aba*aba*", "abaabbabab", true}};
 }
 
 int main() {
