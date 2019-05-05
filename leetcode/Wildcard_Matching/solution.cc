@@ -123,7 +123,7 @@ vector<TestCase> test_cases() {
         {"*?****", "x", true},
         {"*?", "x", true},
         {"*??*", "x", false},
-        {"****f***", "g", false},
+        {"**f*", "g", false},
         {"foo?", "fooz", true},
         {"***?***?***", "ae", true},
         {"***?***?***", "a", false},
