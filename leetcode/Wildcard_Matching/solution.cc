@@ -20,7 +20,6 @@
 using namespace std;
 
 namespace {
-
 const size_t npos = string::npos;
 
 bool all_stars(const string &s, const size_t from_idx) {
@@ -38,7 +37,6 @@ size_t skip_to_last_star(const string &p, const size_t idx) {
     while (i + 1 != p.size() && p[idx + 1] == '*') ++i;
     return i;
 }
-
 } // namespace
 
 struct Solution {
@@ -57,12 +55,13 @@ struct Solution {
 
         for (;;) {
             if (i == psz && j == ssz) return true;
-            if (i == psz && j != ssz) return psp_idx != npos;
+            if (i == psz && j != ssz)
+                return psp_idx != npos && p[psp_idx - 1] == '*';
             if (i != psz && j == ssz) return all_stars(p, i);
 
             if (p[i] == '*') {
                 i = skip_to_last_star(p, i);
-                psp_idx = i + 1;
+                psp_idx = ++i;
                 psm_idx = npos;
                 continue;
             }
@@ -75,6 +74,14 @@ struct Solution {
             }
 
             if (psp_idx == npos) return false;
+            i = psp_idx;
+
+            if (psm_idx != npos) {
+                j = psm_idx + 1;
+                psm_idx = npos;
+            } else {
+                ++j;
+            }
         }
     }
 };
