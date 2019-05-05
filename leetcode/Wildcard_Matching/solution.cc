@@ -34,7 +34,7 @@ size_t skip_to_last_star(const string &p, const size_t idx) {
     assert(p[idx] == '*');
 
     size_t i = idx;
-    while (i + 1 != p.size() && p[idx + 1] == '*') ++i;
+    while (i + 1 != p.size() && p[i + 1] == '*') ++i;
     return i;
 }
 } // namespace
