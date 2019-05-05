@@ -134,7 +134,8 @@ vector<TestCase> test_cases() {
         {"*a", "ab", false},
         {"a*c*", "aba", false},
         {"*aba*aba*", "abaabbabab", true},
-        {"x*", "abaa", false}};
+        {"x*", "abaa", false},
+        {"*a", "aa", true}};
 }
 
 int main() {
