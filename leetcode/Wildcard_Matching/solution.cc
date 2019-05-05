@@ -128,7 +128,7 @@ vector<TestCase> test_cases() {
         {"***?***?***", "ae", true},
         {"***?***?***", "a", false},
         {"solution*", "solutioncc", true},
-        {"*solution?", "solutioncc", false},
+        {"*s?", "scc", false},
         {"*tion*?", "solutionh", true},
         {"*tion*?*", "solutionh", true},
         {"*tion??*", "solutionh", false},
