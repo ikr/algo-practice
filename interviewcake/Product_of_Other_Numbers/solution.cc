@@ -22,7 +22,20 @@
 using namespace std;
 
 vector<int> products_of_others(const vector<int> &xs) {
-    return vector<int>(xs.size());
+    if (xs.size() < 2) throw invalid_argument("At least 2 ints required");
+
+    vector<int> res(xs.size(), 1);
+    for (size_t i = 1; i != xs.size(); ++i) res[i] = res[i - 1] * xs[i - 1];
+
+    int prod = 1;
+
+    for (auto i = ++(xs.crbegin()); i != xs.crend(); ++i) {
+        const size_t xs_idx = xs.size() - distance(xs.crbegin(), i);
+        prod *= xs[xs_idx];
+        res[xs_idx] *= prod;
+    }
+
+    return res;
 }
 
 // clang-format off
