@@ -29,10 +29,9 @@ vector<int> products_of_others(const vector<int> &xs) {
 
     int prod = 1;
 
-    for (auto i = ++(xs.crbegin()); i != xs.crend(); ++i) {
-        const size_t xs_idx = xs.size() - distance(xs.crbegin(), i);
-        prod *= xs[xs_idx];
-        res[xs_idx] *= prod;
+    for (size_t i = xs.size() - 2; i != string::npos; --i) {
+        prod *= xs[i + 1];
+        res[i] *= prod;
     }
 
     return res;
