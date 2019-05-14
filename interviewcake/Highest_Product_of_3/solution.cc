@@ -21,9 +21,30 @@
 
 using namespace std;
 
-int highestProductOf3(const vector<int>& xs)
-{
-    return static_cast<int>(xs.size());
+void update_max(vector<int> &xs, const int candidate) { xs[0] = candidate; }
+void update_min(vector<int> &xs, const int candidate) { xs[0] = candidate; }
+
+int highestProductOf3(const vector<int> &xs) {
+    assert(xs.size() >= 3);
+
+    vector<int> max_3(xs.begin(), xs.begin() + 3);
+    sort(max_3.begin(), max_3.end());
+
+    vector<int> min_2(xs.begin(), xs.begin() + 2);
+    sort(min_2.begin(), min_2.end());
+
+    for (auto i = xs.begin() + 2; i != xs.end(); ++i) {
+        update_max(max_3, *i);
+        update_min(min_2, *i);
+    }
+
+    if (min_2[0] < 0 && min_2[1] < 0 &&
+        min_2[0] * min_2[1] > max_3[0] * max_3[1]) {
+        max_3[0] = min_2[0];
+        max_3[1] = min_2[1];
+    }
+
+    return max_3[0] * max_3[1] * max_3[2];
 }
 
 // clang-format off
@@ -72,6 +93,4 @@ const lest::test tests[] = {
 };
 // clang-format on
 
-int main(int argc, char** argv) {
-    return lest::run(tests, argc, argv);
-}
+int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
