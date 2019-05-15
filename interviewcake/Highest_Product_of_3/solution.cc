@@ -21,27 +21,25 @@
 
 using namespace std;
 
-void update_max(vector<int> &xs, const int candidate) { xs[0] = candidate; }
-void update_min(vector<int> &xs, const int candidate) { xs[0] = candidate; }
+void stack_rate(std::vector<int> &xs, const int candidate,
+                std::function<bool(const int, const int)> compare) {
+    xs.push_back(candidate);
+    sort(xs.begin(), xs.end(), compare);
+    xs.erase(xs.end() - 1);
+}
 
 int highestProductOf3(const vector<int> &xs) {
-    assert(xs.size() >= 3);
+    if (xs.size() < 3) throw invalid_argument("At least 3 expected");
 
     vector<int> max_3(xs.begin(), xs.begin() + 3);
-    sort(max_3.begin(), max_3.end());
+    sort(max_3.begin(), max_3.end(), std::greater<int>());
 
-    vector<int> min_2(xs.begin(), xs.begin() + 2);
-    sort(min_2.begin(), min_2.end());
+    vector<int> min_3(max_3);
+    sort(min_3.begin(), min_3.end(), std::less<int>());
 
-    for (auto i = xs.begin() + 2; i != xs.end(); ++i) {
-        update_max(max_3, *i);
-        update_min(min_2, *i);
-    }
-
-    if (min_2[0] < 0 && min_2[1] < 0 &&
-        min_2[0] * min_2[1] > max_3[0] * max_3[1]) {
-        max_3[0] = min_2[0];
-        max_3[1] = min_2[1];
+    for (auto i = xs.begin() + 3; i != xs.end(); ++i) {
+        stack_rate(max_3, *i, std::greater<int>());
+        stack_rate(min_3, *i, std::less<int>());
     }
 
     return max_3[0] * max_3[1] * max_3[2];
