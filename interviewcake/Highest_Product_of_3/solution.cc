@@ -25,7 +25,7 @@ void stack_rate(std::vector<int> &xs, const int candidate,
                 std::function<bool(const int, const int)> compare) {
     xs.push_back(candidate);
     sort(xs.begin(), xs.end(), compare);
-    xs.erase(xs.end() - 1);
+    xs.pop_back();
 }
 
 int highestProductOf3(const vector<int> &xs) {
