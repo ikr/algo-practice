@@ -21,28 +21,35 @@
 
 using namespace std;
 
-void stack_rate(std::vector<int> &xs, const int candidate,
-                std::function<bool(const int, const int)> compare) {
+void stack_rate(vector<int> &xs, const int candidate,
+                function<bool(const int, const int)> compare) {
     xs.push_back(candidate);
     sort(xs.begin(), xs.end(), compare);
     xs.pop_back();
 }
 
+int candidate_result(const vector<int> &max_2, const vector<int> &min_2,
+                     const int x) {
+    return max(accumulate(max_2.begin(), max_2.end(), 1, multiplies<int>()) * x,
+               accumulate(min_2.begin(), min_2.end(), 1, multiplies<int>()) *
+                   x);
+}
+
 int highestProductOf3(const vector<int> &xs) {
     if (xs.size() < 3) throw invalid_argument("At least 3 expected");
 
-    vector<int> max_3(xs.begin(), xs.begin() + 3);
-    sort(max_3.begin(), max_3.end(), std::greater<int>());
+    vector<int> max_2(xs.begin(), xs.begin() + 2);
+    vector<int> min_2(max_2);
+    int result = candidate_result(max_2, min_2, *(xs.begin() + 2));
 
-    vector<int> min_3(max_3);
-    sort(min_3.begin(), min_3.end(), std::less<int>());
-
-    for (auto i = xs.begin() + 3; i != xs.end(); ++i) {
-        stack_rate(max_3, *i, std::greater<int>());
-        stack_rate(min_3, *i, std::less<int>());
+    for (auto i = xs.begin() + 2; i != xs.end(); ++i) {
+        const int y = candidate_result(max_2, min_2, *i);
+        if (y > result) result = y;
+        stack_rate(max_2, *i, greater<int>());
+        stack_rate(min_2, *i, less<int>());
     }
 
-    return max_3[0] * max_3[1] * max_3[2];
+    return result;
 }
 
 // clang-format off
