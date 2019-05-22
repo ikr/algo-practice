@@ -21,35 +21,48 @@
 
 using namespace std;
 
-void stack_rate(vector<int> &xs, const int candidate,
-                function<bool(const int, const int)> compare) {
-    xs.push_back(candidate);
-    sort(xs.begin(), xs.end(), compare);
-    xs.pop_back();
+void stack_rate_indices(function<bool(const int, const int)> compare,
+                        const vector<int> &xs, vector<size_t> &indices,
+                        const size_t candidate_index) {
+    indices.push_back(candidate_index);
+
+    sort(indices.begin(), indices.end(),
+         [compare, xs](const size_t i, const size_t j) {
+             return compare(xs[i], xs[j]);
+         });
+
+    indices.pop_back();
 }
 
-int candidate_result(const vector<int> &max_2, const vector<int> &min_2,
-                     const int x) {
-    return max(accumulate(max_2.begin(), max_2.end(), 1, multiplies<int>()) * x,
-               accumulate(min_2.begin(), min_2.end(), 1, multiplies<int>()) *
-                   x);
+int candidate_result(const vector<int> &xs, vector<int> &max_3_indices,
+                     vector<int> &min_3_indices, const int x_index) {
+    int result = numeric_limits<int>::min();
+
+    for (auto indices : {max_3_indices, min_3_indices}) {
+        auto i = find(indices.begin(), indices.end(), x_index);
+        if (i == indices.end()) indices.back() = x_index;
+
+        result = max(result, accumulate(indices.begin(), indices.end(), 1,
+                                        [xs](const int memo, const size_t j) {
+                                            return memo * xs[j];
+                                        }));
+    }
+
+    return result;
 }
 
 int highestProductOf3(const vector<int> &xs) {
     if (xs.size() < 3) throw invalid_argument("At least 3 expected");
 
-    vector<int> max_2(xs.begin(), xs.begin() + 2);
-    vector<int> min_2(max_2);
-    int result = candidate_result(max_2, min_2, *(xs.begin() + 2));
+    vector<size_t> max_3_indices = {0, 1, 2};
+    vector<size_t> min_3_indices(max_3_indices);
 
-    for (auto i = xs.begin() + 2; i != xs.end(); ++i) {
-        const int y = candidate_result(max_2, min_2, *i);
-        if (y > result) result = y;
-        stack_rate(max_2, *i, greater<int>());
-        stack_rate(min_2, *i, less<int>());
+    for (size_t i = 3; i != xs.size(); ++i) {
+        stack_rate_indices(greater_equal<int>(), xs, max_3_indices, i);
+        stack_rate_indices(less<int>(), xs, min_3_indices, i);
     }
 
-    return result;
+    return 0;
 }
 
 // clang-format off
