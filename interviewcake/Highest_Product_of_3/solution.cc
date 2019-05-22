@@ -34,8 +34,8 @@ void stack_rate_indices(function<bool(const int, const int)> compare,
     indices.pop_back();
 }
 
-int candidate_result(const vector<int> &xs, vector<int> &max_3_indices,
-                     vector<int> &min_3_indices, const int x_index) {
+int candidate_result(const vector<int> &xs, vector<size_t> &max_3_indices,
+                     vector<size_t> &min_3_indices, const size_t x_index) {
     int result = numeric_limits<int>::min();
 
     for (auto indices : {max_3_indices, min_3_indices}) {
@@ -62,7 +62,14 @@ int highestProductOf3(const vector<int> &xs) {
         stack_rate_indices(less<int>(), xs, min_3_indices, i);
     }
 
-    return 0;
+    int result = numeric_limits<int>::min();
+
+    for (size_t i = 0; i != xs.size(); ++i) {
+        result =
+            max(result, candidate_result(xs, max_3_indices, min_3_indices, i));
+    }
+
+    return result;
 }
 
 // clang-format off
