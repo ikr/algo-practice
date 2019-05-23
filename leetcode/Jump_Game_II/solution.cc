@@ -99,6 +99,12 @@ const lest::test tests[] = {
         const int expected = 5;
         EXPECT(actual == expected);
     },
+    CASE("loads of 1-s") {
+        const vector<int> xs(60000, 1);
+        const int actual = Solution().jump(xs);
+        const int expected = 59999;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
