@@ -30,11 +30,9 @@ size_t min_jumps(const Iter rbegin, const Iter rend, vector<size_t> &cache) {
 
     for (auto i = rbegin + 1; i != rend; ++i) {
         const long d = distance(rbegin, i);
-        assert(d > 0);
         if (static_cast<size_t>(d) > *i) continue;
 
         const long cache_idx = distance(i, rend);
-        assert(cache_idx > 0 && static_cast<size_t>(cache_idx) < cache.size());
 
         if (cache[cache_idx] == npos) {
             cache[cache_idx] = min_jumps(i, rend, cache);
