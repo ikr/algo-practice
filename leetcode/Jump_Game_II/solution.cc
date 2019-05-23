@@ -22,17 +22,25 @@
 using namespace std;
 
 using Iter = vector<size_t>::const_reverse_iterator;
+const size_t npos = numeric_limits<size_t>::max();
 
-size_t min_jumps(const Iter rbegin, const Iter rend) {
+size_t min_jumps(const Iter rbegin, const Iter rend, vector<size_t> &cache) {
     if (distance(rbegin, rend) == 1) return 0;
-
-    size_t result = numeric_limits<size_t>::max();
+    size_t result = npos;
 
     for (auto i = rbegin + 1; i != rend; ++i) {
-        const size_t d = distance(rbegin, i);
-        if (d > *i) continue;
+        const long d = distance(rbegin, i);
+        assert(d > 0);
+        if (static_cast<size_t>(d) > *i) continue;
 
-        const size_t candidate = 1 + min_jumps(i, rend);
+        const long cache_idx = distance(i, rend);
+        assert(cache_idx > 0 && static_cast<size_t>(cache_idx) < cache.size());
+
+        if (cache[cache_idx] == npos) {
+            cache[cache_idx] = min_jumps(i, rend, cache);
+        }
+
+        const size_t candidate = 1 + cache[cache_idx];
         if (candidate < result) result = candidate;
     }
 
@@ -48,9 +56,10 @@ int Solution::jump(const vector<int> &xs) const {
 
     vector<size_t> non_negatives(xs.size());
     copy(xs.begin(), xs.end(), non_negatives.begin());
+    vector<size_t> cache(xs.size(), npos);
 
     return static_cast<int>(
-        min_jumps(non_negatives.rbegin(), non_negatives.rend()));
+        min_jumps(non_negatives.rbegin(), non_negatives.rend(), cache));
 }
 
 // clang-format off
