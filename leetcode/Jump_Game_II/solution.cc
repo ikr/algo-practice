@@ -85,6 +85,11 @@ const lest::test tests[] = {
         const int expected = 3;
         EXPECT(actual == expected);
     },
+    CASE("with a seemingly fast first jump") {
+        const int actual = Solution().jump({5,6,4,4,6,9,4,4,7,4,4,8,2,6,8,1,5,9,6,5,2,7,9,7,9,6,9,4,1,6,8,8,4,4,2,0,3,8,5});
+        const int expected = 5;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
