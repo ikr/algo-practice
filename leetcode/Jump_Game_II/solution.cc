@@ -47,6 +47,12 @@ size_t min_jumps(const Iter rbegin, const Iter rend, vector<size_t> &cache) {
     return result;
 }
 
+Iter last_leading_1_or_rend(const vector<size_t> &xs) {
+    Iter i = xs.rend();
+    while (i - 1 != xs.rbegin() && *(i - 1) == 1) --i;
+    return i;
+}
+
 struct Solution {
     int jump(const vector<int> &xs) const;
 };
@@ -58,8 +64,11 @@ int Solution::jump(const vector<int> &xs) const {
     copy(xs.begin(), xs.end(), non_negatives.begin());
     vector<size_t> cache(xs.size(), npos);
 
-    return static_cast<int>(
-        min_jumps(non_negatives.rbegin(), non_negatives.rend(), cache));
+    const Iter optimal_rend = last_leading_1_or_rend(non_negatives);
+
+    return static_cast<int>(distance(optimal_rend, non_negatives.crend())) +
+           static_cast<int>(
+               min_jumps(non_negatives.rbegin(), optimal_rend, cache));
 }
 
 // clang-format off
