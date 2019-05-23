@@ -60,9 +60,19 @@ const lest::test tests[] = {
         const int expected = 0;
         EXPECT(actual == expected);
     },
-    CASE("is 2 on 2,3,1,1,4") {
+    CASE("example from the problem statement") {
         const int actual = Solution().jump({2,3,1,1,4});
         const int expected = 2;
+        EXPECT(actual == expected);
+    },
+    CASE("the minimal possible path") {
+        const int actual = Solution().jump({1,0});
+        const int expected = 1;
+        EXPECT(actual == expected);
+    },
+    CASE("with zeroes, jumping progressively longer") {
+        const int actual = Solution().jump({1,1,2,0,3,0,0,0});
+        const int expected = 4;
         EXPECT(actual == expected);
     },
 };
