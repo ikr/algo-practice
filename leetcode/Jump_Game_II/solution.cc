@@ -114,6 +114,16 @@ const lest::test tests[] = {
         const int expected = 59999;
         EXPECT(actual == expected);
     },
+    CASE("25000 downto 0") {
+        vector<int> xs(25002, 1);
+        xs[0] = 0;
+        iota(xs.begin() + 2, xs.end(), 1);
+        reverse(xs.begin(), xs.end());
+
+        const int actual = Solution().jump(xs);
+        const int expected = 2;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
