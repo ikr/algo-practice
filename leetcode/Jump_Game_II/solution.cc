@@ -21,31 +21,31 @@
 
 using namespace std;
 
-using Iter = vector<size_t>::const_reverse_iterator;
-const size_t npos = numeric_limits<size_t>::max();
+using Iter = vector<int>::const_reverse_iterator;
+const int npos = numeric_limits<int>::max();
 
-size_t min_jumps(const Iter rbegin, const Iter rend, vector<size_t> &cache) {
+int min_jumps(const Iter rbegin, const Iter rend, vector<int> &cache) {
     if (distance(rbegin, rend) == 1) return 0;
-    size_t result = npos;
+    int result = npos;
 
     for (auto i = rbegin + 1; i != rend; ++i) {
         const long d = distance(rbegin, i);
-        if (static_cast<size_t>(d) > *i) continue;
+        if (d > *i) continue;
 
-        const long cache_idx = distance(i, rend);
+        const int cache_idx = static_cast<int>(distance(i, rend));
 
         if (cache[cache_idx] == npos) {
             cache[cache_idx] = min_jumps(i, rend, cache);
         }
 
-        const size_t candidate = 1 + cache[cache_idx];
+        const int candidate = 1 + cache[cache_idx];
         if (candidate < result) result = candidate;
     }
 
     return result;
 }
 
-Iter last_leading_1_or_rend(const vector<size_t> &xs) {
+Iter last_leading_1_or_rend(const vector<int> &xs) {
     Iter i = xs.rend();
     while (i - 1 != xs.rbegin() && *(i - 1) == 1) --i;
     return i;
@@ -58,15 +58,11 @@ struct Solution {
 int Solution::jump(const vector<int> &xs) const {
     if (!xs.size()) return 0;
 
-    vector<size_t> non_negatives(xs.size());
-    copy(xs.begin(), xs.end(), non_negatives.begin());
-    vector<size_t> cache(xs.size(), npos);
+    vector<int> cache(xs.size(), npos);
+    const Iter optimal_rend = last_leading_1_or_rend(xs);
 
-    const Iter optimal_rend = last_leading_1_or_rend(non_negatives);
-
-    return static_cast<int>(distance(optimal_rend, non_negatives.crend())) +
-           static_cast<int>(
-               min_jumps(non_negatives.rbegin(), optimal_rend, cache));
+    return static_cast<int>(distance(optimal_rend, xs.crend())) +
+           min_jumps(xs.rbegin(), optimal_rend, cache);
 }
 
 // clang-format off
