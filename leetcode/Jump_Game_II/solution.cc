@@ -21,54 +21,45 @@
 
 using namespace std;
 
-using Iter = vector<int>::const_reverse_iterator;
-const int npos = numeric_limits<int>::max();
-
-int min_jumps(const Iter rbegin, const Iter rend, vector<int> &cache) {
-    if (distance(rbegin, rend) == 1) return 0;
-    int result = npos;
-
-    for (auto i = rbegin + 1; i != rend; ++i) {
-        const long d = distance(rbegin, i);
-        if (d > *i) continue;
-
-        const int cache_idx = static_cast<int>(distance(i, rend));
-
-        if (cache[cache_idx] == npos) {
-            cache[cache_idx] = min_jumps(i, rend, cache);
-        }
-
-        const int candidate = 1 + cache[cache_idx];
-        if (candidate < result) result = candidate;
-    }
-
-    return result;
-}
-
-Iter last_leading_1_or_rend(const vector<int> &xs) {
-    Iter i = xs.rend();
-    while (i - 1 != xs.rbegin() && *(i - 1) == 1) --i;
-    return i;
-}
-
 struct Solution {
     int jump(const vector<int> &xs) const;
 };
 
+int intof(const size_t x) { return static_cast<int>(x); }
+
 int Solution::jump(const vector<int> &xs) const {
     if (!xs.size()) return 0;
 
-    vector<int> cache(xs.size(), npos);
-    const Iter optimal_rend = last_leading_1_or_rend(xs);
+    int first = 0;
+    int last = 0;
+    int result = 0;
 
-    return static_cast<int>(distance(optimal_rend, xs.crend())) +
-           min_jumps(xs.rbegin(), optimal_rend, cache);
+    for (;;) {
+        int max_reach = -1;
+
+        for (int i = first; i <= last; ++i) {
+            if (i == intof(xs.size()) - 1) return result;
+
+            max_reach = max(max_reach, i + xs[i]);
+        }
+
+        first = last + 1;
+        last = max_reach;
+        ++result;
+    }
+
+    throw logic_error("The last element is assumed to be always reachable");
 }
 
 // clang-format off
 const lest::test tests[] = {
     CASE("is 0 on an empty vector") {
         const int actual = Solution().jump({});
+        const int expected = 0;
+        EXPECT(actual == expected);
+    },
+    CASE("is 0 on a 1-element vector") {
+        const int actual = Solution().jump({1});
         const int expected = 0;
         EXPECT(actual == expected);
     },
