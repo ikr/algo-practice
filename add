@@ -18,6 +18,7 @@ code=$(cat <<EOF
 #include <iostream>
 #include <iterator>
 #include <locale>
+#include <map>
 #include <numeric>
 #include <optional>
 #include <set>
