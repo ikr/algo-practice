@@ -32,7 +32,7 @@ vec append(vec xs, int y) {
 map<int, int> take_out(map<int, int> count_by_x, int x) {
     assert(count_by_x.count(x));
     count_by_x[x]--;
-    if (!count_by_x.count(x)) count_by_x.erase(x);
+    if (!count_by_x[x]) count_by_x.erase(x);
     return count_by_x;
 }
 
@@ -72,6 +72,11 @@ int answer_to_life_universe_and_everything() { return -1; }
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("take_out works") {
+        const auto actual = take_out(map<int, int>{{42, 1}}, 42);
+        const auto expected = map<int, int>{};
+        EXPECT(actual == expected);
+    },
     CASE("empty output on empty input") {
         const auto actual = Solution().permuteUnique(vector<int>{});
         const auto expected = vector<vector<int>>{{}};
