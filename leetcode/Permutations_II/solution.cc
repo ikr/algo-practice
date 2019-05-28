@@ -37,6 +37,16 @@ const lest::test tests[] = {
         const auto expected = vector<vector<int>>{{}};
         EXPECT(actual == expected);
     },
+    CASE("trivial 1-element input") {
+        const auto actual = Solution().permuteUnique(vector<int>{42});
+        const auto expected = vector<vector<int>>{{42}};
+        EXPECT(actual == expected);
+    },
+    CASE("example from the problem statement") {
+        const auto actual = Solution().permuteUnique(vector<int>{1,1,2});
+        const auto expected = vector<vector<int>>{{1,1,2},{1,2,1},{2,1,1}};
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
