@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iterator>
 #include <locale>
+#include <map>
 #include <numeric>
 #include <optional>
 #include <set>
@@ -20,11 +21,50 @@
 #include <vector>
 
 using namespace std;
+using vec = vector<int>;
+using vvec = vector<vector<int>>;
+
+vec append(vec xs, int y) {
+    xs.push_back(y);
+    return xs;
+}
+
+map<int, int> take_out(map<int, int> count_by_x, int x) {
+    assert(count_by_x.count(x));
+    count_by_x[x]--;
+    if (!count_by_x.count(x)) count_by_x.erase(x);
+    return count_by_x;
+}
+
+void permute_recur(const vec &prefix, const map<int, int> &count_by_x,
+                   vvec &result) {
+    if (!count_by_x.size()) {
+        result.push_back(prefix);
+        return;
+    }
+
+    for (const auto i : count_by_x) {
+        const int x = i.first;
+        assert(i.second > 0);
+        permute_recur(append(prefix, x), take_out(count_by_x, x), result);
+    }
+}
+
+map<int, int> count_elements(const vec &xs) {
+    map<int, int> result;
+
+    for (const int x : xs) {
+        result[x]++;
+    }
+
+    return result;
+}
 
 struct Solution {
-    vector<vector<int>> permuteUnique(const vector<int> &xs) {
-        return xs.size() ? vector<vector<int>>{{xs.back()}}
-                         : vector<vector<int>>{{}};
+    vvec permuteUnique(const vec &xs) {
+        vvec result{};
+        permute_recur(vec{}, count_elements(xs), result);
+        return result;
     }
 };
 
