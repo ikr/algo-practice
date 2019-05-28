@@ -92,6 +92,11 @@ const lest::test tests[] = {
         const auto expected = vector<vector<int>>{{1,1,2},{1,2,1},{2,1,1}};
         EXPECT(actual == expected);
     },
+    CASE("three ones") {
+        const auto actual = Solution().permuteUnique(vector<int>{1,1,1});
+        const auto expected = vector<vector<int>>{{1,1,1}};
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
