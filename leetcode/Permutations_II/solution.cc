@@ -68,8 +68,6 @@ struct Solution {
     }
 };
 
-int answer_to_life_universe_and_everything() { return -1; }
-
 // clang-format off
 const lest::test tests[] = {
     CASE("take_out works") {
