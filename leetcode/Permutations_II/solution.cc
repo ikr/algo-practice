@@ -23,21 +23,21 @@
 using namespace std;
 using vec = vector<int>;
 using vvec = vector<vector<int>>;
+using mapii = map<int, int>;
 
 vec append(vec xs, int y) {
     xs.push_back(y);
     return xs;
 }
 
-map<int, int> take_out(map<int, int> count_by_x, int x) {
+mapii take_out(mapii count_by_x, int x) {
     assert(count_by_x.count(x));
     count_by_x[x]--;
     if (!count_by_x[x]) count_by_x.erase(x);
     return count_by_x;
 }
 
-void permute_recur(const vec &prefix, const map<int, int> &count_by_x,
-                   vvec &result) {
+void permute_recur(const vec &prefix, const mapii &count_by_x, vvec &result) {
     if (!count_by_x.size()) {
         result.push_back(prefix);
         return;
@@ -50,8 +50,8 @@ void permute_recur(const vec &prefix, const map<int, int> &count_by_x,
     }
 }
 
-map<int, int> count_elements(const vec &xs) {
-    map<int, int> result;
+mapii count_elements(const vec &xs) {
+    mapii result;
 
     for (const int x : xs) {
         result[x]++;
@@ -71,8 +71,8 @@ struct Solution {
 // clang-format off
 const lest::test tests[] = {
     CASE("take_out works") {
-        const auto actual = take_out(map<int, int>{{42, 1}}, 42);
-        const auto expected = map<int, int>{};
+        const auto actual = take_out(mapii{{42, 1}}, 42);
+        const auto expected = mapii{};
         EXPECT(actual == expected);
     },
     CASE("empty output on empty input") {
