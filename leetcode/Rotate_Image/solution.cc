@@ -84,6 +84,35 @@ struct Solution {
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("0 x 0") {
+        Matrix actual{};
+        Solution().rotate(actual);
+        const Matrix expected{};
+
+        EXPECT(actual == expected);
+    },
+    CASE("1 x 1") {
+        Matrix actual{{1}};
+        Solution().rotate(actual);
+        const Matrix expected{{1}};
+
+        EXPECT(actual == expected);
+    },
+    CASE("2 x 2") {
+        Matrix actual{
+            {1,2},
+            {4,3}
+        };
+
+        Solution().rotate(actual);
+
+        const Matrix expected{
+            {4,1},
+            {3,2}
+        };
+
+        EXPECT(actual == expected);
+    },
     CASE("3 x 3") {
         Matrix actual{
             {1,2,3},
