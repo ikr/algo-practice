@@ -31,6 +31,7 @@ struct Solution final {
 
         if (!n) return 1.0;
         if (approx(x, 1.0)) return sign(x, n);
+        if (n == INT_MIN) return 0.0;
 
         return (n < 0 ? sign(x, n) * (1.0 / pow_positive(abs(x), -n))
                       : sign(x, n) * pow_positive(abs(x), n));
@@ -132,6 +133,16 @@ const lest::test tests[] = {
     CASE("2^2147483647") {
         const auto actual = Solution().myPow(2.0, 2147483647);
         const auto expected = INFINITY;
+        EXPECT(actual == expected);
+    },
+    CASE("-2^-2147483648") {
+        const auto actual = Solution().myPow(2.0, -2147483648);
+        const auto expected = lest::approx(0.0);
+        EXPECT(actual == expected);
+    },
+    CASE("-2^2147483647") {
+        const auto actual = Solution().myPow(-2.0, 2147483647);
+        const auto expected = -INFINITY;
         EXPECT(actual == expected);
     },
 };
