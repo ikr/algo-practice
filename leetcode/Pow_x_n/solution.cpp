@@ -12,9 +12,6 @@ double sign(const double x, const int n) {
 }
 
 double pow_positive(const double x, const int n) {
-    assert(x > 0);
-    assert(n > 0);
-
     if (n == 1) return x;
     if (n % 2) return x * pow_positive(x, n - 1);
 
@@ -30,7 +27,7 @@ struct Solution final {
         }
 
         if (!n) return 1.0;
-        if (approx(x, 1.0)) return sign(x, n);
+        if (approx(abs(x), 1.0)) return sign(x, n);
         if (n == INT_MIN) return 0.0;
 
         return (n < 0 ? sign(x, n) * (1.0 / pow_positive(abs(x), -n))
@@ -143,6 +140,11 @@ const lest::test tests[] = {
     CASE("-2^2147483647") {
         const auto actual = Solution().myPow(-2.0, 2147483647);
         const auto expected = -INFINITY;
+        EXPECT(actual == expected);
+    },
+    CASE("-1^-2147483648") {
+        const auto actual = Solution().myPow(-1.0, -2147483648);
+        const auto expected = 1;
         EXPECT(actual == expected);
     },
 };
