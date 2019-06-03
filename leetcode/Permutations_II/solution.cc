@@ -1,24 +1,5 @@
 #include "lest.hpp"
-#include <algorithm>
-#include <bitset>
-#include <cassert>
-#include <climits>
-#include <cmath>
-#include <functional>
-#include <iostream>
-#include <iterator>
-#include <locale>
-#include <map>
-#include <numeric>
-#include <optional>
-#include <set>
-#include <stack>
-#include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
+#include <bits/stdc++.h>
 
 using namespace std;
 using vec = vector<int>;
