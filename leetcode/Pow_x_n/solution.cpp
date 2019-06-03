@@ -124,6 +124,16 @@ const lest::test tests[] = {
         const auto expected = lest::approx(0.25);
         EXPECT(actual == expected);
     },
+    CASE("2^-2147483648") {
+        const auto actual = Solution().myPow(2.0, -2147483648);
+        const auto expected = lest::approx(0.0);
+        EXPECT(actual == expected);
+    },
+    CASE("2^2147483647") {
+        const auto actual = Solution().myPow(2.0, 2147483647);
+        const auto expected = INFINITY;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
