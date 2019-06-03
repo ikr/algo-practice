@@ -9,6 +9,11 @@ struct Solution final {
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("0^0") {
+        const auto actual = Solution().myPow(0.0, 0);
+        const auto expected = lest::approx(1.0);
+        EXPECT(actual == expected);
+    },
     CASE("42^0") {
         const auto actual = Solution().myPow(42.0, 0);
         const auto expected = lest::approx(1.0);
@@ -57,6 +62,11 @@ const lest::test tests[] = {
     CASE("0^-1") {
         const auto actual = Solution().myPow(0.0, -1);
         const auto expected = lest::approx(INFINITY);
+        EXPECT(actual == expected);
+    },
+    CASE("0^100") {
+        const auto actual = Solution().myPow(0.0, 100);
+        const auto expected = lest::approx(0.0);
         EXPECT(actual == expected);
     },
     CASE("problem statement example 1") {
