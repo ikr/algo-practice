@@ -8,7 +8,7 @@ bool approx(const double x, const double y) { return abs(x - y) < epsilon; }
 
 double sign(const double x, const int n) {
     if (x >= 0) return 1.0;
-    return abs(n) % 2 ? -1.0 : 1.0;
+    return ((n % 2) + 2) % 2 ? -1.0 : 1.0;
 }
 
 double pow_positive(const double x, const int n) {
