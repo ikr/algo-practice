@@ -31,6 +31,7 @@ struct Solution final {
         }
 
         if (!n) return 1.0;
+        if (approx(x, 1.0)) return sign(x, n);
 
         return (n < 0 ? sign(x, n) * (1.0 / pow_positive(abs(x), -n))
                       : sign(x, n) * pow_positive(abs(x), n));
