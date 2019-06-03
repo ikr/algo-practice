@@ -4,7 +4,7 @@
 using namespace std;
 
 struct Solution final {
-    double myPow(double x, int n) { return x * n; }
+    double myPow(const double x, const int n) { return x * n; }
 };
 
 // clang-format off
