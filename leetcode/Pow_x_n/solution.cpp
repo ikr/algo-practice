@@ -3,8 +3,36 @@
 
 using namespace std;
 
+constexpr double epsilon = 1.0 / (1000.0 * 1000.0);
+
+bool approx(const double x, const double y) { return abs(x - y) < epsilon; }
+
+double sign(const double x, const int n) {
+    if (x >= 0) return 1.0;
+    return abs(n) % 2 ? -1.0 : 1.0;
+}
+
+double pow_positive(const double x, const int n) {
+    assert(x > 0);
+    assert(n > 0);
+
+    double result = 1.0;
+    for (int i = 0; i != n; ++i) result *= x;
+    return result;
+}
+
 struct Solution final {
-    double myPow(const double x, const int n) { return x * n; }
+    double myPow(const double x, const int n) const {
+        if (approx(x, 0.0)) {
+            if (!n) return 1.0;
+            return n > 0 ? 0.0 : INFINITY;
+        }
+
+        if (!n) return 1.0;
+
+        return (n < 0 ? sign(x, n) * (1.0 / pow_positive(abs(x), -n))
+                      : sign(x, n) * pow_positive(abs(x), n));
+    }
 };
 
 // clang-format off
@@ -26,7 +54,7 @@ const lest::test tests[] = {
     },
     CASE("-2^-2") {
         const auto actual = Solution().myPow(-2.0, -2);
-        const auto expected = lest::approx(0.5);
+        const auto expected = lest::approx(0.25);
         EXPECT(actual == expected);
     },
     CASE("-2^3") {
@@ -61,7 +89,7 @@ const lest::test tests[] = {
     },
     CASE("0^-1") {
         const auto actual = Solution().myPow(0.0, -1);
-        const auto expected = lest::approx(INFINITY);
+        const auto expected = INFINITY;
         EXPECT(actual == expected);
     },
     CASE("0^100") {
