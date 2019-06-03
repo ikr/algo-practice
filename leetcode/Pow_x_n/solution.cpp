@@ -80,6 +80,11 @@ const lest::test tests[] = {
         const auto expected = lest::approx(-1.0);
         EXPECT(actual == expected);
     },
+    CASE("-1^-100") {
+        const auto actual = Solution().myPow(-1.0, -100);
+        const auto expected = lest::approx(1.0);
+        EXPECT(actual == expected);
+    },
     CASE("1^999999") {
         const auto actual = Solution().myPow(1.0, 999999);
         const auto expected = lest::approx(1.0);
