@@ -4,7 +4,6 @@
 using namespace std;
 
 constexpr double epsilon = 1.0 / (1000.0 * 1000.0);
-
 bool approx(const double x, const double y) { return abs(x - y) < epsilon; }
 
 double sign(const double x, const int n) {
