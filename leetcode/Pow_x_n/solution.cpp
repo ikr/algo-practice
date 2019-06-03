@@ -16,9 +16,11 @@ double pow_positive(const double x, const int n) {
     assert(x > 0);
     assert(n > 0);
 
-    double result = 1.0;
-    for (int i = 0; i != n; ++i) result *= x;
-    return result;
+    if (n == 1) return x;
+    if (n % 2) return x * pow_positive(x, n - 1);
+
+    double sqrt = pow_positive(x, n / 2);
+    return sqrt * sqrt;
 }
 
 struct Solution final {
