@@ -6,7 +6,17 @@ using namespace std;
 template <typename T> int intof(T x) { return static_cast<int>(x); }
 
 struct Solution final {
-    int maxSubArray(const vector<int> &xs) const { return intof(xs.size()); }
+    int maxSubArray(const vector<int> &xs) const {
+        int result = INT_MIN;
+        int max_till_iter = 0;
+
+        for (const int x : xs) {
+            max_till_iter = max(max_till_iter + x, x);
+            if (max_till_iter > result) result = max_till_iter;
+        }
+
+        return result;
+    }
 };
 
 // clang-format off
