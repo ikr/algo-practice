@@ -7,16 +7,37 @@ using Row = vector<int>;
 using Board = vector<vector<int>>;
 using RowCol = pair<int, int>;
 
+constexpr int sz_rows = 2;
+constexpr int sz_cols = 3;
+
 template <typename T> int intof(T x) { return static_cast<int>(x); }
 
 RowCol operator+(const RowCol p1, const RowCol p2) {
     return make_pair(p1.first + p2.first, p1.second + p2.second);
 }
 
-constexpr int sz_rows = 3;
-constexpr int sz_cols = 2;
+int board_hash(const Board &board) {
+    int result{0};
+    bool initialized{false};
 
-void assert_board(const Board &board) {
+    for (const auto &r : board) {
+        for (const auto &c : r) {
+            if (!initialized) {
+                result = c;
+                initialized = true;
+                continue;
+            }
+
+            result = 31 * result + c;
+        }
+    }
+
+    return result;
+}
+
+void assert_board(const Board &board, const string &tag) {
+    cout << "assert_board from " << tag << endl;
+
     assert(board.size() == sz_rows);
 
     Row all;
@@ -46,18 +67,18 @@ void assert_neighs(const RowCol &p1, const RowCol &p2) {
 }
 
 Board swap_neighs(Board board, const RowCol &p1, const RowCol &p2) {
-    assert_board(board);
+    assert_board(board, "swap_neighs");
     assert_rowcol(p1);
     assert_rowcol(p2);
     assert_neighs(p1, p2);
-    assert(board[p1.first][p1.second] = 0 || board[p2.first][p2.second] == 0);
+    assert(board[p1.first][p1.second] == 0 || board[p2.first][p2.second] == 0);
 
     swap(board[p1.first][p1.second], board[p2.first][p2.second]);
     return board;
 }
 
 RowCol locate_zero(const Board &board) {
-    assert_board(board);
+    assert_board(board, "localte_zero");
 
     for (int r = 0; r != sz_rows; ++r)
         for (int c = 0; c != sz_cols; ++c)
@@ -84,6 +105,8 @@ vector<RowCol> adjacent(const RowCol &p) {
 
 vector<Board> adjacent(const Board &board) {
     const RowCol p_zero = locate_zero(board);
+    assert(board[p_zero.first][p_zero.second] == 0);
+
     vector<Board> result;
 
     for (const auto p : adjacent(p_zero)) {
@@ -93,12 +116,68 @@ vector<Board> adjacent(const Board &board) {
     return result;
 }
 
+Board goal() {
+    Row src(sz_rows * sz_cols);
+    iota(src.begin(), src.end() - 1, 1);
+    src.back() = 0;
+
+    Board result;
+
+    for (int i = 0; i != sz_rows; ++i) {
+        Row row(src.begin() + (i * sz_cols),
+                src.begin() + (i * sz_cols + sz_cols));
+
+        result.push_back(row);
+    }
+
+    assert_board(result, "goal");
+    return result;
+}
+
 struct Solution final {
-    int slidingPuzzle(const Board &board) const { return intof(board.size()); }
+    int slidingPuzzle(const Board &board) const {
+        const auto g = goal();
+        if (g == board) return 0;
+
+        queue<Board> boards_q;
+        unordered_set<int> seen_hashes;
+        unordered_map<int, int> distances_by_hash;
+
+        boards_q.push(board);
+        distances_by_hash[board_hash(board)] = 0;
+
+        while (!boards_q.empty()) {
+            const auto x = boards_q.front();
+            boards_q.pop();
+
+            const int distance_to_x = distances_by_hash.at(board_hash(x));
+            for (const auto a : adjacent(x)) {
+                if (a == g) return distance_to_x + 1;
+
+                const int h = board_hash(a);
+                if (!seen_hashes.count(h)) {
+                    boards_q.push(a);
+                    distances_by_hash[h] = distance_to_x + 1;
+                    seen_hashes.insert(h);
+                }
+            }
+        }
+
+        return -1;
+    }
 };
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("trivial") {
+        const auto actual = Solution().slidingPuzzle({
+            {1,2,3},
+            {4,5,0}
+        });
+
+        const auto expected = 0;
+        EXPECT(actual == expected);
+    },
     CASE("problem statement example 1") {
         const auto actual = Solution().slidingPuzzle({
             {1,2,3},
