@@ -1,12 +1,13 @@
 # About
 
-My solutions of various algorithmic problems. Grouped by sources:
+My solutions of various algorithmic problems, grouped by the problem source:
 
-* [TopCoder arena](https://arena.topcoder.com/)
+* [Codeforces](http://codeforces.com/problemset)
 * [HackerRank](https://www.hackerrank.com/dashboard)
+* [Interview Cake](https://www.interviewcake.com/)
 * [InterviewBit](https://www.interviewbit.com/courses/programming/)
 * [LeetCode](https://leetcode.com/problemset/all/)
-* [Interview Cake](https://www.interviewcake.com/)
+* [TopCoder arena](https://arena.topcoder.com/)
 
 # Dependencies
 
