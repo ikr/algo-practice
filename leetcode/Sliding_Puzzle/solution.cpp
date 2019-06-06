@@ -35,51 +35,12 @@ int board_hash(const Board &board) {
     return result;
 }
 
-void assert_board(const Board &board, const string &tag) {
-    cout << "assert_board from " << tag << endl;
-
-    assert(board.size() == sz_rows);
-
-    Row all;
-    for (const auto &r : board) {
-        assert(r.size() == sz_cols);
-        all.insert(all.end(), r.begin(), r.end());
-    }
-    sort(all.begin(), all.end());
-
-    Row expected(sz_rows * sz_cols);
-    iota(expected.begin(), expected.end(), 0);
-
-    assert(all == expected);
-}
-
-void assert_rowcol(const RowCol &p) {
-    assert(p.first >= 0);
-    assert(p.first < sz_rows);
-    assert(p.second >= 0);
-    assert(p.second < sz_cols);
-}
-
-void assert_neighs(const RowCol &p1, const RowCol &p2) {
-    assert(p1 != p2);
-    assert(abs(p1.first - p2.first) == 1 || abs(p1.second - p2.second) == 1);
-    assert(p1.first == p2.first || p1.second == p2.second);
-}
-
 Board swap_neighs(Board board, const RowCol &p1, const RowCol &p2) {
-    assert_board(board, "swap_neighs");
-    assert_rowcol(p1);
-    assert_rowcol(p2);
-    assert_neighs(p1, p2);
-    assert(board[p1.first][p1.second] == 0 || board[p2.first][p2.second] == 0);
-
     swap(board[p1.first][p1.second], board[p2.first][p2.second]);
     return board;
 }
 
 RowCol locate_zero(const Board &board) {
-    assert_board(board, "localte_zero");
-
     for (int r = 0; r != sz_rows; ++r)
         for (int c = 0; c != sz_cols; ++c)
             if (board[r][c] == 0) return make_pair(r, c);
@@ -105,8 +66,6 @@ vector<RowCol> adjacent(const RowCol &p) {
 
 vector<Board> adjacent(const Board &board) {
     const RowCol p_zero = locate_zero(board);
-    assert(board[p_zero.first][p_zero.second] == 0);
-
     vector<Board> result;
 
     for (const auto p : adjacent(p_zero)) {
@@ -130,7 +89,6 @@ Board goal() {
         result.push_back(row);
     }
 
-    assert_board(result, "goal");
     return result;
 }
 
