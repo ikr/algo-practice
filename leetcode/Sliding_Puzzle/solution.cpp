@@ -10,8 +10,6 @@ using RowCol = pair<int, int>;
 constexpr int sz_rows = 2;
 constexpr int sz_cols = 3;
 
-template <typename T> int intof(T x) { return static_cast<int>(x); }
-
 RowCol operator+(const RowCol p1, const RowCol p2) {
     return make_pair(p1.first + p2.first, p1.second + p2.second);
 }
