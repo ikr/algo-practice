@@ -22,7 +22,7 @@ optional<int> isqrt(const int x) {
 }
 
 int manhattan_distance(const XY &p1, const XY &p2) {
-    return abs(p1.first - p2.first) + abs(p2.second - p2.second);
+    return abs(p1.first - p2.first) + abs(p1.second - p2.second);
 }
 
 optional<int> euclidian_idistance(const XY &p1, const XY &p2) {
@@ -43,21 +43,15 @@ int main() {
         points.emplace_back(x, y);
     }
 
-    assert(intof(points.size()) == n);
-
     int result = 0;
 
     for (int i = 0; i != n - 1; ++i) {
         for (int j = i + 1; j != n; ++j) {
-            cout << "Checking " << points[i] << " " << points[j] << endl;
-
             const auto maybe_eucl = euclidian_idistance(points[i], points[j]);
             if (!maybe_eucl) continue;
 
-            if (manhattan_distance(points[i], points[j]) == *maybe_eucl) {
-                cout << "Match!" << endl;
+            if (manhattan_distance(points[i], points[j]) == *maybe_eucl)
                 ++result;
-            }
         }
     }
 
