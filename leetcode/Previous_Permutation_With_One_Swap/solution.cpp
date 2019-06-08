@@ -4,7 +4,22 @@
 using namespace std;
 
 struct Solution final {
-    vector<int> prevPermOpt1(const vector<int> &xs) { return xs; }
+    vector<int> prevPermOpt1(vector<int> xs) {
+        const auto left =
+            is_sorted_until(xs.rbegin(), xs.rend(), greater<int>());
+
+        if (left == xs.rend()) return xs;
+
+        const auto right_opener =
+            upper_bound(xs.rbegin(), left, *left, greater<int>());
+
+        const auto right =
+            upper_bound(right_opener, left, *right_opener, greater<int>()) - 1;
+
+        iter_swap(left, right);
+
+        return xs;
+    }
 };
 
 // clang-format off
