@@ -4,7 +4,7 @@
 using namespace std;
 
 bool can_split_in_two_groups(unordered_set<int> ga, unordered_set<int> gb,
-                             vector<vector<int>> &dislikes) {
+                             vector<vector<int>> dislikes) {
     while (dislikes.size()) {
         const vector<int> dl = dislikes.back();
         dislikes.pop_back();
