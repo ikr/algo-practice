@@ -80,6 +80,14 @@ const lest::test tests[] = {
         const auto expected = true;
         EXPECT(actual == expected);
     },
+    CASE("submission test 40") {
+        const auto actual = Solution().possibleBipartition(
+            10,
+            {{4,7},{4,8},{2,8},{8,9},{1,6},{5,8},{1,2},{6,7},{3,10},{8,10},{1,5},{7,10},{1,10},{3,5},{3,6},{1,4},{3,9},{2,3},{1,9},{7,9},{2,7},{6,8},{5,7},{3,4}}
+        );
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
