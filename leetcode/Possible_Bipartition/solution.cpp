@@ -55,6 +55,31 @@ const lest::test tests[] = {
         const auto expected = false;
         EXPECT(actual == expected);
     },
+    CASE("my test 1") {
+        const auto actual = Solution().possibleBipartition(9, {{1,2}});
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("my test 2") {
+        const auto actual = Solution().possibleBipartition(9, {{1,2},{3,4},{5,6}});
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("my test 3") {
+        const auto actual = Solution().possibleBipartition(9, {{2,3},{3,2}});
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("my test 4") {
+        const auto actual = Solution().possibleBipartition(9, {{2,3},{3,4},{4,5},{5,6},{6,2}});
+        const auto expected = false;
+        EXPECT(actual == expected);
+    },
+    CASE("trivial") {
+        const auto actual = Solution().possibleBipartition(9, {});
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
