@@ -4,8 +4,37 @@
 using namespace std;
 
 struct Solution final {
-    bool possibleBipartition(const int n, const vector<vector<int>> &dislikes) {
-        return n > static_cast<int>(dislikes.size());
+    bool possibleBipartition(const int sz,
+                             const vector<vector<int>> &dislikes) {
+        assert(sz);
+
+        unordered_set<int> ga;
+        unordered_set<int> gb;
+
+        for (const auto dl : dislikes) {
+            const int x = dl.front();
+            const int y = dl.back();
+
+            if (!ga.count(x) && !gb.count(y) && !ga.count(y) && !gb.count(x)) {
+                ga.insert(x);
+                gb.insert(y);
+            } else if (ga.count(x)) {
+                if (ga.count(y)) return false;
+                gb.insert(y);
+            } else if (ga.count(y)) {
+                if (ga.count(x)) return false;
+                gb.insert(x);
+            } else if (gb.count(x)) {
+                if (gb.count(y)) return false;
+                ga.insert(y);
+            } else if (gb.count(y)) {
+                if (gb.count(x)) return false;
+                ga.insert(x);
+            } else
+                return false;
+        }
+
+        return true;
     }
 };
 
