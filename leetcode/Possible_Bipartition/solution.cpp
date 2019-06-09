@@ -3,7 +3,7 @@
 
 using namespace std;
 
-bool can_split_in_two_groups(unordered_set<int> &ga, unordered_set<int> &gb,
+bool can_split_in_two_groups(unordered_set<int> ga, unordered_set<int> gb,
                              vector<vector<int>> &dislikes) {
     while (dislikes.size()) {
         const vector<int> dl = dislikes.back();
@@ -48,11 +48,8 @@ bool can_split_in_two_groups(unordered_set<int> &ga, unordered_set<int> &gb,
 struct Solution final {
     bool possibleBipartition(const int sz, vector<vector<int>> &dislikes) {
         assert(sz);
-
-        unordered_set<int> ga;
-        unordered_set<int> gb;
-
-        return can_split_in_two_groups(ga, gb, dislikes);
+        return can_split_in_two_groups(unordered_set<int>{},
+                                       unordered_set<int>{}, dislikes);
     }
 };
 
