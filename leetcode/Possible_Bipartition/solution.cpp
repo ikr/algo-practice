@@ -5,32 +5,15 @@ using namespace std;
 
 using Vertex = int;
 using Group = unordered_set<Vertex>;
-
-struct DislikeGraph final {
-    DislikeGraph(const vector<vector<int>> &dislikes) : m_adj{} {
-        for (const auto &dl : dislikes) {
-            m_adj.insert(make_pair(dl[0], dl[1]));
-            m_adj.insert(make_pair(dl[1], dl[0]));
-        }
-    }
-
-    vector<Vertex> adjacent(const Vertex v) const {
-        vector<Vertex> result;
-
-        const auto range = m_adj.equal_range(v);
-        transform(range.first, range.second, back_inserter(result),
-                  [](const auto &kv) { return kv.second; });
-
-        return result;
-    }
-
-  private:
-    multimap<Vertex, Vertex> m_adj;
-};
+using DislikeGraph = unordered_multimap<Vertex, Vertex>;
 
 bool two_coloring_dfs(const DislikeGraph &dg, vector<bool> &colors,
                       Group &visited, const Vertex v) {
-    for (const auto a : dg.adjacent(v)) {
+    const auto adj_range = dg.equal_range(v);
+
+    for (auto i = adj_range.first; i != adj_range.second; ++i) {
+        const Vertex a = i->second;
+
         if (!visited.count(a)) {
             visited.insert(a);
             colors[a] = !colors[v];
@@ -45,7 +28,12 @@ bool two_coloring_dfs(const DislikeGraph &dg, vector<bool> &colors,
 struct Solution final {
     bool possibleBipartition(const int sz,
                              const vector<vector<int>> &dislikes) const {
-        DislikeGraph dg(dislikes);
+        DislikeGraph dg;
+
+        for (const auto &dl : dislikes) {
+            dg.insert(make_pair(dl[0], dl[1]));
+            dg.insert(make_pair(dl[1], dl[0]));
+        }
 
         for (Vertex v = 1; v != sz + 1; ++v) {
             vector<bool> colors(sz + 1);
