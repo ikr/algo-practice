@@ -50,7 +50,7 @@ struct Solution final {
 
         sort(dislikes.begin(), dislikes.end(),
              [](const auto &dl1, const auto &dl2) {
-                 return make_pair(dl1[0], dl1[1]) < make_pair(dl2[0], dl2[1]);
+                 return min(dl1[0], dl1[1]) < min(dl2[0], dl2[1]);
              });
 
         return can_split_in_two_groups(unordered_set<int>{},
