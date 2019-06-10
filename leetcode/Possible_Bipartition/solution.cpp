@@ -45,9 +45,14 @@ bool can_split_in_two_groups(unordered_set<int> ga, unordered_set<int> gb,
 }
 
 struct Solution final {
-    bool possibleBipartition(const int sz,
-                             const vector<vector<int>> &dislikes) {
+    bool possibleBipartition(const int sz, vector<vector<int>> dislikes) {
         assert(sz);
+
+        sort(dislikes.begin(), dislikes.end(),
+             [](const auto &dl1, const auto &dl2) {
+                 return make_pair(dl1[0], dl1[1]) < make_pair(dl2[0], dl2[1]);
+             });
+
         return can_split_in_two_groups(unordered_set<int>{},
                                        unordered_set<int>{}, dislikes, 0);
     }
