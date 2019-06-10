@@ -4,13 +4,10 @@
 using namespace std;
 
 bool can_split_in_two_groups(unordered_set<int> ga, unordered_set<int> gb,
-                             vector<vector<int>> dislikes) {
-    while (dislikes.size()) {
-        const vector<int> dl = dislikes.back();
-        dislikes.pop_back();
-
-        const int x = dl.front();
-        const int y = dl.back();
+                             const vector<vector<int>> dislikes, size_t idx) {
+    while (idx != dislikes.size()) {
+        const int x = dislikes.at(idx).front();
+        const int y = dislikes.at(idx).back();
 
         if (!ga.size()) {
             ga.insert(x);
@@ -19,13 +16,13 @@ bool can_split_in_two_groups(unordered_set<int> ga, unordered_set<int> gb,
                    !gb.count(x)) {
             ga.insert(x);
             gb.insert(y);
-            if (can_split_in_two_groups(ga, gb, dislikes)) return true;
+            if (can_split_in_two_groups(ga, gb, dislikes, idx + 1)) return true;
 
             ga.erase(x);
             gb.erase(y);
             ga.insert(y);
             gb.insert(x);
-            return can_split_in_two_groups(ga, gb, dislikes);
+            return can_split_in_two_groups(ga, gb, dislikes, idx + 1);
         } else if (ga.count(x)) {
             if (ga.count(y)) return false;
             gb.insert(y);
@@ -40,16 +37,19 @@ bool can_split_in_two_groups(unordered_set<int> ga, unordered_set<int> gb,
             ga.insert(x);
         } else
             return false;
+
+        ++idx;
     }
 
     return true;
 }
 
 struct Solution final {
-    bool possibleBipartition(const int sz, vector<vector<int>> &dislikes) {
+    bool possibleBipartition(const int sz,
+                             const vector<vector<int>> &dislikes) {
         assert(sz);
         return can_split_in_two_groups(unordered_set<int>{},
-                                       unordered_set<int>{}, dislikes);
+                                       unordered_set<int>{}, dislikes, 0);
     }
 };
 
