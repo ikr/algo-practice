@@ -2,6 +2,14 @@
 
 using namespace std;
 
+ostream &operator<<(ostream &os, const vector<int> &xs) {
+    for (const auto x : xs) {
+        cout << x << ' ';
+    }
+
+    return os;
+}
+
 struct RowCol final {
     int row;
     int col;
@@ -17,7 +25,7 @@ bool are_totals_ok(const vector<int> &totals) {
     if (totals.size() < 3 || totals[0] > 1 || totals.back() > 1) return false;
 
     vector<int> heapy = totals;
-    partial_sort(heapy.begin(), heapy.begin() + 2, heapy.end());
+    partial_sort(heapy.begin(), heapy.begin() + 2, heapy.end(), greater<int>());
 
     return heapy[0] >= 3 && heapy[1] <= 1;
 }
