@@ -2,14 +2,6 @@
 
 using namespace std;
 
-ostream &operator<<(ostream &os, const vector<int> &xs) {
-    for (const auto x : xs) {
-        cout << x << ' ';
-    }
-
-    return os;
-}
-
 struct RowCol final {
     int row;
     int col;
