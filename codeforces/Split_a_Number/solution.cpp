@@ -7,7 +7,11 @@ bool digits_less(const string &a, const string &b) {
     return a.size() < b.size();
 }
 
-string add(const string &a, const string &b) {
+string digits_min(const string &a, const string &b) {
+    return digits_less(a, b) ? a : b;
+}
+
+string digits_add(const string &a, const string &b) {
     auto ia = a.rbegin();
     auto ib = b.rbegin();
     bool carry = false;
@@ -44,19 +48,44 @@ int main() {
     string digits;
     cin >> length >> digits;
 
+    if (digits[digits.size() / 2] != '0') {
+        if (!(digits.size() % 2)) {
+            cout << digits_add(digits.substr(0, digits.size() / 2),
+                               digits.substr(digits.size() / 2, string::npos))
+                 << '\n';
+            return 0;
+        }
+
+        if (digits[digits.size() / 2 + 1] != '0') {
+            cout << digits_min(
+                        digits_add(
+                            digits.substr(0, digits.size() / 2 + 1),
+                            digits.substr(digits.size() / 2 + 1, string::npos)),
+                        digits_add(
+                            digits.substr(0, digits.size() / 2),
+                            digits.substr(digits.size() / 2, string::npos)))
+                 << '\n';
+
+            return 0;
+        }
+    }
+
     size_t b_start = 1;
     while (digits[b_start] == '0') ++b_start;
 
     string a = digits.substr(0, b_start);
     string b = digits.substr(b_start, string::npos);
-    string result = add(a, b);
+    string result = digits_add(a, b);
 
     for (b_start = b_start + 1; b_start <= digits.size() - 1; ++b_start) {
+        const string old_a = a;
+        const string old_b = b;
+
         a += digits[b_start - 1];
         b.erase(b.begin(), b.begin() + 1);
         if (digits[b_start] == '0') continue;
 
-        const string the_sum = add(a, b);
+        const string the_sum = digits_add(a, b);
 
         if (digits_less(the_sum, result)) result = the_sum;
     }
