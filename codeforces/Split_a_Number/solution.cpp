@@ -78,9 +78,6 @@ int main() {
     string result = digits_add(a, b);
 
     for (b_start = b_start + 1; b_start <= digits.size() - 1; ++b_start) {
-        const string old_a = a;
-        const string old_b = b;
-
         a += digits[b_start - 1];
         b.erase(b.begin(), b.begin() + 1);
         if (digits[b_start] == '0') continue;
