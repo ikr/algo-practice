@@ -16,7 +16,7 @@ int main() {
     const size_t extra2 = fund2 % price;
 
     const bool can_credit =
-        (extra1 && missing1 >= extra2) || (extra2 && missing2 >= extra1);
+        (extra1 && missing2 <= extra1) || (extra2 && missing1 <= extra2);
 
     const size_t credit = can_credit ? min(missing1, missing2) : 0;
 
