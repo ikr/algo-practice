@@ -16,7 +16,8 @@ string digits_add(const string &a, const string &b) {
     auto ib = b.rbegin();
     bool carry = false;
 
-    string result;
+    string result(max(a.size(), b.size()) + 1, '?');
+    size_t i = result.size() - 1;
 
     while (ia != a.rend() || ib != b.rend()) {
         int d = carry ? 1 : 0;
@@ -33,13 +34,16 @@ string digits_add(const string &a, const string &b) {
             ++ib;
         }
 
-        result += static_cast<char>('0' + (d % 10));
+        result[i] = static_cast<char>('0' + (d % 10));
         carry = (d / 10);
+        --i;
     }
 
-    if (carry) result += '1';
+    if (carry)
+        result[i] = '1';
+    else
+        result.erase(result.begin());
 
-    reverse(result.begin(), result.end());
     return result;
 }
 
