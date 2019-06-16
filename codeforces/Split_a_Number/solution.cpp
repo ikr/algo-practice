@@ -48,28 +48,6 @@ int main() {
     string digits;
     cin >> length >> digits;
 
-    if (digits[digits.size() / 2] != '0') {
-        if (!(digits.size() % 2)) {
-            cout << digits_add(digits.substr(0, digits.size() / 2),
-                               digits.substr(digits.size() / 2, string::npos))
-                 << '\n';
-            return 0;
-        }
-
-        if (digits[digits.size() / 2 + 1] != '0') {
-            cout << digits_min(
-                        digits_add(
-                            digits.substr(0, digits.size() / 2 + 1),
-                            digits.substr(digits.size() / 2 + 1, string::npos)),
-                        digits_add(
-                            digits.substr(0, digits.size() / 2),
-                            digits.substr(digits.size() / 2, string::npos)))
-                 << '\n';
-
-            return 0;
-        }
-    }
-
     size_t b_start = 1;
     while (digits[b_start] == '0') ++b_start;
 
@@ -80,10 +58,11 @@ int main() {
     for (b_start = b_start + 1; b_start <= digits.size() - 1; ++b_start) {
         a += digits[b_start - 1];
         b.erase(b.begin(), b.begin() + 1);
-        if (digits[b_start] == '0') continue;
+
+        if (digits[b_start] == '0' || max(a.size(), b.size()) > result.size())
+            continue;
 
         const string the_sum = digits_add(a, b);
-
         if (digits_less(the_sum, result)) result = the_sum;
     }
 
