@@ -9,6 +9,9 @@ struct ListNode final {
     ListNode(int x) : val(x), next(nullptr) {}
 };
 
+// MEMORY LEAKS!
+// Non-production contest code. No proper memory management here.
+//
 struct Solution final {
     ListNode *deleteDuplicates(ListNode *head) const {
         if (!head) return nullptr;
