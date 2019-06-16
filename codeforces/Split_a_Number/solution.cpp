@@ -47,25 +47,37 @@ string digits_add(const string &a, const string &b) {
     return result;
 }
 
+string result_bound(const string &digits) {
+    const size_t sz = digits.size();
+
+    size_t b_start = sz / 2;
+    while (digits[b_start] == '0') ++b_start;
+
+    if (b_start == sz) {
+        b_start = sz / 2;
+        while (digits[b_start] == '0') --b_start;
+    }
+
+    string a = digits.substr(0, b_start);
+    string b = digits.substr(b_start, string::npos);
+    return digits_add(a, b);
+}
+
 int main() {
     int length;
     string digits;
     cin >> length >> digits;
 
-    size_t b_start = 1;
-    while (digits[b_start] == '0') ++b_start;
+    const size_t sz = digits.size();
+    string result = result_bound(digits);
 
-    string a = digits.substr(0, b_start);
-    string b = digits.substr(b_start, string::npos);
-    string result = digits_add(a, b);
-
-    for (b_start = b_start + 1; b_start <= digits.size() - 1; ++b_start) {
-        a += digits[b_start - 1];
-        b.erase(b.begin(), b.begin() + 1);
-
-        if (digits[b_start] == '0' || max(a.size(), b.size()) > result.size())
+    for (size_t b_start = 1; b_start <= sz - 1; ++b_start) {
+        if (digits[b_start] == '0' ||
+            max(b_start, sz - b_start) > result.size())
             continue;
 
+        const string a = digits.substr(0, b_start);
+        const string b = digits.substr(b_start, string::npos);
         const string the_sum = digits_add(a, b);
         if (digits_less(the_sum, result)) result = the_sum;
     }
