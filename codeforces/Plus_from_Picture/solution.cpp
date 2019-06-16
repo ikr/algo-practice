@@ -70,6 +70,23 @@ bool confirm_a_cross(const vector<string> &rows, const int row, const int col) {
            confirm_ray(rows, center + left, left);
 }
 
+bool verify_cross_height(const vector<string> &rows, const int col,
+                         const int height) {
+    int stars_count = 0;
+
+    for (const string &row : rows) {
+        if (row[col] == '*') ++stars_count;
+    }
+
+    return stars_count == height;
+}
+
+bool verify_cross_size(const vector<string> &rows, const int row, const int col,
+                       const int height, const int width) {
+    return verify_cross_height(rows, col, height) &&
+           (count(rows[row].begin(), rows[row].end(), '*') == width);
+}
+
 int main() {
     int rows_count;
     int cols_count;
@@ -92,10 +109,18 @@ int main() {
         }
     }
 
-    const bool verdict = are_totals_ok(row_totals) &&
-                         are_totals_ok(col_totals) &&
-                         confirm_a_cross(rows, index_of_max(row_totals),
-                                         index_of_max(col_totals));
+    const auto greater_than_zero = [](const int x) { return x > 0; };
+    const int cross_row = index_of_max(row_totals);
+    const int cross_col = index_of_max(col_totals);
+
+    const bool verdict =
+        are_totals_ok(row_totals) && are_totals_ok(col_totals) &&
+        confirm_a_cross(rows, cross_row, cross_col) &&
+        verify_cross_size(rows, cross_row, cross_col,
+                          intof(count_if(row_totals.begin(), row_totals.end(),
+                                         greater_than_zero)),
+                          intof(count_if(col_totals.begin(), col_totals.end(),
+                                         greater_than_zero)));
 
     cout << (verdict ? "YES" : "NO") << '\n';
 }
