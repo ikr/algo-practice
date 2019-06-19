@@ -3,6 +3,14 @@
 
 using namespace std;
 
+ostream &operator<<(ostream &os, const vector<int> &xs) {
+    for (const auto x : xs) {
+        cout << x << ' ';
+    }
+
+    return os;
+}
+
 using Vertex = int;
 using Graph = unordered_multimap<Vertex, Vertex>;
 using EdgeSource = vector<Vertex>;
@@ -46,12 +54,58 @@ vector<int> distances_from(const int vertices_count, const Graph &g,
         }
     }
 
+    cout << result << '\n';
+
     assert(count(result.begin(), result.end(), INT_MAX) == 0);
     return result;
 }
 
 Vertex closest_common_ancestor(const Graph &g, const Vertex u, const Vertex v) {
-    return min(g.equal_range(u).first->first, g.equal_range(v).first->first);
+    if (u == v) return u;
+
+    unordered_set<Vertex> visited_from_u{u};
+    queue<Vertex> qu;
+    qu.push(u);
+
+    unordered_set<Vertex> visited_from_v{v};
+    queue<Vertex> qv;
+    qv.push(v);
+
+    while (!qu.empty() || !qv.empty()) {
+        if (!qu.empty()) {
+            const Vertex uu = qu.front();
+            qu.pop();
+
+            const auto range = g.equal_range(uu);
+            for (auto i = range.first; i != range.second; ++i) {
+                const Vertex a = i->second;
+
+                if (!visited_from_u.count(a)) {
+                    if (visited_from_v.count(a)) return a;
+                    visited_from_u.insert(a);
+                    qu.push(a);
+                }
+            }
+        }
+
+        if (!qv.empty()) {
+            const Vertex vv = qv.front();
+            qv.pop();
+
+            const auto range = g.equal_range(vv);
+            for (auto i = range.first; i != range.second; ++i) {
+                const Vertex a = i->second;
+
+                if (!visited_from_v.count(a)) {
+                    if (visited_from_u.count(a)) return a;
+                    visited_from_v.insert(a);
+                    qv.push(a);
+                }
+            }
+        }
+    }
+
+    throw logic_error("Two BFS-es failed to meet in the middle");
 }
 
 struct Solution final {
