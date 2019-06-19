@@ -3,7 +3,8 @@
 
 using namespace std;
 
-ostream &operator<<(ostream &os, const vector<int> &xs) {
+template <typename T>
+ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (const auto x : xs) {
         cout << x << ' ';
     }
@@ -32,8 +33,6 @@ vector<int> distances_from(const int vertices_count, const Graph &g,
     vector<bool> visited(vertices_count, false);
     visited[root] = true;
 
-    vector<Vertex> sources(vertices_count, INT_MAX);
-
     queue<Vertex> q;
     q.push(root);
 
@@ -47,14 +46,15 @@ vector<int> distances_from(const int vertices_count, const Graph &g,
 
             if (!visited[a]) {
                 visited[a] = true;
-                sources[a] = v;
-                result[v] = sources[v] + 1;
+                result[a] = result[v] + 1;
                 q.push(a);
             }
         }
     }
 
-    cout << result << '\n';
+    cout << "root is " << root << '\n';
+    cout << "result is " << result << '\n';
+    cout << "visited is " << visited << '\n';
 
     assert(count(result.begin(), result.end(), INT_MAX) == 0);
     return result;
