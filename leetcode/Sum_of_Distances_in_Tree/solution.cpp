@@ -53,10 +53,6 @@ vector<int> distances_from(const int vertices_count, const Graph &g,
         }
     }
 
-    cout << "root is " << root << '\n';
-    cout << "result is " << result << '\n';
-    cout << "visited is " << visited << '\n';
-
     assert(count(result.begin(), result.end(), INT_MAX) == 0);
     return result;
 }
@@ -139,7 +135,22 @@ struct Solution final {
 
 // clang-format off
 const lest::test tests[] = {
-    CASE("the answer is 42") {
+    CASE("closest common ancestor of 4 & 0") {
+        const auto actual = closest_common_ancestor(make_graph({{0,1},{0,2},{2,3},{2,4},{2,5}}), 4, 0);
+        const auto expected = 2;
+        EXPECT(actual == expected);
+    },
+    CASE("closest common ancestor of 1 & 4") {
+        const auto actual = closest_common_ancestor(make_graph({{0,1},{0,2},{2,3},{2,4},{2,5}}), 1, 4);
+        const auto expected = 2;
+        EXPECT(actual == expected);
+    },
+    CASE("closest common ancestor of 1 & 2") {
+        const auto actual = closest_common_ancestor(make_graph({{0,1},{0,2},{2,3},{2,4},{2,5}}), 1, 2);
+        const auto expected = 0;
+        EXPECT(actual == expected);
+    },
+    CASE("problem statement example") {
         const auto actual = Solution().sumOfDistancesInTree(6, {{0,1},{0,2},{2,3},{2,4},{2,5}});
         const auto expected = vector<int>{8,12,6,10,10,10};
         EXPECT(actual == expected);
