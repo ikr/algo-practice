@@ -3,8 +3,7 @@
 
 using namespace std;
 
-template <typename T>
-ostream &operator<<(ostream &os, const vector<T> &xs) {
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (const auto x : xs) {
         cout << x << ' ';
     }
@@ -19,8 +18,10 @@ using EdgeSource = vector<Vertex>;
 Graph make_graph(const vector<EdgeSource> &edge_sources) {
     Graph result;
 
-    for (const auto &edge_source : edge_sources)
+    for (const auto &edge_source : edge_sources) {
         result.insert(make_pair(edge_source[0], edge_source[1]));
+        result.insert(make_pair(edge_source[1], edge_source[0]));
+    }
 
     return result;
 }
