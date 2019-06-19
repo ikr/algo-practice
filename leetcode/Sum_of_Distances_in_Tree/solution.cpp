@@ -5,13 +5,61 @@ using namespace std;
 
 using Vertex = int;
 using Graph = unordered_multimap<Vertex, Vertex>;
+using EdgeSource = vector<Vertex>;
+
+Graph make_graph(const vector<EdgeSource> &edge_sources) {
+    Graph result;
+
+    for (const auto &edge_source : edge_sources)
+        result.insert(make_pair(edge_source[0], edge_source[1]));
+
+    return result;
+}
+
+vector<int> distances_from(const int vertices_count, const Graph &g,
+                           const Vertex root) {
+    vector<int> result(vertices_count, INT_MAX);
+    result[root] = 0;
+
+    vector<bool> visited(vertices_count, false);
+    visited[root] = true;
+
+    vector<Vertex> sources(vertices_count, INT_MAX);
+
+    queue<Vertex> q;
+    q.push(root);
+
+    while (!q.empty()) {
+        const Vertex v = q.front();
+        q.pop();
+
+        const auto range = g.equal_range(v);
+        for (auto i = range.first; i != range.second; ++i) {
+            const Vertex a = i->second;
+
+            if (!visited[a]) {
+                visited[a] = true;
+                sources[a] = v;
+                result[v] = sources[v] + 1;
+                q.push(a);
+            }
+        }
+    }
+
+    assert(count(result.begin(), result.end(), INT_MAX) == 0);
+    return result;
+}
+
+Vertex closest_common_ancestor(const Graph &g, const Vertex u, const Vertex v) {
+    return min(g.equal_range(u).first->first, g.equal_range(v).first->first);
+}
 
 struct Solution final {
     vector<int>
     sumOfDistancesInTree(const int vertices_count,
-                         const vector<vector<Vertex>> &edges) const {
-        Graph g = make_graph(edges);
-        Vertex root = find_root(g);
+                         const vector<EdgeSource> &edge_sources) const {
+        Graph g = make_graph(edge_sources);
+        Vertex root = g.begin()->first;
         vector<int> d_from_root = distances_from(vertices_count, g, root);
 
         vector<int> d_sums(vertices_count);
@@ -38,7 +86,7 @@ struct Solution final {
 const lest::test tests[] = {
     CASE("the answer is 42") {
         const auto actual = Solution().sumOfDistancesInTree(6, {{0,1},{0,2},{2,3},{2,4},{2,5}});
-        const auto expected = {8,12,6,10,10,10};
+        const auto expected = vector<int>{8,12,6,10,10,10};
         EXPECT(actual == expected);
     },
 };
