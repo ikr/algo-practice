@@ -135,6 +135,11 @@ struct Solution final {
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("distances_from") {
+        const auto actual = distances_from(6, make_graph({{0,1},{0,2},{2,3},{2,4},{2,5}}), 3);
+        const auto expected = vector<int>{2,3,1,0,2,2};
+        EXPECT(actual == expected);
+    },
     CASE("closest common ancestor of 4 & 0") {
         const auto actual = closest_common_ancestor(make_graph({{0,1},{0,2},{2,3},{2,4},{2,5}}), 4, 0);
         const auto expected = 2;
