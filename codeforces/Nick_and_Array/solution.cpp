@@ -18,6 +18,20 @@ int zeros_count_with_replace(vector<ll_t> &xs) {
     return zeroes_count;
 }
 
+vector<ll_t>::iterator min_positive_element(vector<ll_t> &xs) {
+    vector<ll_t>::iterator result = xs.end();
+    ll_t value = numeric_limits<ll_t>::max();
+
+    for (auto i = xs.begin(); i != xs.end(); ++i) {
+        if (*i > 0LL && *i < value) {
+            result = i;
+            value = *i;
+        }
+    }
+
+    return result;
+}
+
 void compute(vector<ll_t> &xs) {
     const int zeros_count = zeros_count_with_replace(xs);
 
@@ -42,7 +56,7 @@ void compute(vector<ll_t> &xs) {
         return;
     }
 
-    auto i_max = max_element(xs.begin(), xs.end());
+    auto i_max = min_positive_element(xs);
     const ll_t v_max = *i_max;
 
     int sign = 1;
