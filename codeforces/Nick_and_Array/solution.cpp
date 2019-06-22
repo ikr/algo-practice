@@ -157,7 +157,7 @@ void do_io() {
 }
 
 void compare_to_bruteforce_results() {
-    for (int i = 0; i != 10000; ++i) {
+    for (int i = 0; i != 4000; ++i) {
         const vector<ll_t> xs = random_vector(10, 10);
         const auto opt_prod = bruteforce_swaps_max_product(xs);
 
