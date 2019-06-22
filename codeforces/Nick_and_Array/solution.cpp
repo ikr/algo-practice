@@ -8,14 +8,10 @@ template <typename T> int intof(const T x) { return static_cast<int>(x); }
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     const auto i_back = xs.end() - 1;
 
-    os << '[';
-
     for (auto i = xs.begin(); i != xs.end(); ++i) {
         os << *i;
         if (i != i_back) os << ' ';
     }
-
-    os << ']';
 
     return os;
 }
@@ -23,15 +19,13 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 template <typename T>
 ostream &operator<<(ostream &os, const vector<vector<T>> &xs) {
     for (const auto &x : xs) {
-        os << x << ' ';
+        os << '[' << x << "] ";
     }
 
     return os;
 }
 
 //------------------------------------------------------------------------------
-
-ll_t bruteforce_max_product(const vector<ll_t> &xs) {}
 
 void indices_subsets(const size_t sz, const vector<size_t> &prefix,
                      const size_t index, vector<vector<size_t>> &result) {
@@ -45,6 +39,42 @@ void indices_subsets(const size_t sz, const vector<size_t> &prefix,
     vector<size_t> prefix_with = prefix;
     prefix_with.push_back(index);
     indices_subsets(sz, prefix_with, index + 1, result);
+}
+
+ll_t mul(const vector<ll_t> &xs) {
+    return accumulate(xs.begin(), xs.end(), 1, multiplies<ll_t>());
+}
+
+vector<ll_t> bruteforce_swaps_max_product(const vector<ll_t> &xs) {
+    vector<vector<size_t>> idx_sets;
+    indices_subsets(xs.size(), {}, 0, idx_sets);
+
+    ll_t optimum = numeric_limits<ll_t>::min();
+    vector<ll_t> result;
+
+    for (const auto &idxs : idx_sets) {
+        vector<ll_t> xs_copy = xs;
+        for (const auto idx : idxs) {
+            xs_copy[idx] = -xs_copy[idx] - 1;
+        }
+
+        const ll_t candidate = mul(xs_copy);
+        if (candidate > optimum) {
+            result = xs_copy;
+            optimum = candidate;
+        }
+    }
+
+    return result;
+}
+
+vector<ll_t> random_vector(const size_t sz, const unsigned int magnitude) {
+    random_device rd;
+    uniform_int_distribution<int> dist(-magnitude, magnitude);
+
+    vector<ll_t> result(sz);
+    generate(result.begin(), result.end(), [&dist, &rd]() { return dist(rd); });
+    return result;
 }
 
 //------------------------------------------------------------------------------
@@ -115,9 +145,7 @@ void compute(vector<ll_t> &xs) {
 void do_io() {
     int sz;
     cin >> sz;
-
     vector<ll_t> xs(sz);
-
     for (int i = 0; i != sz; ++i) {
         ll_t x;
         cin >> x;
@@ -128,11 +156,25 @@ void do_io() {
     cout << xs << '\n';
 }
 
-int main() {
-    vector<vector<size_t>> subsets;
-    indices_subsets(4, {}, 0, subsets);
-    cout << subsets << '\n';
+void compare_to_bruteforce_results() {
+    for (int i = 0; i != 1000000; ++i) {
+        const vector<ll_t> xs = random_vector(10, 10);
+        const auto opt_prod = bruteforce_swaps_max_product(xs);
 
-    do_io();
+        vector<ll_t> xs_copy = xs;
+        compute(xs_copy);
+
+        if (mul(xs_copy) != mul(opt_prod)) {
+            cout << "failure on " << xs << '\n';
+            cout << "computed is " << xs_copy << '\n';
+            cout << "optimal is " << opt_prod << '\n';
+            break;
+        }
+    }
+}
+
+int main() {
+    // do_io();
+    compare_to_bruteforce_results();
     return 0;
 }
