@@ -16,76 +16,13 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xs) {
-    for (const auto &x : xs) {
-        os << '[' << x << "] ";
-    }
-
-    return os;
-}
-
-//------------------------------------------------------------------------------
-
-void indices_subsets(const size_t sz, const vector<size_t> &prefix,
-                     const size_t index, vector<vector<size_t>> &result) {
-    if (index == sz) {
-        result.push_back(prefix);
-        return;
-    }
-
-    indices_subsets(sz, prefix, index + 1, result);
-
-    vector<size_t> prefix_with = prefix;
-    prefix_with.push_back(index);
-    indices_subsets(sz, prefix_with, index + 1, result);
-}
-
-ll_t mul(const vector<ll_t> &xs) {
-    return accumulate(xs.begin(), xs.end(), 1LL, multiplies<ll_t>());
-}
-
-vector<ll_t> bruteforce_swaps_max_product(const vector<ll_t> &xs) {
-    vector<vector<size_t>> idx_sets;
-    indices_subsets(xs.size(), {}, 0, idx_sets);
-
-    ll_t optimum = numeric_limits<ll_t>::min();
-    vector<ll_t> result;
-
-    for (const auto &idxs : idx_sets) {
-        vector<ll_t> xs_copy = xs;
-        for (const auto idx : idxs) {
-            xs_copy[idx] = -xs_copy[idx] - 1;
-        }
-
-        const ll_t candidate = mul(xs_copy);
-        if (candidate > optimum) {
-            result = xs_copy;
-            optimum = candidate;
-        }
-    }
-
-    return result;
-}
-
-vector<ll_t> random_vector(const size_t sz, const unsigned int magnitude) {
-    random_device rd;
-    uniform_int_distribution<int> dist(-magnitude, magnitude);
-
-    vector<ll_t> result(sz);
-    generate(result.begin(), result.end(), [&dist, &rd]() { return dist(rd); });
-    return result;
-}
-
-//------------------------------------------------------------------------------
-
 int zeros_count_with_replace(vector<ll_t> &xs) {
     int zeroes_count = 0;
 
     for (auto &x : xs) {
         if (x == 0LL) {
             ++zeroes_count;
-            x = -1;
+            x = -1LL;
         }
     }
 
@@ -135,7 +72,7 @@ void compute(vector<ll_t> &xs) {
 
     int sign = 1;
     for (auto &x : xs) {
-        if (x > 0) x = -x - 1LL;
+        if (x > 0LL) x = -x - 1LL;
         sign *= (x < 0LL ? -1 : 1);
     }
 
@@ -156,25 +93,7 @@ void do_io() {
     cout << xs << '\n';
 }
 
-void compare_to_bruteforce_results() {
-    for (int i = 0; i != 4000; ++i) {
-        const vector<ll_t> xs = random_vector(10, 10);
-        const auto opt_prod = bruteforce_swaps_max_product(xs);
-
-        vector<ll_t> xs_copy = xs;
-        compute(xs_copy);
-
-        if (mul(xs_copy) != mul(opt_prod)) {
-            cout << "failure on " << xs << '\n';
-            cout << "computed is " << xs_copy << '\n';
-            cout << "optimal is " << opt_prod << '\n';
-            break;
-        }
-    }
-}
-
 int main() {
-    // do_io();
-    compare_to_bruteforce_results();
+    do_io();
     return 0;
 }
