@@ -2,13 +2,10 @@
 
 using namespace std;
 
-using ll_t = long long;
-template <typename T> int intof(const T x) { return static_cast<int>(x); }
-
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    const auto i_back = xs.end() - 1;
+    const auto i_back = prev(cend(xs));
 
-    for (auto i = xs.begin(); i != xs.end(); ++i) {
+    for (auto i = cbegin(xs); i != cend(xs); ++i) {
         os << *i;
         if (i != i_back) os << ' ';
     }
@@ -16,25 +13,25 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-int zeros_count_with_replace(vector<ll_t> &xs) {
-    int zeroes_count = 0;
+vector<int>::size_type zeros_count_with_replace(vector<int> &xs) {
+    vector<int>::size_type zeros_count = 0;
 
-    for (auto &x : xs) {
-        if (x == 0LL) {
-            ++zeroes_count;
-            x = -1LL;
+    for (int &x : xs) {
+        if (!x) {
+            ++zeros_count;
+            x = -1;
         }
     }
 
-    return zeroes_count;
+    return zeros_count;
 }
 
-vector<ll_t>::iterator min_positive_element(vector<ll_t> &xs) {
-    vector<ll_t>::iterator result = xs.end();
-    ll_t value = numeric_limits<ll_t>::max();
+vector<int>::iterator min_positive_element(vector<int> &xs) {
+    auto result = end(xs);
+    int value = numeric_limits<int>::max();
 
-    for (auto i = xs.begin(); i != xs.end(); ++i) {
-        if (*i > 0LL && *i < value) {
+    for (auto i = begin(xs); i != end(xs); ++i) {
+        if (*i > 0 && *i < value) {
             result = i;
             value = *i;
         }
@@ -43,37 +40,37 @@ vector<ll_t>::iterator min_positive_element(vector<ll_t> &xs) {
     return result;
 }
 
-void compute(vector<ll_t> &xs) {
-    const int zeros_count = zeros_count_with_replace(xs);
+void compute(vector<int> &xs) {
+    const auto zeros_count = zeros_count_with_replace(xs);
 
-    if (zeros_count == intof(xs.size())) {
+    if (zeros_count == xs.size()) {
         if (xs.size() % 2) {
-            fill(xs.begin(), xs.end(), 0LL);
+            fill(begin(xs), end(xs), 0);
             return;
         }
 
-        fill(xs.begin(), xs.end(), -1LL);
+        fill(begin(xs), end(xs), -1);
         return;
     }
 
     const bool all_negative =
-        all_of(xs.begin(), xs.end(), [](const auto x) { return x < 0LL; });
+        all_of(cbegin(xs), cend(xs), [](const int x) { return x < 0; });
 
     if (all_negative) {
         if (xs.size() % 2 == 0) return;
 
-        auto i_min = min_element(xs.begin(), xs.end());
-        *i_min = -(*i_min) - 1LL;
+        auto i_min = min_element(begin(xs), end(xs));
+        *i_min = -(*i_min) - 1;
         return;
     }
 
     auto i_max = min_positive_element(xs);
-    const ll_t v_max = *i_max;
+    const int v_max = *i_max;
 
     int sign = 1;
-    for (auto &x : xs) {
-        if (x > 0LL) x = -x - 1LL;
-        sign *= (x < 0LL ? -1 : 1);
+    for (int &x : xs) {
+        if (x > 0) x = -x - 1;
+        sign *= (x < 0 ? -1 : 1);
     }
 
     if (sign < 0) *i_max = v_max;
@@ -82,9 +79,9 @@ void compute(vector<ll_t> &xs) {
 void do_io() {
     int sz;
     cin >> sz;
-    vector<ll_t> xs(sz);
+    vector<int> xs(sz);
     for (int i = 0; i != sz; ++i) {
-        ll_t x;
+        int x;
         cin >> x;
         xs[i] = x;
     }
