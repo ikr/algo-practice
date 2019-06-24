@@ -26,20 +26,6 @@ vector<int>::size_type zeros_count_with_replace(vector<int> &xs) {
     return zeros_count;
 }
 
-vector<int>::iterator min_positive_element(vector<int> &xs) {
-    auto result = end(xs);
-    int value = numeric_limits<int>::max();
-
-    for (auto i = begin(xs); i != end(xs); ++i) {
-        if (*i > 0 && *i < value) {
-            result = i;
-            value = *i;
-        }
-    }
-
-    return result;
-}
-
 void compute(vector<int> &xs) {
     const auto zeros_count = zeros_count_with_replace(xs);
 
@@ -64,16 +50,16 @@ void compute(vector<int> &xs) {
         return;
     }
 
-    auto i_max = min_positive_element(xs);
-    const int v_max = *i_max;
-
     int sign = 1;
     for (int &x : xs) {
         if (x > 0) x = -x - 1;
         sign *= (x < 0 ? -1 : 1);
     }
 
-    if (sign < 0) *i_max = v_max;
+    if (sign < 0) {
+        auto i_min = min_element(begin(xs), end(xs));
+        *i_min = -(*i_min) - 1;
+    }
 }
 
 void do_io() {
