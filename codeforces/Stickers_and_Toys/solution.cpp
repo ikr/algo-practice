@@ -13,7 +13,7 @@ int main() {
         cin >> n >> s >> t;
 
         const int doubles = s + t - n;
-        const int ans = min(min(s, t), max(s, t) - doubles) + 1;
+        const int ans = doubles ? max(s, t) - doubles + 1 : max(s, t) + 1;
         cout << ans << '\n';
     }
 }
