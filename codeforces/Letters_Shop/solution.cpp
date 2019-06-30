@@ -14,7 +14,7 @@ ostream &operator<<(ostream &os, const array<T, 'z' - 'a' + 1> &xs) {
     return os;
 }
 
-bool is_letters_subset(const CountsV &master, const CountsV &candidate) {
+bool is_letters_subset(const CountsV &candidate, const CountsV &master) {
     for (int i = 0; i != master.size(); ++i) {
         if (candidate.at(i) > master.at(i)) return false;
     }
@@ -62,12 +62,13 @@ int main() {
         } else {
             const auto name_counts = make_counts(name);
 
-            for (int j = name.size(); j != intof(counts_by_sz.size()); ++j) {
-                if (is_letters_subset(counts_by_sz[j], name_counts)) {
-                    cout << j << '\n';
-                    break;
-                }
-            }
+            const auto it =
+                upper_bound(counts_by_sz.cbegin(), counts_by_sz.cend(),
+                            name_counts, [](const auto &xs, const auto &ys) {
+                                return is_letters_subset(xs, ys);
+                            });
+
+            cout << distance(counts_by_sz.cbegin(), it) << '\n';
         }
     }
 }
