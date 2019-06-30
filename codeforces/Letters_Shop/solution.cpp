@@ -5,15 +5,6 @@ using namespace std;
 using CountsV = array<int, 'z' - 'a' + 1>;
 template <typename T> int intof(const T x) { return static_cast<int>(x); }
 
-template <typename T>
-ostream &operator<<(ostream &os, const array<T, 'z' - 'a' + 1> &xs) {
-    for (const auto x : xs) {
-        cout << x << ' ';
-    }
-
-    return os;
-}
-
 bool is_letters_subset(const CountsV &candidate, const CountsV &master) {
     for (int i = 0; i != master.size(); ++i) {
         if (candidate.at(i) > master.at(i)) return false;
