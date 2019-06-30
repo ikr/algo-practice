@@ -57,10 +57,16 @@ int main() {
         string name;
         cin >> name;
 
-        for (int j = name.size(); j != intof(counts_by_sz.size()); ++j) {
-            if (is_letters_subset(counts_by_sz[j], make_counts(name))) {
-                cout << j << '\n';
-                break;
+        if (name.size() == 1) {
+            cout << s.find(name) + 1 << '\n';
+        } else {
+            const auto name_counts = make_counts(name);
+
+            for (int j = name.size(); j != intof(counts_by_sz.size()); ++j) {
+                if (is_letters_subset(counts_by_sz[j], name_counts)) {
+                    cout << j << '\n';
+                    break;
+                }
             }
         }
     }
