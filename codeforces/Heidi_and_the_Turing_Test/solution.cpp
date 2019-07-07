@@ -57,13 +57,24 @@ int main() {
 
         const auto [first, last] = square_size_by_point.equal_range(p);
 
-        for_each(first, last,
-                 [&own_count_by_square_size](const auto &the_pair) {
-                     const auto sz = the_pair.second;
-                     ++own_count_by_square_size[sz];
-                 });
+        for_each(first, last, [&own_count_by_square_size](const auto &el) {
+            const auto sz = el.second;
+            ++own_count_by_square_size[sz];
+        });
+
+        cout << "point " << p.first << ' ' << p.second << " has map of "
+             << own_count_by_square_size.size() << '\n';
+
+        cout << "entries are:\n";
+
+        for (const auto el : own_count_by_square_size) {
+            cout << el.first << ":" << el.second << " ";
+        }
+
+        cout << '\n';
 
         if (own_count_by_square_size.empty() ||
+            !own_count_by_square_size
             own_count_by_square_size.rbegin()->first != actual_square_size) {
             cout << p.first << ' ' << p.second << '\n';
             break;
