@@ -3,23 +3,6 @@
 
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (const auto x : xs) {
-        cout << x << ' ';
-    }
-
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) {
-        cout << xs << '\n';
-    }
-
-    return os;
-}
-
 using Graph = unordered_multimap<int, int>;
 
 int edge_removed_partition_size(const Graph &g, const int remaining_v,
