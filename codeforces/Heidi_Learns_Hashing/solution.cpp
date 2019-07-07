@@ -24,7 +24,7 @@ int main() {
         }
 
         const auto y_value = integer_y(r, x);
-        if (!y_value) continue;
+        if (!y_value || (*y_value) == 0L) continue;
 
         cout << x << ' ' << (*y_value) << '\n';
         break;
