@@ -42,7 +42,17 @@ void dfs_distances(const Graph &g, unordered_set<int> &to_visit,
 }
 
 void dfs_sum_of_distances(const Graph &g, const vector<vector<int>> &erpsz,
-                          const int v, vector<int> &ans) {}
+                          const int u, const int v, vector<int> &ans) {
+    ans[v] = ans[u] - erpsz[v][u] + erpsz[u][v];
+
+    const auto [first, last] = g.equal_range(v);
+    for (auto i = first; i != last; ++i) {
+        const int adj = i->second;
+        if (ans[adj] == -1) {
+            dfs_sum_of_distances(g, erpsz, v, adj, ans);
+        }
+    }
+}
 
 unordered_set<int> all_but_0_set(const int vertices_count) {
     unordered_set<int> ans;
@@ -81,6 +91,12 @@ struct Solution final {
 
         vector<int> ans(vertices_count, -1);
         ans[0] = sum_of_distances_from_v0(vertices_count, g);
+
+        const auto [first, last] = g.equal_range(0);
+        for (auto i = first; i != last; ++i) {
+            const int adj = i->second;
+            dfs_sum_of_distances(g, erpsz, 0, adj, ans);
+        }
 
         return ans;
     }
