@@ -41,6 +41,23 @@ void dfs_distances(const Graph &g, unordered_set<int> &to_visit,
     }
 }
 
+void dfs_sum_of_distances(const Graph &g, const vector<vector<int>> &erpsz,
+                          const int v, vector<int> &ans) {}
+
+unordered_set<int> all_but_0_set(const int vertices_count) {
+    unordered_set<int> ans;
+    for (auto v = 1; v != vertices_count; ++v) ans.insert(v);
+    return ans;
+}
+
+int sum_of_distances_from_v0(const int vertices_count, const Graph &g) {
+    auto to_visit = all_but_0_set(vertices_count);
+
+    vector<int> distances_from_v0(vertices_count, 0);
+    dfs_distances(g, to_visit, 0, 0, distances_from_v0);
+    return accumulate(distances_from_v0.cbegin(), distances_from_v0.cend(), 0);
+}
+
 Graph make_graph(const vector<vector<int>> &edges) {
     Graph ans;
     for (const auto &edge : edges) {
@@ -62,7 +79,10 @@ struct Solution final {
             edge_removed_partition_size(g, edge[1], edge[0], erpsz);
         }
 
-        return vector<int>(vertices_count);
+        vector<int> ans(vertices_count, -1);
+        ans[0] = sum_of_distances_from_v0(vertices_count, g);
+
+        return ans;
     }
 };
 
