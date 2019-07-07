@@ -4,6 +4,20 @@ using namespace std;
 
 using XY = pair<int, int>;
 
+pair<int, int>
+minmax_coord_with_count_of_at_least_two(const map<int, int> &count_by_coord) {
+    int max_c = INT_MIN;
+    int min_c = INT_MAX;
+
+    for (const auto [c, cnt] : count_by_coord) {
+        if (cnt < 2) continue;
+        if (c > max_c) max_c = c;
+        if (c < min_c) min_c = c;
+    }
+
+    return {min_c, max_c};
+}
+
 int main() {
     int min_count_per_side;
     cin >> min_count_per_side;
@@ -21,23 +35,11 @@ int main() {
         ++points_count_by_y[y];
     }
 
-    int max_x = INT_MIN;
-    int min_x = INT_MAX;
+    const auto [min_x, max_x] =
+        minmax_coord_with_count_of_at_least_two(points_count_by_x);
 
-    for (const auto [x, cnt] : points_count_by_x) {
-        if (cnt < 2) continue;
-        if (x > max_x) max_x = x;
-        if (x < min_x) min_x = x;
-    }
-
-    int max_y = INT_MIN;
-    int min_y = INT_MAX;
-
-    for (const auto [y, cnt] : points_count_by_y) {
-        if (cnt < 2) continue;
-        if (y > max_y) max_y = y;
-        if (y < min_y) min_y = y;
-    }
+    const auto [min_y, max_y] =
+        minmax_coord_with_count_of_at_least_two(points_count_by_y);
 
     for (const auto [x, y] : ps) {
         const bool on_the_square =
