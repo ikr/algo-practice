@@ -3,11 +3,28 @@
 
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    for (const auto x : xs) {
+        cout << x << ' ';
+    }
+
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) {
+        cout << xs << '\n';
+    }
+
+    return os;
+}
+
 using Graph = unordered_multimap<int, int>;
 
 int edge_removed_partition_size(const Graph &g, const int remaining_v,
                                 const int departing_v,
-                                vector<vector<int>> cache) {
+                                vector<vector<int>> &cache) {
     if (cache[remaining_v][departing_v]) return cache[remaining_v][departing_v];
 
     if (g.count(remaining_v) == 1) {
@@ -107,6 +124,11 @@ const lest::test tests[] = {
     CASE("problem statement example") {
         const auto actual = Solution().sumOfDistancesInTree(6, {{0,1},{0,2},{2,3},{2,4},{2,5}});
         const auto expected = vector<int>{8,12,6,10,10,10};
+        EXPECT(actual == expected);
+    },
+    CASE("degenerate") {
+        const auto actual = Solution().sumOfDistancesInTree(1, {});
+        const auto expected = vector<int>{0};
         EXPECT(actual == expected);
     },
 };
