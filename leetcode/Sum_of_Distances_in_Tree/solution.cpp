@@ -7,11 +7,12 @@ using Graph = unordered_multimap<int, int>;
 
 int edge_removed_partition_size(const Graph &g, const int remaining_v,
                                 const int departing_v,
-                                vector<vector<int>> &cache) {
-    if (cache[remaining_v][departing_v]) return cache[remaining_v][departing_v];
+                                map<pair<int, int>, int> &cache) {
+    if (cache.at({remaining_v, departing_v}))
+        return cache.at({remaining_v, departing_v});
 
     if (g.count(remaining_v) == 1) {
-        cache[remaining_v][departing_v] = 1;
+        cache[{remaining_v, departing_v}] = 1;
         return 1;
     }
 
@@ -23,7 +24,7 @@ int edge_removed_partition_size(const Graph &g, const int remaining_v,
         ans += edge_removed_partition_size(g, adj, remaining_v, cache);
     }
 
-    cache[remaining_v][departing_v] = ans;
+    cache[{remaining_v, departing_v}] = ans;
     return ans;
 }
 
@@ -41,9 +42,9 @@ void dfs_distances(const Graph &g, unordered_set<int> &to_visit,
     }
 }
 
-void dfs_sum_of_distances(const Graph &g, const vector<vector<int>> &erpsz,
+void dfs_sum_of_distances(const Graph &g, const map<pair<int, int>, int> &erpsz,
                           const int u, const int v, vector<int> &ans) {
-    ans[v] = ans[u] - erpsz[v][u] + erpsz[u][v];
+    ans[v] = ans[u] - erpsz.at({v, u}) + erpsz.at({u, v});
 
     const auto [first, last] = g.equal_range(v);
     for (auto i = first; i != last; ++i) {
@@ -77,12 +78,20 @@ Graph make_graph(const vector<vector<int>> &edges) {
     return ans;
 }
 
+map<pair<int, int>, int> make_erpsz(const vector<vector<int>> &edges) {
+    map<pair<int, int>, int> ans;
+    for (const auto &edge : edges) {
+        ans[{edge[0], edge[1]}] = 0;
+        ans[{edge[1], edge[0]}] = 0;
+    }
+    return ans;
+}
+
 struct Solution final {
     vector<int> sumOfDistancesInTree(const int vertices_count,
                                      const vector<vector<int>> &edges) {
         const auto g = make_graph(edges);
-        vector<vector<int>> erpsz(vertices_count);
-        fill(erpsz.begin(), erpsz.end(), vector<int>(vertices_count));
+        auto erpsz = make_erpsz(edges);
 
         for (const auto &edge : edges) {
             edge_removed_partition_size(g, edge[0], edge[1], erpsz);
