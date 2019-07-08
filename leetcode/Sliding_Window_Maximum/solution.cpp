@@ -7,11 +7,11 @@ struct Solution final {
     vector<int> maxSlidingWindow(const vector<int> &xs, const int wsz) const {
         if (xs.empty()) return {};
 
-        set<int> window(xs.cbegin(), xs.cbegin() + wsz);
+        multiset<int> window(xs.cbegin(), xs.cbegin() + wsz);
         vector<int> ans(xs.size() - wsz + 1, *(window.rbegin()));
 
         for (size_t i = 1; i != xs.size() - wsz + 1; ++i) {
-            window.erase(xs[i - 1]);
+            window.erase(window.find(xs[i - 1]));
             window.insert(xs[i + wsz - 1]);
             ans[i] = *(window.rbegin());
         }
