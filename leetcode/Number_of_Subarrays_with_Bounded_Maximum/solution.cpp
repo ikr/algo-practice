@@ -5,8 +5,6 @@ using namespace std;
 
 bool range_contains_one_of_indices(const int first, const int last,
                                    const set<int> &m_idx) {
-    assert(last - first > 1 && m_idx.size());
-
     const int lo = *m_idx.begin();
     const int hi = *m_idx.rbegin();
 
@@ -14,6 +12,7 @@ bool range_contains_one_of_indices(const int first, const int last,
     if (first <= lo && hi < last) return true;  // o-x--x-o
 
     // x--o-x--o || o--x-o--x
+    if (m_idx.count(first)) return true;
     const auto it = upper_bound(m_idx.cbegin(), m_idx.cend(), first);
     return it != m_idx.cend() && *it < last;
 }
@@ -26,9 +25,9 @@ int count_idx_containing_subranges(const int first, const int last,
 
     int ans{0};
 
-    for (int i = first; i != last - 1; ++i) {
-        for (int j = i; j != last; ++j) {
-            if (range_contains_one_of_indices(first, last, m_idx)) ++ans;
+    for (int i = first; i != last; ++i) {
+        for (int j = i + 1; j != last + 1; ++j) {
+            if (range_contains_one_of_indices(i, j, m_idx)) ++ans;
         }
     }
 
@@ -54,6 +53,7 @@ struct Solution final {
 
             if (lo <= xs[i] && xs[i] <= hi) m_idx.insert(i);
         }
+        if (first) ranges.push_back({*first, xs.size()});
 
         if (m_idx.empty()) return 0;
 
@@ -79,7 +79,7 @@ const lest::test tests[] = {
         const auto expected = 10;
         EXPECT(actual == expected);
     },
-    CASE("propblem statement example") {
+    CASE("problem statement example") {
         const auto actual = Solution().numSubarrayBoundedMax({2,1,4,3}, 2, 3);
         const auto expected = 3;
         EXPECT(actual == expected);
