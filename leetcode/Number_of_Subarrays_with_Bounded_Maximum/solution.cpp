@@ -14,7 +14,8 @@ bool range_contains_one_of_indices(const int first, const int last,
     if (first <= lo && hi < last) return true;  // o-x--x-o
 
     // x--o-x--o || o--x-o--x
-    return upper_bound(m_idx.cbegin(), m_idx.cend(), first) != m_idx.cend();
+    const auto it = upper_bound(m_idx.cbegin(), m_idx.cend(), first);
+    return it != m_idx.cend() && *it < last;
 }
 
 int count_idx_containing_subranges(const int first, const int last,
