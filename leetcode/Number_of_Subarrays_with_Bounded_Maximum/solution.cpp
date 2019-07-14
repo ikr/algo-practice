@@ -3,44 +3,64 @@
 
 using namespace std;
 
-// {6,9,2,7,4,7,1,8,5}, 4, 7
-// ans 1
-// i 2
-// xs[i] 2
-// first -
-// current_max -
+bool range_contains_one_of_indices(const int first, const int last,
+                                   const set<int> &m_idx) {
+    assert(last - first > 1 && m_idx.size());
+
+    const int lo = *m_idx.begin();
+    const int hi = *m_idx.rbegin();
+
+    if (last <= lo || hi < first) return false; // x--x-o--o || o--o-x--x
+    if (first <= lo && hi < last) return true;  // o-x--x-o
+
+    // x--o-x--o || o--x-o--x
+    return upper_bound(m_idx.cbegin(), m_idx.cend(), first) != m_idx.cend();
+}
+
+int count_idx_containing_subranges(const int first, const int last,
+                                   const set<int> &m_idx) {
+    if (last - first == 1) {
+        return m_idx.count(first) ? 1 : 0;
+    }
+
+    int ans{0};
+
+    for (int i = first; i != last - 1; ++i) {
+        for (int j = i; j != last; ++j) {
+            if (range_contains_one_of_indices(first, last, m_idx)) ++ans;
+        }
+    }
+
+    return ans;
+}
 
 struct Solution final {
     int numSubarrayBoundedMax(const vector<int> &xs, const int lo,
                               const int hi) const {
-        int ans{0};
-        optional<int> first;
-        optional<int> curr_max;
+        set<int> m_idx;
+        vector<pair<int, int>> ranges;
 
+        optional<int> first;
         for (size_t i = 0; i != xs.size(); ++i) {
             if (!first) {
-                if (xs[i] <= hi) {
-                    first = i;
-                }
+                if (xs[i] <= hi) first = i;
             } else {
                 if (xs[i] > hi) {
-                    if (curr_max) ans += i - *first;
+                    ranges.push_back({*first, i});
                     first = nullopt;
-                    curr_max = nullopt;
-                    continue;
                 }
             }
 
-            if (lo <= xs[i] && xs[i] <= hi) {
-                if (!curr_max || *curr_max < xs[i]) {
-                    curr_max = xs[i];
-                }
-            }
+            if (lo <= xs[i] && xs[i] <= hi) m_idx.insert(i);
         }
 
-        if (curr_max) {
-            ans += xs.size() - *first;
-        };
+        if (m_idx.empty()) return 0;
+
+        int ans{0};
+
+        for (const auto [first, last] : ranges) {
+            ans += count_idx_containing_subranges(first, last, m_idx);
+        }
 
         return ans;
     }
