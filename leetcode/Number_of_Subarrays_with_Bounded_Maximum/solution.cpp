@@ -19,6 +19,8 @@ bool range_contains_one_of_indices(const int first, const int last,
 
 int count_idx_containing_subranges(const int first, const int last,
                                    const set<int> &m_idx) {
+    if (!range_contains_one_of_indices(first, last, m_idx)) return 0;
+
     int ans{0};
 
     for (int i = first; i != last; ++i) {
