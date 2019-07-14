@@ -109,10 +109,18 @@ const lest::test tests[] = {
         const auto expected = 1;
         EXPECT(actual == expected);
     },
-    CASE("tail-only") {
-        const auto actual = Solution().numSubarrayBoundedMax({2,2,2,1}, 1, 1);
-        const auto expected = 1;
-        EXPECT(actual == expected);
+    CASE("huge") {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dis(0, 9);
+
+        vector<int> xs(10000);
+        for (auto &x : xs) {
+            x = dis(gen);
+        }
+
+        const auto actual = Solution().numSubarrayBoundedMax(xs, 7, 8);
+        EXPECT(actual > 0);
     },
 };
 // clang-format on
