@@ -114,7 +114,7 @@ const lest::test tests[] = {
         mt19937 gen(rd());
         uniform_int_distribution<> dis(0, 9);
 
-        vector<int> xs(10000);
+        vector<int> xs(20000);
         for (auto &x : xs) {
             x = dis(gen);
         }
