@@ -78,8 +78,18 @@ int main() {
 
     cout << wo_counts << '\n';
 
-    const sz_t ans = accumulate(wo_counts.cbegin(), wo_counts.cend(), 1,
-                                std::multiplies<sz_t>());
+    sz_t ans = 0;
+
+    for (size_t prefix = 0; prefix <= wo_counts.size() - 3; prefix += 2) {
+        for (size_t infix = prefix + 1; infix <= wo_counts.size() - 2;
+             infix += 2) {
+            for (size_t suffix = infix + 1; suffix <= wo_counts.size() - 1;
+                 suffix += 2) {
+                ans += wo_counts[prefix] * wo_counts[infix] * wo_counts[suffix];
+            }
+        }
+    }
+
     cout << ans << '\n';
     return 0;
 }
