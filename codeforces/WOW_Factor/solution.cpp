@@ -57,4 +57,18 @@ int main() {
     }
 
     cout << wo_counts << '\n';
+
+    if (wo_counts.size() < 3) {
+        cout << "0\n";
+        return 0;
+    }
+
+    if (wo_counts.size() % 2 == 0) {
+        wo_counts.pop_back();
+    }
+
+    const sz_t ans = accumulate(wo_counts.cbegin(), wo_counts.cend(), 1,
+                                std::multiplies<sz_t>());
+    cout << ans << '\n';
+    return 0;
 }
