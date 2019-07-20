@@ -76,10 +76,8 @@ int main() {
         wo_counts.pop_back();
     }
 
-    cout << wo_counts << '\n';
 
-    sz_t ans = 0;
-
+    sz_t ans{0};
     for (size_t prefix = 0; prefix <= wo_counts.size() - 3; prefix += 2) {
         for (size_t infix = prefix + 1; infix <= wo_counts.size() - 2;
              infix += 2) {
