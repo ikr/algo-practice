@@ -48,9 +48,12 @@ sz_t count_variants(const vector<sz_t> &wo_counts) {
     sz_t multiplier = wo_counts[sz - 2] * wo_counts[sz - 1];
     sz_t ans = wo_counts[sz - 3] * multiplier;
 
-    for (int i = sz - 3; i >= 0; i -= 2) {
+    cout << "ans is " << ans << '\n';
+
+    for (int i = sz - 5; i >= 0; i -= 2) {
         multiplier += wo_counts[i + 1] * partial_ws_sum[i + 2];
         ans += wo_counts[i] * multiplier;
+        cout << "ans is " << ans << '\n';
     }
 
     return ans;
