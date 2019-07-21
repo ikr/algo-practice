@@ -2,14 +2,6 @@
 
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (const auto x : xs) {
-        os << x << ' ';
-    }
-
-    return os;
-}
-
 using sz_t = string::size_type;
 constexpr sz_t npos{string::npos};
 
@@ -20,6 +12,26 @@ void remove_single_vs(string &s) {
         s.erase(i + 1, 1);
         i = s.find("ovo", i);
     }
+}
+
+sz_t count_variants(const vector<sz_t> &wo_counts) {
+    const sz_t sz = wo_counts.size();
+
+    unordered_map<sz_t, sz_t> partial_ws_sum{{sz - 1, wo_counts.back()}};
+    for (sz_t i = sz - 3; i-- != 0; --i) {
+        partial_ws_sum[i] = wo_counts[i] + partial_ws_sum[i - 2];
+    }
+
+    sz_t multiplier = wo_counts[sz - 2] * wo_counts[sz - 1];
+    sz_t ans = wo_counts[sz - 3] * multiplier;
+
+    for (sz_t i = sz - 3; i-- != 0; --i) {
+        const sz_t multiplier_addition = wo_counts[i + 1] * partial_ws_sum[i + 2];
+        multiplier += multiplier_addition;
+        ans += wo_counts[i] * multiplier;
+    }
+
+    return ans;
 }
 
 int main() {
@@ -76,18 +88,6 @@ int main() {
         wo_counts.pop_back();
     }
 
-
-    sz_t ans{0};
-    for (size_t prefix = 0; prefix <= wo_counts.size() - 3; prefix += 2) {
-        for (size_t infix = prefix + 1; infix <= wo_counts.size() - 2;
-             infix += 2) {
-            for (size_t suffix = infix + 1; suffix <= wo_counts.size() - 1;
-                 suffix += 2) {
-                ans += wo_counts[prefix] * wo_counts[infix] * wo_counts[suffix];
-            }
-        }
-    }
-
-    cout << ans << '\n';
+    cout << count_variants(wo_counts) << '\n';
     return 0;
 }
