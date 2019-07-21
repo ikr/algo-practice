@@ -5,13 +5,21 @@ using namespace std;
 using sz_t = string::size_type;
 constexpr sz_t npos{string::npos};
 
-void remove_single_vs(string &s) {
+string remove_single_vs(const string &s) {
     sz_t i = s.find("ovo");
+    unordered_set<sz_t> to_skip;
 
     while (i != npos) {
-        s.erase(i + 1, 1);
-        i = s.find("ovo", i);
+        to_skip.insert(i + 1);
+        i = s.find("ovo", i + 2);
     }
+
+    string ans;
+    for (sz_t i = 0; i != s.size(); ++i) {
+        if (!to_skip.count(i)) ans += s[i];
+    }
+
+    return ans;
 }
 
 sz_t count_variants(const vector<sz_t> &wo_counts) {
@@ -37,7 +45,7 @@ int main() {
     string s;
     cin >> s;
 
-    remove_single_vs(s);
+    s = remove_single_vs(s);
 
     vector<sz_t> wo_counts;
     bool counting_ws = true;
