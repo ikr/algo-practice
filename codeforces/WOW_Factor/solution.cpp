@@ -2,7 +2,7 @@
 
 using namespace std;
 
-using sz_t = string::size_type;
+using sz_t = unsigned long long;
 constexpr sz_t npos{string::npos};
 
 string remove_single_vs(const string &s) {
