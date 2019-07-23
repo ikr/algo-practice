@@ -6,9 +6,24 @@ using namespace std;
 template <typename T> int intof(const T x) { return static_cast<int>(x); }
 using Iter = vector<int>::const_iterator;
 
-int count_proper_subranges(Iter first, Iter pillar, Iter last) {
-    assert(last != pillar && last != first);
-    return 0;
+int count_proper_suffixes(const pair<int, int> bounds, Iter first, Iter pillar,
+                          Iter last) {
+    if (first == last) return 0;
+
+    auto [lo, hi] = bounds;
+    if (first == pillar) {
+        pillar = find_if(first + 1, last,
+                         [lo, hi](const int x) { return lo <= x && x <= hi; });
+        if (pillar == last) return 0;
+    }
+
+    ++first;
+    int ans = 0;
+
+    ans += distance(first, last);
+    ans += count_proper_suffixes({lo, hi}, first + 1, pillar, last);
+
+    return ans;
 }
 
 struct Solution final {
@@ -31,7 +46,7 @@ struct Solution final {
                                 [hi](const int x) { return hi < x; });
 
             ans += distance(xs.cbegin(), last);
-            ans += count_proper_subranges(first, pillar, last);
+            ans += count_proper_suffixes({lo, hi}, first, pillar, last);
             l = distance(xs.cbegin(), last);
         } while (l != intof(xs.size()));
 
