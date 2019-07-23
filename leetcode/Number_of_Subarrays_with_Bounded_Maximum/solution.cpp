@@ -3,63 +3,37 @@
 
 using namespace std;
 
-bool range_contains_one_of_indices(const int first, const int last,
-                                   const set<int> &m_idx) {
-    const int lo = *m_idx.begin();
-    const int hi = *m_idx.rbegin();
+template <typename T> int intof(const T x) { return static_cast<int>(x); }
+using Iter = vector<int>::const_iterator;
 
-    if (last <= lo || hi < first) return false; // x--x-o--o || o--o-x--x
-    if (first <= lo && hi < last) return true;  // o-x--x-o
-
-    // x--o-x--o || o--x-o--x
-    if (m_idx.count(first)) return true;
-    const auto it = upper_bound(m_idx.cbegin(), m_idx.cend(), first);
-    return it != m_idx.cend() && *it < last;
-}
-
-int count_idx_containing_subranges(const int first, const int last,
-                                   const set<int> &m_idx) {
-    if (!range_contains_one_of_indices(first, last, m_idx)) return 0;
-
-    int ans{0};
-
-    for (int i = first; i != last; ++i) {
-        for (int j = i + 1; j != last + 1; ++j) {
-            if (range_contains_one_of_indices(i, j, m_idx)) ++ans;
-        }
-    }
-
-    return ans;
+int count_proper_subranges(Iter first, Iter pillar, Iter last) {
+    assert(last != pillar && last != first);
+    return 0;
 }
 
 struct Solution final {
     int numSubarrayBoundedMax(const vector<int> &xs, const int lo,
                               const int hi) const {
-        set<int> m_idx;
-        vector<pair<int, int>> ranges;
+        int l = -1;
+        int ans = 0;
 
-        optional<int> first;
-        for (size_t i = 0; i != xs.size(); ++i) {
-            if (!first) {
-                if (xs[i] <= hi) first = i;
-            } else {
-                if (xs[i] > hi) {
-                    ranges.push_back({*first, i});
-                    first = nullopt;
-                }
-            }
+        do {
+            auto first = find_if(xs.cbegin() + (l + 1), xs.cend(),
+                                 [hi](const int x) { return x <= hi; });
+            if (first == xs.cend()) break;
 
-            if (lo <= xs[i] && xs[i] <= hi) m_idx.insert(i);
-        }
-        if (first) ranges.push_back({*first, xs.size()});
+            auto pillar = find_if(first, xs.cend(), [lo, hi](const int x) {
+                return lo <= x && x <= hi;
+            });
+            if (pillar == xs.cend()) break;
 
-        if (m_idx.empty()) return 0;
+            auto last = find_if(pillar + 1, xs.cend(),
+                                [hi](const int x) { return hi < x; });
 
-        int ans{0};
-
-        for (const auto [first, last] : ranges) {
-            ans += count_idx_containing_subranges(first, last, m_idx);
-        }
+            ans += distance(xs.cbegin(), last);
+            ans += count_proper_subranges(first, pillar, last);
+            l = distance(xs.cbegin(), last);
+        } while (l != intof(xs.size()));
 
         return ans;
     }
