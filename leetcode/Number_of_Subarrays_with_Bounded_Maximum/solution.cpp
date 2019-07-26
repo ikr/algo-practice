@@ -3,54 +3,45 @@
 
 using namespace std;
 
-template <typename T> int intof(const T x) { return static_cast<int>(x); }
 using Iter = vector<int>::const_iterator;
+using PRange = tuple<Iter, Iter, Iter>;
+using Bounds = pair<int, int>;
 
-int count_proper_suffixes(const pair<int, int> bounds, Iter first, Iter pillar,
-                          Iter last) {
-    if (first == last) return 0;
+int count_subranges_continuous(const Bounds bounds, const PRange prange) {
+    return 0;
+}
 
-    auto [lo, hi] = bounds;
-    if (first == pillar) {
-        pillar = find_if(first + 1, last,
-                         [lo, hi](const int x) { return lo <= x && x <= hi; });
-        if (pillar == last) return 0;
+int count_subranges(const Bounds bounds, const vector<int> &xs) {
+    const auto [lo, hi] = bounds;
+    const auto end = xs.cend();
+
+    vector<PRange> p_ranges;
+    optional<Iter> maybe_r;
+
+    while (!maybe_r || *maybe_r != end) {
+        const Iter l = find_if(maybe_r ? *maybe_r : xs.begin(), end,
+                               [hi](const int x) { return x <= hi; });
+        if (l == end) break;
+
+        const Iter r = find_if(l, end, [hi](const int x) { return x > hi; });
+
+        const Iter p =
+            find_if(l, r, [lo, hi](const int x) { return lo <= x && x <= hi; });
+        if (p != r) p_ranges.emplace_back(l, p, r);
+
+        maybe_r = r;
     }
 
-    ++first;
-    int ans = 0;
-
-    ans += distance(first, last);
-    ans += count_proper_suffixes({lo, hi}, first + 1, pillar, last);
-
-    return ans;
+    return transform_reduce(p_ranges.cbegin(), p_ranges.cend(), 0, plus<int>{},
+                            [bounds](const PRange pr) {
+                                return count_subranges_continuous(bounds, pr);
+                            });
 }
 
 struct Solution final {
     int numSubarrayBoundedMax(const vector<int> &xs, const int lo,
                               const int hi) const {
-        int l = -1;
-        int ans = 0;
-
-        do {
-            auto first = find_if(xs.cbegin() + (l + 1), xs.cend(),
-                                 [hi](const int x) { return x <= hi; });
-            if (first == xs.cend()) break;
-
-            auto pillar = find_if(first, xs.cend(), [lo, hi](const int x) {
-                return lo <= x && x <= hi;
-            });
-            if (pillar == xs.cend()) break;
-
-            auto last = find_if(pillar + 1, xs.cend(),
-                                [hi](const int x) { return hi < x; });
-
-            ans += distance(xs.cbegin(), last);
-            ans += count_proper_suffixes({lo, hi}, first, pillar, last);
-            l = distance(xs.cbegin(), last);
-        } while (l != intof(xs.size()));
-
-        return ans;
+        return count_subranges({lo, hi}, xs);
     }
 };
 
