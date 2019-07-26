@@ -14,7 +14,7 @@ int count_subranges_continuous(const Bounds bounds, const PRange prange) {
     int ans{0};
 
     for (;;) {
-        ans += distance(p, l);
+        ans += distance(p, r);
 
         if (l == p) {
             p = find_if(p + 1, r, [lo](const int x) { return x >= lo; });
