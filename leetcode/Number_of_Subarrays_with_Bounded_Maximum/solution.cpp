@@ -32,10 +32,13 @@ int count_subranges(const Bounds bounds, const vector<int> &xs) {
         maybe_r = r;
     }
 
-    return transform_reduce(p_ranges.cbegin(), p_ranges.cend(), 0, plus<int>{},
-                            [bounds](const PRange pr) {
-                                return count_subranges_continuous(bounds, pr);
-                            });
+    vector<int> mapped(p_ranges.size());
+    transform(p_ranges.cbegin(), p_ranges.cend(), mapped.begin(),
+              [bounds](const PRange pr) {
+                  return count_subranges_continuous(bounds, pr);
+              });
+
+    return accumulate(mapped.cbegin(), mapped.cend(), 0);
 }
 
 struct Solution final {
