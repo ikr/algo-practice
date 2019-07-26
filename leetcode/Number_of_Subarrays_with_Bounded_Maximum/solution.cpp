@@ -7,8 +7,7 @@ using Iter = vector<int>::const_iterator;
 using PRange = tuple<Iter, Iter, Iter>;
 using Bounds = pair<int, int>;
 
-int count_subranges_continuous(const Bounds bounds, const PRange prange) {
-    auto [lo, hi] = bounds;
+int count_subranges_continuous(const int lo, const PRange prange) {
     auto [l, p, r] = prange;
 
     int ans{0};
@@ -49,10 +48,9 @@ int count_subranges(const Bounds bounds, const vector<int> &xs) {
     }
 
     vector<int> mapped(p_ranges.size());
-    transform(p_ranges.cbegin(), p_ranges.cend(), mapped.begin(),
-              [bounds](const PRange pr) {
-                  return count_subranges_continuous(bounds, pr);
-              });
+    transform(
+        p_ranges.cbegin(), p_ranges.cend(), mapped.begin(),
+        [lo](const PRange pr) { return count_subranges_continuous(lo, pr); });
 
     return accumulate(mapped.cbegin(), mapped.cend(), 0);
 }
