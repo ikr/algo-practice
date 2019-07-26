@@ -8,7 +8,23 @@ using PRange = tuple<Iter, Iter, Iter>;
 using Bounds = pair<int, int>;
 
 int count_subranges_continuous(const Bounds bounds, const PRange prange) {
-    return 0;
+    auto [lo, hi] = bounds;
+    auto [l, p, r] = prange;
+
+    int ans{0};
+
+    for (;;) {
+        ans += distance(p, l);
+
+        if (l == p) {
+            p = find_if(p + 1, r, [lo](const int x) { return x >= lo; });
+            if (p == r) break;
+        }
+
+        ++l;
+    }
+
+    return ans;
 }
 
 int count_subranges(const Bounds bounds, const vector<int> &xs) {
