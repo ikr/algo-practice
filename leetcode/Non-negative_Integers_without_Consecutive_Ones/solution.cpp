@@ -10,17 +10,32 @@ constexpr ui_t bits_required(const ui_t x) {
 }
 
 ui_t count_for_bits(const ui_t n) {
-    static unordered_map<ui_t, ui_t> cache{{1, 2}, {2, 3}};
+    static unordered_map<ui_t, ui_t> cache{{0, 0}, {1, 2}, {2, 3}};
     if (cache.count(n)) return cache[n];
 
     cache[n] = count_for_bits(n - 1) + count_for_bits(n - 2);
     return cache[n];
 }
 
-struct Solution final {
-    ui_t findIntegers(const ui_t x) const {
-        return count_for_bits(bits_required(x));
+ui_t count_for(const ui_t x) {
+    ui_t ans{0};
+    ui_t prev_bit{0};
+    ui_t i = bits_required(x) - 1;
+
+    for (;;) {
+        ui_t bit = x & (1 << i);
+        if (bit && !prev_bit) ans += count_for_bits(i + 1);
+
+        if (!i) break;
+        --i;
+        prev_bit = bit;
     }
+
+    return ans;
+}
+
+struct Solution final {
+    ui_t findIntegers(const ui_t x) const { return count_for(x); }
 };
 
 // clang-format off
