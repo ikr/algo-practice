@@ -10,10 +10,9 @@ constexpr ui_t bits_required(const ui_t x) {
 }
 
 ui_t count_for_bits(const ui_t n) {
-    static vector<ui_t> cache{0, 2, 3};
-    if (n < cache.size()) return cache[n];
+    static unordered_map<ui_t, ui_t> cache{{1, 2}, {2, 3}};
+    if (cache.count(n)) return cache[n];
 
-    cache.resize(n + 1);
     cache[n] = count_for_bits(n - 1) + count_for_bits(n - 2);
     return cache[n];
 }
@@ -51,9 +50,19 @@ const lest::test tests[] = {
         const ui_t expected = 8;
         EXPECT(actual == expected);
     },
+    CASE("31") {
+        const ui_t actual = Solution().findIntegers(31);
+        const ui_t expected = 13;
+        EXPECT(actual == expected);
+    },
     CASE("9000") {
         const ui_t actual = Solution().findIntegers(9000);
         const ui_t expected = 754;
+        EXPECT(actual == expected);
+    },
+    CASE("161179") {
+        const ui_t actual = Solution().findIntegers(161179);
+        const ui_t expected = 5778;
         EXPECT(actual == expected);
     },
 };
