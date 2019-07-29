@@ -93,6 +93,11 @@ const lest::test tests[] = {
         const ui_t expected = 5;
         EXPECT(actual == expected);
     },
+    CASE("11") {
+        const ui_t actual = Solution().findIntegers(11);
+        const ui_t expected = 8;
+        EXPECT(actual == expected);
+    },
     CASE("15") {
         const ui_t actual = Solution().findIntegers(15);
         const ui_t expected = 8;
