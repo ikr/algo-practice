@@ -23,10 +23,14 @@ ui_t count_for(const ui_t x) {
     ui_t i = bits_required(x) - 1;
 
     for (;;) {
-        ui_t bit = x & (1 << i);
-        if (bit && !prev_bit) ans += count_for_bits(i + 1);
+        ui_t bit = prev_bit ? 0 : (x & (1 << i));
 
-        if (!i) break;
+        if (!i) {
+            ans += bit ? 2 : 1;
+            break;
+        }
+
+        if (bit) ans += count_for_bits(i);
         --i;
         prev_bit = bit;
     }
