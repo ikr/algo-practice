@@ -26,7 +26,7 @@ ui_t count_for(const ui_t x) {
         ui_t bit = (x & (1 << i)) ? 1 : 0;
 
         if (!i) {
-            ans += bit ? 2 : 1;
+            ans += bit ? (prev_bit ? 1 : 2) : 1;
             break;
         }
 
