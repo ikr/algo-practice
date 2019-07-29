@@ -49,14 +49,39 @@ const lest::test tests[] = {
         const ui_t expected = 5;
         EXPECT(actual == expected);
     },
+    CASE("0") {
+        const ui_t actual = Solution().findIntegers(0);
+        const ui_t expected = 1;
+        EXPECT(actual == expected);
+    },
     CASE("1") {
         const ui_t actual = Solution().findIntegers(1);
         const ui_t expected = 2;
         EXPECT(actual == expected);
     },
+    CASE("2") {
+        const ui_t actual = Solution().findIntegers(2);
+        const ui_t expected = 3;
+        EXPECT(actual == expected);
+    },
     CASE("3") {
         const ui_t actual = Solution().findIntegers(3);
         const ui_t expected = 3;
+        EXPECT(actual == expected);
+    },
+    CASE("4") {
+        const ui_t actual = Solution().findIntegers(4);
+        const ui_t expected = 4;
+        EXPECT(actual == expected);
+    },
+    CASE("5") {
+        const ui_t actual = Solution().findIntegers(5);
+        const ui_t expected = 5;
+        EXPECT(actual == expected);
+    },
+    CASE("6") {
+        const ui_t actual = Solution().findIntegers(6);
+        const ui_t expected = 5;
         EXPECT(actual == expected);
     },
     CASE("7") {
