@@ -2,11 +2,32 @@
 
 using namespace std;
 
+template <typename T>
+ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '{' << i->first << ' ' << i->second << '}';
+    }
+
+    return os;
+}
+
 int main() {
     unsigned int n;
     unsigned int I;
     cin >> n >> I;
 
+    unordered_map<unsigned int, unsigned int> original_counts_by_intensity;
     map<unsigned int, unsigned int> counts_by_intensity;
     unordered_set<unsigned int> intensities;
 
@@ -14,11 +35,14 @@ int main() {
         unsigned int a;
         cin >> a;
 
+        ++original_counts_by_intensity[a];
         ++counts_by_intensity[a];
         intensities.insert(a);
     }
 
     unsigned int ans{0};
+    cout << counts_by_intensity << '\n';
+    cout << intensities << '\n';
 
     const unsigned int target_size = 1 << I;
     while (intensities.size() > target_size) {
@@ -35,7 +59,7 @@ int main() {
             intensities.erase(lo);
 
             counts_by_intensity[next_lo] += capped_count;
-            ans += capped_count;
+            ans += original_counts_by_intensity[lo];
         } else {
             auto next_hi_it = counts_by_intensity.crbegin();
             ++next_hi_it;
@@ -46,8 +70,11 @@ int main() {
             intensities.erase(hi);
 
             counts_by_intensity[next_hi] += capped_count;
-            ans += capped_count;
+            ans += original_counts_by_intensity[hi];
         }
+
+        cout << counts_by_intensity << '\n';
+        cout << intensities << '\n';
     }
 
     cout << ans << '\n';
