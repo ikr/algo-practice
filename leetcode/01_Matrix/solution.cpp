@@ -46,7 +46,8 @@ int min_dist_se(const VVec &rows, VVec &cache, const RowCol p) {
 
         const auto min_neigh = accumulate(
             candidates.cbegin(), candidates.cend(), INT_MAX, mmin<int>());
-        cache[row][col] = min_neigh == INT_MAX ? INT_MAX : min_neigh + 1;
+        cache[row][col] = min(cache[row][col],
+                              min_neigh == INT_MAX ? INT_MAX : min_neigh + 1);
     }
 
     return cache[row][col];
@@ -68,7 +69,8 @@ int min_dist_nw(const VVec &rows, VVec &cache, const RowCol p) {
 
         const auto min_neigh = accumulate(
             candidates.cbegin(), candidates.cend(), INT_MAX, mmin<int>());
-        cache[row][col] = min_neigh == INT_MAX ? INT_MAX : min_neigh + 1;
+        cache[row][col] = min(cache[row][col],
+                              min_neigh == INT_MAX ? INT_MAX : min_neigh + 1);
     }
 
     return cache[row][col];
