@@ -27,7 +27,7 @@ int main() {
 
         if (lo_it->second <= hi_it->second) {
             ans += lo_it->second;
-            counts_by_intensity.erase(counts_by_intensity.cbegin());
+            counts_by_intensity.erase(lo_it);
         } else {
             ans += hi_it->second;
             counts_by_intensity.erase(prev(counts_by_intensity.cend()));
