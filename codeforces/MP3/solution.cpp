@@ -24,7 +24,8 @@ int main() {
 
     ui_t ans{0};
 
-    const ui_t target_size = 1 << ((8 * I) / n);
+    const ui_t power_of_two = ((8 * I) / n) > 31 ? 31 : ((8 * I) / n);
+    const ui_t target_size = 1U << power_of_two;
     while (intensities.size() > target_size) {
         const auto lo = counts_by_intensity.cbegin()->first;
         const auto hi = counts_by_intensity.crbegin()->first;
