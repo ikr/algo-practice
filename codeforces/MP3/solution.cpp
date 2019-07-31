@@ -2,7 +2,7 @@
 
 using namespace std;
 
-using ui_t = unsigned long long;
+using ui_t = unsigned int;
 
 int main() {
     ui_t n;
