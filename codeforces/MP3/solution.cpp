@@ -32,7 +32,7 @@ int main() {
             counts_by_intensity.erase(counts_by_intensity.cbegin());
             ans += original_counts_by_intensity[lo];
         } else {
-            counts_by_intensity.erase(prev(counts_by_intensity.end()));
+            counts_by_intensity.erase(prev(counts_by_intensity.cend()));
             ans += original_counts_by_intensity[hi];
         }
     }
