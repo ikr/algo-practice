@@ -31,20 +31,14 @@ int main() {
         const auto hi = counts_by_intensity.crbegin()->first;
 
         if (counts_by_intensity[lo] < counts_by_intensity[hi]) {
-            auto next_lo_it = next(counts_by_intensity.begin());
-
             counts_by_intensity.erase(counts_by_intensity.cbegin());
             intensities.erase(lo);
 
-            next_lo_it->second += original_counts_by_intensity[lo];
             ans += original_counts_by_intensity[lo];
         } else {
-            auto next_hi_it = next(counts_by_intensity.rbegin());
-
             counts_by_intensity.erase(prev(counts_by_intensity.end()));
             intensities.erase(hi);
 
-            next_hi_it->second += original_counts_by_intensity[hi];
             ans += original_counts_by_intensity[hi];
         }
     }
