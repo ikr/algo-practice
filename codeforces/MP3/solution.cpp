@@ -22,22 +22,16 @@ int main() {
     const ui_t target_size = 1U << power_of_two;
 
     while (counts_by_intensity.size() > target_size) {
-        auto lo_it = counts_by_intensity.begin();
-        auto hi_it = counts_by_intensity.rbegin();
+        const auto lo_it = counts_by_intensity.cbegin();
+        const auto hi_it = counts_by_intensity.crbegin();
 
         if (lo_it->second <= hi_it->second) {
-            if (lo_it->second == 1)
-                counts_by_intensity.erase(counts_by_intensity.cbegin());
-            else
-                --lo_it->second;
+            ans += lo_it->second;
+            counts_by_intensity.erase(counts_by_intensity.cbegin());
         } else {
-            if (hi_it->second == 1)
-                counts_by_intensity.erase(prev(counts_by_intensity.cend()));
-            else
-                --hi_it->second;
+            ans += hi_it->second;
+            counts_by_intensity.erase(prev(counts_by_intensity.cend()));
         }
-
-        ++ans;
     }
 
     cout << ans << '\n';
