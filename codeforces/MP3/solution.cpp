@@ -11,14 +11,14 @@ int main() {
 
     map<ui_t, ui_t> counts_by_intensity;
 
-    for (ui_t i = 0; i != n; ++i) {
+    for (ui_t i = 0U; i != n; ++i) {
         ui_t a;
         cin >> a;
         ++counts_by_intensity[a];
     }
 
-    ui_t ans{0};
-    const ui_t power_of_two = ((8 * I) / n) > 31 ? 31 : ((8 * I) / n);
+    ui_t ans{0U};
+    const ui_t power_of_two = ((8U * I) / n) > 31U ? 31U : ((8U * I) / n);
     const ui_t target_size = 1U << power_of_two;
 
     while (counts_by_intensity.size() > target_size) {
