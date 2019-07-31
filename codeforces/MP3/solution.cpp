@@ -25,15 +25,15 @@ int main() {
     const ui_t target_size = 1U << power_of_two;
 
     while (counts_by_intensity.size() > target_size) {
-        const auto lo = counts_by_intensity.cbegin()->first;
-        const auto hi = counts_by_intensity.crbegin()->first;
+        const auto lo_it = counts_by_intensity.cbegin();
+        const auto hi_it = counts_by_intensity.crbegin();
 
-        if (counts_by_intensity[lo] < counts_by_intensity[hi]) {
+        if (lo_it->second < hi_it->second) {
+            ans += lo_it->second;
             counts_by_intensity.erase(counts_by_intensity.cbegin());
-            ans += original_counts_by_intensity[lo];
         } else {
+            ans += hi_it->second;
             counts_by_intensity.erase(prev(counts_by_intensity.cend()));
-            ans += original_counts_by_intensity[hi];
         }
     }
 
