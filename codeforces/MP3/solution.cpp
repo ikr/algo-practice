@@ -17,22 +17,33 @@ int main() {
         ++counts_by_intensity[a];
     }
 
-    ui_t ans{0U};
     const ui_t power_of_two = ((8U * I) / n) > 31U ? 31U : ((8U * I) / n);
     const ui_t target_size = 1U << power_of_two;
 
-    while (counts_by_intensity.size() > target_size) {
-        const auto lo_it = counts_by_intensity.cbegin();
-        const auto hi_it = counts_by_intensity.crbegin();
+    if (counts_by_intensity.size() <= target_size) {
+        cout << "0\n";
+    } else {
+        auto l = counts_by_intensity.cbegin();
+        auto r = l;
+        ui_t sliding_total_count = l->second;
 
-        if (lo_it->second <= hi_it->second) {
-            ans += lo_it->second;
-            counts_by_intensity.erase(lo_it);
-        } else {
-            ans += hi_it->second;
-            counts_by_intensity.erase(prev(counts_by_intensity.cend()));
+        for (ui_t i = 2; i <= target_size; ++i) {
+            r = next(r);
+            sliding_total_count += r->second;
         }
-    }
 
-    cout << ans << '\n';
+        auto ans = sliding_total_count;
+
+        do {
+            sliding_total_count -= l->second;
+            ++l;
+
+            ++r;
+            sliding_total_count += r->second;
+
+            ans = max(ans, sliding_total_count);
+        } while (r != prev(counts_by_intensity.cend()));
+
+        cout << n - ans << '\n';
+    }
 }
