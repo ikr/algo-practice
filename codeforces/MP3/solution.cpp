@@ -23,32 +23,28 @@ int main() {
     }
 
     ui_t ans{0};
-
     const ui_t power_of_two = ((8 * I) / n) > 31 ? 31 : ((8 * I) / n);
     const ui_t target_size = 1U << power_of_two;
+
     while (intensities.size() > target_size) {
         const auto lo = counts_by_intensity.cbegin()->first;
         const auto hi = counts_by_intensity.crbegin()->first;
 
         if (counts_by_intensity[lo] < counts_by_intensity[hi]) {
-            auto next_lo_it = counts_by_intensity.cbegin();
-            ++next_lo_it;
-            const auto next_lo = next_lo_it->first;
+            auto next_lo_it = next(counts_by_intensity.begin());
 
-            counts_by_intensity.erase(lo);
+            counts_by_intensity.erase(counts_by_intensity.cbegin());
             intensities.erase(lo);
 
-            counts_by_intensity[next_lo] += original_counts_by_intensity[lo];
+            next_lo_it->second += original_counts_by_intensity[lo];
             ans += original_counts_by_intensity[lo];
         } else {
-            auto next_hi_it = counts_by_intensity.crbegin();
-            ++next_hi_it;
-            const auto next_hi = next_hi_it->first;
+            auto next_hi_it = next(counts_by_intensity.rbegin());
 
-            counts_by_intensity.erase(hi);
+            counts_by_intensity.erase(prev(counts_by_intensity.end()));
             intensities.erase(hi);
 
-            counts_by_intensity[next_hi] += original_counts_by_intensity[hi];
+            next_hi_it->second += original_counts_by_intensity[hi];
             ans += original_counts_by_intensity[hi];
         }
     }
