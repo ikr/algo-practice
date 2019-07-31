@@ -25,7 +25,7 @@ int main() {
         const auto lo_it = counts_by_intensity.cbegin();
         const auto hi_it = counts_by_intensity.crbegin();
 
-        if (lo_it->second < hi_it->second) {
+        if (lo_it->second <= hi_it->second) {
             ans += lo_it->second;
             counts_by_intensity.erase(counts_by_intensity.cbegin());
         } else {
