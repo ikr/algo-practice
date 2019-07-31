@@ -9,14 +9,11 @@ int main() {
     ui_t I;
     cin >> n >> I;
 
-    unordered_map<ui_t, ui_t> original_counts_by_intensity;
     map<ui_t, ui_t> counts_by_intensity;
 
     for (ui_t i = 0; i != n; ++i) {
         ui_t a;
         cin >> a;
-
-        ++original_counts_by_intensity[a];
         ++counts_by_intensity[a];
     }
 
