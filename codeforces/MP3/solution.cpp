@@ -22,7 +22,7 @@ int main() {
 
     unsigned int ans{0};
 
-    const unsigned int target_size = 1 << (8 * I / n);
+    const unsigned int target_size = 1 << ((8 * I) / n);
     while (intensities.size() > target_size) {
         const auto lo = counts_by_intensity.cbegin()->first;
         const auto hi = counts_by_intensity.crbegin()->first;
