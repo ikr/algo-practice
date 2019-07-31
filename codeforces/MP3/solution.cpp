@@ -2,17 +2,19 @@
 
 using namespace std;
 
+using ui_t = unsigned long long;
+
 int main() {
-    unsigned int n;
-    unsigned int I;
+    ui_t n;
+    ui_t I;
     cin >> n >> I;
 
-    unordered_map<unsigned int, unsigned int> original_counts_by_intensity;
-    map<unsigned int, unsigned int> counts_by_intensity;
-    unordered_set<unsigned int> intensities;
+    unordered_map<ui_t, ui_t> original_counts_by_intensity;
+    map<ui_t, ui_t> counts_by_intensity;
+    unordered_set<ui_t> intensities;
 
-    for (unsigned int i = 0; i != n; ++i) {
-        unsigned int a;
+    for (ui_t i = 0; i != n; ++i) {
+        ui_t a;
         cin >> a;
 
         ++original_counts_by_intensity[a];
@@ -20,9 +22,9 @@ int main() {
         intensities.insert(a);
     }
 
-    unsigned int ans{0};
+    ui_t ans{0};
 
-    const unsigned int target_size = 1 << ((8 * I) / n);
+    const ui_t target_size = 1 << ((8 * I) / n);
     while (intensities.size() > target_size) {
         const auto lo = counts_by_intensity.cbegin()->first;
         const auto hi = counts_by_intensity.crbegin()->first;
