@@ -30,34 +30,15 @@ vector<RowCol> adjacent_se(const RowCol sz, const RowCol p) {
     return ans;
 }
 
-int min_dist_se(const VVec &rows, const VVec &ans, const RowCol p) {
+int min_dist(const VVec &rows, const VVec &ans, const RowCol p,
+             const vector<RowCol> &neighs) {
     const auto [row, col] = p;
 
     if (!rows[row][col]) {
         return 0;
     } else {
-        const auto adj = adjacent_nw(p);
-        Vec candidates(adj.size());
-        transform(adj.cbegin(), adj.cend(), candidates.begin(),
-                  [&ans](const RowCol a) { return ans[a.first][a.second]; });
-
-        const auto min_neigh = accumulate(
-            candidates.cbegin(), candidates.cend(), INT_MAX, mmin<int>());
-
-        return min(ans[row][col],
-                   min_neigh == INT_MAX ? INT_MAX : min_neigh + 1);
-    }
-}
-
-int min_dist_nw(const VVec &rows, const VVec &ans, const RowCol p) {
-    const auto [row, col] = p;
-
-    if (!rows[row][col]) {
-        return 0;
-    } else {
-        const auto adj = adjacent_se({rows.size(), rows[0].size()}, p);
-        Vec candidates(adj.size());
-        transform(adj.cbegin(), adj.cend(), candidates.begin(),
+        Vec candidates(neighs.size());
+        transform(neighs.cbegin(), neighs.cend(), candidates.begin(),
                   [&ans](const RowCol a) { return ans[a.first][a.second]; });
 
         const auto min_neigh = accumulate(
@@ -80,13 +61,15 @@ struct Solution {
 
         for (size_t i = 0; i != rows.size(); ++i) {
             for (size_t j = 0; j != rows[i].size(); ++j) {
-                ans[i][j] = min_dist_se(rows, ans, {i, j});
+                ans[i][j] = min_dist(rows, ans, {i, j}, adjacent_nw({i, j}));
             }
         }
 
         for (size_t i = rows.size() - 1; i-- > 0;) {
             for (size_t j = rows[i].size() - 1; j-- > 0;) {
-                ans[i][j] = min_dist_nw(rows, ans, {i, j});
+                ans[i][j] = min_dist(
+                    rows, ans, {i, j},
+                    adjacent_se({rows.size(), rows[0].size()}, {i, j}));
             }
         }
 
