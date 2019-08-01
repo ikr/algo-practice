@@ -30,7 +30,7 @@ vector<RowCol> adjacent_se(const RowCol sz, const RowCol p) {
     return ans;
 }
 
-int min_dist_se(const VVec &rows, const RowCol p, const int current_dist) {
+int min_dist_se(const VVec &rows, const VVec &ans, const RowCol p) {
     const auto [row, col] = p;
 
     if (!rows[row][col]) {
@@ -39,17 +39,17 @@ int min_dist_se(const VVec &rows, const RowCol p, const int current_dist) {
         const auto adj = adjacent_nw(p);
         Vec candidates(adj.size());
         transform(adj.cbegin(), adj.cend(), candidates.begin(),
-                  [&rows](const RowCol a) { return rows[a.first][a.second]; });
+                  [&ans](const RowCol a) { return ans[a.first][a.second]; });
 
         const auto min_neigh = accumulate(
             candidates.cbegin(), candidates.cend(), INT_MAX, mmin<int>());
 
-        return min(current_dist,
+        return min(ans[row][col],
                    min_neigh == INT_MAX ? INT_MAX : min_neigh + 1);
     }
 }
 
-int min_dist_nw(const VVec &rows, const RowCol p, const int current_dist) {
+int min_dist_nw(const VVec &rows, const VVec &ans, const RowCol p) {
     const auto [row, col] = p;
 
     if (!rows[row][col]) {
@@ -58,12 +58,12 @@ int min_dist_nw(const VVec &rows, const RowCol p, const int current_dist) {
         const auto adj = adjacent_se({rows.size(), rows[0].size()}, p);
         Vec candidates(adj.size());
         transform(adj.cbegin(), adj.cend(), candidates.begin(),
-                  [&rows](const RowCol a) { return rows[a.first][a.second]; });
+                  [&ans](const RowCol a) { return ans[a.first][a.second]; });
 
         const auto min_neigh = accumulate(
             candidates.cbegin(), candidates.cend(), INT_MAX, mmin<int>());
 
-        return min(current_dist,
+        return min(ans[row][col],
                    min_neigh == INT_MAX ? INT_MAX : min_neigh + 1);
     }
 }
@@ -80,13 +80,13 @@ struct Solution {
 
         for (size_t i = 0; i != rows.size(); ++i) {
             for (size_t j = 0; j != rows[i].size(); ++j) {
-                ans[i][j] = min_dist_se(rows, {i, j}, ans[i][j]);
+                ans[i][j] = min_dist_se(rows, ans, {i, j});
             }
         }
 
         for (size_t i = rows.size() - 1; i-- > 0;) {
             for (size_t j = rows[i].size() - 1; j-- > 0;) {
-                ans[i][j] = min_dist_se(rows, {i, j}, ans[i][j]);
+                ans[i][j] = min_dist_nw(rows, ans, {i, j});
             }
         }
 
