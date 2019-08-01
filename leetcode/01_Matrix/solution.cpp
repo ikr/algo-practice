@@ -65,8 +65,8 @@ struct Solution {
             }
         }
 
-        for (size_t i = rows.size() - 1; i-- > 0;) {
-            for (size_t j = rows[i].size() - 1; j-- > 0;) {
+        for (size_t i = rows.size(); i-- > 0;) {
+            for (size_t j = rows[i].size(); j-- > 0;) {
                 ans[i][j] = min_dist(
                     rows, ans, {i, j},
                     adjacent_se({rows.size(), rows[0].size()}, {i, j}));
