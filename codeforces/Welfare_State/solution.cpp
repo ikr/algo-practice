@@ -8,19 +8,36 @@ using BalPer = pair<ui_t, ui_t>;
 enum class EventType { RECEIPT = 1, PAYOFF = 2 };
 
 void handle_receipt(vector<ui_t> &balances_by_person,
-                    multiset<BalPer> &persons_by_balance,
-                    const BalPer receipt) {}
+                    set<BalPer> &persons_by_balance, const BalPer receipt) {
+    const auto [new_balance, person] = receipt;
+    const ui_t old_balance = balances_by_person[person];
+
+    balances_by_person[person] = new_balance;
+
+    persons_by_balance.erase(BalPer{old_balance, person});
+    persons_by_balance.insert(receipt);
+}
 
 void handle_payoff(vector<ui_t> &balances_by_person,
-                   multiset<BalPer> &persons_by_balance, const ui_t threshold) {
+                   set<BalPer> &persons_by_balance, const ui_t threshold) {
+    vector<ui_t> persons_to_pay_off;
+    transform(persons_by_balance.cbegin(),
+              upper_bound(persons_by_balance.cbegin(),
+                          persons_by_balance.cend(), BalPer{threshold, 0U}),
+              back_inserter(persons_to_pay_off),
+              [](const auto bp) { return bp.second; });
+
+    for (const auto p : persons_to_pay_off) {
+        handle_receipt(balances_by_person, persons_by_balance, {threshold, p});
+    }
 }
 
 int main() {
     ui_t n;
     cin >> n;
 
-    vector<ui_t> balances_by_person(n + 1, 0);
-    multiset<BalPer> persons_by_balance;
+    vector<ui_t> balances_by_person(n + 1, 0U);
+    set<BalPer> persons_by_balance;
 
     for (ui_t i = 1; i <= n; ++i) {
         cin >> balances_by_person[i];
