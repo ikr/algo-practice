@@ -21,10 +21,10 @@ int main() {
     ui_t n;
     cin >> n;
 
-    vector<ui_t> balances_by_person(n + 1, 0U);
+    vector<ui_t> balances_by_person(n + 1U, 0U);
     unordered_map<ui_t, ui_t> balances_by_person_after_payoff;
 
-    for (ui_t i = 1; i <= n; ++i) {
+    for (ui_t i = 1U; i <= n; ++i) {
         cin >> balances_by_person[i];
     }
 
@@ -33,7 +33,7 @@ int main() {
 
     vector<Event> events(events_count);
 
-    for (ui_t i = 0; i != events_count; ++i) {
+    for (ui_t i = 0U; i != events_count; ++i) {
         ui_t event_type;
         cin >> event_type;
 
@@ -51,9 +51,33 @@ int main() {
         }
     }
 
+    ui_t max_threshold{0U};
+
+    for (auto it = events.rbegin(); it != events.rend(); ++it) {
+        if (holds_alternative<Payoff>(*it)) {
+            max_threshold = max(max_threshold, get<Payoff>(*it).threshold);
+        } else if (max_threshold) {
+            const auto [person, balance] = get<Receipt>(*it);
+            *it = Receipt{person, max(balance, max_threshold)};
+        }
+    }
+
+    unordered_map<ui_t, ui_t> effective_receipts;
+
+    for (const auto ev : events) {
+        if (holds_alternative<Receipt>(ev)) {
+            const auto [person, balance] = get<Receipt>(ev);
+            effective_receipts[person] = balance;
+        }
+    }
+
     for (ui_t i = 1; i <= n; ++i) {
         if (i > 1) cout << ' ';
-        cout << balances_by_person[i];
+
+        const ui_t ans = effective_receipts.count(i)
+                             ? effective_receipts[i]
+                             : max(max_threshold, balances_by_person[i]);
+        cout << ans;
     }
     cout << '\n';
 }
