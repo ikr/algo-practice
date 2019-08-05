@@ -6,16 +6,30 @@ using ui_t = unsigned int;
 
 enum class Answer { A = 'A', B = 'B', C = 'C', D = 'D', E = 'E' };
 
+vector<Answer> answers_domain() {
+    return {Answer::A, Answer::B, Answer::C, Answer::D, Answer::E};
+}
+
 Answer to_answer(const char c) {
     assert('A' <= c && c <= 'E');
     return static_cast<Answer>(c);
+}
+
+Answer guess_correct_answer(const multiset<Answer> &stat) {
+    map<ui_t, Answer> answers_by_count;
+
+    for (const auto a : answers_domain()) {
+        answers_by_count[stat.count(a)] = a;
+    }
+
+    return answers_by_count.crbegin()->second;
 }
 
 vector<Answer> guess_correct_answers(const vector<multiset<Answer>> &stats) {
     vector<Answer> result(stats.size());
 
     transform(stats.cbegin(), stats.cend(), result.begin(),
-              [](const auto &stat) { return *(stat.crbegin()); });
+              guess_correct_answer);
 
     return result;
 }
