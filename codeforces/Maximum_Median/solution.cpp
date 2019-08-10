@@ -2,14 +2,35 @@
 
 using namespace std;
 
-template <typename T>
-ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
+using Vec = vector<int>;
+using Iter = Vec::iterator;
+
+pair<Iter, int> capacity_edge(Iter first, Iter last) {
+    Iter it = adjacent_find(first, last, not_equal_to<int>());
+    return it == last ? make_pair(it, INT_MAX)
+                      : make_pair(it + 1, *(it + 1) - *it);
+}
+
+int compute(const Iter first, const Iter last, int source) {
+    Iter edge = first;
+
+    while (source) {
+        auto [it, capacity] = capacity_edge(edge, last);
+        const int radius = distance(first, it);
+        if (source < radius) break;
+        const int delta = min(capacity, source / radius);
+
+        if (it == last) {
+            *first += delta;
+            break;
+        }
+
+        transform(first, it, first, [delta](const int x) { return x + delta; });
+        source -= radius * delta;
+        edge = it;
     }
 
-    return os;
+    return *first;
 }
 
 int main() {
@@ -17,7 +38,7 @@ int main() {
     int k;
     cin >> n >> k;
 
-    vector<int> xs(n);
+    Vec xs(n);
     for (auto &x : xs) {
         cin >> x;
     }
@@ -26,5 +47,5 @@ int main() {
     copy(cbegin(xs) + xs.size() / 2, cend(xs), begin(xs));
     xs.resize(xs.size() / 2 + 1);
 
-    cout << xs << '\n';
+    cout << compute(begin(xs), end(xs), k) << '\n';
 }
