@@ -6,9 +6,8 @@ using Vec = vector<int>;
 using Iter = Vec::iterator;
 
 pair<Iter, int> capacity_edge(Iter first, Iter last) {
-    Iter it = adjacent_find(first, last, not_equal_to<int>());
-    return it == last ? make_pair(it, INT_MAX)
-                      : make_pair(it + 1, *(it + 1) - *it);
+    Iter it = upper_bound(first, last, *first);
+    return it == last ? make_pair(it, INT_MAX) : make_pair(it, *it - *first);
 }
 
 int compute(const Iter first, const Iter last, int source) {
