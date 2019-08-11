@@ -4,7 +4,7 @@ using namespace std;
 
 using Col = int;
 using Row = int;
-using Steps = int;
+using Steps = unsigned long long;
 using StepsCol = pair<Steps, Col>;
 
 StepsCol move_to_closest(const StepsCol current, const set<Col> &dest) {
