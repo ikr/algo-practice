@@ -68,8 +68,13 @@ Steps compute(const vector<set<Col>> &treasure_column_sets_by_row,
     int collected = 0;
 
     while (collected != treasures_count) {
-        current =
-            run_level(current, treasure_column_sets_by_row[row], exit_columns);
+        const bool last_level =
+            static_cast<int>(treasure_column_sets_by_row[row].size()) ==
+            (treasures_count - collected);
+
+        current = run_level(current, treasure_column_sets_by_row[row],
+                            last_level ? set<Col>{} : exit_columns);
+        if (!last_level) ++current.first;
 
         collected += treasure_column_sets_by_row[row].size();
         ++row;
