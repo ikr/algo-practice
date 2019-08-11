@@ -2,15 +2,6 @@
 
 using namespace std;
 
-//------------------------------------------------------------------------------
-
-template <typename T> ostream &operator<<(ostream &os, const pair<T, T> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-//------------------------------------------------------------------------------
-
 using Col = int;
 using Row = int;
 using Steps = int;
