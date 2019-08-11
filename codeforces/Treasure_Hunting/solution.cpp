@@ -96,5 +96,8 @@ int main() {
         exit_columns.insert(c1 - 1);
     }
 
-    cout << compute(treasure_column_sets_by_row, k, exit_columns) << '\n';
+    cout << compute(treasure_column_sets_by_row, k,
+                    static_cast<int>(exit_columns.size()) == m ? set<Col>{}
+                                                               : exit_columns)
+         << '\n';
 }
