@@ -12,7 +12,9 @@ template <typename T> ostream &operator<<(ostream &os, const pair<T, T> &x) {
 //------------------------------------------------------------------------------
 
 using Col = int;
-using StepsCol = pair<int, Col>;
+using Row = int;
+using Steps = int;
+using StepsCol = pair<Steps, Col>;
 
 StepsCol move_to_closest(const StepsCol current, const set<Col> &dest) {
     const auto [steps, col] = current;
@@ -34,7 +36,6 @@ StepsCol move_to_closest(const StepsCol current, const set<Col> &dest) {
 StepsCol run_level(const StepsCol current, const set<Col> &treasures,
                    const set<Col> &exits) {
     if (treasures.empty()) return move_to_closest(current, exits);
-    assert(exits.size());
     const auto [steps, entrance] = current;
 
     if (*crbegin(treasures) <= entrance || entrance <= *cbegin(treasures))
@@ -48,15 +49,33 @@ StepsCol run_level(const StepsCol current, const set<Col> &treasures,
 
     const auto treasure_spread = *crbegin(treasures) - *cbegin(treasures);
 
-    const int steps_a = steps + entrance - *cbegin(treasures) + treasure_spread;
+    const Steps steps_a =
+        steps + entrance - *cbegin(treasures) + treasure_spread;
     const Col col_a = *crbegin(treasures);
 
-    const int steps_b =
+    const Steps steps_b =
         steps + *crbegin(treasures) - entrance + treasure_spread;
     const Col col_b = *cbegin(treasures);
 
     return min(move_to_closest({steps_a, col_a}, exits),
                move_to_closest({steps_b, col_b}, exits));
+}
+
+Steps compute(const vector<set<Col>> &treasure_column_sets_by_row,
+              const int treasures_count, const set<Col> &exit_columns) {
+    StepsCol current{0, 0};
+    Row row = 0;
+    int collected = 0;
+
+    while (collected != treasures_count) {
+        current =
+            run_level(current, treasure_column_sets_by_row[row], exit_columns);
+
+        collected += treasure_column_sets_by_row[row].size();
+        ++row;
+    }
+
+    return current.first;
 }
 
 int main() {
@@ -81,5 +100,5 @@ int main() {
         exit_columns.insert(c1 - 1);
     }
 
-    cout << run_level({1000, 24}, {0, 33}, {2, 4, 8, 16, 32}) << '\n';
+    cout << compute(treasure_column_sets_by_row, k, exit_columns) << '\n';
 }
