@@ -4,22 +4,17 @@ using namespace std;
 
 using i_t = unsigned long long;
 
+i_t sector(const i_t n, const i_t m, const i_t sx, const i_t sy) {
+    const bool inner = sx == 1;
+    return inner ? sy % (n / gcd(n, m)) : sy % (m / gcd(n, m));
+}
+
 int main() {
     i_t n;
     i_t m;
     unsigned int q;
 
     cin >> n >> m >> q;
-
-    vector<i_t> ib(n);
-    for (i_t i = 0; i != n; ++i) {
-        ib[i] = i * (lcm(n, m) / n);
-    }
-
-    vector<i_t> ob(m);
-    for (i_t i = 0; i != m; ++i) {
-        ob[i] = i * (lcm(n, m) / m);
-    }
 
     for (unsigned int i = 0; i != q; ++i) {
         i_t sx;
@@ -28,5 +23,8 @@ int main() {
         i_t ey;
 
         cin >> sx >> sy >> ex >> ey;
+
+        cout << (sector(n, m, sx, sy) == sector(n, m, ex, ey) ? "YES" : "NO")
+             << '\n';
     }
 }
