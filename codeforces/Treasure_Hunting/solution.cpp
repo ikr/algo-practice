@@ -22,6 +22,33 @@ StepsCol move_to_closest(const StepsCol current, const set<Col> &dest) {
                make_pair(steps + abs(b - col), b));
 }
 
+StepsCol run_level(const StepsCol current, const set<Col> &treasures,
+                   const set<Col> &exits) {
+    if (treasures.empty()) return move_to_closest(current, exits);
+    assert(exits.size());
+    const auto [steps, entrance] = current;
+
+    if (*crbegin(treasures) <= entrance || entrance <= *cbegin(treasures))
+        return *crbegin(treasures) <= entrance
+                   ? move_to_closest({steps + entrance - *cbegin(treasures),
+                                      *cbegin(treasures)},
+                                     exits)
+                   : move_to_closest({steps + *crbegin(treasures) - entrance,
+                                      *crbegin(treasures)},
+                                     exits);
+
+    const auto treasure_spread = *crbegin(treasures) - *cbegin(treasures);
+
+    const int steps_a = steps + entrance - *cbegin(treasures) + treasure_spread;
+    const Col col_a = *crbegin(treasures);
+
+    const int steps_b = steps + *crbegin(treasures) - entrance + treasure_spread;
+    const Col col_b = *cbegin(treasures);
+
+    return min(move_to_closest({steps_a, col_a}, exits),
+               move_to_closest({steps_b, col_b}, exits));
+}
+
 int main() {
     int n;
     int m;
