@@ -10,13 +10,16 @@ StepsCol move_to_closest(const StepsCol current, const set<Col> &dest) {
     if (dest.empty() || dest.count(col)) return current;
 
     const auto it = upper_bound(cbegin(dest), cend(dest), col);
-    if (it == cbegin(dest)) return {abs(col - *cbegin(dest)), *cbegin(dest)};
-    if (it == cend(dest)) return {abs(col - *crbegin(dest)), *crbegin(dest)};
+    if (it == cbegin(dest))
+        return {steps + abs(col - *cbegin(dest)), *cbegin(dest)};
+    if (it == cend(dest))
+        return {steps + abs(col - *crbegin(dest)), *crbegin(dest)};
 
     const Col a = *prev(it);
     const Col b = *it;
 
-    return min(make_pair(abs(a - col), a), make_pair(abs(b - col), b));
+    return min(make_pair(steps + abs(a - col), a),
+               make_pair(steps + abs(b - col), b));
 }
 
 int main() {
