@@ -2,6 +2,15 @@
 
 using namespace std;
 
+//------------------------------------------------------------------------------
+
+template <typename T> ostream &operator<<(ostream &os, const pair<T, T> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+//------------------------------------------------------------------------------
+
 using Col = int;
 using StepsCol = pair<int, Col>;
 
@@ -42,7 +51,8 @@ StepsCol run_level(const StepsCol current, const set<Col> &treasures,
     const int steps_a = steps + entrance - *cbegin(treasures) + treasure_spread;
     const Col col_a = *crbegin(treasures);
 
-    const int steps_b = steps + *crbegin(treasures) - entrance + treasure_spread;
+    const int steps_b =
+        steps + *crbegin(treasures) - entrance + treasure_spread;
     const Col col_b = *cbegin(treasures);
 
     return min(move_to_closest({steps_a, col_a}, exits),
@@ -70,4 +80,6 @@ int main() {
         cin >> c1;
         exit_columns.insert(c1 - 1);
     }
+
+    cout << run_level({1000, 24}, {0, 33}, {2, 4, 8, 16, 32}) << '\n';
 }
