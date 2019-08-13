@@ -6,8 +6,8 @@ using i_t = unsigned long long;
 
 i_t sector(const i_t n, const i_t m, const i_t sx, const i_t sy) {
     const bool inner = sx == 1;
-    if (inner) return sy % (n / gcd(n, m));
-    return sy % (m / gcd(n, m));
+    if (inner) return (sy - 1) / (n / gcd(n, m));
+    return (sy - 1) / (m / gcd(n, m));
 }
 
 int main() {
