@@ -27,7 +27,7 @@ int main() {
 
     for (const auto x : xs) {
         for (const auto y : ys) {
-            if (!xs.count(x + y) && !xs.count(x + y)) {
+            if (!xs.count(x + y) && !ys.count(x + y)) {
                 cout << x << ' ' << y << '\n';
                 return 0;
             }
