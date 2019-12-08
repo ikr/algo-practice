@@ -5,7 +5,7 @@ using namespace std;
 
 struct Solution final {
     bool isSubsequence(const string &s, const string &t) const {
-        if (!s.size()) return true;
+        if (s.empty()) return true;
         unsigned int i = 0;
 
         for (const char c : t) {
@@ -34,6 +34,4 @@ const lest::test tests[] = {
 };
 // clang-format on
 
-int main(int argc, char** argv) {
-    return lest::run(tests, argc, argv);
-}
+int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
