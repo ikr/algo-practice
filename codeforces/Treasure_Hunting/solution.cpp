@@ -3,6 +3,7 @@
 using namespace std;
 
 using Col = int;
+using ColRange = pair<Col, Col>;
 using OptColRange = optional<pair<Col, Col>>;
 using Row = int;
 using Steps = unsigned long long;
@@ -33,7 +34,7 @@ int main() {
               treasure_column_sets_by_row.cend(), treasure_cols_by_row.begin(),
               [](const set<Col> &cols_set) -> OptColRange {
                   if (cols_set.empty()) return nullopt;
-                  return make_pair(*cols_set.cbegin(), *cols_set.crbegin());
+                  return ColRange{*cols_set.cbegin(), *cols_set.crbegin()};
               });
 
     unordered_set<Col> exit_columns;
