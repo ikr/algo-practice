@@ -8,8 +8,9 @@ using OptColRange = optional<pair<Col, Col>>;
 using Row = int;
 using Steps = unsigned long long;
 
-Steps compute(const vector<OptColRange> &treasure_cols_by_row, const int k,
-              const unordered_set<Col> &exit_columns) {
+Steps compute(const int cols, const set<Col> &exit_cols,
+              const vector<OptColRange> &treasure_cols_by_row,
+              const int treasures) {
 
     return 0;
 }
@@ -37,12 +38,12 @@ int main() {
                   return ColRange{*cols_set.cbegin(), *cols_set.crbegin()};
               });
 
-    unordered_set<Col> exit_columns;
+    set<Col> exit_columns;
     for (int i = 0; i != q; ++i) {
         int c1;
         cin >> c1;
         exit_columns.insert(c1 - 1);
     }
 
-    cout << compute(treasure_cols_by_row, k, exit_columns) << '\n';
+    cout << compute(m, exit_columns, treasure_cols_by_row, k) << '\n';
 }
