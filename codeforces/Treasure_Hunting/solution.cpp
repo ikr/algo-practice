@@ -3,82 +3,21 @@
 using namespace std;
 
 using Col = int;
+using OptColRange = optional<pair<Col, Col>>;
 using Row = int;
 using Steps = unsigned long long;
-using StepsCol = pair<Steps, Col>;
 
-StepsCol move_to_closest(const StepsCol current, const set<Col> &dest) {
-    const auto [steps, col] = current;
-    if (dest.empty() || dest.count(col)) return current;
+Steps compute(const vector<OptColRange> &treasure_cols_by_row, const int k,
+              const unordered_set<Col> &exit_columns) {
 
-    const auto it = upper_bound(cbegin(dest), cend(dest), col);
-    if (it == cbegin(dest))
-        return {steps + abs(col - *cbegin(dest)), *cbegin(dest)};
-    if (it == cend(dest))
-        return {steps + abs(col - *crbegin(dest)), *crbegin(dest)};
-
-    const Col a = *prev(it);
-    const Col b = *it;
-
-    return min(make_pair(steps + abs(a - col), a),
-               make_pair(steps + abs(b - col), b));
-}
-
-StepsCol run_level(const StepsCol current, const set<Col> &treasures,
-                   const set<Col> &exits) {
-    if (treasures.empty()) return move_to_closest(current, exits);
-    const auto [steps, entrance] = current;
-
-    if (*crbegin(treasures) <= entrance || entrance <= *cbegin(treasures))
-        return *crbegin(treasures) <= entrance
-                   ? move_to_closest({steps + entrance - *cbegin(treasures),
-                                      *cbegin(treasures)},
-                                     exits)
-                   : move_to_closest({steps + *crbegin(treasures) - entrance,
-                                      *crbegin(treasures)},
-                                     exits);
-
-    const auto treasure_spread = *crbegin(treasures) - *cbegin(treasures);
-
-    const Steps steps_a =
-        steps + entrance - *cbegin(treasures) + treasure_spread;
-    const Col col_a = *crbegin(treasures);
-
-    const Steps steps_b =
-        steps + *crbegin(treasures) - entrance + treasure_spread;
-    const Col col_b = *cbegin(treasures);
-
-    return min(move_to_closest({steps_a, col_a}, exits),
-               move_to_closest({steps_b, col_b}, exits));
-}
-
-Steps compute(const vector<set<Col>> &treasure_column_sets_by_row,
-              const int treasures_count, const set<Col> &exit_columns) {
-    StepsCol current{0, 0};
-    Row row = 0;
-    int collected = 0;
-
-    while (collected != treasures_count) {
-        const bool last_level =
-            static_cast<int>(treasure_column_sets_by_row[row].size()) ==
-            (treasures_count - collected);
-
-        current = run_level(current, treasure_column_sets_by_row[row],
-                            last_level ? set<Col>{} : exit_columns);
-        if (!last_level) ++current.first;
-
-        collected += treasure_column_sets_by_row[row].size();
-        ++row;
-    }
-
-    return current.first;
+    return 0;
 }
 
 int main() {
-    int n;
-    int m;
-    int k;
-    int q;
+    int n; // Rows
+    int m; // Columns
+    int k; // Treasures
+    int q; // Safe columns
     cin >> n >> m >> k >> q;
 
     vector<set<Col>> treasure_column_sets_by_row(n);
@@ -89,15 +28,20 @@ int main() {
         treasure_column_sets_by_row[r1 - 1].insert(c1 - 1);
     }
 
-    set<Col> exit_columns;
+    vector<OptColRange> treasure_cols_by_row(n);
+    transform(treasure_column_sets_by_row.cbegin(),
+              treasure_column_sets_by_row.cend(), treasure_cols_by_row.begin(),
+              [](const set<Col> &cols_set) -> OptColRange {
+                  if (cols_set.empty()) return nullopt;
+                  return make_pair(*cols_set.cbegin(), *cols_set.crbegin());
+              });
+
+    unordered_set<Col> exit_columns;
     for (int i = 0; i != q; ++i) {
         int c1;
         cin >> c1;
         exit_columns.insert(c1 - 1);
     }
 
-    cout << compute(treasure_column_sets_by_row, k,
-                    static_cast<int>(exit_columns.size()) == m ? set<Col>{}
-                                                               : exit_columns)
-         << '\n';
+    cout << compute(treasure_cols_by_row, k, exit_columns) << '\n';
 }
