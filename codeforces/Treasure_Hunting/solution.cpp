@@ -6,12 +6,28 @@ using Col = int;
 using ColRange = pair<Col, Col>;
 using OptColRange = optional<pair<Col, Col>>;
 using Row = int;
-using Steps = unsigned long long;
+using Steps = long long;
+
+enum class LevelAction {
+    COLLECT_LEFTY_EXIT_LEFTY,
+    COLLECT_LEFTY_EXIT_RIGHTY,
+    COLLECT_RIGHTY_EXIT_LEFTY,
+    COLLECT_RIGHTY_EXIT_RIGHTY
+};
 
 struct Island final {
     int cols;
     set<Col> exit_cols;
     vector<OptColRange> treasure_cols_by_row;
+    int treasures;
+};
+
+struct IslandReduced final {
+    Steps baseline;
+    int cols;
+    Col start;
+    set<Col> exit_cols;
+    vector<ColRange> treasure_cols_by_row;
     int treasures;
 };
 
