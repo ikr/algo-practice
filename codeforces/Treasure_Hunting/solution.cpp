@@ -33,7 +33,7 @@ struct IslandReduced final {
 
 Steps compute(const Island &isl) { return 0; }
 
-int main() {
+Island read_input() {
     int n; // Rows
     int m; // Columns
     int k; // Treasures
@@ -63,5 +63,7 @@ int main() {
         exit_columns.insert(c1 - 1);
     }
 
-    cout << compute({m, exit_columns, treasure_cols_by_row, k}) << '\n';
+    return {m, exit_columns, treasure_cols_by_row, k};
 }
+
+int main() { cout << compute(read_input()) << '\n'; }
