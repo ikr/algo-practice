@@ -8,12 +8,14 @@ using OptColRange = optional<pair<Col, Col>>;
 using Row = int;
 using Steps = unsigned long long;
 
-Steps compute(const int cols, const set<Col> &exit_cols,
-              const vector<OptColRange> &treasure_cols_by_row,
-              const int treasures) {
+struct Island final {
+    int cols;
+    set<Col> exit_cols;
+    vector<OptColRange> treasure_cols_by_row;
+    int treasures;
+};
 
-    return 0;
-}
+Steps compute(const Island &isl) { return 0; }
 
 int main() {
     int n; // Rows
@@ -45,5 +47,5 @@ int main() {
         exit_columns.insert(c1 - 1);
     }
 
-    cout << compute(m, exit_columns, treasure_cols_by_row, k) << '\n';
+    cout << compute({m, exit_columns, treasure_cols_by_row, k}) << '\n';
 }
