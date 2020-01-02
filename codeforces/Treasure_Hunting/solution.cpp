@@ -23,13 +23,31 @@ struct Island final {
 };
 
 struct IslandReduced final {
-    Steps baseline;
-    int cols;
+    Steps steps;
     Col start;
+    int cols;
     set<Col> exit_cols;
     vector<ColRange> treasure_cols_by_row;
     int treasures;
 };
+
+IslandReduced reduce_island(const Island &isl) {
+    const auto start =
+        isl.treasure_cols_by_row[0] ? 0 : isl.treasure_cols_by_row[0]->first;
+
+    Steps steps = start;
+    vector<ColRange> treasure_cols_by_row;
+
+    for (auto it = isl.treasure_cols_by_row.cbegin();
+         it != isl.treasure_cols_by_row.cend(); ++it) {
+        if (!*it) continue;
+        ++steps;
+        treasure_cols_by_row.push_back(**it);
+    }
+
+    return {steps,        start, isl.cols, isl.exit_cols, treasure_cols_by_row,
+            isl.treasures};
+}
 
 Steps compute(const Island &isl) { return 0; }
 
