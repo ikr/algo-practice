@@ -16,7 +16,6 @@ enum class LevelAction {
 };
 
 struct Island final {
-    int cols;
     set<Col> exit_cols;
     vector<OptColRange> treasure_cols_by_row;
     int treasures;
@@ -25,7 +24,6 @@ struct Island final {
 struct IslandReduced final {
     Steps steps;
     Col start;
-    int cols;
     set<Col> exit_cols;
     vector<ColRange> treasure_cols_by_row;
     int treasures;
@@ -45,11 +43,10 @@ IslandReduced reduce_island(const Island &isl) {
         treasure_cols_by_row.push_back(**it);
     }
 
-    return {steps,        start, isl.cols, isl.exit_cols, treasure_cols_by_row,
-            isl.treasures};
+    return {steps, start, isl.exit_cols, treasure_cols_by_row, isl.treasures};
 }
 
-Steps compute(const Island &isl) { return 0; }
+Steps min_steps(const IslandReduced &isl) { return 0; }
 
 Island read_input() {
     int n; // Rows
@@ -81,7 +78,7 @@ Island read_input() {
         exit_columns.insert(c1 - 1);
     }
 
-    return {m, exit_columns, treasure_cols_by_row, k};
+    return {exit_columns, treasure_cols_by_row, k};
 }
 
-int main() { cout << compute(read_input()) << '\n'; }
+int main() { cout << min_steps(reduce_island(read_input())) << '\n'; }
