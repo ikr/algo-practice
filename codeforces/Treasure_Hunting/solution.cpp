@@ -9,10 +9,14 @@ using Row = int;
 using Steps = long long;
 
 enum class LevelAction {
-    COLLECT_LEFTY_EXIT_LEFTY,
-    COLLECT_LEFTY_EXIT_RIGHTY,
-    COLLECT_RIGHTY_EXIT_LEFTY,
-    COLLECT_RIGHTY_EXIT_RIGHTY
+    COLLECT_RIGHT_EXIT_LEFT, // ..ⓍOO..
+    COLLECT_RIGHT_EXIT_RIGHT,
+    COLLECT_LEFT_EXIT_LEFT, // ..OOⓍ..
+    COLLECT_LEFT_EXIT_RIGHT,
+    COLLECT_LEFT_RIGHT_EXIT_LEFT, // ..O←ⓍO..
+    COLLECT_LEFT_RIGHT_EXIT_RIGHT,
+    COLLECT_RIGHT_LEFT_EXIT_LEFT, // ..OⓍ→O..
+    COLLECT_RIGHT_LEFT_EXIT_RIGHT
 };
 
 struct Island final {
@@ -44,6 +48,21 @@ IslandReduced reduce_island(const Island &isl) {
     }
 
     return {steps, start, isl.exit_cols, treasure_cols_by_row, isl.treasures};
+}
+
+set<LevelAction> inner_level_alternatives(const ColRange treasures,
+                                          const Col start) {
+    const auto [left, right] = treasures;
+
+    if (start <= left) {
+        return {LevelAction::COLLECT_RIGHT_EXIT_LEFT,
+                LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT};
+    }
+
+    if (right <= start) {
+        return {LevelAction::COLLECT_LEFT_EXIT_LEFT,
+                LevelAction::COLLECT_LEFT_EXIT_RIGHT};
+    }
 }
 
 Steps min_steps(const IslandReduced &isl) { return 0; }
