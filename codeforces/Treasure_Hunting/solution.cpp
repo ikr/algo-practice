@@ -50,7 +50,8 @@ IslandReduced reduce_island(const Island &isl) {
     return {steps, start, isl.exit_cols, treasure_cols_by_row, isl.treasures};
 }
 
-set<LevelAction> inner_level_alternatives(const ColRange treasures,
+set<LevelAction> inner_level_alternatives(const set<Col> &exit_cols,
+                                          const ColRange treasures,
                                           const Col start) {
     const auto [left, right] = treasures;
 
@@ -63,6 +64,14 @@ set<LevelAction> inner_level_alternatives(const ColRange treasures,
         return {LevelAction::COLLECT_LEFT_EXIT_LEFT,
                 LevelAction::COLLECT_LEFT_EXIT_RIGHT};
     }
+}
+
+bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
+    return false;
+}
+
+bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
+    return false;
 }
 
 Steps min_steps(const IslandReduced &isl) { return 0; }
