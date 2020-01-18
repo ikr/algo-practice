@@ -11,7 +11,7 @@ using Steps = long long;
 // By “exit lefty” we mean “stay on the same column, or go left, in order to
 // exit”. While “exit right” means one must move right in order to exit.
 //
-enum class LevelAction {
+enum class InnerLevelAction {
     COLLECT_RIGHT_EXIT_LEFTY, // ..ⓍOO..
     COLLECT_RIGHT_EXIT_RIGHT,
     COLLECT_LEFT_EXIT_LEFTY, // ..OOⓍ..
@@ -51,19 +51,19 @@ IslandReduced reduce_island(const Island &isl) {
     return {steps, start, isl.exit_cols, treasure_cols_by_row};
 }
 
-set<LevelAction> inner_level_alternatives(const set<Col> &exit_cols,
-                                          const ColRange treasures,
-                                          const Col start) {
+set<InnerLevelAction> inner_level_alternatives(const set<Col> &exit_cols,
+                                               const ColRange treasures,
+                                               const Col start) {
     const auto [left, right] = treasures;
 
     if (start <= left) {
-        return {LevelAction::COLLECT_RIGHT_EXIT_LEFTY,
-                LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT};
+        return {InnerLevelAction::COLLECT_RIGHT_EXIT_LEFTY,
+                InnerLevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT};
     }
 
     if (right <= start) {
-        return {LevelAction::COLLECT_LEFT_EXIT_LEFTY,
-                LevelAction::COLLECT_LEFT_EXIT_RIGHT};
+        return {InnerLevelAction::COLLECT_LEFT_EXIT_LEFTY,
+                InnerLevelAction::COLLECT_LEFT_EXIT_RIGHT};
     }
 }
 
