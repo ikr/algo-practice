@@ -12,10 +12,10 @@ using Steps = long long;
 // exit”. While “exit right” means one must move right in order to exit.
 //
 enum class InnerLevelAction {
-    COLLECT_RIGHT_EXIT_LEFTY, // ..ⓍOO..
-    COLLECT_RIGHT_EXIT_RIGHT,
-    COLLECT_LEFT_EXIT_LEFTY, // ..OOⓍ..
-    COLLECT_LEFT_EXIT_RIGHT,
+    COLLECT_RIGHTY_EXIT_LEFTY, // ..ⓍOO..
+    COLLECT_RIGHTY_EXIT_RIGHT,
+    COLLECT_LEFTY_EXIT_LEFTY, // ..OOⓍ..
+    COLLECT_LEFTY_EXIT_RIGHT,
     COLLECT_LEFT_RIGHT_EXIT_LEFTY, // ..O←ⓍO..
     COLLECT_LEFT_RIGHT_EXIT_RIGHT,
     COLLECT_RIGHT_LEFT_EXIT_LEFTY, // ..OⓍ→O..
@@ -54,17 +54,24 @@ IslandReduced reduce_island(const Island &isl) {
 set<InnerLevelAction> inner_level_alternatives(const set<Col> &exit_cols,
                                                const ColRange treasures,
                                                const Col start) {
-    const auto [left, right] = treasures;
+    const auto [lo, hi] = treasures;
+    set<InnerLevelAction> ans;
 
-    if (start <= left) {
-        return {InnerLevelAction::COLLECT_RIGHT_EXIT_LEFTY,
-                InnerLevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT};
+    if (start <= lo) { // ..ⓍOO..
+        if (can_exit_lefty(exit_cols, hi))
+            ans.insert(InnerLevelAction::COLLECT_RIGHTY_EXIT_LEFTY);
+        if (can_exit_right(exit_cols, hi))
+            ans.insert(InnerLevelAction::COLLECT_RIGHTY_EXIT_RIGHT);
+    } else if (hi <= start) { // ..OOⓍ..
+        if (can_exit_lefty(exit_cols, lo))
+            ans.insert(InnerLevelAction::COLLECT_LEFTY_EXIT_LEFTY);
+        if (can_exit_right(exit_cols, lo))
+            ans.insert(InnerLevelAction::COLLECT_LEFTY_EXIT_RIGHT);
+    } else {
+        assert(lo < start && start < hi);
     }
 
-    if (right <= start) {
-        return {InnerLevelAction::COLLECT_LEFT_EXIT_LEFTY,
-                InnerLevelAction::COLLECT_LEFT_EXIT_RIGHT};
-    }
+    return ans;
 }
 
 bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
