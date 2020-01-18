@@ -68,11 +68,15 @@ set<LevelAction> inner_level_alternatives(const set<Col> &exit_cols,
 }
 
 bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
-    return false;
+    assert(!exit_cols.empty() && "can_exit_lefty");
+    const Col lo = *exit_cols.cbegin();
+    return lo <= from_col;
 }
 
 bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
-    return false;
+    assert(!exit_cols.empty() && "can_exit_right");
+    const Col hi = *exit_cols.cend();
+    return from_col < hi;
 }
 
 Steps min_steps(const IslandReduced &isl) { return 0; }
