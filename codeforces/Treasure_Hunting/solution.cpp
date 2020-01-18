@@ -8,14 +8,17 @@ using OptColRange = optional<pair<Col, Col>>;
 using Row = int;
 using Steps = long long;
 
+// By “exit lefty” we mean “stay on the same column, or go left, in order to
+// exit”. While “exit right” means one must move right in order to exit.
+//
 enum class LevelAction {
-    COLLECT_RIGHT_EXIT_LEFT, // ..ⓍOO..
+    COLLECT_RIGHT_EXIT_LEFTY, // ..ⓍOO..
     COLLECT_RIGHT_EXIT_RIGHT,
-    COLLECT_LEFT_EXIT_LEFT, // ..OOⓍ..
+    COLLECT_LEFT_EXIT_LEFTY, // ..OOⓍ..
     COLLECT_LEFT_EXIT_RIGHT,
-    COLLECT_LEFT_RIGHT_EXIT_LEFT, // ..O←ⓍO..
+    COLLECT_LEFT_RIGHT_EXIT_LEFTY, // ..O←ⓍO..
     COLLECT_LEFT_RIGHT_EXIT_RIGHT,
-    COLLECT_RIGHT_LEFT_EXIT_LEFT, // ..OⓍ→O..
+    COLLECT_RIGHT_LEFT_EXIT_LEFTY, // ..OⓍ→O..
     COLLECT_RIGHT_LEFT_EXIT_RIGHT
 };
 
@@ -54,12 +57,12 @@ set<LevelAction> inner_level_alternatives(const set<Col> &exit_cols,
     const auto [left, right] = treasures;
 
     if (start <= left) {
-        return {LevelAction::COLLECT_RIGHT_EXIT_LEFT,
+        return {LevelAction::COLLECT_RIGHT_EXIT_LEFTY,
                 LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT};
     }
 
     if (right <= start) {
-        return {LevelAction::COLLECT_LEFT_EXIT_LEFT,
+        return {LevelAction::COLLECT_LEFT_EXIT_LEFTY,
                 LevelAction::COLLECT_LEFT_EXIT_RIGHT};
     }
 }
