@@ -159,7 +159,18 @@ Steps terminal_level_steps(const ColRange treasures, const Col start) {
     return min(start - lo + spread, hi - start + spread);
 }
 
-Steps min_steps(const IslandReduced &isl) { return 0; }
+Steps min_steps(const Steps steps, const Col start, const set<Col> &exit_cols,
+                const vector<ColRange> &treasure_cols_by_row, const Row row) {
+    if (row == treasure_cols_by_row.size() - 1)
+        return steps + terminal_level_steps(treasure_cols_by_row.back(), start);
+
+    return steps;
+}
+
+Steps min_steps(const IslandReduced &isl) {
+    return min_steps(isl.steps, isl.start, isl.exit_cols,
+                     isl.treasure_cols_by_row, 0);
+}
 
 Island read_input() {
     int n; // Rows
