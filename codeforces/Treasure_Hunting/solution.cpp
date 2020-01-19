@@ -114,6 +114,34 @@ Col right_exit(const set<Col> &exit_cols, const Col from_col) {
 pair<Steps, Col> level_steps_and_exit(const set<Col> &exit_cols,
                                       const ColRange treasures, const Col start,
                                       const LevelAction action) {
+    const auto [lo, hi] = treasures;
+    const Steps spread = hi - lo;
+
+    switch (action) {
+    case LevelAction::COLLECT_RIGHTY_EXIT_LEFTY: // ..ⓍOO..
+
+        break;
+
+    case LevelAction::COLLECT_RIGHTY_EXIT_RIGHT:
+        break;
+
+    case LevelAction::COLLECT_LEFTY_EXIT_LEFTY: // ..OOⓍ..
+        break;
+    case LevelAction::COLLECT_LEFTY_EXIT_RIGHT:
+        break;
+
+    case LevelAction::COLLECT_LEFT_RIGHT_EXIT_LEFTY: // ..O←ⓍO..
+        break;
+    case LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT:
+        break;
+
+    case LevelAction::COLLECT_RIGHT_LEFT_EXIT_LEFTY: // ..OⓍ→O..
+        break;
+    case LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT:
+        break;
+    }
+
+    assert(false && "level_steps_and_exit");
     return {0, 0};
 }
 
