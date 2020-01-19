@@ -51,6 +51,18 @@ IslandReduced reduce_island(const Island &isl) {
     return {steps, start, isl.exit_cols, treasure_cols_by_row};
 }
 
+bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
+    assert(!exit_cols.empty() && "can_exit_lefty");
+    const Col lo = *exit_cols.cbegin();
+    return lo <= from_col;
+}
+
+bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
+    assert(!exit_cols.empty() && "can_exit_right");
+    const Col hi = *exit_cols.cend();
+    return from_col < hi;
+}
+
 set<LevelAction> level_alternatives(const set<Col> &exit_cols,
                                     const ColRange treasures, const Col start) {
     const auto [lo, hi] = treasures;
@@ -79,23 +91,11 @@ set<LevelAction> level_alternatives(const set<Col> &exit_cols,
         if (can_exit_lefty(exit_cols, lo))
             ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_LEFTY);
         if (can_exit_right(exit_cols, lo))
-            ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT)
+            ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT);
     }
 
     assert(!ans.empty());
     return ans;
-}
-
-bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
-    assert(!exit_cols.empty() && "can_exit_lefty");
-    const Col lo = *exit_cols.cbegin();
-    return lo <= from_col;
-}
-
-bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
-    assert(!exit_cols.empty() && "can_exit_right");
-    const Col hi = *exit_cols.cend();
-    return from_col < hi;
 }
 
 Steps min_steps(const IslandReduced &isl) { return 0; }
@@ -130,6 +130,7 @@ Island read_input() {
         exit_columns.insert(c1 - 1);
     }
 
+    assert(!exit_columns.empty());
     return {exit_columns, treasure_cols_by_row};
 }
 
