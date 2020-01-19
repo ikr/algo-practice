@@ -119,16 +119,14 @@ pair<Steps, Col> level_steps_and_exit(const set<Col> &exit_cols,
 
     switch (action) {
     case LevelAction::COLLECT_RIGHTY_EXIT_LEFTY: // ..ⓍOO..
-
-        break;
-
+        return hi - start + abs(hi - lefty_exit(exit_cols, hi));
     case LevelAction::COLLECT_RIGHTY_EXIT_RIGHT:
-        break;
+        return hi - start + abs(hi - right_exit(exit_cols, hi));
 
     case LevelAction::COLLECT_LEFTY_EXIT_LEFTY: // ..OOⓍ..
-        break;
+        return start - lo + abs(lo - lefty_exit(exit_cols, lo));
     case LevelAction::COLLECT_LEFTY_EXIT_RIGHT:
-        break;
+        return start - lo + abs(lo - right_exit(exit_cols, lo));
 
     case LevelAction::COLLECT_LEFT_RIGHT_EXIT_LEFTY: // ..O←ⓍO..
         break;
