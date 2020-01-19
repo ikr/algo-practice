@@ -98,6 +98,17 @@ set<LevelAction> level_alternatives(const set<Col> &exit_cols,
     return ans;
 }
 
+Steps terminal_level_min_steps(const ColRange treasures, const Col start) {
+    const auto [lo, hi] = treasures;
+    const Steps spread = hi - lo;
+
+    if (start <= lo) return lo - start + spread;
+    if (hi <= start) return start - hi + spread;
+
+    assert(lo < start && start < hi && "terminal_level_min_steps");
+    return min(start - lo + spread, hi - start + spread);
+}
+
 Steps min_steps(const IslandReduced &isl) { return 0; }
 
 Island read_input() {
