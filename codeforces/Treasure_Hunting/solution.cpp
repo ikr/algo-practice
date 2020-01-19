@@ -117,30 +117,35 @@ pair<Steps, Col> level_steps_and_exit(const set<Col> &exit_cols,
     const auto [lo, hi] = treasures;
     const Steps spread = hi - lo;
 
+    const auto answer = [](const Steps sweep, const Col full,
+                           const Col exit) -> pair<Steps, Col> {
+        return {sweep + abs(full - exit), exit};
+    };
+
     switch (action) {
     case LevelAction::COLLECT_RIGHTY_EXIT_LEFTY: // ..ⓍOO..
-        return hi - start + abs(hi - lefty_exit(exit_cols, hi));
+        return answer(hi - start, hi, lefty_exit(exit_cols, hi));
     case LevelAction::COLLECT_RIGHTY_EXIT_RIGHT:
-        return hi - start + abs(hi - right_exit(exit_cols, hi));
+        return answer(hi - start, hi, right_exit(exit_cols, hi));
 
     case LevelAction::COLLECT_LEFTY_EXIT_LEFTY: // ..OOⓍ..
-        return start - lo + abs(lo - lefty_exit(exit_cols, lo));
+        return answer(start - lo, lo, lefty_exit(exit_cols, lo));
     case LevelAction::COLLECT_LEFTY_EXIT_RIGHT:
-        return start - lo + abs(lo - right_exit(exit_cols, lo));
+        return answer(start - lo, lo, right_exit(exit_cols, lo));
 
     case LevelAction::COLLECT_LEFT_RIGHT_EXIT_LEFTY: // ..O←ⓍO..
-        break;
+        return answer(start - lo + spread, hi, lefty_exit(exit_cols, hi));
     case LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT:
-        break;
+        return answer(start - lo + spread, hi, right_exit(exit_cols, hi));
 
     case LevelAction::COLLECT_RIGHT_LEFT_EXIT_LEFTY: // ..OⓍ→O..
-        break;
+        return answer(hi - start + spread, lo, lefty_exit(exit_cols, lo));
     case LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT:
-        break;
+        return answer(hi - start + spread, lo, right_exit(exit_cols, lo));
     }
 
     assert(false && "level_steps_and_exit");
-    return {0, 0};
+    return {-1, -1};
 }
 
 Steps terminal_level_steps(const ColRange treasures, const Col start) {
