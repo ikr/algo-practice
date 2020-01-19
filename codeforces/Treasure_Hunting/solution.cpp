@@ -11,7 +11,7 @@ using Steps = long long;
 // By “exit lefty” we mean “stay on the same column, or go left, in order to
 // exit”. While “exit right” means one must move right in order to exit.
 //
-enum class InnerLevelAction {
+enum class LevelAction {
     COLLECT_RIGHTY_EXIT_LEFTY, // ..ⓍOO..
     COLLECT_RIGHTY_EXIT_RIGHT,
     COLLECT_LEFTY_EXIT_LEFTY, // ..OOⓍ..
@@ -51,26 +51,38 @@ IslandReduced reduce_island(const Island &isl) {
     return {steps, start, isl.exit_cols, treasure_cols_by_row};
 }
 
-set<InnerLevelAction> inner_level_alternatives(const set<Col> &exit_cols,
-                                               const ColRange treasures,
-                                               const Col start) {
+set<LevelAction> level_alternatives(const set<Col> &exit_cols,
+                                    const ColRange treasures, const Col start) {
     const auto [lo, hi] = treasures;
-    set<InnerLevelAction> ans;
+    set<LevelAction> ans;
 
     if (start <= lo) { // ..ⓍOO..
         if (can_exit_lefty(exit_cols, hi))
-            ans.insert(InnerLevelAction::COLLECT_RIGHTY_EXIT_LEFTY);
+            ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_LEFTY);
         if (can_exit_right(exit_cols, hi))
-            ans.insert(InnerLevelAction::COLLECT_RIGHTY_EXIT_RIGHT);
+            ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_RIGHT);
     } else if (hi <= start) { // ..OOⓍ..
         if (can_exit_lefty(exit_cols, lo))
-            ans.insert(InnerLevelAction::COLLECT_LEFTY_EXIT_LEFTY);
+            ans.insert(LevelAction::COLLECT_LEFTY_EXIT_LEFTY);
         if (can_exit_right(exit_cols, lo))
-            ans.insert(InnerLevelAction::COLLECT_LEFTY_EXIT_RIGHT);
+            ans.insert(LevelAction::COLLECT_LEFTY_EXIT_RIGHT);
     } else {
         assert(lo < start && start < hi);
+
+        // ..O←ⓍO..
+        if (can_exit_lefty(exit_cols, hi))
+            ans.insert(LevelAction::COLLECT_LEFT_RIGHT_EXIT_LEFTY);
+        if (can_exit_right(exit_cols, hi))
+            ans.insert(LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT);
+
+        // ..OⓍ→O..
+        if (can_exit_lefty(exit_cols, lo))
+            ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_LEFTY);
+        if (can_exit_right(exit_cols, lo))
+            ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT)
     }
 
+    assert(!ans.empty());
     return ans;
 }
 
