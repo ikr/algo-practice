@@ -98,7 +98,26 @@ set<LevelAction> level_alternatives(const set<Col> &exit_cols,
     return ans;
 }
 
-Steps terminal_level_min_steps(const ColRange treasures, const Col start) {
+Col lefty_exit(const set<Col> &exit_cols, const Col from_col) {
+    const auto it = lower_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
+
+    if (it != exit_cols.cend() && *it == from_col) return from_col;
+    return *prev(it);
+}
+
+Col right_exit(const set<Col> &exit_cols, const Col from_col) {
+    const auto it = upper_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
+    assert(it != exit_cols.cend() && "right_exit");
+    return *it;
+}
+
+pair<Steps, Col> level_steps_and_exit(const set<Col> &exit_cols,
+                                      const ColRange treasures, const Col start,
+                                      const LevelAction action) {
+    return {0, 0};
+}
+
+Steps terminal_level_steps(const ColRange treasures, const Col start) {
     const auto [lo, hi] = treasures;
     const Steps spread = hi - lo;
 
