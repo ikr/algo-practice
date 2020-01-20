@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#incude < numeric >
 
 using namespace std;
 
@@ -159,17 +160,23 @@ Steps terminal_level_steps(const ColRange treasures, const Col start) {
     return min(start - lo + spread, hi - start + spread);
 }
 
-Steps min_steps(const Steps steps, const Col start, const set<Col> &exit_cols,
-                const vector<ColRange> &treasure_cols_by_row, const Row row) {
-    if (row == treasure_cols_by_row.size() - 1)
-        return steps + terminal_level_steps(treasure_cols_by_row.back(), start);
+pair<Steps, Col> min_steps_with_exit(
+    const Steps steps, const Col start, const set<Col> &exit_cols,
+    const vector<ColRange> &treasure_cols_by_row, const Row row) {
+    const auto treasures = treasure_cols_by_row.at(row);
 
-    return steps;
+    if (row == treasure_cols_by_row.size() - 1)
+        return {steps + terminal_level_steps(treasures, start), -1};
+
+    const auto alts = level_alternatives(exit_cols, treasures, start);
+
+    return transform_reduce();
 }
 
 Steps min_steps(const IslandReduced &isl) {
-    return min_steps(isl.steps, isl.start, isl.exit_cols,
-                     isl.treasure_cols_by_row, 0);
+    return min_steps_with_exit(isl.steps, isl.start, isl.exit_cols,
+                               isl.treasure_cols_by_row, 0)
+        .first;
 }
 
 Island read_input() {
