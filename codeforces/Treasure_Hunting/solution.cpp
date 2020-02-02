@@ -74,7 +74,7 @@ bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
 
 bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
     assert(!exit_cols.empty() && "can_exit_right");
-    const Col hi = *exit_cols.cend();
+    const Col hi = *prev(exit_cols.cend());
     return from_col < hi;
 }
 
