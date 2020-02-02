@@ -41,6 +41,14 @@ struct IslandReduced final {
     vector<ColRange> treasure_cols_by_row;
 };
 
+template <typename T>
+int trailing_empty_elements_count(const vector<optional<T>> &xs) {
+    const auto it = find_if(xs.crbegin(), xs.crend(),
+                            [](const optional<T> &x) { return !!x; });
+    assert(it != xs.crend() && "trailing_empty_rows_count");
+    return distance(xs.crbegin(), it);
+}
+
 IslandReduced reduce_island(const Island &isl) {
     const auto start =
         isl.treasure_cols_by_row[0] ? 0 : isl.treasure_cols_by_row[0]->first;
@@ -53,8 +61,9 @@ IslandReduced reduce_island(const Island &isl) {
         treasure_cols_by_row.push_back(**it);
     }
 
-    return {static_cast<Steps>(isl.treasure_cols_by_row.size()) - 1, start,
-            isl.exit_cols, treasure_cols_by_row};
+    return {static_cast<Steps>(isl.treasure_cols_by_row.size()) -
+                trailing_empty_elements_count(isl.treasure_cols_by_row) - 1,
+            start, isl.exit_cols, treasure_cols_by_row};
 }
 
 bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
