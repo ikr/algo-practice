@@ -3,6 +3,12 @@
 
 using namespace std;
 
+template <typename T> struct mmin {
+    constexpr T operator()(const T &a, const T &b) const {
+        return std::min(a, b);
+    }
+};
+
 using Col = int;
 using ColRange = pair<Col, Col>;
 using OptColRange = optional<pair<Col, Col>>;
@@ -156,36 +162,34 @@ Steps terminal_level_steps(const ColRange treasures, const Col start) {
     if (start <= lo) return lo - start + spread;
     if (hi <= start) return start - hi + spread;
 
-    assert(lo < start && start < hi && "terminal_level_min_steps");
+    assert(lo < start && start < hi && "terminal_level_steps");
     return min(start - lo + spread, hi - start + spread);
 }
 
-pair<Steps, Col> min_steps_with_exit(
-    const Steps steps, const Col start, const set<Col> &exit_cols,
-    const vector<ColRange> &treasure_cols_by_row, const Row row) {
-    const auto treasures = treasure_cols_by_row.at(row);
-
+Steps min_steps(const Col start, const set<Col> &exit_cols,
+                const vector<ColRange> &treasure_cols_by_row, const Row row) {
     if (row == static_cast<Row>(treasure_cols_by_row.size() - 1)) {
-        return {steps + terminal_level_steps(treasures, start), -1};
+        return terminal_level_steps(treasure_cols_by_row.at(row), start);
     }
 
-    const auto alts = level_alternatives(exit_cols, treasures, start);
+    const auto alts =
+        level_alternatives(exit_cols, treasure_cols_by_row.at(row), start);
 
     return transform_reduce(
-        alts.cbegin(), alts.cend(),
-        pair<Steps, Col>{numeric_limits<Steps>::max(), -1},
-        [](const pair<Steps, Col> &p1, const pair<Steps, Col> &p2) {
-            return p1.first <= p2.first ? p1 : p2;
-        },
-        [](const LevelAction a) {
-            return pair<Steps, Col>{0, 0};
+        alts.cbegin(), alts.cend(), numeric_limits<Steps>::max(), mmin<Steps>(),
+        [start, &exit_cols, &treasure_cols_by_row,
+         row](const LevelAction action) {
+            const auto [own_steps, own_exit] = level_steps_and_exit(
+                exit_cols, treasure_cols_by_row.at(row), start, action);
+
+            return own_steps + min_steps(own_exit, exit_cols,
+                                         treasure_cols_by_row, row + 1);
         });
 }
 
 Steps min_steps(const IslandReduced &isl) {
-    return min_steps_with_exit(isl.steps, isl.start, isl.exit_cols,
-                               isl.treasure_cols_by_row, 0)
-        .first;
+    return isl.steps +
+           min_steps(isl.start, isl.exit_cols, isl.treasure_cols_by_row, 0);
 }
 
 Island read_input() {
