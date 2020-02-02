@@ -45,17 +45,16 @@ IslandReduced reduce_island(const Island &isl) {
     const auto start =
         isl.treasure_cols_by_row[0] ? 0 : isl.treasure_cols_by_row[0]->first;
 
-    Steps steps = start;
     vector<ColRange> treasure_cols_by_row;
 
     for (auto it = isl.treasure_cols_by_row.cbegin();
          it != isl.treasure_cols_by_row.cend(); ++it) {
         if (!*it) continue;
-        ++steps;
         treasure_cols_by_row.push_back(**it);
     }
 
-    return {steps, start, isl.exit_cols, treasure_cols_by_row};
+    return {static_cast<Steps>(isl.treasure_cols_by_row.size()) - 1, start,
+            isl.exit_cols, treasure_cols_by_row};
 }
 
 bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
