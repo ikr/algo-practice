@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#incude < numeric >
+#include <numeric>
 
 using namespace std;
 
@@ -165,12 +165,21 @@ pair<Steps, Col> min_steps_with_exit(
     const vector<ColRange> &treasure_cols_by_row, const Row row) {
     const auto treasures = treasure_cols_by_row.at(row);
 
-    if (row == treasure_cols_by_row.size() - 1)
+    if (row == static_cast<Row>(treasure_cols_by_row.size() - 1)) {
         return {steps + terminal_level_steps(treasures, start), -1};
+    }
 
     const auto alts = level_alternatives(exit_cols, treasures, start);
 
-    return transform_reduce();
+    return transform_reduce(
+        alts.cbegin(), alts.cend(),
+        pair<Steps, Col>{numeric_limits<Steps>::max(), -1},
+        [](const pair<Steps, Col> &p1, const pair<Steps, Col> &p2) {
+            return p1.first <= p2.first ? p1 : p2;
+        },
+        [](const LevelAction a) {
+            return pair<Steps, Col>{0, 0};
+        });
 }
 
 Steps min_steps(const IslandReduced &isl) {
