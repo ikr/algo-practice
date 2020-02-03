@@ -185,30 +185,50 @@ Steps terminal_level_steps(const ColRange treasures, const Col start) {
     return min(start - lo + spread, hi - start + spread);
 }
 
+template <typename T1, typename T2> struct PairHash final {
+    size_t operator()(const pair<T1, T2> &p) const {
+        size_t ans = hash<T1>{}(p.first);
+        ans = 31 * ans + hash<T2>{}(p.second);
+        return ans;
+    }
+};
+
+using Cache = unordered_map<pair<Row, Col>, Steps, PairHash<Row, Col>>;
+
 Steps min_steps(const Col start, const set<Col> &exit_cols,
-                const vector<ColRange> &treasure_cols_by_row, const Row row) {
+                const vector<ColRange> &treasure_cols_by_row, const Row row,
+                Cache &cache) {
+    const pair<Row, Col> key{row, start};
+    if (cache.count(key)) return cache.at(key);
+
     if (row == static_cast<Row>(treasure_cols_by_row.size() - 1)) {
-        return terminal_level_steps(treasure_cols_by_row.at(row), start);
+        cache[key] = terminal_level_steps(treasure_cols_by_row.at(row), start);
+    } else {
+
+        const auto alts =
+            level_alternatives(exit_cols, treasure_cols_by_row.at(row), start);
+
+        cache[key] = ttransform_reduce(
+            alts.cbegin(), alts.cend(), numeric_limits<Steps>::max(),
+            mmin<Steps>(),
+            [start, &exit_cols, &treasure_cols_by_row, row,
+             &cache](const LevelAction action) {
+                const auto [own_steps, own_exit] = level_steps_and_exit(
+                    exit_cols, treasure_cols_by_row.at(row), start, action);
+
+                return own_steps + min_steps(own_exit, exit_cols,
+                                             treasure_cols_by_row, row + 1,
+                                             cache);
+            });
     }
 
-    const auto alts =
-        level_alternatives(exit_cols, treasure_cols_by_row.at(row), start);
-
-    return ttransform_reduce(
-        alts.cbegin(), alts.cend(), numeric_limits<Steps>::max(), mmin<Steps>(),
-        [start, &exit_cols, &treasure_cols_by_row,
-         row](const LevelAction action) {
-            const auto [own_steps, own_exit] = level_steps_and_exit(
-                exit_cols, treasure_cols_by_row.at(row), start, action);
-
-            return own_steps + min_steps(own_exit, exit_cols,
-                                         treasure_cols_by_row, row + 1);
-        });
+    return cache.at(key);
 }
 
 Steps min_steps(const IslandReduced &isl) {
-    return isl.steps +
-           min_steps(isl.start, isl.exit_cols, isl.treasure_cols_by_row, 0);
+    Cache cache;
+    return isl.steps + min_steps(isl.start, isl.exit_cols,
+                                 isl.treasure_cols_by_row, 0, cache);
 }
 
 Island read_input() {
