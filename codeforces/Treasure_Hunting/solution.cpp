@@ -3,6 +3,17 @@
 
 using namespace std;
 
+template <typename Iter, typename R, typename Binop, typename Unaop>
+R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
+    R ans = init;
+
+    for (auto it = first; it != last; ++it) {
+        ans = binop(ans, unaop(*it));
+    }
+
+    return ans;
+}
+
 template <typename T> struct mmin {
     constexpr T operator()(const T &a, const T &b) const {
         return std::min(a, b);
@@ -183,7 +194,7 @@ Steps min_steps(const Col start, const set<Col> &exit_cols,
     const auto alts =
         level_alternatives(exit_cols, treasure_cols_by_row.at(row), start);
 
-    return transform_reduce(
+    return ttransform_reduce(
         alts.cbegin(), alts.cend(), numeric_limits<Steps>::max(), mmin<Steps>(),
         [start, &exit_cols, &treasure_cols_by_row,
          row](const LevelAction action) {
