@@ -2,16 +2,18 @@
 #include <iostream>
 #include <random>
 
+constexpr int SIZE = 100000;
+
 int main() {
-    std::cout << "10000 10000 10000 10000\n";
+    std::cout << SIZE << ' ' << SIZE << ' ' << SIZE << ' ' << SIZE << '\n';
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(1, 10000);
+    std::uniform_int_distribution<> dist(1, SIZE);
 
-    for (int i = 1; i <= 10000; ++i) std::cout << i << ' ' << dist(gen) << '\n';
+    for (int i = 1; i <= SIZE; ++i) std::cout << i << ' ' << dist(gen) << '\n';
 
-    for (int i = 1; i <= 10000; ++i) {
+    for (int i = 1; i <= SIZE; ++i) {
         if (i > 1) std::cout << ' ';
         std::cout << i;
     }
