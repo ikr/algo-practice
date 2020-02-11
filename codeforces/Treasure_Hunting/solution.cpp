@@ -97,12 +97,12 @@ set<LevelAction> level_alternatives(const set<Col> &exit_cols,
     if (start <= lo) { // ..ⓍOO..
         if (can_exit_lefty(exit_cols, hi))
             ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_LEFTY);
-        if (can_exit_right(exit_cols, hi))
+        if (!exit_cols.count(hi) && can_exit_right(exit_cols, hi))
             ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_RIGHT);
     } else if (hi <= start) { // ..OOⓍ..
         if (can_exit_lefty(exit_cols, lo))
             ans.insert(LevelAction::COLLECT_LEFTY_EXIT_LEFTY);
-        if (can_exit_right(exit_cols, lo))
+        if (!exit_cols.count(lo) && can_exit_right(exit_cols, lo))
             ans.insert(LevelAction::COLLECT_LEFTY_EXIT_RIGHT);
     } else {
         assert(lo < start && start < hi);
@@ -110,13 +110,13 @@ set<LevelAction> level_alternatives(const set<Col> &exit_cols,
         // ..O←ⓍO..
         if (can_exit_lefty(exit_cols, hi))
             ans.insert(LevelAction::COLLECT_LEFT_RIGHT_EXIT_LEFTY);
-        if (can_exit_right(exit_cols, hi))
+        if (!exit_cols.count(hi) && can_exit_right(exit_cols, hi))
             ans.insert(LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT);
 
         // ..OⓍ→O..
         if (can_exit_lefty(exit_cols, lo))
             ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_LEFTY);
-        if (can_exit_right(exit_cols, lo))
+        if (!exit_cols.count(lo) && can_exit_right(exit_cols, lo))
             ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT);
     }
 
