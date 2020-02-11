@@ -243,6 +243,10 @@ Island read_input() {
         int r1;
         int c1;
         cin >> r1 >> c1;
+
+        assert(1 <= r1 && r1 <= n && "treasure row range");
+        assert(1 <= c1 && c1 <= m && "treasure column range");
+
         treasure_column_sets_by_row[r1 - 1].insert(c1 - 1);
     }
 
@@ -258,6 +262,9 @@ Island read_input() {
     for (int i = 0; i != q; ++i) {
         int c1;
         cin >> c1;
+
+        assert(1 <= c1 && c1 <= m && "exit column range");
+
         exit_columns.insert(c1 - 1);
     }
 
