@@ -2,7 +2,7 @@
 #include <iostream>
 #include <random>
 
-constexpr int SIZE = 18000;
+constexpr int SIZE = 200000;
 
 int main() {
     std::cout << SIZE << ' ' << SIZE << ' ' << SIZE << ' ' << SIZE << '\n';
