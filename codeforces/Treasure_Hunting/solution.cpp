@@ -64,7 +64,11 @@ int trailing_empty_elements_count(const vector<optional<T>> &xs) {
 
 IslandReduced reduce_island(const Island &isl) {
     const auto start =
-        isl.treasure_cols_by_row[0] ? 0 : isl.treasure_cols_by_row[0]->first;
+        isl.treasure_cols_by_row[0] ? 0 : *(isl.exit_cols.begin());
+
+    const Steps steps =
+        static_cast<Steps>(isl.treasure_cols_by_row.size()) -
+        trailing_empty_elements_count(isl.treasure_cols_by_row) - 1;
 
     vector<ColRange> treasure_cols_by_row;
 
@@ -74,9 +78,7 @@ IslandReduced reduce_island(const Island &isl) {
         treasure_cols_by_row.push_back(**it);
     }
 
-    return {static_cast<Steps>(isl.treasure_cols_by_row.size()) -
-                trailing_empty_elements_count(isl.treasure_cols_by_row) - 1,
-            start, isl.exit_cols, isl.is_exit_col, treasure_cols_by_row};
+    return {steps, start, isl.exit_cols, isl.is_exit_col, treasure_cols_by_row};
 }
 
 bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
