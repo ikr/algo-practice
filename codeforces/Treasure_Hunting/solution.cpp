@@ -67,7 +67,7 @@ IslandReduced reduce_island(const Island &isl) {
         isl.treasure_cols_by_row[0] ? 0 : *(isl.exit_cols.begin());
 
     const Steps steps =
-        static_cast<Steps>(isl.treasure_cols_by_row.size()) -
+        start + static_cast<Steps>(isl.treasure_cols_by_row.size()) -
         trailing_empty_elements_count(isl.treasure_cols_by_row) - 1;
 
     vector<ColRange> treasure_cols_by_row;
