@@ -233,12 +233,12 @@ bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
 Col lefty_exit(const set<Col> &exit_cols, const vector<bool> &is_exit_col,
                const Col from_col) {
     if (is_exit_col.at(from_col)) return from_col;
-    const auto it = lower_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
+    const auto it = exit_cols.lower_bound(from_col);
     return *prev(it);
 }
 
 Col right_exit(const set<Col> &exit_cols, const Col from_col) {
-    const auto it = upper_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
+    const auto it = exit_cols.upper_bound(from_col);
     assert(it != exit_cols.cend() && "right_exit");
     return *it;
 }
