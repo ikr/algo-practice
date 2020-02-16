@@ -282,8 +282,6 @@ Island read_input() {
         is_exit_col[c1 - 1] = true;
     }
 
-    cout << "exit_cols, is_exit_col initialized\n";
-
     vector<optional<Col>> lefty(m, nullopt);
     vector<optional<Col>> right(m, nullopt);
 
@@ -293,8 +291,6 @@ Island read_input() {
 
         if (can_exit_right(exit_cols, c)) right[c] = {right_exit(exit_cols, c)};
     }
-
-    cout << "All data read\n";
 
     return {{lefty, right}, treasure_cols_by_row};
 }
