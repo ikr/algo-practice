@@ -40,17 +40,20 @@ enum class LevelAction {
     COLLECT_RIGHT_LEFT_EXIT_RIGHT
 };
 
+struct Exits final {
+    vector<optional<Col>> lefty;
+    vector<optional<Col>> right;
+};
+
 struct Island final {
-    set<Col> exit_cols;
-    vector<bool> is_exit_col;
+    Exits exits;
     vector<OptColRange> treasure_cols_by_row;
 };
 
 struct IslandReduced final {
     Steps steps;
     Col start;
-    set<Col> exit_cols;
-    vector<bool> is_exit_col;
+    Exits exits;
     vector<ColRange> treasure_cols_by_row;
 };
 
@@ -63,8 +66,11 @@ int trailing_empty_elements_count(const vector<optional<T>> &xs) {
 }
 
 IslandReduced reduce_island(const Island &isl) {
-    const auto start =
-        isl.treasure_cols_by_row[0] ? 0 : *(isl.exit_cols.begin());
+    const Col start =
+        isl.treasure_cols_by_row[0]
+            ? 0
+            : **find_if(isl.exits.lefty.cbegin(), isl.exits.lefty.cend(),
+                        [](const auto oc) { return !!oc; });
 
     const Steps steps =
         start + static_cast<Steps>(isl.treasure_cols_by_row.size()) -
@@ -78,71 +84,49 @@ IslandReduced reduce_island(const Island &isl) {
         treasure_cols_by_row.push_back(**it);
     }
 
-    return {steps, start, isl.exit_cols, isl.is_exit_col, treasure_cols_by_row};
+    return {steps, start, isl.exits, treasure_cols_by_row};
 }
 
-bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
-    assert(!exit_cols.empty() && "can_exit_lefty");
-    const Col lo = *exit_cols.cbegin();
-    return lo <= from_col;
-}
-
-bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
-    assert(!exit_cols.empty() && "can_exit_right");
-    const Col hi = *prev(exit_cols.cend());
-    return from_col < hi;
-}
-
-set<LevelAction> level_alternatives(const set<Col> &exit_cols,
+set<LevelAction> level_alternatives(const Exits &exits,
                                     const ColRange treasures, const Col start) {
     const auto [lo, hi] = treasures;
-    set<LevelAction> ans;
 
     if (start <= lo) { // ..ⓍOO..
-        if (can_exit_lefty(exit_cols, hi))
-            ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_LEFTY);
-        if (!exit_cols.count(hi) && can_exit_right(exit_cols, hi))
-            ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_RIGHT);
+        if (exits.lefty[hi] && *exits.lefty[hi] == hi)
+            return {LevelAction::COLLECT_RIGHTY_EXIT_LEFTY};
+
+        set<LevelAction> ans;
+        if (exits.lefty[hi]) ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_LEFTY);
+        if (exits.right[hi]) ans.insert(LevelAction::COLLECT_RIGHTY_EXIT_RIGHT);
+        return ans;
     } else if (hi <= start) { // ..OOⓍ..
-        if (can_exit_lefty(exit_cols, lo))
-            ans.insert(LevelAction::COLLECT_LEFTY_EXIT_LEFTY);
-        if (!exit_cols.count(lo) && can_exit_right(exit_cols, lo))
-            ans.insert(LevelAction::COLLECT_LEFTY_EXIT_RIGHT);
+        if (exits.lefty[lo] && *exits.lefty[lo] == lo)
+            return {LevelAction::COLLECT_LEFTY_EXIT_LEFTY};
+
+        set<LevelAction> ans;
+        if (exits.lefty[lo]) ans.insert(LevelAction::COLLECT_LEFTY_EXIT_LEFTY);
+        if (exits.right[lo]) ans.insert(LevelAction::COLLECT_LEFTY_EXIT_RIGHT);
+        return ans;
     } else {
-        assert(lo < start && start < hi);
+        set<LevelAction> ans;
 
         // ..O←ⓍO..
-        if (can_exit_lefty(exit_cols, hi))
+        if (exits.lefty[hi])
             ans.insert(LevelAction::COLLECT_LEFT_RIGHT_EXIT_LEFTY);
-        if (!exit_cols.count(hi) && can_exit_right(exit_cols, hi))
+        if ((!exits.lefty[hi] || *exits.lefty[hi] != hi) && exits.right[hi])
             ans.insert(LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT);
 
         // ..OⓍ→O..
-        if (can_exit_lefty(exit_cols, lo))
+        if (exits.lefty[lo])
             ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_LEFTY);
-        if (!exit_cols.count(lo) && can_exit_right(exit_cols, lo))
+        if ((!exits.lefty[lo] || *exits.lefty[lo] != lo) && exits.right[lo])
             ans.insert(LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT);
+
+        return ans;
     }
-
-    assert(!ans.empty());
-    return ans;
 }
 
-Col lefty_exit(const set<Col> &exit_cols, const vector<bool> &is_exit_col,
-               const Col from_col) {
-    if (is_exit_col.at(from_col)) return from_col;
-    const auto it = lower_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
-    return *prev(it);
-}
-
-Col right_exit(const set<Col> &exit_cols, const Col from_col) {
-    const auto it = upper_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
-    assert(it != exit_cols.cend() && "right_exit");
-    return *it;
-}
-
-pair<Steps, Col> level_steps_and_exit(const set<Col> &exit_cols,
-                                      const vector<bool> &is_exit_col,
+pair<Steps, Col> level_steps_and_exit(const Exits &exits,
                                       const ColRange treasures, const Col start,
                                       const LevelAction action) {
     const auto [lo, hi] = treasures;
@@ -155,26 +139,24 @@ pair<Steps, Col> level_steps_and_exit(const set<Col> &exit_cols,
 
     switch (action) {
     case LevelAction::COLLECT_RIGHTY_EXIT_LEFTY: // ..ⓍOO..
-        return answer(hi - start, hi, lefty_exit(exit_cols, is_exit_col, hi));
+        return answer(hi - start, hi, *exits.lefty[hi]);
     case LevelAction::COLLECT_RIGHTY_EXIT_RIGHT:
-        return answer(hi - start, hi, right_exit(exit_cols, hi));
+        return answer(hi - start, hi, *exits.right[hi]);
 
     case LevelAction::COLLECT_LEFTY_EXIT_LEFTY: // ..OOⓍ..
-        return answer(start - lo, lo, lefty_exit(exit_cols, is_exit_col, lo));
+        return answer(start - lo, lo, *exits.lefty[lo]);
     case LevelAction::COLLECT_LEFTY_EXIT_RIGHT:
-        return answer(start - lo, lo, right_exit(exit_cols, lo));
+        return answer(start - lo, lo, *exits.right[lo]);
 
     case LevelAction::COLLECT_LEFT_RIGHT_EXIT_LEFTY: // ..O←ⓍO..
-        return answer(start - lo + spread, hi,
-                      lefty_exit(exit_cols, is_exit_col, hi));
+        return answer(start - lo + spread, hi, *exits.lefty[hi]);
     case LevelAction::COLLECT_LEFT_RIGHT_EXIT_RIGHT:
-        return answer(start - lo + spread, hi, right_exit(exit_cols, hi));
+        return answer(start - lo + spread, hi, *exits.right[hi]);
 
     case LevelAction::COLLECT_RIGHT_LEFT_EXIT_LEFTY: // ..OⓍ→O..
-        return answer(hi - start + spread, lo,
-                      lefty_exit(exit_cols, is_exit_col, lo));
+        return answer(hi - start + spread, lo, *exits.lefty[lo]);
     case LevelAction::COLLECT_RIGHT_LEFT_EXIT_RIGHT:
-        return answer(hi - start + spread, lo, right_exit(exit_cols, lo));
+        return answer(hi - start + spread, lo, *exits.right[lo]);
     }
 
     assert(false && "level_steps_and_exit");
@@ -202,8 +184,7 @@ template <typename T1, typename T2> struct PairHash final {
 
 using Cache = unordered_map<pair<Row, Col>, Steps, PairHash<Row, Col>>;
 
-Steps min_steps(const Col start, const set<Col> &exit_cols,
-                const vector<bool> &is_exit_col,
+Steps min_steps(const Col start, const Exits &exits,
                 const vector<ColRange> &treasure_cols_by_row, const Row row,
                 Cache &cache) {
     const pair<Row, Col> key{row, start};
@@ -212,20 +193,18 @@ Steps min_steps(const Col start, const set<Col> &exit_cols,
     if (row == static_cast<Row>(treasure_cols_by_row.size() - 1)) {
         cache[key] = terminal_level_steps(treasure_cols_by_row.at(row), start);
     } else {
-
         const auto alts =
-            level_alternatives(exit_cols, treasure_cols_by_row.at(row), start);
+            level_alternatives(exits, treasure_cols_by_row.at(row), start);
 
         cache[key] = ttransform_reduce(
             alts.cbegin(), alts.cend(), numeric_limits<Steps>::max(),
             mmin<Steps>(),
-            [start, &exit_cols, &is_exit_col, &treasure_cols_by_row, row,
+            [start, &exits, &treasure_cols_by_row, row,
              &cache](const LevelAction action) {
                 const auto [own_steps, own_exit] = level_steps_and_exit(
-                    exit_cols, is_exit_col, treasure_cols_by_row.at(row), start,
-                    action);
+                    exits, treasure_cols_by_row.at(row), start, action);
 
-                return own_steps + min_steps(own_exit, exit_cols, is_exit_col,
+                return own_steps + min_steps(own_exit, exits,
                                              treasure_cols_by_row, row + 1,
                                              cache);
             });
@@ -236,8 +215,32 @@ Steps min_steps(const Col start, const set<Col> &exit_cols,
 
 Steps min_steps(const IslandReduced &isl) {
     Cache cache;
-    return isl.steps + min_steps(isl.start, isl.exit_cols, isl.is_exit_col,
-                                 isl.treasure_cols_by_row, 0, cache);
+
+    return isl.steps +
+           min_steps(isl.start, isl.exits, isl.treasure_cols_by_row, 0, cache);
+}
+
+bool can_exit_lefty(const set<Col> &exit_cols, const Col from_col) {
+    const Col lo = *exit_cols.cbegin();
+    return lo <= from_col;
+}
+
+bool can_exit_right(const set<Col> &exit_cols, const Col from_col) {
+    const Col hi = *prev(exit_cols.cend());
+    return from_col < hi;
+}
+
+Col lefty_exit(const set<Col> &exit_cols, const vector<bool> &is_exit_col,
+               const Col from_col) {
+    if (is_exit_col.at(from_col)) return from_col;
+    const auto it = lower_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
+    return *prev(it);
+}
+
+Col right_exit(const set<Col> &exit_cols, const Col from_col) {
+    const auto it = upper_bound(exit_cols.cbegin(), exit_cols.cend(), from_col);
+    assert(it != exit_cols.cend() && "right_exit");
+    return *it;
 }
 
 Island read_input() {
@@ -267,20 +270,33 @@ Island read_input() {
                   return ColRange{*cols_set.cbegin(), *cols_set.crbegin()};
               });
 
-    set<Col> exit_columns;
-    vector<bool> is_exit_column(m, false);
+    set<Col> exit_cols;
+    vector<bool> is_exit_col(m, false);
     for (int i = 0; i != q; ++i) {
         int c1;
         cin >> c1;
 
         assert(1 <= c1 && c1 <= m && "exit column range");
 
-        exit_columns.insert(c1 - 1);
-        is_exit_column[c1 - 1] = true;
+        exit_cols.insert(c1 - 1);
+        is_exit_col[c1 - 1] = true;
     }
 
-    assert(!exit_columns.empty());
-    return {exit_columns, is_exit_column, treasure_cols_by_row};
+    cout << "exit_cols, is_exit_col initialized\n";
+
+    vector<optional<Col>> lefty(m, nullopt);
+    vector<optional<Col>> right(m, nullopt);
+
+    for (Col c = 0; c != m; ++c) {
+        if (can_exit_lefty(exit_cols, c))
+            lefty[c] = {lefty_exit(exit_cols, is_exit_col, c)};
+
+        if (can_exit_right(exit_cols, c)) right[c] = {right_exit(exit_cols, c)};
+    }
+
+    cout << "All data read\n";
+
+    return {{lefty, right}, treasure_cols_by_row};
 }
 
 int main() { cout << min_steps(reduce_island(read_input())) << '\n'; }
