@@ -13,23 +13,21 @@ code=$(cat <<EOF
 
 using namespace std;
 
-int answer_to_life_universe_and_everything() {
-    return -1;
-}
+struct Solution final {
+    int solve_it() const { return 42; }
+};
 
 // clang-format off
 const lest::test tests[] = {
     CASE("the answer is 42") {
-        const auto actual = answer_to_life_universe_and_everything();
+        const auto actual = Solution{}.solve_it();
         const auto expected = 42;
         EXPECT(actual == expected);
     },
 };
 // clang-format on
 
-int main(int argc, char** argv) {
-    return lest::run(tests, argc, argv);
-}
+int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
 EOF
 )
 
