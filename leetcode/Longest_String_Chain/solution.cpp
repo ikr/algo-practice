@@ -3,8 +3,29 @@
 
 using namespace std;
 
+namespace {
+template <typename T>
+unordered_map<T, size_t> reverse_mapping(const vector<T> &xs) {
+    unordered_map<T, size_t> ans;
+
+    for (auto i = 0U; i != xs.size(); ++i) {
+        ans[xs[i]] = i;
+    }
+
+    return ans;
+}
+} // namespace
+
 struct Solution final {
-    int longestStrChain(const vector<string> &words) { return -1; }
+    int longestStrChain(vector<string> words) {
+        sort(words.begin(), words.end(), [](const auto &w1, const auto &w2) {
+            return w1.size() < w2.size();
+        });
+
+        unordered_map<string, size_t> indices_by_word = reverse_mapping(words);
+
+        return -1;
+    }
 };
 
 // clang-format off
