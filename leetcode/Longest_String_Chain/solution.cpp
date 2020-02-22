@@ -85,7 +85,7 @@ int max_chain_size(const size_t words_count,
         ans[i] = chain_size(adjacent, ans, i);
     }
 
-    return reduce(ans.cbegin(), ans.cend(), INT_MIN, mmax<int>{});
+    return accumulate(ans.cbegin(), ans.cend(), INT_MIN, mmax<int>{});
 }
 } // namespace
 
