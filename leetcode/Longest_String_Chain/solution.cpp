@@ -48,6 +48,17 @@ template <typename T> struct mmax {
     }
 };
 
+template <typename Iter, typename R, typename Binop, typename Unaop>
+R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
+    R ans = init;
+
+    for (auto it = first; it != last; ++it) {
+        ans = binop(ans, unaop(*it));
+    }
+
+    return ans;
+}
+
 int chain_size(const vector<vector<size_t>> &adjacent, vector<int> &memo,
                const size_t index) {
     if (memo[index] >= 0) return memo[index];
@@ -56,11 +67,11 @@ int chain_size(const vector<vector<size_t>> &adjacent, vector<int> &memo,
         memo[index] = 1;
     } else {
         memo[index] =
-            1 + transform_reduce(adjacent[index].cbegin(),
-                                 adjacent[index].cend(), INT_MIN, mmax<int>{},
-                                 [&adjacent, &memo](const auto i) {
-                                     return chain_size(adjacent, memo, i);
-                                 });
+            1 + ttransform_reduce(adjacent[index].cbegin(),
+                                  adjacent[index].cend(), INT_MIN, mmax<int>{},
+                                  [&adjacent, &memo](const auto i) {
+                                      return chain_size(adjacent, memo, i);
+                                  });
     }
 
     return memo[index];
