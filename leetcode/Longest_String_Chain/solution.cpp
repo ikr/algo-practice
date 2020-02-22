@@ -84,8 +84,6 @@ struct Solution final {
             return w1.size() < w2.size();
         });
 
-        words.erase(unique(words.begin(), words.end()), words.end());
-
         auto indices_by_word = reverse_mapping(words);
         auto adjacent = make_graph(words, indices_by_word);
 
