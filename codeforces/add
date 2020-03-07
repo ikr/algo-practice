@@ -40,4 +40,5 @@ mkdir "./$name"
 cd "./$name"
 echo "$code" > ./solution.cpp
 echo "$makefile" > ./Makefile
+echo '-std=c++17' > ./compile_flags.txt
 echo "cd ./$name && make run"
