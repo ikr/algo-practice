@@ -45,4 +45,5 @@ cd "./$name"
 ln -s ../../../lest/include/lest/lest.hpp ./lest.hpp
 echo "$code" > ./solution.cpp
 echo "$makefile" > ./Makefile
+echo '-std=c++17' > ./compile_flags.txt
 echo "cd ./$name && make run"
