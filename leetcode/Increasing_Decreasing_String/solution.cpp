@@ -5,10 +5,6 @@ using namespace std;
 
 namespace {
 void prune(map<char, int> &m) {
-    // m.erase(
-    //     remove_if(m.begin(), m.end(), [](auto it) { return it.second == 0;
-    //     }), m.end());
-
     for (auto it = m.begin(); it != m.end();) {
         if (it->second == 0) {
             it = m.erase(it);
