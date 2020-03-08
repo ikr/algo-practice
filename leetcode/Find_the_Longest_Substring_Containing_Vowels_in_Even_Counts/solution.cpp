@@ -66,6 +66,31 @@ const lest::test tests[] = {
         const auto expected = 6;
         EXPECT(actual == expected);
     },
+    CASE("Empty") {
+        const auto actual = Solution{}.findTheLongestSubstring("");
+        const auto expected = 0;
+        EXPECT(actual == expected);
+    },
+    CASE("aa") {
+        const auto actual = Solution{}.findTheLongestSubstring("aa");
+        const auto expected = 2;
+        EXPECT(actual == expected);
+    },
+    CASE("xx") {
+        const auto actual = Solution{}.findTheLongestSubstring("xx");
+        const auto expected = 2;
+        EXPECT(actual == expected);
+    },
+    CASE("abba") {
+        const auto actual = Solution{}.findTheLongestSubstring("abba");
+        const auto expected = 4;
+        EXPECT(actual == expected);
+    },
+    CASE("a") {
+        const auto actual = Solution{}.findTheLongestSubstring("a");
+        const auto expected = 0;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
