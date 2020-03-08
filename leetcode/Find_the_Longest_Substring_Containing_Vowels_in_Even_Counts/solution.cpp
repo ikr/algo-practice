@@ -3,45 +3,26 @@
 
 using namespace std;
 
+namespace {
+const unordered_map<char, int> vowel_index{
+    {'a', 0}, {'e', 1}, {'i', 2}, {'o', 3}, {'u', 4}};
+} // namespace
+
 struct Solution final {
     int findTheLongestSubstring(const string &s) const {
         int ans = 0;
+        vector<int> first_index_of_parity(32, -1);
 
-        for (auto b = 0U; b != s.size(); ++b) {
-            bool a = true;
-            bool e = true;
-            bool i = true;
-            bool o = true;
-            bool u = true;
+        for (auto i = 0U, parity = 0U; i != s.size(); ++i) {
+            if (vowel_index.count(s[i])) {
+                parity ^= (1 << vowel_index.at(s[i]));
+            }
 
-            for (auto j = b; j != s.size(); ++j) {
-                switch (s[j]) {
-                case 'a':
-                    a = !a;
-                    break;
-
-                case 'e':
-                    e = !e;
-                    break;
-
-                case 'i':
-                    i = !i;
-                    break;
-
-                case 'o':
-                    o = !o;
-                    break;
-
-                case 'u':
-                    u = !u;
-                    break;
-                }
-
-                if (a && e && i && o && u) {
-                    if (static_cast<int>(j - b + 1) > ans) {
-                        ans = j - b + 1;
-                    }
-                }
+            if (first_index_of_parity[parity] < 0) {
+                first_index_of_parity[parity] = i;
+            } else {
+                const int candidate = i - first_index_of_parity[parity] + 1;
+                if (candidate > ans) ans = candidate;
             }
         }
 
