@@ -11,17 +11,18 @@ const unordered_map<char, int> vowel_index{
 struct Solution final {
     int findTheLongestSubstring(const string &s) const {
         int ans = 0;
-        vector<int> first_index_of_parity(32, -1);
+        vector<int> first_index_at_parity(32, -1);
+        first_index_at_parity[0] = 0;
 
         for (auto i = 0U, parity = 0U; i != s.size(); ++i) {
             if (vowel_index.count(s[i])) {
                 parity ^= (1 << vowel_index.at(s[i]));
             }
 
-            if (first_index_of_parity[parity] < 0) {
-                first_index_of_parity[parity] = i;
+            if (first_index_at_parity[parity] < 0) {
+                first_index_at_parity[parity] = i + 1;
             } else {
-                const int candidate = i - first_index_of_parity[parity] + 1;
+                const int candidate = i - first_index_at_parity[parity] + 1;
                 if (candidate > ans) ans = candidate;
             }
         }
@@ -70,6 +71,11 @@ const lest::test tests[] = {
     CASE("a") {
         const auto actual = Solution{}.findTheLongestSubstring("a");
         const auto expected = 0;
+        EXPECT(actual == expected);
+    },
+    CASE("ewwwedxe") {
+        const auto actual = Solution{}.findTheLongestSubstring("ewwwedxe");
+        const auto expected = 7;
         EXPECT(actual == expected);
     },
 };
