@@ -3,9 +3,15 @@
 
 using namespace std;
 
+namespace {
+using Int = long long;
+}
+
 struct Solution final {
     int countOrders(const int n) const {
-        return n;
+        if (n == 1) return 1;
+        const int m = 2 * (n - 1) + 1;
+        return countOrders(n - 1) * (m + m * m) / 2;
     }
 };
 
