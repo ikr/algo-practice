@@ -3,8 +3,37 @@
 
 using namespace std;
 
+namespace {
+template <typename T> int intof(const T x) { return static_cast<int>(x); }
+using RowCol = complex<int>;
+int row(const RowCol &coord) { return coord.real(); }
+int col(const RowCol &coord) { return coord.imag(); }
+
+struct Dest final {
+    int height;
+    RowCol coord;
+};
+
+struct DestCmp final {
+    bool operator()(const Dest &lhs, const Dest &rhs) const {
+        return lhs.height < rhs.height;
+    }
+};
+} // namespace
+
 struct Solution final {
-    int cutOffTree(vector<vector<int>> &forest) { return forest.size(); }
+    int cutOffTree(vector<vector<int>> &forest) {
+        set<Dest, DestCmp> destinations;
+
+        for (auto r = 0U; r != forest.size(); ++r) {
+            for (auto c = 0U; c != forest[r].size(); ++c) {
+                destinations.insert(
+                    Dest{forest[r][c], RowCol{intof(r), intof(c)}});
+            }
+        }
+
+        return forest.size();
+    }
 };
 
 // clang-format off
