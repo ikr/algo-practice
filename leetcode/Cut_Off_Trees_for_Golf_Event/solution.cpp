@@ -238,7 +238,7 @@ const lest::test tests[] = {
         };
 
         const auto actual = Solution{}.cutOffTree(input);
-        const auto expected = -1;
+        const auto expected = 5637;
         EXPECT(actual == expected);
     },
 };
