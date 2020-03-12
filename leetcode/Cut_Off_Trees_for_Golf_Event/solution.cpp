@@ -5,35 +5,69 @@ using namespace std;
 
 namespace {
 template <typename T> int intof(const T x) { return static_cast<int>(x); }
-using RowCol = complex<int>;
-int row(const RowCol &coord) { return coord.real(); }
-int col(const RowCol &coord) { return coord.imag(); }
+using Coord = complex<int>;
+int row(const Coord &coord) { return coord.real(); }
+int col(const Coord &coord) { return coord.imag(); }
 
 struct Dest final {
-    int height;
-    RowCol coord;
+    int priority;
+    Coord coord;
+
+    Dest(const int p, const int r, const int c) : priority{p}, coord{r, c} {}
 };
 
 struct DestCmp final {
     bool operator()(const Dest &lhs, const Dest &rhs) const {
-        return lhs.height < rhs.height;
+        return lhs.priority < rhs.priority;
     }
 };
+
+struct CoordHash final {
+    size_t operator()(const Coord &coord) const {
+        return 31 * hash<int>{}(row(coord)) + hash<int>{}(col(coord));
+    }
+};
+
+struct Model final {
+    vector<Dest> destinations_heap;
+    unordered_multimap<Coord, Coord, CoordHash> adjacent;
+};
+
+Model model(const vector<vector<int>> &forest) {
+    vector<Dest> destinations_heap;
+    unordered_multimap<Coord, Coord, CoordHash> adjacent;
+
+    for (int r = 0; r != intof(forest.size()); ++r) {
+        for (int c = 0; c != intof(forest[r].size()); ++c) {
+            if (!forest[r][c]) continue;
+
+            if (forest[r][c] > 1) {
+                destinations_heap.emplace_back(-forest[r][c], intof(r),
+                                               intof(c));
+
+                push_heap(destinations_heap.begin(), destinations_heap.end(),
+                          DestCmp{});
+            }
+
+            for (const Coord delta :
+                 vector<Coord>{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}) {
+                const Coord neigh = Coord{r, c} + delta;
+
+                if (row(neigh) >= 0 && row(neigh) < intof(forest.size()) &&
+                    col(neigh) >= 0 && col(neigh) < intof(forest[r].size()) &&
+                    forest[row(neigh)][col(neigh)]) {
+                    adjacent.emplace(Coord{r, c}, neigh);
+                }
+            }
+        }
+    }
+
+    return {destinations_heap, adjacent};
+}
 } // namespace
 
 struct Solution final {
-    int cutOffTree(vector<vector<int>> &forest) {
-        set<Dest, DestCmp> destinations;
-
-        for (auto r = 0U; r != forest.size(); ++r) {
-            for (auto c = 0U; c != forest[r].size(); ++c) {
-                destinations.insert(
-                    Dest{forest[r][c], RowCol{intof(r), intof(c)}});
-            }
-        }
-
-        return forest.size();
-    }
+    int cutOffTree(const vector<vector<int>> &forest) { return forest.size(); }
 };
 
 // clang-format off
