@@ -28,14 +28,16 @@ struct CoordHash final {
     }
 };
 
+using Graph = unordered_multimap<Coord, Coord, CoordHash>;
+
 struct Model final {
     vector<Dest> destinations_heap;
-    unordered_multimap<Coord, Coord, CoordHash> adjacent;
+    Graph adjacent;
 };
 
 Model model(const vector<vector<int>> &forest) {
     vector<Dest> destinations_heap;
-    unordered_multimap<Coord, Coord, CoordHash> adjacent;
+    Graph adjacent;
 
     for (int r = 0; r != intof(forest.size()); ++r) {
         for (int c = 0; c != intof(forest[r].size()); ++c) {
@@ -63,6 +65,11 @@ Model model(const vector<vector<int>> &forest) {
     }
 
     return {destinations_heap, adjacent};
+}
+
+int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
+    // TODO
+    return 0;
 }
 } // namespace
 
