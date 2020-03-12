@@ -32,7 +32,7 @@ using Graph = unordered_multimap<Coord, Coord, CoordHash>;
 
 struct Model final {
     vector<Dest> destinations_heap;
-    Graph adjacent;
+    const Graph adjacent;
 };
 
 Model model(const vector<vector<int>> &forest) {
@@ -68,13 +68,53 @@ Model model(const vector<vector<int>> &forest) {
 }
 
 int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
-    // TODO
-    return 0;
+    unordered_set<Coord, CoordHash> visited;
+    unordered_map<Coord, int, CoordHash> distance_to{{source, 0}};
+    queue<Coord> q;
+    q.push(source);
+
+    while (!q.empty()) {
+        const Coord v = q.back();
+        q.pop();
+        if (v == destination) return distance_to[v];
+
+        visited.insert(v);
+
+        const auto [first, last] = g.equal_range(v);
+        for (auto it = first; it != last; ++it) {
+            const Coord u = it->second;
+            if (visited.count(u)) continue;
+
+            distance_to[u] = distance_to[v] + 1;
+            q.push(u);
+        }
+    }
+
+    return -1;
 }
 } // namespace
 
 struct Solution final {
-    int cutOffTree(const vector<vector<int>> &forest) { return forest.size(); }
+    int cutOffTree(const vector<vector<int>> &forest) {
+        auto [destinations_heap, g] = model(forest);
+        int ans = 0;
+        Coord source{0, 0};
+
+        while (!destinations_heap.empty()) {
+            pop_heap(destinations_heap.begin(), destinations_heap.end(),
+                     DestCmp{});
+            const auto destination = destinations_heap.back();
+            destinations_heap.pop_back();
+
+            const int segment_steps = min_steps(g, source, destination.coord);
+            if (segment_steps < 0) return -1;
+
+            ans += segment_steps;
+            source = destination.coord;
+        }
+
+        return ans;
+    }
 };
 
 // clang-format off
@@ -121,6 +161,15 @@ const lest::test tests[] = {
 
         const auto actual = Solution{}.cutOffTree(input);
         const auto expected = 4;
+        EXPECT(actual == expected);
+    },
+    CASE("Minimal") {
+        vector<vector<int>> input{
+            {2,1}
+        };
+
+        const auto actual = Solution{}.cutOffTree(input);
+        const auto expected = 0;
         EXPECT(actual == expected);
     },
 };
