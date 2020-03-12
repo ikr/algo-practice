@@ -172,6 +172,20 @@ const lest::test tests[] = {
         const auto expected = 0;
         EXPECT(actual == expected);
     },
+    CASE("Arbitrary") {
+        vector<vector<int>> input{
+            {1,1,1,1,1},
+            {0,0,0,0,1},
+            {2,0,0,1,1},
+            {3,1,1,1,1},
+            {1,1,1,1,1},
+            {1,1,1,1,1},
+        };
+
+        const auto actual = Solution{}.cutOffTree(input);
+        const auto expected = 13;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
