@@ -74,7 +74,7 @@ int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
     q.push(source);
 
     while (!q.empty()) {
-        const Coord v = q.back();
+        const Coord v = q.front();
         q.pop();
         if (v == destination) return distance_to[v];
 
