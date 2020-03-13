@@ -4,10 +4,12 @@
 using namespace std;
 
 namespace {
-template <typename T> int intof(const T x) { return static_cast<int>(x); }
+template <typename T> constexpr int intof(const T x) {
+    return static_cast<int>(x);
+}
 using Coord = complex<int>;
-int row(const Coord &coord) { return coord.real(); }
-int col(const Coord &coord) { return coord.imag(); }
+constexpr int row(const Coord &coord) { return coord.real(); }
+constexpr int col(const Coord &coord) { return coord.imag(); }
 
 struct Dest final {
     int priority;
@@ -36,6 +38,8 @@ struct Model final {
 };
 
 Model model(const vector<vector<int>> &forest) {
+    static DestCmp cmp{};
+    static vector<Coord> deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
     vector<Dest> destinations_heap;
     Graph adjacent;
 
@@ -44,15 +48,12 @@ Model model(const vector<vector<int>> &forest) {
             if (!forest[r][c]) continue;
 
             if (forest[r][c] > 1) {
-                destinations_heap.emplace_back(-forest[r][c], intof(r),
-                                               intof(c));
-
+                destinations_heap.emplace_back(-forest[r][c], r, c);
                 push_heap(destinations_heap.begin(), destinations_heap.end(),
-                          DestCmp{});
+                          cmp);
             }
 
-            for (const Coord delta :
-                 vector<Coord>{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}) {
+            for (const Coord delta : deltas) {
                 const Coord neigh = Coord{r, c} + delta;
 
                 if (row(neigh) >= 0 && row(neigh) < intof(forest.size()) &&
@@ -94,14 +95,14 @@ int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
 } // namespace
 
 struct Solution final {
-    int cutOffTree(const vector<vector<int>> &forest) {
+    int cutOffTree(const vector<vector<int>> &forest) const {
+        static DestCmp cmp{};
         auto [destinations_heap, g] = model(forest);
         int ans = 0;
         Coord source{0, 0};
 
         while (!destinations_heap.empty()) {
-            pop_heap(destinations_heap.begin(), destinations_heap.end(),
-                     DestCmp{});
+            pop_heap(destinations_heap.begin(), destinations_heap.end(), cmp);
             const auto destination = destinations_heap.back();
             destinations_heap.pop_back();
 
