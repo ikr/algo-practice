@@ -35,6 +35,23 @@ struct Model final {
     const Graph adjacent;
 };
 
+vector<Dest> heap_up_destinations(const vector<vector<int>> &forest) {
+    vector<Dest> destinations_heap;
+
+    for (int r = 0; r != intof(forest.size()); ++r) {
+        for (int c = 0; c != intof(forest[r].size()); ++c) {
+            if (forest[r][c] <= 1) continue;
+
+            destinations_heap.emplace_back(-forest[r][c], intof(r), intof(c));
+
+            push_heap(destinations_heap.begin(), destinations_heap.end(),
+                      DestCmp{});
+        }
+    }
+
+    return destinations_heap;
+}
+
 Model model(const vector<vector<int>> &forest) {
     vector<Dest> destinations_heap;
     Graph adjacent;
