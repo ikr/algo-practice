@@ -78,13 +78,12 @@ int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
         q.pop();
         if (v == destination) return distance_to[v];
 
-        visited.insert(v);
-
         const auto [first, last] = g.equal_range(v);
         for (auto it = first; it != last; ++it) {
             const Coord u = it->second;
             if (visited.count(u)) continue;
 
+            visited.insert(u);
             distance_to[u] = distance_to[v] + 1;
             q.push(u);
         }
