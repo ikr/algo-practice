@@ -4,13 +4,10 @@
 using namespace std;
 
 namespace {
-template <typename T> constexpr int intof(const T x) {
-    return static_cast<int>(x);
-}
-
+template <typename T> int intof(const T x) { return static_cast<int>(x); }
 using Coord = complex<int>;
-constexpr int row(const Coord &coord) { return coord.real(); }
-constexpr int col(const Coord &coord) { return coord.imag(); }
+int row(const Coord &coord) { return coord.real(); }
+int col(const Coord &coord) { return coord.imag(); }
 
 struct Dest final {
     int priority;
@@ -32,14 +29,16 @@ struct CoordHash final {
 };
 
 vector<Dest> heap_up_destinations(const vector<vector<int>> &forest) {
-    static const DestCmp cmp{};
     vector<Dest> destinations_heap;
 
     for (int r = 0; r != intof(forest.size()); ++r) {
         for (int c = 0; c != intof(forest[r].size()); ++c) {
             if (forest[r][c] <= 1) continue;
-            destinations_heap.emplace_back(-forest[r][c], r, c);
-            push_heap(destinations_heap.begin(), destinations_heap.end(), cmp);
+
+            destinations_heap.emplace_back(-forest[r][c], intof(r), intof(c));
+
+            push_heap(destinations_heap.begin(), destinations_heap.end(),
+                      DestCmp{});
         }
     }
 
@@ -88,14 +87,14 @@ int min_steps(const vector<vector<int>> &forest, const Coord &source,
 } // namespace
 
 struct Solution final {
-    int cutOffTree(const vector<vector<int>> &forest) const {
-        static const DestCmp cmp{};
-        vector<Dest> destinations_heap = heap_up_destinations(forest);
+    int cutOffTree(const vector<vector<int>> &forest) {
+        auto destinations_heap = heap_up_destinations(forest);
         int ans = 0;
         Coord source{0, 0};
 
         while (!destinations_heap.empty()) {
-            pop_heap(destinations_heap.begin(), destinations_heap.end(), cmp);
+            pop_heap(destinations_heap.begin(), destinations_heap.end(),
+                     DestCmp{});
             const auto destination = destinations_heap.back();
             destinations_heap.pop_back();
 
