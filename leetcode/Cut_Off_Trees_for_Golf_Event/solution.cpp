@@ -28,13 +28,6 @@ struct CoordHash final {
     }
 };
 
-using Graph = unordered_multimap<Coord, Coord, CoordHash>;
-
-struct Model final {
-    vector<Dest> destinations_heap;
-    const Graph adjacent;
-};
-
 vector<Dest> heap_up_destinations(const vector<vector<int>> &forest) {
     vector<Dest> destinations_heap;
 
@@ -52,39 +45,24 @@ vector<Dest> heap_up_destinations(const vector<vector<int>> &forest) {
     return destinations_heap;
 }
 
-Model model(const vector<vector<int>> &forest) {
-    vector<Dest> destinations_heap;
-    Graph adjacent;
+vector<Coord> adjacent(const vector<vector<int>> &forest, const Coord &coord) {
+    vector<Coord> ans;
 
-    for (int r = 0; r != intof(forest.size()); ++r) {
-        for (int c = 0; c != intof(forest[r].size()); ++c) {
-            if (!forest[r][c]) continue;
+    for (const Coord delta : vector<Coord>{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}) {
+        const Coord neigh = coord + delta;
 
-            if (forest[r][c] > 1) {
-                destinations_heap.emplace_back(-forest[r][c], intof(r),
-                                               intof(c));
-
-                push_heap(destinations_heap.begin(), destinations_heap.end(),
-                          DestCmp{});
-            }
-
-            for (const Coord delta :
-                 vector<Coord>{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}) {
-                const Coord neigh = Coord{r, c} + delta;
-
-                if (row(neigh) >= 0 && row(neigh) < intof(forest.size()) &&
-                    col(neigh) >= 0 && col(neigh) < intof(forest[r].size()) &&
-                    forest[row(neigh)][col(neigh)]) {
-                    adjacent.emplace(Coord{r, c}, neigh);
-                }
-            }
+        if (row(neigh) >= 0 && row(neigh) < intof(forest.size()) &&
+            col(neigh) >= 0 && col(neigh) < intof(forest[row(coord)].size()) &&
+            forest[row(neigh)][col(neigh)]) {
+            ans.push_back(neigh);
         }
     }
 
-    return {destinations_heap, adjacent};
+    return ans;
 }
 
-int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
+int min_steps(const vector<vector<int>> &forest, const Coord &source,
+              const Coord &destination) {
     unordered_set<Coord, CoordHash> discovered{source};
     unordered_map<Coord, int, CoordHash> distance_to{{source, 0}};
     queue<Coord> q;
@@ -95,9 +73,7 @@ int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
         q.pop();
         if (v == destination) return distance_to[v];
 
-        const auto [first, last] = g.equal_range(v);
-        for (auto it = first; it != last; ++it) {
-            const Coord u = it->second;
+        for (const Coord u : adjacent(forest, v)) {
             if (discovered.count(u)) continue;
 
             discovered.insert(u);
@@ -112,7 +88,7 @@ int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
 
 struct Solution final {
     int cutOffTree(const vector<vector<int>> &forest) {
-        auto [destinations_heap, g] = model(forest);
+        auto destinations_heap = heap_up_destinations(forest);
         int ans = 0;
         Coord source{0, 0};
 
@@ -122,7 +98,9 @@ struct Solution final {
             const auto destination = destinations_heap.back();
             destinations_heap.pop_back();
 
-            const int segment_steps = min_steps(g, source, destination.coord);
+            const int segment_steps =
+                min_steps(forest, source, destination.coord);
+
             if (segment_steps < 0) return -1;
 
             ans += segment_steps;
