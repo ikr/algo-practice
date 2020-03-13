@@ -68,7 +68,7 @@ Model model(const vector<vector<int>> &forest) {
 }
 
 int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
-    unordered_set<Coord, CoordHash> visited;
+    unordered_set<Coord, CoordHash> discovered{source};
     unordered_map<Coord, int, CoordHash> distance_to{{source, 0}};
     queue<Coord> q;
     q.push(source);
@@ -81,9 +81,9 @@ int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
         const auto [first, last] = g.equal_range(v);
         for (auto it = first; it != last; ++it) {
             const Coord u = it->second;
-            if (visited.count(u)) continue;
+            if (discovered.count(u)) continue;
 
-            visited.insert(u);
+            discovered.insert(u);
             distance_to[u] = distance_to[v] + 1;
             q.push(u);
         }
