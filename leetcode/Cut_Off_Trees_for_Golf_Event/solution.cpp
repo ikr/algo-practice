@@ -88,12 +88,31 @@ int min_steps(const Graph &g, const Coord &a, const Coord &b) {
     queue<Coord> a_q;
     a_q.push(a);
 
-    while (!a_q.empty()) {
-        const Coord a_v = a_q.front();
-        a_q.pop();
-        if (a_v == b) return a_distance_to[a_v];
+    unordered_set<Coord, CoordHash> b_discovered{b};
+    unordered_map<Coord, int, CoordHash> b_distance_to{{b, 0}};
+    queue<Coord> b_q;
+    b_q.push(b);
 
-        discover(g, a_discovered, a_distance_to, a_q, a_v);
+    while (!a_q.empty() || !b_q.empty()) {
+        if (!a_q.empty()) {
+            const Coord a_v = a_q.front();
+            a_q.pop();
+
+            if (b_discovered.count(a_v))
+                return a_distance_to[a_v] + b_distance_to[a_v];
+
+            discover(g, a_discovered, a_distance_to, a_q, a_v);
+        }
+
+        if (!b_q.empty()) {
+            const Coord b_v = b_q.front();
+            b_q.pop();
+
+            if (a_discovered.count(b_v))
+                return a_distance_to[b_v] + b_distance_to[b_v];
+
+            discover(g, b_discovered, b_distance_to, b_q, b_v);
+        }
     }
 
     return -1;
