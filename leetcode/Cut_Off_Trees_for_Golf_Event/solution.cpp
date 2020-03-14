@@ -68,26 +68,32 @@ Model model(const vector<vector<int>> &forest) {
     return {destinations_heap, adjacent};
 }
 
-int min_steps(const Graph &g, const Coord &source, const Coord &destination) {
-    unordered_set<Coord, CoordHash> discovered{source};
-    unordered_map<Coord, int, CoordHash> distance_to{{source, 0}};
-    queue<Coord> q;
-    q.push(source);
+void discover(const Graph &g, unordered_set<Coord, CoordHash> &discovered,
+              unordered_map<Coord, int, CoordHash> &distance_to,
+              queue<Coord> &q, const Coord &v) {
+    const auto [first, last] = g.equal_range(v);
+    for (auto it = first; it != last; ++it) {
+        const Coord u = it->second;
+        if (discovered.count(u)) continue;
 
-    while (!q.empty()) {
-        const Coord v = q.front();
-        q.pop();
-        if (v == destination) return distance_to[v];
+        discovered.insert(u);
+        distance_to[u] = distance_to[v] + 1;
+        q.push(u);
+    }
+}
 
-        const auto [first, last] = g.equal_range(v);
-        for (auto it = first; it != last; ++it) {
-            const Coord u = it->second;
-            if (discovered.count(u)) continue;
+int min_steps(const Graph &g, const Coord &a, const Coord &b) {
+    unordered_set<Coord, CoordHash> a_discovered{a};
+    unordered_map<Coord, int, CoordHash> a_distance_to{{a, 0}};
+    queue<Coord> a_q;
+    a_q.push(a);
 
-            discovered.insert(u);
-            distance_to[u] = distance_to[v] + 1;
-            q.push(u);
-        }
+    while (!a_q.empty()) {
+        const Coord a_v = a_q.front();
+        a_q.pop();
+        if (a_v == b) return a_distance_to[a_v];
+
+        discover(g, a_discovered, a_distance_to, a_q, a_v);
     }
 
     return -1;
