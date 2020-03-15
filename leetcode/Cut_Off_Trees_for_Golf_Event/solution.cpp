@@ -19,14 +19,15 @@ struct Dest final {
 };
 
 struct DestCmp final {
-    bool operator()(const Dest &lhs, const Dest &rhs) const {
+    constexpr bool operator()(const Dest &lhs, const Dest &rhs) const {
         return lhs.priority < rhs.priority;
     }
 };
 
 struct CoordHash final {
     size_t operator()(const Coord &coord) const {
-        return 31 * hash<int>{}(row(coord)) + hash<int>{}(col(coord));
+        static hash<int> h{};
+        return 31 * h(row(coord)) + h(col(coord));
     }
 };
 
@@ -39,27 +40,30 @@ struct Model final {
 
 Model model(const vector<vector<int>> &forest) {
     static DestCmp cmp{};
-    static vector<Coord> deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+    static const vector<Coord> deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
     vector<Dest> destinations_heap;
     Graph adjacent;
+    const int height = intof(forest.size());
+    const int width = height > 0 ? intof(forest[0].size()) : 0;
 
-    for (int r = 0; r != intof(forest.size()); ++r) {
-        for (int c = 0; c != intof(forest[r].size()); ++c) {
-            if (!forest[r][c]) continue;
+    for (int r = 0; r != height; ++r) {
+        for (int c = 0; c != width; ++c) {
+            const int tree_height = forest[r][c];
+            if (!tree_height) continue;
 
-            if (forest[r][c] > 1) {
-                destinations_heap.emplace_back(-forest[r][c], r, c);
+            if (tree_height > 1) {
+                destinations_heap.emplace_back(-tree_height, r, c);
                 push_heap(destinations_heap.begin(), destinations_heap.end(),
                           cmp);
             }
 
-            for (const Coord delta : deltas) {
-                const Coord neigh = Coord{r, c} + delta;
+            const Coord coord{r, c};
+            for (const Coord &delta : deltas) {
+                const Coord neigh = coord + delta;
 
-                if (row(neigh) >= 0 && row(neigh) < intof(forest.size()) &&
-                    col(neigh) >= 0 && col(neigh) < intof(forest[r].size()) &&
-                    forest[row(neigh)][col(neigh)]) {
-                    adjacent.emplace(Coord{r, c}, neigh);
+                if (row(neigh) >= 0 && row(neigh) < height && col(neigh) >= 0 &&
+                    col(neigh) < width && forest[row(neigh)][col(neigh)]) {
+                    adjacent.emplace(coord, neigh);
                 }
             }
         }
@@ -88,7 +92,7 @@ int min_steps(const Graph &g, const Coord &a, const Coord &b) {
 
             const auto [first, last] = g.equal_range(a_v);
             for (auto it = first; it != last; ++it) {
-                const Coord a_u = it->second;
+                const Coord &a_u = it->second;
                 if (a_discovered.count(a_u)) continue;
 
                 if (b_discovered.count(a_u))
@@ -109,7 +113,7 @@ int min_steps(const Graph &g, const Coord &a, const Coord &b) {
 
             const auto [first, last] = g.equal_range(b_v);
             for (auto it = first; it != last; ++it) {
-                const Coord b_u = it->second;
+                const Coord &b_u = it->second;
                 if (b_discovered.count(b_u)) continue;
 
                 if (a_discovered.count(b_u))
