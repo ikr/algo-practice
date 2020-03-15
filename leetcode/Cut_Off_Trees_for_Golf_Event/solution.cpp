@@ -68,20 +68,6 @@ Model model(const vector<vector<int>> &forest) {
     return {destinations_heap, adjacent};
 }
 
-void discover(const Graph &g, unordered_set<Coord, CoordHash> &discovered,
-              unordered_map<Coord, int, CoordHash> &distance_to,
-              queue<Coord> &q, const Coord &v) {
-    const auto [first, last] = g.equal_range(v);
-    for (auto it = first; it != last; ++it) {
-        const Coord u = it->second;
-        if (discovered.count(u)) continue;
-
-        discovered.insert(u);
-        distance_to[u] = distance_to[v] + 1;
-        q.push(u);
-    }
-}
-
 int min_steps(const Graph &g, const Coord &a, const Coord &b) {
     unordered_set<Coord, CoordHash> a_discovered{a};
     unordered_map<Coord, int, CoordHash> a_distance_to{{a, 0}};
@@ -101,7 +87,15 @@ int min_steps(const Graph &g, const Coord &a, const Coord &b) {
             if (b_discovered.count(a_v))
                 return a_distance_to[a_v] + b_distance_to[a_v];
 
-            discover(g, a_discovered, a_distance_to, a_q, a_v);
+            const auto [first, last] = g.equal_range(a_v);
+            for (auto it = first; it != last; ++it) {
+                const Coord a_u = it->second;
+                if (a_discovered.count(a_u)) continue;
+
+                a_discovered.insert(a_u);
+                a_distance_to[a_u] = a_distance_to[a_v] + 1;
+                a_q.push(a_u);
+            }
         }
 
         if (!b_q.empty()) {
@@ -111,7 +105,15 @@ int min_steps(const Graph &g, const Coord &a, const Coord &b) {
             if (a_discovered.count(b_v))
                 return a_distance_to[b_v] + b_distance_to[b_v];
 
-            discover(g, b_discovered, b_distance_to, b_q, b_v);
+            const auto [first, last] = g.equal_range(b_v);
+            for (auto it = first; it != last; ++it) {
+                const Coord b_u = it->second;
+                if (b_discovered.count(b_u)) continue;
+
+                b_discovered.insert(b_u);
+                b_distance_to[b_u] = b_distance_to[b_v] + 1;
+                b_q.push(b_u);
+            }
         }
     }
 
