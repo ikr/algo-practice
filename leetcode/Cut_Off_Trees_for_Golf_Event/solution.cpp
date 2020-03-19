@@ -1,5 +1,6 @@
 #include "lest.hpp"
 #include <bits/stdc++.h>
+#include <queue>
 
 using namespace std;
 
@@ -15,6 +16,7 @@ struct Dest final {
     int priority;
     Coord coord;
 
+    Dest(const int p, const Coord &coord_) : priority{p}, coord{coord_} {}
     Dest(const int p, const int r, const int c) : priority{p}, coord{r, c} {}
 };
 
@@ -72,56 +74,31 @@ Model model(const vector<vector<int>> &forest) {
     return {destinations_heap, adjacent};
 }
 
+int manhattan_distance(const Coord &a, const Coord &b) {
+    return abs(row(a) - row(b)) + abs(col(a) - col(b));
+}
+
 int min_steps(const Graph &g, const Coord &a, const Coord &b) {
-    if (a == b) return 0;
+    priority_queue<Dest, vector<Dest>, DestCmp> frontier;
+    frontier.emplace(0, a);
+    unordered_map<Coord, int, CoordHash> distance{{a, 0}};
 
-    unordered_set<Coord, CoordHash> a_discovered{a};
-    unordered_map<Coord, int, CoordHash> a_distance_to{{a, 0}};
-    queue<Coord> a_q;
-    a_q.push(a);
+    while (!frontier.empty()) {
+        const auto current = frontier.top();
+        frontier.pop();
 
-    unordered_set<Coord, CoordHash> b_discovered{b};
-    unordered_map<Coord, int, CoordHash> b_distance_to{{b, 0}};
-    queue<Coord> b_q;
-    b_q.push(b);
+        if (current.coord == b) return distance[b];
 
-    while (!a_q.empty() || !b_q.empty()) {
-        if (!a_q.empty()) {
-            const Coord a_v = a_q.front();
-            a_q.pop();
+        const auto [first, last] = g.equal_range(current.coord);
+        for (auto it = first; it != last; ++it) {
+            const int new_distance = distance[current.coord] + 1;
+            const auto adj = it->second;
 
-            const auto [first, last] = g.equal_range(a_v);
-            for (auto it = first; it != last; ++it) {
-                const Coord &a_u = it->second;
-                if (a_discovered.count(a_u)) continue;
+            if (!distance.count(adj) || new_distance < distance.at(adj)) {
+                distance[adj] = new_distance;
 
-                if (b_discovered.count(a_u))
-                    return a_distance_to[a_v] + 1 + b_distance_to[a_u];
-
-                a_discovered.insert(a_u);
-                a_distance_to[a_u] = a_distance_to[a_v] + 1;
-                a_q.push(a_u);
-            }
-        }
-
-        if (!b_q.empty()) {
-            const Coord b_v = b_q.front();
-            b_q.pop();
-
-            if (a_discovered.count(b_v))
-                return a_distance_to[b_v] + b_distance_to[b_v];
-
-            const auto [first, last] = g.equal_range(b_v);
-            for (auto it = first; it != last; ++it) {
-                const Coord &b_u = it->second;
-                if (b_discovered.count(b_u)) continue;
-
-                if (a_discovered.count(b_u))
-                    return b_distance_to[b_v] + 1 + a_distance_to[b_u];
-
-                b_discovered.insert(b_u);
-                b_distance_to[b_u] = b_distance_to[b_v] + 1;
-                b_q.push(b_u);
+                frontier.emplace(-(new_distance + manhattan_distance(adj, b)),
+                                 adj);
             }
         }
     }
