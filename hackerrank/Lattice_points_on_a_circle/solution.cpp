@@ -15,6 +15,15 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
+    if (!o)
+        os << "nullopt";
+    else
+        os << *o;
+
+    return os;
+}
+
 using Int = long long;
 const Int max_N = 100 * 1000 * 1000 * 1000LL; // 10¹¹
 
@@ -55,8 +64,17 @@ vector<Int> factorize(unordered_map<Int, Int> min_prime_factors_by_compound,
 
     while (min_prime_factors_by_compound.count(m)) {
         const Int p = min_prime_factors_by_compound.at(m);
+
+        if (ans.size()) {
+            assert(p != ans.back());
+        }
+
         ans.push_back(p);
         m /= p;
+    }
+
+    if (ans.size()) {
+        assert(m != ans.back());
     }
 
     if (m > 1) ans.push_back(m);
@@ -74,6 +92,17 @@ vector<Int> basis_powers(vector<Int> factorization) {
     return factorization;
 }
 
+optional<Int> exp_ltd(const Int base, const Int exponent, const Int max_val) {
+    Int ans = 1;
+
+    for (Int i = 0; i != exponent; ++i) {
+        ans *= base;
+        if (ans > max_val) return nullopt;
+    }
+
+    return ans;
+}
+
 vector<Int> solutions(const Int N, const Int m) { return {}; }
 
 int main() {
@@ -86,6 +115,5 @@ int main() {
         Int N, m;
         cin >> N >> m;
         cout << solutions(N, m).size() << '\n';
-        cout << basis_powers(factorize(min_pf, m)) << '\n';
     }
 }
