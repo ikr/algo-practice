@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: ./add 'Problem Title With Spaces'"
+    exit 1
+fi
+
+name=$(echo -n "$1" | sed 's/ /_/g')
+
+code=$(cat <<EOF
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> xs(n);
+
+    for (auto &x : xs) {
+        cin >> x;
+    }
+
+    cout << xs[0] << ".." << xs.back() << '\n';
+}
+EOF
+)
+
+makefile=$(cat <<EOF
+build:
+	g++ -Wall -Wextra -std=gnu++17 -pedantic-errors -o ./solution ./solution.cpp
+
+run: build
+	./solution
+EOF
+)
+
+mkdir "./$name"
+cd "./$name"
+echo "$code" > ./solution.cpp
+echo "$makefile" > ./Makefile
+echo '-std=c++17' > ./compile_flags.txt
+echo "cd ./$name && make run"
