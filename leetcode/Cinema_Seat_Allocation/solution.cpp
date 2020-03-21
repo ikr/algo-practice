@@ -21,19 +21,23 @@ int families_count(const vector<bool> &row) {
 
 struct Solution final {
     int maxNumberOfFamilies(const int n, const vector<vector<int>> &reserved) const {
-        vector<vector<bool>> seats(n, vector<bool>(10, true));
+        unordered_map<int, vector<bool>> occupied_rows;
 
         for (const auto &rowcol : reserved) {
             const int row = rowcol[0] - 1;
             const int col = rowcol[1] - 1;
 
-            seats[row][col] = false;
+            if (!occupied_rows.count(row)) {
+                occupied_rows[row] = vector<bool>(10, true);
+            }
+
+            occupied_rows[row][col] = false;
         }
 
-        int ans = 0;
+        int ans = n * 2;
 
-        for (const auto &row : seats) {
-            ans += families_count(row);
+        for (const auto [idx, row] : occupied_rows) {
+            ans -= (2 - families_count(row));
         }
 
         return ans;
