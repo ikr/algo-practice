@@ -103,6 +103,45 @@ optional<Int> exp_ltd(const Int base, const Int exponent, const Int max_val) {
     return ans;
 }
 
+vector<size_t> first_subvector_indices(const size_t sz) {
+    vector<size_t> ans(sz);
+    iota(ans.begin(), ans.end(), 0U);
+    return ans;
+}
+
+optional<vector<size_t>> next_subvector_indices(vector<size_t> indices,
+                                                const size_t sz) {
+    if (all_of(indices.cbegin(), indices.cend(), [sz](const auto i) {
+            assert(i < sz);
+            return i == sz - 1;
+        })) {
+        return nullopt;
+    }
+
+    for (auto it = indices.rbegin(); it != indices.rend(); ++it) {
+        if (*it < sz - 1) {
+            ++(*it);
+            break;
+        } else {
+            *it = 0U;
+        }
+    }
+
+    return indices;
+}
+
+vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
+    vector<Int> ans(indices.size());
+
+    transform(indices.cbegin(), indices.cend(), ans.begin(),
+              [&xs](const size_t i) {
+                  assert(i < xs.size());
+                  return xs.at(i);
+              });
+
+    return ans;
+}
+
 vector<Int> solutions(const Int N, const Int m) { return {}; }
 
 int main() {
@@ -116,4 +155,6 @@ int main() {
         cin >> N >> m;
         cout << solutions(N, m).size() << '\n';
     }
+
+    cout << next_subvector_indices({3, 4, 4}, 5) << '\n';
 }
