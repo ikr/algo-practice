@@ -107,17 +107,7 @@ vector<Int> factorize(unordered_map<Int, Int> min_prime_factors_by_compound,
     return ans;
 }
 
-vector<Int> basis_powers(vector<Int> factorization) {
-    transform(factorization.begin(), factorization.end(), factorization.begin(),
-              [](const Int p) {
-                  assert(p % 2 && p > 1);
-                  return (p - 1) / 2;
-              });
-
-    return factorization;
-}
-
-optional<Int> exp_ltd(const Int base, const Int exponent, const Int max_val) {
+optional<Int> exp_ltd(const Int max_val, const Int base, const Int exponent) {
     Int ans = 1;
 
     for (Int i = 0; i != exponent; ++i) {
@@ -126,6 +116,16 @@ optional<Int> exp_ltd(const Int base, const Int exponent, const Int max_val) {
     }
 
     return ans;
+}
+
+vector<Int> basis_powers(vector<Int> factorization) {
+    transform(factorization.begin(), factorization.end(), factorization.begin(),
+              [](const Int p) {
+                  assert(p % 2 && p > 1);
+                  return (p - 1) / 2;
+              });
+
+    return factorization;
 }
 
 vector<size_t> first_subvector_indices(const size_t sz) {
@@ -169,6 +169,28 @@ vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
     return ans;
 }
 
+optional<Int> power_combination(const Int N, const vector<Int> &bases,
+                                const vector<Int> &pows) {
+    assert(bases.size() == pows.size());
+
+    vector<optional<Int>> exps(bases.size());
+
+    transform(bases.cbegin(), bases.cend(), pows.cbegin(), exps.begin(),
+              [N](const Int b, const Int e) { return exp_ltd(N, b, e); });
+
+    return accumulate(
+        exps.cbegin(), exps.cend(), optional<Int>{1},
+        [N](const optional<Int> agg, const optional<Int> x) -> optional<Int> {
+            if (!agg || !x || ((*agg) * (*x) > N)) return nullopt;
+            return optional<Int>((*agg) * (*x));
+        });
+}
+
+vector<Int> power_combinations(const Int N, vector<Int> bases,
+                               const vector<Int> &pows) {
+    return {};
+}
+
 vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
                             const vector<Int> &pows) {
     return {};
@@ -199,6 +221,25 @@ Int sum_solutoins(const Int N, const Int m) {
     return map_sum_solutions(N, m, [](const Int x) { return x; });
 }
 } // namespace
+
+TEST_CASE("power_combination") {
+    SECTION("degenerate") {
+        const auto actual = power_combination(100, {}, {});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == 1);
+    }
+
+    SECTION("underflow") {
+        const auto actual = power_combination(100, {2, 3}, {1, 2});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == 18);
+    }
+
+    SECTION("overflow") {
+        const auto actual = power_combination(17, {2, 3}, {1, 2});
+        REQUIRE(!actual);
+    }
+}
 
 TEST_CASE("first_subvector_indices for size 3") {
     REQUIRE(first_subvector_indices(3) == vector<size_t>{0, 1, 2});
@@ -277,7 +318,7 @@ TEST_CASE("next_subvector_indices quad for the vector of size 100") {
     }
 }
 
-TEST_CASE("problem statement samples") {
+TEST_CASE("problem statement samples", "[.]") {
     SECTION("zero") { REQUIRE(count_solutoins(1000, 1) == 433); }
     SECTION("one") { REQUIRE(count_solutoins(100000000000LL, 87) == 1); }
 
