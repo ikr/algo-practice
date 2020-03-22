@@ -26,7 +26,6 @@ template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
 }
 
 using Int = long long;
-const Int max_N = 100 * 1000 * 1000 * 1000LL; // 10¹¹
 
 pair<vector<Int>, unordered_map<Int, Int>> primes_up_to(const Int x) {
     assert(x > 0);
@@ -146,7 +145,12 @@ vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
+    auto [primes, min_pf] = primes_up_to(static_cast<Int>(sqrt(N)));
     return map(0);
+}
+
+Int count_solutoins(const Int N, const Int m) {
+    return map_sum_solutions(N, m, [](const Int x) { return 1; });
 }
 
 TEST_CASE("first_subvector_indices for size 3") {
@@ -220,6 +224,12 @@ TEST_CASE("next_subvector_indices quad for the vector of size 100") {
         const auto actual = next_subvector_indices(100, {96, 97, 98, 99});
         REQUIRE(!actual);
     }
+}
+
+TEST_CASE("problem statement samples") {
+    SECTION("zero") { REQUIRE(count_solutoins(1000, 1) == 433); }
+    SECTION("one") { REQUIRE(count_solutoins(100000000000LL, 87) == 1); }
+    SECTION("two") { REQUIRE(count_solutoins(100000000000LL, 31) == 3); }
 }
 
 // int main() {
