@@ -1,4 +1,5 @@
-#include <algorithm>
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -109,25 +110,24 @@ vector<size_t> first_subvector_indices(const size_t sz) {
     return ans;
 }
 
-optional<vector<size_t>> next_subvector_indices(vector<size_t> indices,
-                                                const size_t sz) {
-    if (all_of(indices.cbegin(), indices.cend(), [sz](const auto i) {
-            assert(i < sz);
-            return i == sz - 1;
-        })) {
-        return nullopt;
-    }
+optional<vector<size_t>> next_subvector_indices(const size_t sz,
+                                                vector<size_t> indices) {
+    assert(indices.size() > 0);
+    bool bumped = false;
 
-    for (auto it = indices.rbegin(); it != indices.rend(); ++it) {
-        if (*it < sz - 1) {
-            ++(*it);
+    for (auto i = indices.size() - 1; i-- != 0U;) {
+        assert(indices.at(i) < sz);
+
+        const auto max_here = sz - 1 - (indices.size() - 1 - i);
+
+        if (indices[i] < max_here) {
+            ++indices[i];
+            bumped = true;
             break;
-        } else {
-            *it = 0U;
         }
     }
 
-    return indices;
+    return (bumped ? optional<vector<size_t>>(indices) : nullopt);
 }
 
 vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
@@ -142,19 +142,92 @@ vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
     return ans;
 }
 
-vector<Int> solutions(const Int N, const Int m) { return {}; }
+Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
+    return map(0);
+}
 
-int main() {
-    auto [primes, min_pf] = primes_up_to(static_cast<Int>(sqrt(max_N)));
+TEST_CASE("first_subvector_indices for size 3") {
+    REQUIRE(first_subvector_indices(3) == vector<size_t>{0, 1, 2});
+}
 
-    size_t q;
-    cin >> q;
-
-    for (auto i = 0U; i != q; ++i) {
-        Int N, m;
-        cin >> N >> m;
-        cout << solutions(N, m).size() << '\n';
+TEST_CASE("next_subvector_indices triple for the vector size of 4") {
+    SECTION("first step") {
+        const auto actual = next_subvector_indices(4, {0, 1, 2});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{0, 1, 3});
     }
 
-    cout << next_subvector_indices({3, 4, 4}, 5) << '\n';
+    SECTION("second step") {
+        const auto actual = next_subvector_indices(4, {0, 1, 3});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{0, 2, 3});
+    }
+
+    SECTION("third step") {
+        const auto actual = next_subvector_indices(4, {0, 2, 3});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{1, 2, 3});
+    }
+
+    SECTION("done") {
+        const auto actual = next_subvector_indices(4, {1, 2, 3});
+        REQUIRE(!actual);
+    }
 }
+
+TEST_CASE("next_subvector_indices singleton for the vector size of 3") {
+    SECTION("first step") {
+        const auto actual = next_subvector_indices(3, {0});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{1});
+    }
+
+    SECTION("second step") {
+        const auto actual = next_subvector_indices(3, {1});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{2});
+    }
+
+    SECTION("done") {
+        const auto actual = next_subvector_indices(3, {2});
+        REQUIRE(!actual);
+    }
+}
+
+TEST_CASE("next_subvector_indices quad for the vector of size 100") {
+    SECTION("split") {
+        const auto actual = next_subvector_indices(100, {0, 1, 98, 99});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{0, 2, 3, 4});
+    }
+
+    SECTION("spread") {
+        const auto actual = next_subvector_indices(100, {3, 17, 56, 70});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{3, 17, 56, 71});
+    }
+
+    SECTION("shifting the head") {
+        const auto actual = next_subvector_indices(100, {66, 97, 98, 99});
+        REQUIRE(!!actual);
+        REQUIRE(*actual == vector<size_t>{67, 68, 69, 70});
+    }
+
+    SECTION("done") {
+        const auto actual = next_subvector_indices(100, {96, 97, 98, 99});
+        REQUIRE(!actual);
+    }
+}
+
+// int main() {
+//     auto [primes, min_pf] = primes_up_to(static_cast<Int>(sqrt(max_N)));
+
+//     size_t q;
+//     cin >> q;
+
+//     for (auto i = 0U; i != q; ++i) {
+//         Int N, m;
+//         cin >> N >> m;
+//         cout << solutions_count(N, m) << '\n';
+//     }
+// }
