@@ -3,7 +3,7 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-
+namespace {
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
 
@@ -56,6 +56,31 @@ pair<vector<Int>, unordered_map<Int, Int>> primes_up_to(const Int x) {
     }
 
     return {ans, min_prime_factors_by_compound};
+}
+
+void keep_c1m4(vector<Int> &primes) {
+    const auto initial_size = primes.size();
+
+    primes.erase(remove_if(primes.begin(), primes.end(),
+                           [](const Int p) { return p % 4 != 1; }),
+                 primes.end());
+
+    assert(primes.size() <= initial_size);
+}
+
+bool has_only_c3m4_or_2_as_prime_factors(
+    const unordered_map<Int, Int> &min_prime_factors_by_compound, Int x) {
+
+    const auto ok = [](const Int p) -> bool { return p == 2 || p % 4 == 3; };
+
+    while (min_prime_factors_by_compound.count(x)) {
+        const Int p = min_prime_factors_by_compound.at(x);
+        if (!ok(p)) return false;
+
+        x = x / p;
+    }
+
+    return ok(x);
 }
 
 vector<Int> factorize(unordered_map<Int, Int> min_prime_factors_by_compound,
@@ -146,6 +171,17 @@ vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
     auto [primes, min_pf] = primes_up_to(static_cast<Int>(sqrt(N)));
+    keep_c1m4(primes);
+
+    const auto m_factors = factorize(min_pf, m);
+
+    assert(all_of(m_factors.cbegin(), m_factors.cend(),
+                  [](const Int p) { return p > 1; }));
+    unordered_set<Int> control_set(m_factors.cbegin(), m_factors.cend());
+    assert(control_set.size() == m_factors.size());
+
+    const auto pows = basis_powers(factorize(min_pf, m));
+
     return map(0);
 }
 
@@ -153,8 +189,17 @@ Int count_solutoins(const Int N, const Int m) {
     return map_sum_solutions(N, m, [](const Int x) { return 1; });
 }
 
+Int sum_solutoins(const Int N, const Int m) {
+    return map_sum_solutions(N, m, [](const Int x) { return x; });
+}
+} // namespace
+
 TEST_CASE("first_subvector_indices for size 3") {
     REQUIRE(first_subvector_indices(3) == vector<size_t>{0, 1, 2});
+}
+
+TEST_CASE("subvector typical") {
+    REQUIRE(subvector({2, 4, 8}, {0, 2}) == vector<Int>{2, 8});
 }
 
 TEST_CASE("next_subvector_indices triple for the vector size of 4") {
