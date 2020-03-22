@@ -227,10 +227,42 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
     unordered_set<Int> control_set(m_factors.cbegin(), m_factors.cend());
     assert(control_set.size() == m_factors.size());
 
-    const auto basis =
-        basis_solutions(N, primes, basis_powers(factorize(min_pf, m)));
+    auto basis =
+        m > 1 ? basis_solutions(N, primes, basis_powers(factorize(min_pf, m)))
+              : vector<Int>{1};
 
-    return map(0);
+    sort(basis.begin(), basis.end());
+
+    const Int max_multiplier = N / basis.front();
+    vector<Int> multipliers(max_multiplier - 2 + 1);
+
+    iota(multipliers.begin(), multipliers.end(), 2);
+
+    multipliers.erase(remove_if(multipliers.begin(), multipliers.end(),
+                                [&min_pf = min_pf](const Int m) {
+                                    return !has_only_c3m4_or_2_as_prime_factors(
+                                        min_pf, m);
+                                }),
+                      multipliers.end());
+
+    multipliers.insert(multipliers.cbegin(), 1);
+
+    Int ans = 0;
+
+    for (const Int b : basis) {
+        for (const Int m : multipliers) {
+            assert(b * m > 0);
+
+            if (b * m <= N) {
+                ans += map(b * m);
+                assert(ans > 0LL);
+            } else {
+                break;
+            }
+        }
+    }
+
+    return ans;
 }
 
 Int count_solutoins(const Int N, const Int m) {
@@ -349,15 +381,15 @@ TEST_CASE("next_subvector_indices quad for the vector of size 100") {
     }
 }
 
-TEST_CASE("problem statement samples", "[.]") {
-    SECTION("zero") { REQUIRE(count_solutoins(1000, 1) == 433); }
-    SECTION("one") { REQUIRE(count_solutoins(100000000000LL, 87) == 1); }
+TEST_CASE("problem statement samples", "[samples]") {
+    SECTION("zero count") { REQUIRE(count_solutoins(1000, 1) == 433); }
+    SECTION("one count") { REQUIRE(count_solutoins(100000000000LL, 87) == 1); }
 
     SECTION("one sum") {
         REQUIRE(sum_solutoins(100000000000LL, 87) == 79345703125LL);
     }
 
-    SECTION("two") { REQUIRE(count_solutoins(100000000000LL, 31) == 3); }
+    SECTION("two count") { REQUIRE(count_solutoins(100000000000LL, 31) == 3); }
 
     SECTION("two sum") {
         const Int expected = 30517578125 + 61035156250 + 91552734375;
