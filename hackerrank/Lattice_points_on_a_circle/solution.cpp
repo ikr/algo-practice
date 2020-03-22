@@ -178,12 +178,11 @@ optional<Int> power_combination(const Int N, const vector<Int> &bases,
     transform(bases.cbegin(), bases.cend(), pows.cbegin(), exps.begin(),
               [N](const Int b, const Int e) { return exp_ltd(N, b, e); });
 
-    return accumulate(
-        exps.cbegin(), exps.cend(), optional<Int>{1},
-        [N](const optional<Int> agg, const optional<Int> x) -> optional<Int> {
-            if (!agg || !x || ((*agg) * (*x) > N)) return nullopt;
-            return optional<Int>((*agg) * (*x));
-        });
+    return accumulate(exps.cbegin(), exps.cend(), optional<Int>{1},
+                      [N](const auto agg, const auto x) -> optional<Int> {
+                          if (!agg || !x || ((*agg) * (*x) > N)) return nullopt;
+                          return (*agg) * (*x);
+                      });
 }
 
 vector<Int> power_combinations(const Int N, vector<Int> bases,
@@ -214,7 +213,7 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
 }
 
 Int count_solutoins(const Int N, const Int m) {
-    return map_sum_solutions(N, m, [](const Int x) { return 1; });
+    return map_sum_solutions(N, m, [](const Int x) { return x - x + 1; });
 }
 
 Int sum_solutoins(const Int N, const Int m) {
