@@ -1,3 +1,4 @@
+#include <algorithm>
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include <bits/stdc++.h>
@@ -187,7 +188,15 @@ optional<Int> power_combination(const Int N, const vector<Int> &bases,
 
 vector<Int> power_combinations(const Int N, vector<Int> bases,
                                const vector<Int> &pows) {
-    return {};
+    sort(bases.begin(), bases.end());
+    vector<Int> ans;
+
+    do {
+        const auto candidate = power_combination(N, bases, pows);
+        if (candidate) ans.push_back(*candidate);
+    } while (next_permutation(bases.begin(), bases.end()));
+
+    return ans;
 }
 
 vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
@@ -237,6 +246,17 @@ TEST_CASE("power_combination") {
     SECTION("overflow") {
         const auto actual = power_combination(17, {2, 3}, {1, 2});
         REQUIRE(!actual);
+    }
+}
+
+TEST_CASE("power_combinations") {
+    SECTION("size 2") {
+        REQUIRE(power_combinations(9999, {1, 2}, {1, 2}) == vector<Int>{4, 2});
+    }
+
+    SECTION("size 3") {
+        REQUIRE(power_combinations(9999, {1, 2, 3}, {0, 1, 2}) ==
+                vector<Int>{18, 12, 9, 3, 4, 2});
     }
 }
 
