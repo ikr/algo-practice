@@ -113,21 +113,24 @@ vector<size_t> first_subvector_indices(const size_t sz) {
 optional<vector<size_t>> next_subvector_indices(const size_t sz,
                                                 vector<size_t> indices) {
     assert(indices.size() > 0);
-    bool bumped = false;
+    optional<size_t> rightmost_not_max;
 
-    for (auto i = indices.size() - 1; i-- != 0U;) {
+    for (auto i = indices.size(); i-- != 0U;) {
         assert(indices.at(i) < sz);
-
         const auto max_here = sz - 1 - (indices.size() - 1 - i);
 
-        if (indices[i] < max_here) {
-            ++indices[i];
-            bumped = true;
+        if (indices.at(i) != max_here) {
+            rightmost_not_max = {i};
             break;
         }
     }
 
-    return (bumped ? optional<vector<size_t>>(indices) : nullopt);
+    if (!rightmost_not_max) return nullopt;
+
+    iota(indices.begin() + *rightmost_not_max, indices.end(),
+         indices[*rightmost_not_max] + 1);
+
+    return {indices};
 }
 
 vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
