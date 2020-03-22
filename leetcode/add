@@ -19,7 +19,12 @@ struct Solution final {
 
 // clang-format off
 const lest::test tests[] = {
-    CASE("the answer is 42") {
+    CASE("Example 1") {
+        const auto actual = Solution{}.solve_it();
+        const auto expected = 42;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 2") {
         const auto actual = Solution{}.solve_it();
         const auto expected = 42;
         EXPECT(actual == expected);
