@@ -201,7 +201,19 @@ vector<Int> power_combinations(const Int N, vector<Int> bases,
 
 vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
                             const vector<Int> &pows) {
-    return {};
+    vector<Int> ans;
+
+    for (auto indices =
+             optional<vector<size_t>>{first_subvector_indices(pows.size())};
+         !!indices;
+         indices = next_subvector_indices(c1m4_primes.size(), *indices)) {
+        const auto new_tail =
+            power_combinations(N, subvector(c1m4_primes, *indices), pows);
+
+        ans.insert(ans.end(), new_tail.cbegin(), new_tail.cend());
+    }
+
+    return ans;
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
