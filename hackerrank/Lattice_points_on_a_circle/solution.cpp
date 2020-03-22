@@ -227,9 +227,8 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
     unordered_set<Int> control_set(m_factors.cbegin(), m_factors.cend());
     assert(control_set.size() == m_factors.size());
 
-    auto basis =
-        m > 1 ? basis_solutions(N, primes, basis_powers(factorize(min_pf, m)))
-              : vector<Int>{1};
+    auto basis = basis_solutions(
+        N, primes, m > 1 ? basis_powers(factorize(min_pf, m)) : vector<Int>{0});
 
     sort(basis.begin(), basis.end());
 
