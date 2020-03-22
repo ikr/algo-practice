@@ -169,6 +169,11 @@ vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
     return ans;
 }
 
+vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
+                            const vector<Int> &pows) {
+    return {};
+}
+
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
     auto [primes, min_pf] = primes_up_to(static_cast<Int>(sqrt(N)));
     keep_c1m4(primes);
@@ -180,7 +185,8 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
     unordered_set<Int> control_set(m_factors.cbegin(), m_factors.cend());
     assert(control_set.size() == m_factors.size());
 
-    const auto pows = basis_powers(factorize(min_pf, m));
+    const auto basis =
+        basis_solutions(N, primes, basis_powers(factorize(min_pf, m)));
 
     return map(0);
 }
@@ -274,7 +280,17 @@ TEST_CASE("next_subvector_indices quad for the vector of size 100") {
 TEST_CASE("problem statement samples") {
     SECTION("zero") { REQUIRE(count_solutoins(1000, 1) == 433); }
     SECTION("one") { REQUIRE(count_solutoins(100000000000LL, 87) == 1); }
+
+    SECTION("one sum") {
+        REQUIRE(sum_solutoins(100000000000LL, 87) == 79345703125LL);
+    }
+
     SECTION("two") { REQUIRE(count_solutoins(100000000000LL, 31) == 3); }
+
+    SECTION("two sum") {
+        const Int expected = 30517578125 + 61035156250 + 91552734375;
+        REQUIRE(sum_solutoins(100000000000LL, 31) == expected);
+    }
 }
 
 // int main() {
