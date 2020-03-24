@@ -217,7 +217,7 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
-    auto [primes, min_pf] = primes_up_to(static_cast<Int>(sqrt(N)));
+    auto [primes, min_pf] = primes_up_to(m == 1 ? N : static_cast<Int>(sqrt(N)));
     keep_c1m4(primes);
 
     const auto m_factors = factorize(min_pf, m);
@@ -227,10 +227,13 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
     unordered_set<Int> control_set(m_factors.cbegin(), m_factors.cend());
     assert(control_set.size() == m_factors.size());
 
-    auto basis = basis_solutions(
-        N, primes, m > 1 ? basis_powers(factorize(min_pf, m)) : vector<Int>{0});
+    auto basis =
+        m > 1 ? basis_solutions(N, primes, basis_powers(factorize(min_pf, m)))
+              : vector<Int>{1};
 
     sort(basis.begin(), basis.end());
+
+    cout << "N is " << N << ", m is " << m << ", basis size is " << basis.size() << '\n';
 
     const Int max_multiplier = N / basis.front();
     vector<Int> multipliers(max_multiplier - 2 + 1);
@@ -245,6 +248,8 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
                       multipliers.end());
 
     multipliers.insert(multipliers.cbegin(), 1);
+
+    cout << "multipliers size is " << multipliers.size() << "\n\n";
 
     Int ans = 0;
 
@@ -380,6 +385,15 @@ TEST_CASE("next_subvector_indices quad for the vector of size 100") {
     }
 }
 
+TEST_CASE("has_only_c3m4_or_2_as_prime_factors") {
+    SECTION("37") {
+        REQUIRE(37 % 4 == 1);
+
+        auto [primes, min_pf] = primes_up_to(1000);
+        REQUIRE(!has_only_c3m4_or_2_as_prime_factors(min_pf, 37));
+    }
+}
+
 TEST_CASE("problem statement samples", "[samples]") {
     SECTION("zero count") { REQUIRE(count_solutoins(1000, 1) == 433); }
     SECTION("one count") { REQUIRE(count_solutoins(100000000000LL, 87) == 1); }
@@ -394,6 +408,10 @@ TEST_CASE("problem statement samples", "[samples]") {
         const Int expected = 30517578125 + 61035156250 + 91552734375;
         REQUIRE(sum_solutoins(100000000000LL, 31) == expected);
     }
+}
+
+TEST_CASE("ProjectEuler.net problem 233", "[.]") {
+    REQUIRE(sum_solutoins(100000000000LL, 105) == 42);
 }
 
 // int main() {
