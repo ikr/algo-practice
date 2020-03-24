@@ -1,31 +1,10 @@
-#include <algorithm>
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include <bits/stdc++.h>
 
 using namespace std;
+
 namespace {
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
-    if (!o)
-        os << "nullopt";
-    else
-        os << *o;
-
-    return os;
-}
-
 using Int = long long;
 
 pair<vector<Int>, unordered_map<Int, Int>> primes_up_to(const Int x) {
@@ -225,20 +204,10 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
 
     const auto m_factors = factorize(min_pf, m);
 
-    cout << "m_factors are " << m_factors << '\n';
-    cout << "basis powers are " << basis_powers(factorize(min_pf, m)) << '\n';
-
-    assert(all_of(m_factors.cbegin(), m_factors.cend(),
-                  [](const Int p) { return p > 1; }));
-    unordered_set<Int> control_set(m_factors.cbegin(), m_factors.cend());
-    assert(control_set.size() == m_factors.size());
-
     auto basis = m > 1 ? basis_solutions(N, primes, basis_powers(m_factors))
                        : vector<Int>{1};
 
     sort(basis.begin(), basis.end());
-
-    cout << "basis size is " << basis.size() << '\n';
 
     const Int max_multiplier = N / basis.front();
     vector<Int> multipliers(max_multiplier - 2 + 1);
@@ -253,8 +222,6 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
                       multipliers.end());
 
     multipliers.insert(multipliers.cbegin(), 1);
-
-    cout << "multipliers size is " << multipliers.size() << "\n\n";
 
     Int ans = 0;
 
@@ -420,14 +387,12 @@ TEST_CASE("ProjectEuler.net problem 233", "[.]") {
 }
 
 // int main() {
-//     auto [primes, min_pf] = primes_up_to(static_cast<Int>(sqrt(max_N)));
-
 //     size_t q;
 //     cin >> q;
 
 //     for (auto i = 0U; i != q; ++i) {
 //         Int N, m;
 //         cin >> N >> m;
-//         cout << solutions_count(N, m) << '\n';
+//         cout << sum_solutoins(N, m) << '\n';
 //     }
 // }
