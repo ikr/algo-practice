@@ -210,6 +210,8 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
         const auto new_tail =
             power_combinations(N, subvector(c1m4_primes, *indices), pows);
 
+        if (new_tail.empty()) break;
+
         ans.insert(ans.end(), new_tail.cbegin(), new_tail.cend());
     }
 
@@ -217,23 +219,26 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
-    auto [primes, min_pf] = primes_up_to(m == 1 ? N : static_cast<Int>(sqrt(N)));
+    auto [primes, min_pf] =
+        primes_up_to(m == 1 ? N : static_cast<Int>(sqrt(N)));
     keep_c1m4(primes);
 
     const auto m_factors = factorize(min_pf, m);
+
+    cout << "m_factors are " << m_factors << '\n';
+    cout << "basis powers are " << basis_powers(factorize(min_pf, m)) << '\n';
 
     assert(all_of(m_factors.cbegin(), m_factors.cend(),
                   [](const Int p) { return p > 1; }));
     unordered_set<Int> control_set(m_factors.cbegin(), m_factors.cend());
     assert(control_set.size() == m_factors.size());
 
-    auto basis =
-        m > 1 ? basis_solutions(N, primes, basis_powers(factorize(min_pf, m)))
-              : vector<Int>{1};
+    auto basis = m > 1 ? basis_solutions(N, primes, basis_powers(m_factors))
+                       : vector<Int>{1};
 
     sort(basis.begin(), basis.end());
 
-    cout << "N is " << N << ", m is " << m << ", basis size is " << basis.size() << '\n';
+    cout << "basis size is " << basis.size() << '\n';
 
     const Int max_multiplier = N / basis.front();
     vector<Int> multipliers(max_multiplier - 2 + 1);
