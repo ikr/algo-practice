@@ -5,48 +5,29 @@ using namespace std;
 pair<string, string> summands(const string &x) {
     string a(x.size(), '0');
     string b(x.size(), '0');
-    bool favorA = true;
-    bool favored = false;
+    bool saw_one = false;
 
     for (auto i = 0U; i != x.size(); ++i) {
-        if (i < x.size() - 1 && x[i] == '1' && x[i + 1] == '2') {
-            if (favorA) {
-                a[i] = '0';
-                a[i + 1] = '2';
+        if (saw_one) {
+            if (x[i] == '2') {
+                b[i] = '2';
+            } else if (x[i] == '1'){
                 b[i] = '1';
-                b[i + 1] = '0';
-            } else {
-                b[i] = '0';
-                b[i + 1] = '2';
-                a[i] = '1';
-                a[i + 1] = '0';
             }
 
-            if (!favored) {
-                favorA = !favorA;
-                favored = true;
-            }
+            continue;
+        }
 
-            ++i;
-        } else {
-            switch (x[i]) {
-            case '1':
-                if (favorA) {
-                    b[i] = '1';
-                } else {
-                    a[i] = '1';
-                }
-                break;
-
-            case '2':
-                a[i] = '1';
-                b[i] = '1';
-                break;
-            }
+        if (x[i] == '1') {
+            a[i] = '1';
+            saw_one = true;
+        } else if (x[i] == '2') {
+            a[i] = '1';
+            b[i] = '1';
         }
     }
 
-    return {b, a};
+    return {a, b};
 }
 
 int main() {
