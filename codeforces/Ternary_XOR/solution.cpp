@@ -2,28 +2,43 @@
 
 using namespace std;
 
+enum class State { INITIAL, JUST_SAW_ONE, AFTER_ONE_TWO };
+
 pair<string, string> summands(const string &x) {
     string a(x.size(), '0');
     string b(x.size(), '0');
-    bool saw_one = false;
+    State s = State::INITIAL;
 
     for (auto i = 0U; i != x.size(); ++i) {
-        if (saw_one) {
-            if (x[i] == '2') {
-                b[i] = '2';
-            } else if (x[i] == '1'){
+        switch (s) {
+        case State::INITIAL:
+            if (x[i] == '1') {
+                a[i] = '1';
+                s = State::JUST_SAW_ONE;
+            } else if (x[i] == '2') {
+                a[i] = '1';
                 b[i] = '1';
             }
+            break;
 
-            continue;
-        }
+        case State::JUST_SAW_ONE:
+            if (x[i] == '1') {
+                a[i] = '1';
+            } else if (x[i] == '2') {
+                a[i] = '0';
+                b[i] = '2';
+                s = State::AFTER_ONE_TWO;
+            }
+            break;
 
-        if (x[i] == '1') {
-            a[i] = '1';
-            saw_one = true;
-        } else if (x[i] == '2') {
-            a[i] = '1';
-            b[i] = '1';
+        case State::AFTER_ONE_TWO:
+            if (x[i] == '1') {
+                b[i] = '1';
+            } else if (x[i] == '2') {
+                a[i] = '1';
+                b[i] = '1';
+            }
+            break;
         }
     }
 
