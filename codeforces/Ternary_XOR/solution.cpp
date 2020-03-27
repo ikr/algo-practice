@@ -2,41 +2,30 @@
 
 using namespace std;
 
-enum class State { INITIAL, JUST_SAW_ONE, AFTER_ONE_TWO };
+enum class State { EQUAL, A_IS_GREATER };
 
 pair<string, string> summands(const string &x) {
     string a(x.size(), '0');
     string b(x.size(), '0');
-    State s = State::INITIAL;
+    State s = State::EQUAL;
 
     for (auto i = 0U; i != x.size(); ++i) {
         switch (s) {
-        case State::INITIAL:
+        case State::EQUAL:
             if (x[i] == '1') {
                 a[i] = '1';
-                s = State::JUST_SAW_ONE;
+                s = State::A_IS_GREATER;
             } else if (x[i] == '2') {
                 a[i] = '1';
                 b[i] = '1';
             }
             break;
 
-        case State::JUST_SAW_ONE:
+        case State::A_IS_GREATER:
             if (x[i] == '1') {
-                a[i] = '1';
+                b[i] = '1';
             } else if (x[i] == '2') {
-                a[i] = '0';
                 b[i] = '2';
-                s = State::AFTER_ONE_TWO;
-            }
-            break;
-
-        case State::AFTER_ONE_TWO:
-            if (x[i] == '1') {
-                b[i] = '1';
-            } else if (x[i] == '2') {
-                a[i] = '1';
-                b[i] = '1';
             }
             break;
         }
