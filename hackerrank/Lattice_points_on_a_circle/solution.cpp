@@ -204,7 +204,7 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
-    auto result_pair = primes_up_to(1000LL * 1000LL);
+    static auto result_pair = primes_up_to(1000LL * 1000LL);
     auto primes = result_pair.first;
     auto min_pf = result_pair.second;
 
@@ -249,14 +249,32 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
     return ans;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 Int count_solutoins(const Int N, const Int m) {
-    return map_sum_solutions(N, m, [](const Int x) { return x - x + 1; });
+    return map_sum_solutions(N, m, [](const Int x) { return 1; });
 }
+#pragma GCC diagnostic pop
 
 Int sum_solutoins(const Int N, const Int m) {
     return map_sum_solutions(N, m, [](const Int x) { return x; });
 }
 } // namespace
+
+TEST_CASE("factorize") {
+    SECTION("2") {
+        REQUIRE(factorize(primes_up_to(13).second, 2) == vector<Int>{2});
+    }
+
+    SECTION("3") {
+        REQUIRE(factorize(primes_up_to(13).second, 3) == vector<Int>{3});
+    }
+
+    SECTION("105") {
+        REQUIRE(factorize(primes_up_to(105).second, 105) ==
+                vector<Int>{3, 5, 7});
+    }
+}
 
 TEST_CASE("power_combination") {
     SECTION("degenerate") {
