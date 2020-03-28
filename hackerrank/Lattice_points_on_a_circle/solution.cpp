@@ -198,8 +198,7 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
-    auto [primes, min_pf] =
-        primes_up_to(m == 1 ? N : static_cast<Int>(sqrt(N)));
+    auto [primes, min_pf] = primes_up_to(1000LL * 1000LL);
     keep_c1m4(primes);
 
     const auto m_factors = factorize(min_pf, m);
@@ -380,6 +379,8 @@ TEST_CASE("problem statement samples", "[samples]") {
         const Int expected = 30517578125 + 61035156250 + 91552734375;
         REQUIRE(sum_solutoins(100000000000LL, 31) == expected);
     }
+
+    SECTION("13 3") { REQUIRE(count_solutoins(13, 3) == 4); }
 }
 
 TEST_CASE("ProjectEuler.net problem 233", "[.]") {
