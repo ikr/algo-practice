@@ -1,4 +1,3 @@
-#include <forward_list>
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include <bits/stdc++.h>
@@ -421,7 +420,7 @@ TEST_CASE("problem statement samples", "[samples]") {
     SECTION("13 3 sum") { REQUIRE(sum_solutoins(13, 3) == 28); }
 }
 
-TEST_CASE("ProjectEuler.net problem 233", "[.]") {
+TEST_CASE("ProjectEuler.net problem 233") {
     REQUIRE(sum_solutoins(100000000000LL, 105) == 42);
 }
 
