@@ -200,6 +200,7 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
         ans.insert(ans.end(), new_tail.cbegin(), new_tail.cend());
     }
 
+    sort(ans.begin(), ans.end());
     return ans;
 }
 
@@ -214,8 +215,6 @@ Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
 
     auto basis = m > 1 ? basis_solutions(N, primes, basis_powers(m_factors))
                        : vector<Int>{1};
-
-    sort(basis.begin(), basis.end());
 
     const Int max_multiplier = N / basis.front();
     vector<Int> multipliers(max_multiplier - 2 + 1);
@@ -303,6 +302,17 @@ TEST_CASE("power_combinations") {
     SECTION("size 3") {
         REQUIRE(power_combinations(9999, {1, 2, 3}, {0, 1, 2}) ==
                 vector<Int>{18, 12, 9, 3, 4, 2});
+    }
+}
+
+TEST_CASE("basis_solutions") {
+    SECTION("13 3") {
+        auto result_pair = primes_up_to(13);
+        auto primes = result_pair.first;
+        keep_c1m4(primes);
+
+        const auto actual = basis_solutions(13, primes, {1});
+        REQUIRE(actual == vector<Int>{5, 13});
     }
 }
 
@@ -407,7 +417,8 @@ TEST_CASE("problem statement samples", "[samples]") {
         REQUIRE(sum_solutoins(100000000000LL, 31) == expected);
     }
 
-    SECTION("13 3") { REQUIRE(count_solutoins(13, 3) == 4); }
+    SECTION("13 3 count") { REQUIRE(count_solutoins(13, 3) == 3); }
+    SECTION("13 3 sum") { REQUIRE(sum_solutoins(13, 3) == 28); }
 }
 
 TEST_CASE("ProjectEuler.net problem 233", "[.]") {
