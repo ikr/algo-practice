@@ -1,3 +1,4 @@
+#include <forward_list>
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include <bits/stdc++.h>
@@ -6,6 +7,7 @@ using namespace std;
 
 namespace {
 using Int = long long;
+template <typename T> using Box = forward_list<T>;
 
 pair<vector<Int>, unordered_map<Int, Int>> primes_up_to(const Int x) {
     assert(x > 0);
@@ -87,15 +89,15 @@ vector<Int> factorize(unordered_map<Int, Int> min_prime_factors_by_compound,
     return ans;
 }
 
-optional<Int> exp_ltd(const Int max_val, const Int base, const Int exponent) {
+Box<Int> exp_ltd(const Int max_val, const Int base, const Int exponent) {
     Int ans = 1;
 
     for (Int i = 0; i != exponent; ++i) {
         ans *= base;
-        if (ans > max_val) return nullopt;
+        if (ans > max_val) return Box<Int>{};
     }
 
-    return ans;
+    return Box<Int>{ans};
 }
 
 vector<Int> basis_powers(vector<Int> factorization) {
@@ -114,10 +116,10 @@ vector<size_t> first_subvector_indices(const size_t sz) {
     return ans;
 }
 
-optional<vector<size_t>> next_subvector_indices(const size_t sz,
-                                                vector<size_t> indices) {
+Box<vector<size_t>> next_subvector_indices(const size_t sz,
+                                           vector<size_t> indices) {
     assert(indices.size() > 0);
-    optional<size_t> rightmost_not_max;
+    Box<size_t> rightmost_not_max;
 
     for (auto i = indices.size(); i-- != 0U;) {
         assert(indices.at(i) < sz);
@@ -129,10 +131,10 @@ optional<vector<size_t>> next_subvector_indices(const size_t sz,
         }
     }
 
-    if (!rightmost_not_max) return nullopt;
+    if (rightmost_not_max.empty()) return {};
 
-    iota(indices.begin() + *rightmost_not_max, indices.end(),
-         indices[*rightmost_not_max] + 1);
+    iota(indices.begin() + rightmost_not_max.front(), indices.end(),
+         indices[rightmost_not_max.front()] + 1);
 
     return {indices};
 }
@@ -149,19 +151,23 @@ vector<Int> subvector(const vector<Int> &xs, const vector<size_t> &indices) {
     return ans;
 }
 
-optional<Int> power_combination(const Int N, const vector<Int> &bases,
-                                const vector<Int> &pows) {
+Box<Int> power_combination(const Int N, const vector<Int> &bases,
+                           const vector<Int> &pows) {
     assert(bases.size() == pows.size());
 
-    vector<optional<Int>> exps(bases.size());
+    vector<Box<Int>> exps(bases.size());
 
     transform(bases.cbegin(), bases.cend(), pows.cbegin(), exps.begin(),
               [N](const Int b, const Int e) { return exp_ltd(N, b, e); });
 
-    return accumulate(exps.cbegin(), exps.cend(), optional<Int>{1},
-                      [N](const auto agg, const auto x) -> optional<Int> {
-                          if (!agg || !x || ((*agg) * (*x) > N)) return nullopt;
-                          return (*agg) * (*x);
+    return accumulate(exps.cbegin(), exps.cend(), Box<Int>{1},
+                      [N](const auto agg, const auto x) -> Box<Int> {
+                          if (agg.empty() || x.empty() ||
+                              (agg.front() * x.front() > N)) {
+                              return Box<Int>{};
+                          }
+
+                          return Box<Int>{agg.front() * x.front()};
                       });
 }
 
@@ -172,7 +178,7 @@ vector<Int> power_combinations(const Int N, vector<Int> bases,
 
     do {
         const auto candidate = power_combination(N, bases, pows);
-        if (candidate) ans.push_back(*candidate);
+        if (!candidate.empty()) ans.push_back(candidate.front());
     } while (next_permutation(bases.begin(), bases.end()));
 
     return ans;
@@ -183,11 +189,11 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
     vector<Int> ans;
 
     for (auto indices =
-             optional<vector<size_t>>{first_subvector_indices(pows.size())};
-         !!indices;
-         indices = next_subvector_indices(c1m4_primes.size(), *indices)) {
-        const auto new_tail =
-            power_combinations(N, subvector(c1m4_primes, *indices), pows);
+             Box<vector<size_t>>{first_subvector_indices(pows.size())};
+         !indices.empty(); indices = next_subvector_indices(c1m4_primes.size(),
+                                                            indices.front())) {
+        const auto new_tail = power_combinations(
+            N, subvector(c1m4_primes, indices.front()), pows);
 
         if (new_tail.empty()) break;
 
@@ -198,7 +204,10 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
-    auto [primes, min_pf] = primes_up_to(1000LL * 1000LL);
+    auto result_pair = primes_up_to(1000LL * 1000LL);
+    auto primes = result_pair.first;
+    auto min_pf = result_pair.second;
+
     keep_c1m4(primes);
 
     const auto m_factors = factorize(min_pf, m);
@@ -252,19 +261,19 @@ Int sum_solutoins(const Int N, const Int m) {
 TEST_CASE("power_combination") {
     SECTION("degenerate") {
         const auto actual = power_combination(100, {}, {});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == 1);
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == 1);
     }
 
     SECTION("underflow") {
         const auto actual = power_combination(100, {2, 3}, {1, 2});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == 18);
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == 18);
     }
 
     SECTION("overflow") {
         const auto actual = power_combination(17, {2, 3}, {1, 2});
-        REQUIRE(!actual);
+        REQUIRE(actual.empty());
     }
 }
 
@@ -290,69 +299,69 @@ TEST_CASE("subvector typical") {
 TEST_CASE("next_subvector_indices triple for the vector size of 4") {
     SECTION("first step") {
         const auto actual = next_subvector_indices(4, {0, 1, 2});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{0, 1, 3});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{0, 1, 3});
     }
 
     SECTION("second step") {
         const auto actual = next_subvector_indices(4, {0, 1, 3});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{0, 2, 3});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{0, 2, 3});
     }
 
     SECTION("third step") {
         const auto actual = next_subvector_indices(4, {0, 2, 3});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{1, 2, 3});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{1, 2, 3});
     }
 
     SECTION("done") {
         const auto actual = next_subvector_indices(4, {1, 2, 3});
-        REQUIRE(!actual);
+        REQUIRE(actual.empty());
     }
 }
 
 TEST_CASE("next_subvector_indices singleton for the vector size of 3") {
     SECTION("first step") {
         const auto actual = next_subvector_indices(3, {0});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{1});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{1});
     }
 
     SECTION("second step") {
         const auto actual = next_subvector_indices(3, {1});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{2});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{2});
     }
 
     SECTION("done") {
         const auto actual = next_subvector_indices(3, {2});
-        REQUIRE(!actual);
+        REQUIRE(actual.empty());
     }
 }
 
 TEST_CASE("next_subvector_indices quad for the vector of size 100") {
     SECTION("split") {
         const auto actual = next_subvector_indices(100, {0, 1, 98, 99});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{0, 2, 3, 4});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{0, 2, 3, 4});
     }
 
     SECTION("spread") {
         const auto actual = next_subvector_indices(100, {3, 17, 56, 70});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{3, 17, 56, 71});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{3, 17, 56, 71});
     }
 
     SECTION("shifting the head") {
         const auto actual = next_subvector_indices(100, {66, 97, 98, 99});
-        REQUIRE(!!actual);
-        REQUIRE(*actual == vector<size_t>{67, 68, 69, 70});
+        REQUIRE(!actual.empty());
+        REQUIRE(actual.front() == vector<size_t>{67, 68, 69, 70});
     }
 
     SECTION("done") {
         const auto actual = next_subvector_indices(100, {96, 97, 98, 99});
-        REQUIRE(!actual);
+        REQUIRE(actual.empty());
     }
 }
 
@@ -360,8 +369,8 @@ TEST_CASE("has_only_c3m4_or_2_as_prime_factors") {
     SECTION("37") {
         REQUIRE(37 % 4 == 1);
 
-        auto [primes, min_pf] = primes_up_to(1000);
-        REQUIRE(!has_only_c3m4_or_2_as_prime_factors(min_pf, 37));
+        auto result_pair = primes_up_to(1000);
+        REQUIRE(!has_only_c3m4_or_2_as_prime_factors(result_pair.second, 37));
     }
 }
 
