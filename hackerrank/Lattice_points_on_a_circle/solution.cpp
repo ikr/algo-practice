@@ -432,6 +432,6 @@ TEST_CASE("ProjectEuler.net problem 233", "[.]") {
 //     for (auto i = 0U; i != q; ++i) {
 //         Int N, m;
 //         cin >> N >> m;
-//         cout << sum_solutoins(N, m) << '\n';
+//         cout << count_solutoins(N, m) << '\n';
 //     }
 // }
