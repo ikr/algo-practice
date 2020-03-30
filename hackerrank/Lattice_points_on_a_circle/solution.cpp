@@ -204,7 +204,7 @@ vector<Int> basis_solutions(const Int N, const vector<Int> &c1m4_primes,
 }
 
 Int map_sum_solutions(const Int N, const Int m, const function<Int(Int)> map) {
-    static auto result_pair = primes_up_to(1000LL * 1000LL);
+    static auto result_pair = primes_up_to(400LL * 1000LL * 1000LL);
     auto primes = result_pair.first;
     auto min_pf = result_pair.second;
 
@@ -420,7 +420,7 @@ TEST_CASE("problem statement samples", "[samples]") {
     SECTION("13 3 sum") { REQUIRE(sum_solutoins(13, 3) == 28); }
 }
 
-TEST_CASE("ProjectEuler.net problem 233") {
+TEST_CASE("ProjectEuler.net problem 233", "[233]") {
     REQUIRE(sum_solutoins(100000000000LL, 105) == 42);
 }
 
