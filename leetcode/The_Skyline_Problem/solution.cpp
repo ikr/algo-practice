@@ -2,6 +2,26 @@
 
 using namespace std;
 
+using Iter = map<int, int>::iterator;
+
+void histo_insert_building(map<int, int> &histo, const int left, const int right, const int height) {
+    if (histo.empty()) {
+        histo.emplace(left, heigth);
+        histo.emplace(right, height);
+        return;
+    }
+    
+    const int front = *histo.begin();
+    const int back = *histo.rbegin();
+    if (back < left || front > right) return empty;
+    
+    if (front <= left && right <= back) {
+        auto lo = hist.lower_bound(left);
+        auto hi = hist.lower_bound(right);
+        return {*lo > left ? prev(lo) : lo, hi};
+    }
+}
+
 struct Solution final {
     vector<vector<int>> getSkyline(const vector<vector<int>> &buildings) const {
         map<int, int> histo;
@@ -25,4 +45,3 @@ int main()
                                                                   
     assert(actual == expected);
 }
-
