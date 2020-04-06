@@ -1,69 +1,63 @@
-#include "lest.hpp"
 #include <bits/stdc++.h>
 
 using namespace std;
 
-using Words = vector<string>;
-using Groups = vector<Words>;
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
 
-string sorted_letters(string word) {
-    sort(word.begin(), word.end());
-    return word;
-}
-
-Groups value_groups(const multimap<string, string> &wmap) {
-    Groups result;
-    string last_key = "Z";
-
-    for (const auto i : wmap) {
-        if (i.first != last_key) {
-            result.push_back(Words{});
-            last_key = i.first;
-        }
-
-        result.back().push_back(i.second);
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
     }
 
-    return result;
+    os << ']';
+    return os;
+}
+
+string skey(string s) {
+    sort(s.begin(), s.end());
+    return s;
 }
 
 struct Solution final {
-    Groups groupAnagrams(const Words &ws) const {
-        multimap<string, string> words_by_sorted_letters;
-
-        transform(
-            ws.begin(), ws.end(),
-            inserter(words_by_sorted_letters, words_by_sorted_letters.end()),
-            [](const string &w) { return make_pair(sorted_letters(w), w); });
-
-        return value_groups(words_by_sorted_letters);
+    vector<vector<string>> groupAnagrams(const vector<string> &ss) const {
+        unordered_multimap<string, string> mm;
+        
+        for (const auto &s : ss) {
+            mm.emplace(skey(s), s);
+        }
+        
+        string last_key = "Z";
+        vector<vector<string>> ans;
+        
+        for (const auto [key, s] : mm) {
+            if (last_key != key) {
+                ans.emplace_back(vector<string>{});
+                last_key = key;
+            }
+            
+            ans.back().emplace_back(s);
+        }
+        
+        return ans;
     }
 };
 
-// clang-format off
-const lest::test tests[] = {
-    CASE("empty") {
-        const Groups actual = Solution().groupAnagrams(Words{});
-        const Groups expected = Groups{};
-        EXPECT(actual == expected);
-    },
-    CASE("problem statement example") {
-        const Groups actual = Solution().groupAnagrams(Words{"eat","tea","tan","ate","nat","bat"});
-
-        const Groups expected = Groups{
-            {"bat"},
-            {"eat","tea","ate"},
-            {"nat","tan"}
-        };
-
-        EXPECT(actual == expected);
-    },
-    CASE("degenerate case") {
-        const Groups actual = Solution().groupAnagrams(Words{"a"});
-        const Groups expected = Groups{{"a"}};
-        EXPECT(actual == expected);
-    },
-};
-// clang-format on
-
-int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    
+    const auto actual = Solution{}.groupAnagrams({"eat", "tea", "tan", "ate", "nat", "bat"});
+    
+    cout << actual << endl;
+                                                                  
+    const vector<vector<string>> expected{
+        {"bat"},
+        {"nat","tan"},
+        {"ate","tea","eat",}
+    };
+                                                                  
+    assert(actual == expected);
+    
+    return 0;
+}
