@@ -28,17 +28,16 @@ set<int> gather_key_xs(const vector<vector<int>> &towers) {
     return ans;
 }
 
-map<int, int> derive_histo(const vector<vector<int>> &towers, const set<int> &key_xs) {
-    map<int, int> ans;
+multimap<int, size_t> gather_towers_by_x(const vector<vector<int>> &towers, const set<int> &key_xs) {
+    multimap<int, size_t> ans;
     
-    for (const auto &t : towers) {
-        const int left = t[0];
-        const int right = t[1];
-        const int height = t[2];
+    for (auto i = 0U; i != towers.size(); ++i) {
+        const int left = towers[i][0];
+        const int right = towers[i][1];
+        const int height = towers[i][2];
 
         for (auto it = key_xs.lower_bound(left); it != key_xs.cend() && *it <= right; ++it) {
-            if (!ans.count(*it)) ans[*it] = -1;
-            ans[*it] = max(ans.at(*it), height);
+            ans.emplace(*it, i);
         }
     }
 
@@ -48,16 +47,9 @@ map<int, int> derive_histo(const vector<vector<int>> &towers, const set<int> &ke
 struct Solution final {
     vector<vector<int>> getSkyline(const vector<vector<int>> &towers) const {
         const auto key_xs = gather_key_xs(towers);
-        map<int, int> histo = derive_histo(towers, key_xs);
+        const auto towers_by_x = gather_towers_by_x(towers, key_xs);
         
-        vector<vector<int>> ans;
-        
-        for (const auto [x, h] : histo) {
-            if (ans.empty() || ans.back()[1] != h) {
-                ans.push_back(vector<int>{x, h});          
-            }
-        }
-        
+        vector<vector<int>> ans;        
         return ans;
     }
 };
