@@ -14,40 +14,50 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-set<int> gather_key_xs(const vector<vector<int>> &towers) {
-    set<int> ans;
+struct Tower final {
+    int left;
+    int right;
+    int height;
+    
+    Tower(const vector<int> &src): left{src[0]}, right{src[1]}, height{src[2]} {}
+};
+
+
+map<int, vector<Tower>> gather_key_xs(const vector<vector<int>> &towers) {
+    map<int, vector<Tower>> ans;
     
     for (const auto &t : towers) {
         const int left = t[0];
         const int right = t[1];
             
-        ans.insert(left);
-        ans.insert(right);
+        ans.emplace(left, vector<Tower>{});
+        ans.emplace(right, vector<Tower>{});
     }
     
     return ans;
 }
 
-multimap<int, size_t> gather_towers_by_x(const vector<vector<int>> &towers, const set<int> &key_xs) {
-    multimap<int, size_t> ans;
-    
-    for (auto i = 0U; i != towers.size(); ++i) {
-        const int left = towers[i][0];
-        const int right = towers[i][1];
-        const int height = towers[i][2];
+struct TowersLess final {
+    bool operator()(const Tower &lhs, const Tower &rhs) const {
+        return lhs.height < rhs.height;
+    }
+};
 
-        for (auto it = key_xs.lower_bound(left); it != key_xs.cend() && *it <= right; ++it) {
-            ans.emplace(*it, i);
+void gather_tower_heaps_by_x(const vector<vector<int>> &towers, map<int, vector<Tower>> &key_xs) {
+    for (const auto &tsrc : towers) {
+        const Tower t(tsrc);
+        
+        for (auto it = key_xs.lower_bound(t.left); it != key_xs.end() && it->first <= t.right; ++it) {
+            it->second.push_back(t);
+            push_heap(it->second.begin(), it->second.end(), TowersLess{});
         }
     }
-
-    return ans;
 }
 
 struct Solution final {
     vector<vector<int>> getSkyline(const vector<vector<int>> &towers) const {
-        const auto key_xs = gather_key_xs(towers);
-        const auto towers_by_x = gather_towers_by_x(towers, key_xs);
+        auto tower_heaps_by_x = gather_key_xs(towers);
+        gather_tower_heaps_by_x(towers, tower_heaps_by_x);
         
         vector<vector<int>> ans;        
         return ans;
