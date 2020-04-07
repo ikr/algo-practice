@@ -22,7 +22,6 @@ struct Tower final {
     Tower(const vector<int> &src): left{src[0]}, right{src[1]}, height{src[2]} {}
 };
 
-
 map<int, vector<Tower>> gather_key_xs(const vector<vector<int>> &towers) {
     map<int, vector<Tower>> ans;
     
