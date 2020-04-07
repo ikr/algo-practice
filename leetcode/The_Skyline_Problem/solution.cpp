@@ -58,7 +58,37 @@ struct Solution final {
         auto tower_heaps_by_x = gather_key_xs(towers);
         gather_tower_heaps_by_x(towers, tower_heaps_by_x);
         
-        vector<vector<int>> ans;        
+        vector<vector<int>> ans;
+        
+        for (auto [x, heap] : tower_heaps_by_x) {
+            pop_heap(heap.begin(), heap.end(), TowersLess{});
+            const Tower dom = heap.back();
+            heap.pop_back();
+            
+            optional<Tower> sub;
+            
+            if (heap.size()) {
+                pop_heap(heap.begin(), heap.end(), TowersLess{});
+                sub = heap.back();
+                heap.pop_back();
+            }
+            
+            if (x != dom.left && x != dom.right) {
+                ans.push_back({x, dom.height});
+            } else if (x == dom.left) {
+                if (sub) ans.push_back({x, sub->height});    
+                else ans.push_back({x, 0});
+                
+                ans.push_back({x, dom.height});
+            } else {
+                assert(x == dom.right);
+                ans.push_back({x, dom.height});
+                
+                if (sub) ans.push_back({x, sub->height});    
+                else ans.push_back({x, 0});
+            }
+        }
+        
         return ans;
     }
 };
