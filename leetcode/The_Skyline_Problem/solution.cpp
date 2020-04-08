@@ -53,6 +53,13 @@ void gather_tower_heaps_by_x(const vector<vector<int>> &towers, map<int, vector<
     }
 }
 
+Tower pop(vector<Tower> &heap) {
+    pop_heap(heap.begin(), heap.end(), TowersLess{});
+    Tower ans = heap.back();
+    heap.pop_back();
+    return ans;
+}
+
 struct Solution final {
     vector<vector<int>> getSkyline(const vector<vector<int>> &towers) const {
         auto tower_heaps_by_x = gather_key_xs(towers);
@@ -61,17 +68,8 @@ struct Solution final {
         vector<vector<int>> ans;
         
         for (auto [x, heap] : tower_heaps_by_x) {
-            pop_heap(heap.begin(), heap.end(), TowersLess{});
-            const Tower dom = heap.back();
-            heap.pop_back();
-            
-            optional<Tower> sub;
-            
-            if (heap.size()) {
-                pop_heap(heap.begin(), heap.end(), TowersLess{});
-                sub = heap.back();
-                heap.pop_back();
-            }
+            const Tower dom = pop(heap);            
+            optional<Tower> sub = heap.size() ? optional<Tower>{pop(heap)} : nullopt;
             
             if (x != dom.left && x != dom.right) {
                 ans.push_back({x, dom.height});
