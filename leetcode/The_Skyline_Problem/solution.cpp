@@ -80,7 +80,7 @@ struct Solution final {
             if (x != dom.left && x != dom.right) {
                 supplement(ans, x, dom.height);
             } else if (x == dom.left) {
-                if (sub) supplement(ans, x, sub->height);    
+                if (sub && sub->left != x) supplement(ans, x, sub->height);    
                 else supplement(ans, x, 0);
                 
                 supplement(ans, x, dom.height);
@@ -88,7 +88,7 @@ struct Solution final {
                 assert(x == dom.right);
                 supplement(ans, x, dom.height);
                 
-                if (sub) supplement(ans, x, sub->height);    
+                if (sub && sub->right != x) supplement(ans, x, sub->height);    
                 else supplement(ans, x, 0);
             }
         }
@@ -97,18 +97,31 @@ struct Solution final {
     }
 };
 
+struct TestCase final {
+    const vector<vector<int>> input;
+    const vector<vector<int>> expected_answer;
+};
+
 int main() {
     ios::sync_with_stdio(0);
     cin.tie(0);
     
-    const auto actual = Solution{}.getSkyline(
-        vector<vector<int>>{{2, 9, 10}, {3, 7, 15}, {5, 12, 12}, {15, 20, 10}, {19, 24, 8}});
-                                                                  
-    const vector<vector<int>> expected{{2, 10}, {3, 15}, {7, 12}, {12, 0}, {15, 10}, {20, 8}, {24, 0}};
+    const vector<TestCase> testCases{
+        {
+            {{2, 9, 10}, {3, 7, 15}, {5, 12, 12}, {15, 20, 10}, {19, 24, 8}},
+            {{2, 10}, {3, 15}, {7, 12}, {12, 0}, {15, 10}, {20, 8}, {24, 0}}
+        },
+        {
+            {{1,2,1},{1,2,2},{1,2,3}},
+            {{1,3},{2,0}}
+        }
+    };
     
-    cout << actual << '\n' << expected << endl;
-                                                                  
-    assert(actual == expected);
+    for (const auto [input, expected] : testCases) {
+        const auto actual = Solution{}.getSkyline(input);
+        cout << "ACT " << actual << "\nEXP " << expected << '\n' << endl;
+        assert(actual == expected);
+    }
     
     return 0;
 }
