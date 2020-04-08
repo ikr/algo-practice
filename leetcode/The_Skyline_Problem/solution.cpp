@@ -75,12 +75,20 @@ struct Solution final {
         
         for (auto [x, heap] : tower_heaps_by_x) {
             const Tower dom = pop(heap);            
-            optional<Tower> sub = heap.size() ? optional<Tower>{pop(heap)} : nullopt;
             
             if (x != dom.left && x != dom.right) {
                 supplement(ans, x, dom.height);
             } else if (x == dom.left) {
-                if (sub && sub->left != x) supplement(ans, x, sub->height);    
+                optional<Tower> sub;
+                
+                while (heap.size()) {
+                    sub = pop(heap);
+                    
+                    if (sub->left != x) break;
+                    else sub = nullopt;
+                }
+                
+                if (sub) supplement(ans, x, sub->height);    
                 else supplement(ans, x, 0);
                 
                 supplement(ans, x, dom.height);
@@ -88,7 +96,16 @@ struct Solution final {
                 assert(x == dom.right);
                 supplement(ans, x, dom.height);
                 
-                if (sub && sub->right != x) supplement(ans, x, sub->height);    
+                optional<Tower> sub;
+                
+                while (heap.size()) {
+                    sub = pop(heap);
+                    
+                    if (sub->right != x) break;
+                    else sub = nullopt;
+                }
+                
+                if (sub) supplement(ans, x, sub->height);    
                 else supplement(ans, x, 0);
             }
         }
