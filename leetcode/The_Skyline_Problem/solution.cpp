@@ -60,6 +60,12 @@ Tower pop(vector<Tower> &heap) {
     return ans;
 }
 
+void supplement(vector<vector<int>> &skyline, const int x, const int h) {
+    if (skyline.empty() && !h) return;
+    if (skyline.size() && h == skyline.back()[1]) return;
+    skyline.push_back({x, h});
+}
+
 struct Solution final {
     vector<vector<int>> getSkyline(const vector<vector<int>> &towers) const {
         auto tower_heaps_by_x = gather_key_xs(towers);
@@ -72,18 +78,18 @@ struct Solution final {
             optional<Tower> sub = heap.size() ? optional<Tower>{pop(heap)} : nullopt;
             
             if (x != dom.left && x != dom.right) {
-                ans.push_back({x, dom.height});
+                supplement(ans, x, dom.height);
             } else if (x == dom.left) {
-                if (sub) ans.push_back({x, sub->height});    
-                else ans.push_back({x, 0});
+                if (sub) supplement(ans, x, sub->height);    
+                else supplement(ans, x, 0);
                 
-                ans.push_back({x, dom.height});
+                supplement(ans, x, dom.height);
             } else {
                 assert(x == dom.right);
-                ans.push_back({x, dom.height});
+                supplement(ans, x, dom.height);
                 
-                if (sub) ans.push_back({x, sub->height});    
-                else ans.push_back({x, 0});
+                if (sub) supplement(ans, x, sub->height);    
+                else supplement(ans, x, 0);
             }
         }
         
