@@ -22,97 +22,50 @@ struct Tower final {
     Tower(const vector<int> &src): left{src[0]}, right{src[1]}, height{src[2]} {}
 };
 
-map<int, vector<Tower>> gather_key_xs(const vector<vector<int>> &towers) {
-    map<int, vector<Tower>> ans;
-    
-    for (const auto &t : towers) {
-        const int left = t[0];
-        const int right = t[1];
-            
-        ans.emplace(left, vector<Tower>{});
-        ans.emplace(right, vector<Tower>{});
-    }
-    
-    return ans;
-}
-
-struct TowersLess final {
+struct TowersGreater final {
     bool operator()(const Tower &lhs, const Tower &rhs) const {
-        return lhs.height < rhs.height;
+        const pair<int, pair<int, int>> lhs_tuple{lhs.height, {lhs.left, lhs.right}};
+        const pair<int, pair<int, int>> rhs_tuple{rhs.height, {rhs.left, rhs.right}};
+        
+        return lhs_tuple > rhs_tuple;
     }
 };
 
-void gather_tower_heaps_by_x(vector<vector<int>> towers_src, map<int, vector<Tower>> &key_xs) {
-    sort(towers_src.begin(), towers_src.end(), [](const auto &lhs, const auto &rhs) { return lhs[2] > rhs[2]; });
-    
-    for (const auto &tsrc : towers_src) {
-        const Tower t(tsrc);
-        
-        for (auto it = key_xs.lower_bound(t.left); it != key_xs.end() && it->first <= t.right; ++it) {
-            const int x = it->first;
-            vector<Tower> &heap = it->second;
-            
-            heap.push_back(t);
-            push_heap(heap.begin(), heap.end(), TowersLess{});
-        }
-    }
-}
-
-Tower pop(vector<Tower> &heap) {
-    pop_heap(heap.begin(), heap.end(), TowersLess{});
-    Tower ans = heap.back();
-    heap.pop_back();
-    return ans;
-}
-
 void supplement(vector<vector<int>> &skyline, const int x, const int h) {
-    if (skyline.empty() && !h) return;
     if (skyline.size() && h == skyline.back()[1]) return;
     skyline.push_back({x, h});
 }
 
 struct Solution final {
-    vector<vector<int>> getSkyline(const vector<vector<int>> &towers) const {
-        auto tower_heaps_by_x = gather_key_xs(towers);        
-        gather_tower_heaps_by_x(towers, tower_heaps_by_x);
+    vector<vector<int>> getSkyline(const vector<vector<int>> &towers_src) const {
+        set<int> xs;
+        unordered_multimap<int, Tower> towers_by_left;
+        unordered_multimap<int, Tower> towers_by_right;
+        for (const auto &src : towers_src) {
+            const Tower t(src);
+            
+            xs.insert(t.left);
+            xs.insert(t.right);
+            
+            towers_by_left.emplace(t.left, t);
+            towers_by_right.emplace(t.right, t);
+        }
         
         vector<vector<int>> ans;
-        
-        for (auto [x, heap] : tower_heaps_by_x) {
-            const Tower dom = pop(heap);            
-            
-            if (x != dom.left && x != dom.right) {
-                supplement(ans, x, dom.height);
-            } else if (x == dom.left) {
-                optional<Tower> sub;
-                
-                while (heap.size()) {
-                    sub = pop(heap);
-                    
-                    if (sub->left != x) break;
-                    else sub = nullopt;
-                }
-                
-                if (sub) supplement(ans, x, sub->height);    
-                else supplement(ans, x, 0);
-                
-                supplement(ans, x, dom.height);
-            } else {
-                assert(x == dom.right);
-                supplement(ans, x, dom.height);
-                
-                optional<Tower> sub;
-                
-                while (heap.size()) {
-                    sub = pop(heap);
-                    
-                    if (sub->right != x) break;
-                    else sub = nullopt;
-                }
-                
-                if (sub) supplement(ans, x, sub->height);    
-                else supplement(ans, x, 0);
+        set<Tower, TowersGreater> curr;
+        for (const int x : xs) {
+            const auto [rfirst, rlast] = towers_by_right.equal_range(x);
+            for (auto it = rfirst; it != rlast; ++it) {
+                curr.erase(it->second);
             }
+            
+            const auto [lfirst, llast] = towers_by_left.equal_range(x);
+            for (auto it = lfirst; it != llast; ++it) {
+                curr.insert(it->second);
+            }
+            
+            if (curr.empty()) supplement(ans, x, 0);
+            else supplement(ans, x, curr.begin()->height);
         }
         
         return ans;
@@ -124,6 +77,16 @@ vector<vector<int>> pyramid(const int sz) {
     
     for (int i = 0; i != sz / 2; ++i) {
         ans.push_back({i, sz - i - 1, i + 1});
+    }
+    
+    return ans;
+}
+
+vector<vector<int>> concentric_top_down(const int sz) {
+    vector<vector<int>> ans;
+    
+    for (int i = 0; i != sz; ++i) {
+        ans.push_back({i, sz, sz - i});
     }
     
     return ans;
@@ -167,12 +130,17 @@ int main() {
         assert(actual == expected);
     }
     
-    const auto t0 = chrono::steady_clock::now();
+    auto t0 = chrono::steady_clock::now();
     Solution{}.getSkyline(pyramid(4000));    
-    const auto t1 = chrono::steady_clock::now();
+    auto t1 = chrono::steady_clock::now();
+    auto elapsed_ms = chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count();
+    cout << "Pyramid " << elapsed_ms << " ms\n";
     
-    const auto elapsed_ms = chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count();
-    cout << elapsed_ms << " ms\n";
+    t0 = chrono::steady_clock::now();
+    Solution{}.getSkyline(concentric_top_down(10000));    
+    t1 = chrono::steady_clock::now();
+    elapsed_ms = chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count();
+    cout << "CTD " << elapsed_ms << " ms\n";
     
     return 0;
 }
