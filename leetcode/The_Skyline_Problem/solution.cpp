@@ -42,13 +42,18 @@ struct TowersLess final {
     }
 };
 
-void gather_tower_heaps_by_x(const vector<vector<int>> &towers, map<int, vector<Tower>> &key_xs) {
-    for (const auto &tsrc : towers) {
+void gather_tower_heaps_by_x(vector<vector<int>> towers_src, map<int, vector<Tower>> &key_xs) {
+    sort(towers_src.begin(), towers_src.end(), [](const auto &lhs, const auto &rhs) { return lhs[2] > rhs[2]; });
+    
+    for (const auto &tsrc : towers_src) {
         const Tower t(tsrc);
         
         for (auto it = key_xs.lower_bound(t.left); it != key_xs.end() && it->first <= t.right; ++it) {
-            it->second.push_back(t);
-            push_heap(it->second.begin(), it->second.end(), TowersLess{});
+            const int x = it->first;
+            vector<Tower> &heap = it->second;
+            
+            heap.push_back(t);
+            push_heap(heap.begin(), heap.end(), TowersLess{});
         }
     }
 }
@@ -68,7 +73,7 @@ void supplement(vector<vector<int>> &skyline, const int x, const int h) {
 
 struct Solution final {
     vector<vector<int>> getSkyline(const vector<vector<int>> &towers) const {
-        auto tower_heaps_by_x = gather_key_xs(towers);
+        auto tower_heaps_by_x = gather_key_xs(towers);        
         gather_tower_heaps_by_x(towers, tower_heaps_by_x);
         
         vector<vector<int>> ans;
@@ -149,6 +154,10 @@ int main() {
         {
             {{2,7,1},{3,6,2},{4,5,3}},
             {{2,1},{3,2},{4,3},{5,2},{6,1},{7,0}}
+        },
+        {
+            {{3,7,8},{3,8,7},{3,9,6},{3,10,5},{3,11,4},{3,12,3},{3,13,2},{3,14,1}},
+            {{3,8},{7,7},{8,6},{9,5},{10,4},{11,3},{12,2},{13,1},{14,0}}
         }
     };
     
