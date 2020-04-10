@@ -114,6 +114,16 @@ struct Solution final {
     }
 };
 
+vector<vector<int>> pyramid(const int sz) {
+    vector<vector<int>> ans;
+    
+    for (int i = 0; i != sz / 2; ++i) {
+        ans.push_back({i, sz - i - 1, i + 1});
+    }
+    
+    return ans;
+}
+
 struct TestCase final {
     const vector<vector<int>> input;
     const vector<vector<int>> expected_answer;
@@ -135,6 +145,10 @@ int main() {
         {
             {{0,5,7},{5,10,7},{5,10,12},{10,15,7},{15,20,7},{15,20,12},{20,25,7}},
             {{0,7},{5,12},{10,7},{15,12},{20,7},{25,0}}
+        },
+        {
+            {{2,7,1},{3,6,2},{4,5,3}},
+            {{2,1},{3,2},{4,3},{5,2},{6,1},{7,0}}
         }
     };
     
@@ -143,6 +157,13 @@ int main() {
         cout << "ACT " << actual << "\nEXP " << expected << '\n' << endl;
         assert(actual == expected);
     }
+    
+    const auto t0 = chrono::steady_clock::now();
+    Solution{}.getSkyline(pyramid(4000));    
+    const auto t1 = chrono::steady_clock::now();
+    
+    const auto elapsed_ms = chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count();
+    cout << elapsed_ms << " ms\n";
     
     return 0;
 }
