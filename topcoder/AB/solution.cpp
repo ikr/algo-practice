@@ -12,7 +12,7 @@ int largest_divisor(const int x) {
 
 struct AB final {
     string createString(const int n, const int k) const {
-        if (!k) return string('B', n);
+        if (k == 0) return string(n, 'A');
         
         const int q = largest_divisor(k);
         const int r = k / q;
