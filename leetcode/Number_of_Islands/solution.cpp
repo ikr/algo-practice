@@ -58,6 +58,14 @@ struct Solution final {
                 q.emplace(r, c);
                 
                 while (!q.empty()) {
+                    const auto u = q.front();
+                    q.pop();
+                    
+                    for (const auto v : adjacent(rows, u)) {
+                        if (discovered.count(v)) continue;
+                        discovered.insert(v);
+                        q.push(v);
+                    }
                 }
             }
         }
@@ -67,12 +75,19 @@ struct Solution final {
 };
 
 int main() {
-    assert(Solution{}.numIslands({
-        {'1','1','1','1','0'},
-        {'1','1','0','1','0'},
+    const int actual = Solution{}.numIslands({
+        {'1','0','1','1','0'},
         {'1','1','0','0','0'},
-        {'0','0','0','0','0'}
-    }) == 3);
+        {'1','1','0','0','0'},
+        {'0','0','1','1','0'}
+    });
+    
+    const int expected = 3;
+    
+    cout << "EXP " << expected << endl;
+    cout << "ACT " << actual << endl;
+    
+    assert(actual == expected);
     
     return 0;
 }
