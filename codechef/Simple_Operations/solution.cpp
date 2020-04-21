@@ -27,6 +27,9 @@ vector<pair<int, int>> gather_disjoint_ranges(const string &s, const string &r) 
 }
 
 int main() {
+    ios_base::sync_with_stdio(0);
+	cin.tie(0);
+    
     int t;
     cin >> t;
     
@@ -38,28 +41,26 @@ int main() {
         
         if (!drs.empty()) { 
             pair<int, int> last_range = drs[0];
-            int ops_count = 1;
-            int letters_count = last_range.second - last_range.first + 1;
+            Lng ops_count = drs.size();
+            
+            Lng letters_count = accumulate(drs.cbegin(), drs.cend(), 0LL, [](const Lng memo, const auto ab) { 
+                return memo + ab.second - ab.first + 1; 
+            });
+            
+            Lng ans = ops_count * letters_count;
             
             for (int i = 1; i < drs.size(); ++i) {
                 const auto [a, b] = last_range;
                 const auto [c, d] = drs[i];
                 
-                const Lng splitted = (ops_count + 1) * (letters_count + d - c + 1);
-                const Lng merged = ops_count * (d - a + 1);
+                letters_count += (c - b - 1);
+                last_range = {a, d};
+                --ops_count;
                 
-                if (merged < splitted) {
-                    letters_count -= (b - a + 1);
-                    letters_count += (d - a + 1);
-                    last_range = {a, d};
-                } else {
-                    letters_count += (d - c + 1);
-                    ++ops_count;
-                    last_range = drs[i];
-                }
+                ans = min(ans, ops_count * letters_count);
             }
             
-            cout << ops_count * letters_count << endl;
+            cout << ans << endl;
         } else {
             cout << 0 << endl;
         }
