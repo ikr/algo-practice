@@ -4,46 +4,32 @@ struct LRUCache final {
     int get(const int key) {
         if (!m_values_by_key.count(key)) return -1;
         
-        const int old_usage = m_usages_by_key[key];
-        const auto [first, last] = m_keys_by_usage.equal_range(old_usage);
-        auto it_to_erase = m_keys_by_usage.cend();
-        for (auto it = first; it != last; ++it) {
-            const auto [u, k] = *it;
-            
-            if (k == key) {
-                it_to_erase = it;
-                break;
-            }
-        }
+        const auto it = find(m_keys.cbegin(), m_keys.cend(), key);
+        m_keys.erase(it);
+        m_keys.push_front(key);
         
-        assert(it_to_erase != m_keys_by_usage.cend());
-        m_keys_by_usage.erase(it_to_erase);
-        m_keys_by_usage.emplace(old_usage + 1, key);
-        
-        m_usages_by_key[key]++;
         return m_values_by_key.at(key);
     }
     
     void put(const int key, const int value) {
-        if (m_values_by_key.count(key)) return;
-        
-        if (m_values_by_key.size() == m_capacity) {
-            assert(!m_keys_by_usage.empty());
-            const auto [u, k] = *m_keys_by_usage.cbegin();
-            m_keys_by_usage.erase(m_keys_by_usage.cbegin());
-            m_usages_by_key.erase(k);
-            m_values_by_key.erase(k);
+        if (m_values_by_key.size() == m_capacity && !m_values_by_key.count(key)) {
+            assert(!m_keys.empty());
+            m_values_by_key.erase(m_keys.back());
+            m_keys.pop_back();
         }
         
+        if (m_values_by_key.count(key)) {
+            const auto it = find(m_keys.cbegin(), m_keys.cend(), key);
+            m_keys.erase(it);
+        }
+        
+        m_keys.push_front(key);
         m_values_by_key[key] = value;
-        m_keys_by_usage.emplace(0, key);
     }
     
 private:
     const int m_capacity;
-
-    unordered_map<int, int> m_usages_by_key;
-    multimap<int, int> m_keys_by_usage;
+    deque<int> m_keys;
     unordered_map<int, int> m_values_by_key;
 };
 
