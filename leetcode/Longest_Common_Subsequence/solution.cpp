@@ -1,15 +1,3 @@
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-
-    os << ']';
-    return os;
-}
-
 struct Solution final {
     int longestCommonSubsequence(const string &s1, const string &s2) {
         const int sz1 = s1.size();
