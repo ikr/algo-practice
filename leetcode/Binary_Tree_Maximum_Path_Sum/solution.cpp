@@ -10,43 +10,20 @@
  * };
  */
 
-optional<int> optmax(const optional<int> x, const optional<int> y) {
-    const int ans = max(x ? *x : INT_MIN, y ? *y : INT_MIN);
-    return ans == INT_MIN ? nullopt : optional<int>{ans};
-}
-
-optional<int> operator+(const optional<int> x, const optional<int> y) {
-    if (x && y) return *x + *y;
-    if (x) return *x;
-    if (y) return *y;
-    return nullopt;
-}
-
-optional<int> max_leaf_path_sum(TreeNode *n) {
-    if (!n) return nullopt;
-    return optional<int>{n->val} + optmax(max_leaf_path_sum(n->left), max_leaf_path_sum(n->right));
-} 
-
-
-optional<int> max_path_sum(TreeNode *n) {
-    if (!n) return nullopt;
+int max_path_sum(int &overall_max, const TreeNode *n) {
+    assert(n);
     
-    return optmax(
-        optmax(
-            optional<int>(n->val),
-            optional<int>(n->val) + max_leaf_path_sum(n->left) + max_leaf_path_sum(n->right)
-        ),
-        
-        optmax(
-            max_path_sum(n->left),
-            max_path_sum(n->right)
-        )
-    );
+    const int l = n->left ? max(0, max_path_sum(overall_max, n->left)) : 0;
+    const int r = n->right ? max(0, max_path_sum(overall_max, n->right)) : 0;
+    
+    overall_max = max(overall_max, n->val + l + r);
+    return n->val + max(l, r);
 }
 
 struct Solution final {
-    int maxPathSum(TreeNode *r) const {
-        const auto ans = max_path_sum(r);
-        return ans ? *ans : 0;
+    int maxPathSum(const TreeNode *n) const {
+        int ans = INT_MIN;
+        max_path_sum(ans, n);
+        return ans;
     }
 };
