@@ -43,15 +43,15 @@ struct Solution final {
         const auto pbbh = people_bits_by_hat(hats_by_person);
         
         // answer [up to hat i] [with people bits combo j allowed]
-        vector<vll> dp(MAX_HAT + 1, vll(MAX_PEOPLE_BITS + 1, 0LL));
+        vector<vll> dp(MAX_HAT + 1, vll(MAX_PEOPLE_BITS + 1, 1LL));
         
         for (ui i = 1; i <= MAX_HAT; ++i) {
             for (ui j = 1; j <= MAX_PEOPLE_BITS; ++j) {
-                const ll own_count = __builtin_popcount(pbbh[i]);
-                const ui compatible_combo = people_bits_compliment(pbbh[i]);
+                const ll own_count = __builtin_popcount(pbbh[i] & j);
+                const ui compatible_combo = people_bits_compliment(pbbh[i] & j);
                 const ll inherited_count = dp[i - 1][compatible_combo];
                 
-                dp[i][j] = inherited_count ? ((inherited_count * own_count) % M) : own_count;
+                dp[i][j] = (inherited_count * own_count) % M;
             }
         }
         
