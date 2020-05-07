@@ -7,8 +7,8 @@ using vll = vector<ll>;
 
 static const ll M = 1e9 + 7;
 static const ui MAX_HAT = 40;
-static const ui MAX_PERSON = 4;
-static const ui MAX_PEOPLE_BITS = (1 << 5) - 1;
+static const ui MAX_PERSON = 9;
+static const ui MAX_COMBO = (1 << 10) - 1;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
@@ -22,43 +22,68 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-vui people_bits_by_hat(const vector<vi> &hats_by_person) {
-    const ui sz = hats_by_person.size();
-    assert(sz <= MAX_PERSON + 1U);
-    vui ans(MAX_HAT + 1, 0U);
+int combo(const vi &xs) {
+    int ans = 0;
     
-    for (ui i = 0U; i != sz; ++i) {
-        for (const int h : hats_by_person[i]) ans[h] |= (1U << i);
+    for (const int x : xs) {
+        ans |= (1 << x);    
     }
     
     return ans;
 }
 
-ui people_bits_compliment(const ui people_bits) {
-    return ~people_bits & MAX_PEOPLE_BITS;
+vector<vi> people_by_hat(const vector<vi> &hats_by_person) {
+    const int sz = hats_by_person.size();
+    vector<vi> ans(MAX_HAT + 1, vi{});
+    int max_hat_seen = 0;
+    
+    for (int i = 0; i != sz; ++i) {
+        for (const int h : hats_by_person[i]) {
+            ans[h].push_back(i);
+            if (h > max_hat_seen) max_hat_seen = h;
+        }
+    }
+    
+    assert(max_hat_seen <= MAX_HAT);
+    ans.resize(max_hat_seen + 1);
+    
+    return ans;
+}
+
+int solve(const int people_count, const vector<vi> &pbh) {
+    const int sz = pbh.size();
+    
+    // count [hat i] [people bits combo j]
+    vector<vll> dp(sz, vll(1 << people_count, 0));
+    
+    for (const int p : pbh[1]) {
+        dp[1][1 << p] = 1;
+    }
+    
+    for (int i = 2; i < sz; ++i) {
+        for (int j = 1; j < (1 << people_count); ++j) {
+            if (!dp[i - 1][j]) continue;
+            
+            for (const int p : pbh[i]) {
+                cout << "1 << p " << (1 << p) << ", j " << j << ", j & (1 << p) " << (j & (1 << p)) << endl;
+                if ((j & (1 << p)) == 0) {
+                    const int jj = j | (1 << p);
+                    cout << "jj " << jj << endl;
+                    dp[i][jj] = (dp[i][jj] + dp[i - 1][j]) % M; 
+                }
+            }
+        }
+    }
+    
+    for (const auto &row : dp) {
+        cout << row << endl;
+    }
+    
+    return dp.back().back();
 }
 
 struct Solution final {
-    int numberWays(const vector<vi> &hats_by_person) const {
-        const auto pbbh = people_bits_by_hat(hats_by_person);
-        
-        // answer [up to hat i] [with people bits combo j allowed]
-        vector<vll> dp(MAX_HAT + 1, vll(MAX_PEOPLE_BITS + 1, 1LL));
-        
-        for (ui i = 1; i <= MAX_HAT; ++i) {
-            for (ui j = 1; j <= MAX_PEOPLE_BITS; ++j) {
-                const ll own_count = __builtin_popcount(pbbh[i] & j);
-                const ui compatible_combo = people_bits_compliment(pbbh[i] & j);
-                const ll inherited_count = dp[i - 1][compatible_combo];
-                
-                dp[i][j] = (inherited_count * own_count) % M;
-            }
-        }
-        
-        for (const auto &row : dp) {
-            cout << row << '\n';
-        }
-        
-        return 0;
+    int numberWays(const vector<vi> &hbp) const {
+        return solve(hbp.size(), people_by_hat(hbp));
     }
 };
