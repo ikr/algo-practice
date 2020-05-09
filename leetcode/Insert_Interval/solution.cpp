@@ -29,10 +29,18 @@ Iter adjacent_merge_left(vector<vi> &ivls, const Iter it) {
     return ivls.erase(it - 1);
 }
 
+void adjacent_merge_right(vector<vi> &ivls, const Iter it) {
+    while (it + 1 != ivls.end() && !disjoint(*it, *(it + 1))) {
+        *it = merge(*it, *(it + 1));
+        ivls.erase(it + 1);
+    }
+}
+
 struct Solution final {
     vector<vi> insert(vector<vi> &ivls, vi ivl) const {
         auto it = insert_in_order(ivls, ivl);
         it = adjacent_merge_left(ivls, it);
+        adjacent_merge_right(ivls, it);
         return ivls;
     }
 };
