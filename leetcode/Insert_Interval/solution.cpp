@@ -30,10 +30,17 @@ Iter adjacent_merge_left(vector<vi> &ivls, const Iter it) {
 }
 
 void adjacent_merge_right(vector<vi> &ivls, const Iter it) {
-    while (it + 1 != ivls.end() && !disjoint(*it, *(it + 1))) {
-        *it = merge(*it, *(it + 1));
-        ivls.erase(it + 1);
-    }
+    if (it + 1 == ivls.end() || disjoint(*it, *(it + 1))) return;
+    
+    auto last = upper_bound(
+        it + 1, 
+        ivls.end(), 
+        *it,
+        [](const vi &lhs, const vi &rhs) { return disjoint(lhs, rhs); }
+    );
+    
+    *it = merge(*it, vi{(*(it + 1))[0], (*(last - 1))[1]});
+    ivls.erase(it + 1, last);
 }
 
 struct Solution final {
