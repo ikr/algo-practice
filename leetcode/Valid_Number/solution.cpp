@@ -16,20 +16,23 @@ void trim(std::string &s) {
     rtrim(s);
 }
 
-bool confirm_match(const string &pattern, const string &input) {
-    smatch m;
-    regex_match(input, m, regex{pattern});
-    return m.size() && m[0].matched;
-}
-
 struct Solution {
     bool isNumber(string s) const {
         trim(s);
-
-        return confirm_match("^[+-]?[0-9]+(\\.[0-9]*)?(e[+-]?[0-9]+)?$", s) ||
-            confirm_match("^[+-]?\\.[0-9]+(e[+-]?[0-9]+)?$", s);
+        return confirm_match(s);
     }
+
+private:
+    static bool confirm_match(const string &input) {
+        smatch m;
+        regex_match(input, m, pattern);
+        return m.size() && m[0].matched;
+    }
+
+    static regex pattern;
 };
+
+regex Solution::pattern{"^[+-]?([0-9]+\\.[0-9]*|\\.?[0-9]+)(e[+-]?[0-9]+)?$"};
 
 static const vector<pair<string, bool>> test_cases{
     {"0", true},
