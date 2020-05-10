@@ -22,7 +22,7 @@ string print_line(const int max_width, const vector<string> &line, const int lin
     for (auto i = 0U; i != line.size(); ++i) {
         if (i) {
             ans += string(ideal_step + 1, ' ');
-            if (padding && i + 1 <= padding) ans += ' ';
+            if (padding && i <= padding) ans += ' ';
         }
         
         ans += line[i];
