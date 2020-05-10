@@ -1,6 +1,21 @@
 #include<bits/stdc++.h>
 using namespace std;
 
+void ltrim(string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return ch != ' '; }));
+}
+
+void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return ch != ' ';
+    }).base(), s.end());
+}
+
+void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
 bool confirm_match(const string &pattern, const string &input) {
     smatch m;
     regex_match(input, m, regex{pattern});
@@ -8,9 +23,11 @@ bool confirm_match(const string &pattern, const string &input) {
 }
 
 struct Solution {
-    bool isNumber(const string &s) const {
-        return confirm_match("^\\s*[+-]?[0-9]+(\\.[0-9]*)?(e[+-]?[0-9]+)?\\s*$", s) ||
-            confirm_match("^\\s*[+-]?\\.[0-9]+(e[+-]?[0-9]+)?\\s*$", s);
+    bool isNumber(string s) const {
+        trim(s);
+
+        return confirm_match("^[+-]?[0-9]+(\\.[0-9]*)?(e[+-]?[0-9]+)?$", s) ||
+            confirm_match("^[+-]?\\.[0-9]+(e[+-]?[0-9]+)?$", s);
     }
 };
 
@@ -57,7 +74,9 @@ static const vector<pair<string, bool>> test_cases{
     {".", false},
     {"2e0", true},
     {"+.8", true},
-    {" 005047e+6", true}
+    {" 005047e+6", true},
+
+    {" c99.7e8 .", false}
 };
 
 int main() {
