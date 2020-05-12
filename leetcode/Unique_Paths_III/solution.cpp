@@ -10,20 +10,23 @@ struct CoordHash final {
     }
 };
 
-struct State {
+struct Model {
     const vector<vi> rows;
     const Coord dest;
     const int target_path_size;
+};
+
+struct State {
     unordered_set<Coord, CoordHash> path;
     Coord curr;
 };
 
-State initial_state(const vector<vi> &rows) {
+pair<Model, State> initial_model_state(const vector<vi> &rows) {
     const int H = rows.size();
     const int W = rows[0].size();
     
-    Coord dest;
-    Coord curr;
+    Coord dest = {-1, -1};
+    Coord curr = {-1, -1};
     int target_path_size = 2;
     
     for (int r = 0; r != H; ++r) {
@@ -42,7 +45,11 @@ State initial_state(const vector<vi> &rows) {
         }
     }
     
-    return {rows, dest, target_path_size, {}, curr};
+    return {{rows, dest, target_path_size}, {{curr}, curr}};
+}
+
+void counting_dfs(int &ans, const Model &model, State &state) {
+    
 }
 
 struct Solution {
