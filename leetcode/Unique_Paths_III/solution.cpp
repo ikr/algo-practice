@@ -55,9 +55,7 @@ bool in_bounds(const vector<vi> &rows, const Coord &coord) {
 
 void counting_dfs(int &ans, const Model &model, State &state) {
     if (
-        !in_bounds(model.rows, state.curr) || 
-        state.path.count(state.curr) || 
-        model.rows[row(state.curr)][col(state.curr)] == -1
+        !in_bounds(model.rows, state.curr) || model.rows[row(state.curr)][col(state.curr)] == -1
     ) return;
     
     if (state.curr == model.dest && state.path.size() == model.target_path_size) {
@@ -67,7 +65,8 @@ void counting_dfs(int &ans, const Model &model, State &state) {
     
     const Coord stash = state.curr;
     for (const auto delta : {Coord{-1, 0}, Coord{0, 1}, Coord{1, 0}, Coord{0, -1}}) {
-        state.curr = state.curr + delta;
+        if (state.path.count(state.curr + delta)) continue;
+        state.curr += delta;
         state.path.insert(state.curr);
         
         counting_dfs(ans, model, state);
