@@ -11,8 +11,6 @@ void pad_left(string &ds) {
 
 struct Solution final {
     string removeKdigits(string ds, int k) const {
-        if (k == ds.size()) return "0";
-        
         for (int i = 0; i < ds.size() && k > 0;) {
             const char d = ds[i];
             if (d == '0') {
