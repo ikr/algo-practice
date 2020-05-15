@@ -1,26 +1,6 @@
-int edges_max(const vector<int> &xs) {
-    const int sz = xs.size();
-    
-    bool left = true;
-    int lo = -1, hi = sz;
-    int ans = INT_MIN;
-    int curr = 0;
-    
-    for (;;) {
-        if (left) ++lo; else --hi;
-        if (lo == hi) break;
-        
-        if (left) curr = max(xs[lo], curr + xs[lo]);
-        else curr = max(xs[hi], curr + xs[hi]);
-        
-        if (curr > ans) ans = curr;
-        left = !left;
-    }
-    
-    return ans;
-}
+using vi = vector<int>;
 
-int normal_max(const vector<int> &xs) {
+int max_cont_sum(const vi &xs) {
     int ans = INT_MIN;
     int curr = 0;
         
@@ -33,7 +13,16 @@ int normal_max(const vector<int> &xs) {
 }
 
 struct Solution final {
-    int maxSubarraySumCircular(const vector<int> &xs) const {
-        return max(edges_max(xs), normal_max(xs));
+    int maxSubarraySumCircular(vi xs) const {
+        if (all_of(xs.cbegin(), xs.cend(), [](const int x) { return x < 0; })) {
+            return *max_element(xs.cbegin(), xs.cend());
+        }
+        
+        const int normal = max_cont_sum(xs);
+        const int total = accumulate(xs.cbegin(), xs.cend(), 0);
+        
+        transform(xs.cbegin(), xs.cend(), xs.begin(), [](const int x) { return -x; });
+        const int edge = total + max_cont_sum(xs);
+        return max(edge, normal);
     }
 };
