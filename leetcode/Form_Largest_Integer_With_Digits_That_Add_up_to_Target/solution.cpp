@@ -5,9 +5,8 @@ struct Cmp final {
     }
 };
 
-class Solution {
-public:
-    string largestNumber(vector<int> cost, const int target) {
+struct Solution final {
+    string largestNumber(vector<int> cost, const int target) const {
         cost.insert(cost.cbegin(), -1);
         
         // nswer using [up to digit i] [summing up to target j];
