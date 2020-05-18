@@ -1,19 +1,3 @@
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 struct Cmp final {
     bool operator()(const string &lhs, const string &rhs) {
         if (lhs.size() == rhs.size()) return lhs < rhs;
@@ -41,13 +25,15 @@ struct Solution {
                 
                 for (int k = 1; k <= j / c; ++k) {
                     const int budget = j - k * c;
+                    if (budget != 0 && dp[i - 1][budget] == "0") continue;
                     const string suff = dp[i - 1][budget] == "0" ? "" : dp[i - 1][budget];
                     s = max(s, string(k, '0' + i) + suff, Cmp{});
                 }
+                
+                dp[i][j] = s;
             }
         }
         
-        cout << dp << endl;
         return dp.back().back();
     }
 };
