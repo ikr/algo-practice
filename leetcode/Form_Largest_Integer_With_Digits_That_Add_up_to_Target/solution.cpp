@@ -1,3 +1,19 @@
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 struct Cmp final {
     bool operator()(const string &lhs, const string &rhs) {
         if (lhs.size() == rhs.size()) return lhs < rhs;
@@ -5,16 +21,16 @@ struct Cmp final {
     }
 };
 
-struct Solution final {
+struct Solution {
     string largestNumber(vector<int> cost, const int target) const {
         cost.insert(cost.cbegin(), -1);
         
-        // nswer using [up to digit i] [summing up to target j];
+        // answer using [up to digit i] [summing up to target j];
         vector<vector<string>> dp(10, vector<string>(target + 1, "0"));
         
         for (int j = 1; j <= target; ++j) {
-            if (target % cost[1] == 0) {
-                dp[1][j] = string(target / cost[1], '1');
+            if (j % cost[1] == 0) {
+                dp[1][j] = string(j / cost[1], '1');
             }
         }
         
@@ -31,6 +47,7 @@ struct Solution final {
             }
         }
         
+        cout << dp << endl;
         return dp.back().back();
     }
 };
