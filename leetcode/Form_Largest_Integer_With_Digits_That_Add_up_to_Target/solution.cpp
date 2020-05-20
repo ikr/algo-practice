@@ -23,11 +23,14 @@ struct Solution {
                 const int c = cost[i];
                 string s = dp[i - 1][j];
                 
-                for (int k = 1; k <= j / c; ++k) {
-                    const int budget = j - k * c;
-                    if (budget != 0 && dp[i - 1][budget] == "0") continue;
-                    const string suff = dp[i - 1][budget] == "0" ? "" : dp[i - 1][budget];
-                    s = max(s, string(k, '0' + i) + suff, Cmp{});
+                if (j == c) {
+                    s = max(s, string(1, '0' + i), Cmp{});
+                } else if (j > c) {
+                    string suff = dp[i][j - c];
+                    
+                    if (suff != "0") {
+                        s = max(s, string(1, '0' + i) + suff, Cmp{});
+                    }
                 }
                 
                 dp[i][j] = s;
