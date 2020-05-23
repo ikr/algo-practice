@@ -33,8 +33,28 @@ constexpr int area(const Dim &dim) {
 }
 
 Dim largest_at_bottom_rigth(const Dim N, const Dim W, const Dim NW) {
-    // TODO
-    return N;
+    vector<Dim> candidates{{1, 1}};
+    if (N.first) candidates.emplace_back(N.first + 1, 1);
+    if (W.second) candidates.emplace_back(1, W.second + 1);
+    
+    if (N.second > 1 && W.first > 1) {
+        const Dim overlap_n_w{min(W.first, N.first + 1), min(W.second + 1, N.second)};
+        candidates.push_back(overlap_n_w);
+        
+        //if (NW.first + 1 >= overlap_n_w.first)
+    }
+    
+    return *max_element(candidates.cbegin(), candidates.cend(), [](const Dim &lhs, const Dim &rhs) {
+        return area(lhs) < area(rhs);
+    });
+}
+
+int max_area(const vector<vector<Dim>> &dp) {
+    int ans = 0;
+    for (int r = 0; r != dp.size(); ++r) {
+        for (int c = 0; c != dp[0].size(); ++c) ans = max(ans, area(dp[r][c]));
+    }
+    return ans;
 }
 
 struct Solution final {
@@ -60,9 +80,16 @@ struct Solution final {
             }
         }
         
+        for (int r = 1; r != H; ++r) {
+            for (int c = 1; c != W; ++c) {
+                if (rows[r][c] == '0') continue;
+                dp[r][c] = largest_at_bottom_rigth(dp[r - 1][c], dp[r][c - 1], dp[r - 1][c - 1]);
+            }
+        }
+        
         cout << dp << endl;
         
-        return area(dp.back().back());
+        return max_area(dp);
     }
 };
 
