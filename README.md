@@ -1,6 +1,6 @@
 # About
 
-My solutions of various algorithmic problems, grouped by the problem source:
+My solutions of various algorithmic problems, grouped by the problem source.
 
 # Dependencies
 
