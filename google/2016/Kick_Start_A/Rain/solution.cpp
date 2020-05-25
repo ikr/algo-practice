@@ -1,25 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-
-template <typename T, typename H> ostream &operator<<(ostream &os, const unordered_set<T, H> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pi = pair<int, int>;
@@ -39,7 +20,8 @@ template <typename T> constexpr pair<T, T> operator+(const pair<T, T> &lhs, cons
 bool in_bounds(const vvi &rows, const pi coord) {
     const int H = rows.size();
     const int W = rows[0].size();
-    const auto [r, c] = coord;
+    const auto r = coord.first;
+    const auto c = coord.second;    
     return (0 <= r && r < H && 0 <= c && c < W);
 }
 
@@ -52,7 +34,8 @@ bool is_on_slope(const vvi &rows, const pi coord) {
     s.push(coord);
         
     while (!s.empty()) {
-        const auto [r, c] = s.top();
+        const auto r = s.top().first;
+        const auto c = s.top().second;
         s.pop();
         if (r == 0 || r == H - 1 || c == 0 || c == W - 1) return true;
         
@@ -86,10 +69,47 @@ uspi discover_slopes(const vvi &rows) {
     return ans;
 }
 
-int solve (const vvi &rows) {
-    cout << discover_slopes(rows) << '\n';
+int discover_edge_height(const vvi &rows, const uspi &slopes, const pi coord) {
+    int ans = INT_MAX;
+    uspi discovered{coord};
+    stack<pi> s;
+    s.push(coord);
     
-    return 0;
+    while (!s.empty()) {
+        const auto r = s.top().first;
+        const auto c = s.top().second;
+        s.pop();
+        
+        if (slopes.count({r, c})) {
+            ans = min(ans, rows[r][c]);
+        } else {
+            for (const auto delta : {pi{-1, 0}, pi{0, 1}, pi{1, 0}, pi{0, -1}}) {
+                const auto adj = pi{r, c} + delta;
+
+                if (in_bounds(rows, adj) && !discovered.count(adj)) {
+                    s.push(adj);
+                    discovered.insert(adj);
+                }
+            }
+        }
+    }
+    
+    return ans;
+}
+
+int solve (const vvi &rows) {
+    const auto slopes = discover_slopes(rows);
+    const int H = rows.size();
+    const int W = rows[0].size();
+    
+    int ans = 0;
+    for (int r = 0; r != H; ++r) {
+        for (int c = 0; c != W; ++c) {
+            if (slopes.count({r, c})) continue;
+            ans += discover_edge_height(rows, slopes, {r, c}) - rows[r][c];
+        }
+    }
+    return ans;
 }
 
 int main() {
