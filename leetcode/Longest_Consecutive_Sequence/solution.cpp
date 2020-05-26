@@ -13,6 +13,7 @@ int count_consecutive(const usi &xs_set, umi &memo, const int x) {
         }
         
         ++memo[x];
+        memo[i] = 1;
     }
     
     return memo.at(x);
