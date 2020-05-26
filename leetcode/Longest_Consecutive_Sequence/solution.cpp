@@ -1,26 +1,31 @@
 using vi = vector<int>;
 using usi = unordered_set<int>;
+using umi = unordered_map<int, int>;
+
+int count_consecutive(const usi &xs_set, umi &memo, const int x) {
+    if (memo.count(x)) return memo.at(x);
+    memo[x] = 1;
+
+    for (int i = x + 1; xs_set.count(i) == 1; ++i) {
+        if (memo.count(i)) {
+            memo[x] += memo[i];
+            break;
+        }
+        
+        ++memo[x];
+    }
+    
+    return memo.at(x);
+}
 
 struct Solution final {
     int longestConsecutive(const vi &xs) const {
         if (xs.empty()) return 0;
         usi xs_set(xs.cbegin(), xs.cend());
-        const auto [itmin, itmax] = minmax_element(xs.cbegin(), xs.cend());
+        umi memo;
         
-        int ans = 1;
-        for (int i = (*itmin) + 1, prev = *itmin, curr = 1; i <= *itmax; ++i) {
-            if (xs_set.count(i)) {
-                if (i == prev + 1) ++curr;
-                else curr = 1;
-                
-                prev = i;
-            } else {
-                curr = 0;
-                prev = i - 1;
-            }
-            
-            ans = max(ans, curr);
-        }        
+        int ans = 0;
+        for (const int x : xs_set) ans = max(ans, count_consecutive(xs_set, memo, x));
         return ans;
     }
 };
