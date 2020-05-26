@@ -1,19 +1,3 @@
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
-
 struct Solution final {
     bool isInterleave(const string &s1, const string &s2, const string &t) {
         if (s1.size() + s2.size() != t.size()) return false;
@@ -23,8 +7,8 @@ struct Solution final {
         vector<vector<bool>> dp(s1.size() + 1, vector<bool>(s2.size() + 1, false));
         dp[0][0] = true;
         
-        for (int i = 1; i <= s1.size(); ++i) dp[i][0] = s1[i - 1] == t[i - 1];
-        for (int j = 1; j <= s2.size(); ++j) dp[0][j] = s2[j - 1] == t[j - 1];
+        for (int i = 1; i <= s1.size(); ++i) dp[i][0] = s1[i - 1] == t[i - 1] && dp[i - 1][0];
+        for (int j = 1; j <= s2.size(); ++j) dp[0][j] = s2[j - 1] == t[j - 1] && dp[0][j - 1];
         
         for (int i = 1; i <= s1.size(); ++i) {
             for (int j = 1; j <= s2.size(); ++j) {
@@ -36,8 +20,6 @@ struct Solution final {
                 );
             }
         }
-        
-        cout << dp << '\n';
         
         return dp.back().back();
     }
