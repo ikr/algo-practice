@@ -1,4 +1,5 @@
 using umm = unordered_multimap<int, int>;
+using vvi = vector<vector<int>>;
 
 bool is_cyclic(const int sz, const umm &follow) {
     for (int src = 0; src < sz; ++src) {
@@ -31,3 +32,45 @@ struct Solution final {
         return !is_cyclic(sz, follow);
     }
 };
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
+static const vector<tuple<int, vvi, bool>> testCases {
+    {1, {}, true},
+    {2, {{0,1}}, true},
+    {2, {{1,0},{0,1}}, false},
+    {3, {{1,0},{1,2},{0,1}}, false},
+    {3, {{0,1},{1,2},{2,0}}, false},
+    {3, {{0,1},{0,2},{1,2}}, true},
+    {4, {{1,0},{1,3},{2,0},{3,2}}, true},
+    {4, {{2,0},{1,0},{3,1},{3,2},{1,3}}, false}
+};
+
+int main() {
+    bool ok = true;
+    
+    for (const auto [sz, prerequisites, expected] : testCases) {
+        const auto actual = Solution{}.canFinish(sz, prerequisites);
+        cout << (actual == expected ? '.' : 'F');
+        if (actual != expected) {
+            cout << '\n' << prerequisites << '\n';
+            break;
+        }
+    }
+    
+    cout << '\n' << (ok ? "\\o/" : "/o\\") << '\n';
+    return 0;
+}
