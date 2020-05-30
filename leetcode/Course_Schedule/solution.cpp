@@ -71,6 +71,7 @@ static const vector<tuple<int, vvi, bool>> testCases {
     {3, {{0,1},{0,2},{1,2}}, true},
     {4, {{1,0},{1,3},{2,0},{3,2}}, true},
     {4, {{2,0},{1,0},{3,1},{3,2},{1,3}}, false},
+    {4, {{0,1},{2,1},{3,1},{3,2}}, true},
     {7, {{1,2},{2,3},{4,1},{4,5},{5,2},{5,3},{3,6}}, true},
     {7, {{1,2},{2,3},{3,4},{4,5},{5,6},{6,4}}, false},
     {12, {{5,11},{11,2},{11,9},{11,10},{7,11},{7,8},{8,9},{3,8},{3,10}}, true},
@@ -79,6 +80,7 @@ static const vector<tuple<int, vvi, bool>> testCases {
 
 int main() {
     bool ok = true;
+    
     for (const auto [sz, prerequisites, expected] : testCases) {
         const auto actual = Solution{}.canFinish(sz, prerequisites);
         cout << (actual == expected ? '.' : 'F');
@@ -88,6 +90,7 @@ int main() {
             break;
         }
     }
+    
     cout << (ok ? "\n\\o/" : "/o\\") << '\n';
     return 0;
 }
