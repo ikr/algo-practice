@@ -79,7 +79,6 @@ static const vector<tuple<int, vvi, bool>> testCases {
 
 int main() {
     bool ok = true;
-    
     for (const auto [sz, prerequisites, expected] : testCases) {
         const auto actual = Solution{}.canFinish(sz, prerequisites);
         cout << (actual == expected ? '.' : 'F');
@@ -89,7 +88,6 @@ int main() {
             break;
         }
     }
-    
     cout << (ok ? "\n\\o/" : "/o\\") << '\n';
     return 0;
 }
