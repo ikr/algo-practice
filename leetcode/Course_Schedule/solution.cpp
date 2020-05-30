@@ -1,23 +1,35 @@
 using umm = unordered_multimap<int, int>;
 using vvi = vector<vector<int>>;
+enum class State {PENDING, DISCOVERED, PROCESSED};
 
 bool is_cyclic(const int sz, const umm &follow) {
-    for (int src = 0; src < sz; ++src) {
-        unordered_set<int> discovered;
-        stack<int> st;
-        st.push(src);
-        discovered.insert(src);
+    unordered_map<int, State> work;
+    
+    for (int x = 0; x < sz; ++x) {
+        if (work[x] == State::PROCESSED) continue;
         
-        while (!st.empty()) {
-            const auto u = st.top();
-            st.pop();
+        stack<int> frontier;
+        stack<int> origin;
+        frontier.push(x);
+        work[x] = State::DISCOVERED;
+        
+        while (!frontier.empty()) {
+            const auto u = frontier.top();
+            
+            if (!origin.empty() && origin.top() == u) {
+                frontier.pop();
+                origin.pop();
+                work[u] = State::PROCESSED;
+            } else {
+                origin.push(u);
+            }
             
             const auto [first, last] = follow.equal_range(u);
             for (auto it = first; it != last; ++it) {
-                if (it->second == src) return true;
-                if (discovered.count(it->second)) continue;
-                discovered.insert(it->second);
-                st.push(it->second);
+                const int v = it->second;
+                if (work[v] == State::DISCOVERED) return true;
+                work[v] = State::DISCOVERED;
+                frontier.push(v);
             }
         }
     }
@@ -68,11 +80,12 @@ int main() {
         const auto actual = Solution{}.canFinish(sz, prerequisites);
         cout << (actual == expected ? '.' : 'F');
         if (actual != expected) {
-            cout << '\n' << prerequisites << '\n';
+            ok = false;
+            cout << '\n' << prerequisites;
             break;
         }
     }
     
-    cout << '\n' << (ok ? "\\o/" : "/o\\") << '\n';
+    cout << (ok ? "\\o/" : "/o\\") << '\n';
     return 0;
 }
