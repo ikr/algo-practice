@@ -2,40 +2,25 @@ using umm = unordered_multimap<int, int>;
 using vvi = vector<vector<int>>;
 enum class State {PENDING, DISCOVERED, PROCESSED};
 
-bool is_cyclic(const int sz, const umm &follow) {
-    unordered_map<int, State> work;
+bool dfs_cyclic(const umm &follow, unordered_map<int, State> &work, const int u) {
+    if (work[u] == State::PROCESSED) return false;
+    if (work[u] == State::DISCOVERED) return true;
+    work[u] = State::DISCOVERED;
     
-    for (int x = 0; x < sz; ++x) {
-        if (work[x] == State::PROCESSED) continue;
-        
-        stack<int> frontier;
-        stack<int> origin;
-        frontier.push(x);
-        work[x] = State::DISCOVERED;
-        
-        while (!frontier.empty()) {
-            const auto u = frontier.top();
-            
-            if (!origin.empty() && origin.top() == u) {
-                frontier.pop();
-                origin.pop();
-                work[u] = State::PROCESSED;
-                continue;
-            }
-            
-            origin.push(u);
-
-            const auto [first, last] = follow.equal_range(u);
-            for (auto it = first; it != last; ++it) {
-                const int v = it->second;
-                if (work[v] == State::PROCESSED) continue;
-                if (work[v] == State::DISCOVERED) return true;
-                work[v] = State::DISCOVERED;
-                frontier.push(v);
-            }
-        }
+    const auto [first, last] = follow.equal_range(u);
+    for (auto it = first; it != last; ++it) {
+        if (dfs_cyclic(follow, work, it->second)) return true;
     }
     
+    work[u] = State::PROCESSED;
+    return false;
+}
+
+bool is_cyclic(const int sz, const umm &follow) {
+    unordered_map<int, State> work;
+    for (int x = 0; x < sz; ++x) {
+        if (dfs_cyclic(follow, work, x)) return true;
+    }
     return false;
 }
 
