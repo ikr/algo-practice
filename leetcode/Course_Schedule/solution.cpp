@@ -20,13 +20,15 @@ bool is_cyclic(const int sz, const umm &follow) {
                 frontier.pop();
                 origin.pop();
                 work[u] = State::PROCESSED;
-            } else {
-                origin.push(u);
+                continue;
             }
             
+            origin.push(u);
+
             const auto [first, last] = follow.equal_range(u);
             for (auto it = first; it != last; ++it) {
                 const int v = it->second;
+                if (work[v] == State::PROCESSED) continue;
                 if (work[v] == State::DISCOVERED) return true;
                 work[v] = State::DISCOVERED;
                 frontier.push(v);
@@ -70,7 +72,9 @@ static const vector<tuple<int, vvi, bool>> testCases {
     {4, {{1,0},{1,3},{2,0},{3,2}}, true},
     {4, {{2,0},{1,0},{3,1},{3,2},{1,3}}, false},
     {7, {{1,2},{2,3},{4,1},{4,5},{5,2},{5,3},{3,6}}, true},
-    {7, {{1,2},{2,3},{3,4},{4,5},{5,6},{6,4}}, false}
+    {7, {{1,2},{2,3},{3,4},{4,5},{5,6},{6,4}}, false},
+    {12, {{5,11},{11,2},{11,9},{11,10},{7,11},{7,8},{8,9},{3,8},{3,10}}, true},
+    {12, {{5,11},{11,2},{11,9},{11,10},{7,11},{7,8},{8,9},{3,8},{3,10},{10,5}}, false}
 };
 
 int main() {
@@ -86,6 +90,6 @@ int main() {
         }
     }
     
-    cout << (ok ? "\\o/" : "/o\\") << '\n';
+    cout << (ok ? "\n\\o/" : "/o\\") << '\n';
     return 0;
 }
