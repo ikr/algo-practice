@@ -2,27 +2,11 @@
 using namespace std;
 using vi = vector<int>;
 using vvi = vector<vi>;
-static const int M = 1e9 + 7;
-
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
+using ll = long long;
+static const ll M = 1e9 + 7;
 
 int constrained_count(const int hi, const vi &counts_by_value, const int current_value) {
-    int ans = counts_by_value[current_value];
+    ll ans = counts_by_value[current_value];
     
     if (current_value > 0) {
         ans += counts_by_value[current_value - 1];
@@ -52,9 +36,13 @@ int count_arrays(const int hi, const vi &xs) {
             }
         }
     }
-    
-    // cout << dp << '\n';
-    return *max_element(dp.back().cbegin(), dp.back().cend());
+
+    return accumulate(dp.back().cbegin(), dp.back().cend(), 0, [](const auto agg, const auto x) {
+        ll ans = agg;
+        ans += x;
+        ans %= M;
+        return ans;
+    });
 }
 
 int main() {
