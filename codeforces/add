@@ -9,20 +9,18 @@ name=$(echo -n "$1" | sed 's/ /_/g')
 
 code=$(cat <<EOF
 #include <bits/stdc++.h>
-
 using namespace std;
 
 int main() {
-    int n;
-    cin >> n;
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
 
-    vector<int> xs(n);
-
-    for (auto &x : xs) {
-        cin >> x;
+    int t;
+    cin >> t;
+    while (t--) {
     }
 
-    cout << xs[0] << ".." << xs.back() << '\n';
+    return 0;
 }
 EOF
 )
@@ -41,4 +39,5 @@ cd "./$name"
 echo "$code" > ./solution.cpp
 echo "$makefile" > ./Makefile
 echo '-std=c++17' > ./compile_flags.txt
-echo "cd ./$name && make run"
+emacsclient -n ./solution.cpp
+echo "cd ./$name && make run" | xclip -selection clipboard
