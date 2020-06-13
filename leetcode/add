@@ -10,7 +10,6 @@ name=$(echo -n "$1" | sed 's/ /_/g')
 code=$(cat <<EOF
 #include "lest.hpp"
 #include <bits/stdc++.h>
-
 using namespace std;
 
 struct Solution final {
@@ -51,4 +50,5 @@ ln -s ../../../lest/include/lest/lest.hpp ./lest.hpp
 echo "$code" > ./solution.cpp
 echo "$makefile" > ./Makefile
 echo '-std=c++17' > ./compile_flags.txt
-echo "cd ./$name && make run"
+emacsclient -n ./solution.cpp
+echo "cd ./$name && make run" | xclip -selection clipboard
