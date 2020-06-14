@@ -1,52 +1,35 @@
 #include <bits/stdc++.h>
 using namespace std;
 using vi = vector<int>;
-using ll = long long;
-using umi = unordered_map<int, int>;
-template <typename T> constexpr int intof(const T x) {
-    return static_cast<int>(x);
-}
-template <typename T> constexpr int llof(const T x) {
-    return static_cast<ll>(x);
-}
+using vb = vector<bool>;
+static const int MAXA = 1e6;
 
-vi uniques(const vi &xs) {
-    umi counts;
-    for (const int x : xs) {
-        ++counts[x];
-    }
-
-    vi ans;
-    copy_if(xs.cbegin(), xs.cend(), back_inserter(ans),
-            [&counts](const int x) { return counts[x] == 1; });
-    return ans;
-}
-
-int solve_on_uniques(vi xs) {
-    sort(xs.begin(), xs.end());
+bool no_twins(const vi &xs, const int i) {
     const int sz = xs.size();
+    const int l = i > 0 ? xs[i - 1] : -1;
+    const int r = i < sz - 1 ? xs[i + 1] : -1;
+    return l != xs[i] && r != xs[i];
+}
 
+void mark_multiples(vb &taken, const int x) {
+    for (int y = x; y <= MAXA; y += x) taken[y] = true;
+}
+
+int solve_on_sorted(const vi &xs) {
+    if (xs.empty()) return 0;
+    const int sz = xs.size();
+    if (sz == 1 || xs[0] == 1) return 1;
+
+    vb taken(MAXA + 1, false);
     int ans = 0;
-    ll prod = 1;
+
     for (int i = 0; i < sz; ++i) {
-        const int x = xs[i];
-        if (x == 1) return 1;
-        if (gcd(prod, llof(x)) == 1) {
+        if (!taken[xs[i]] && no_twins(xs, i)) {
+            mark_multiples(taken, xs[i]);
             ++ans;
-        } else {
-            bool found = false;
-
-            for (int j = 0; j < i; ++j) {
-                if (x % xs[j] == 0) {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) ++ans;
         }
-        prod *= x;
     }
+
     return ans;
 }
 
@@ -58,7 +41,8 @@ int main() {
     cin >> sz;
     vi xs(sz, 0);
     for (auto &x : xs) cin >> x;
-    cout << solve_on_uniques(uniques(xs)) << '\n';
+    sort(xs.begin(), xs.end());
+    cout << solve_on_sorted(xs) << '\n';
 
     return 0;
 }
