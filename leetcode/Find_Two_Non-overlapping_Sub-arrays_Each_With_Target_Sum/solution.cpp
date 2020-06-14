@@ -3,9 +3,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using pi = pair<int, int>;
 using vi = vector<int>;
-using vpi = vector<pi>;
 
 void step(const vi &xs, const int t, int &s, int &lo, int &hi) {
     const int sz = xs.size();
@@ -30,57 +28,40 @@ void step(const vi &xs, const int t, int &s, int &lo, int &hi) {
     }
 }
 
-constexpr bool intersect(const pi r1, const pi r2) {
-    const auto [a, b] = r1;
-    const auto [c, d] = r2;
+vi optimum_at_prefix_length(const vi &xs, const int t) {
+    const int sz = xs.size();
+    vi ans(sz + 1, INT_MAX);
+    int lo = 0, hi = 0, s = xs.front();
 
-    return (c <= b && b <= d) || (c <= a && a <= d);
-}
+    do {
+        if (s == t) ans[hi + 1] = min(ans[hi + 1], hi - lo + 1);
+        step(xs, t, s, lo, hi);
+    } while (lo < sz);
 
-constexpr int length(const pi r) { return r.second - r.first + 1; }
-
-struct Cmp final {
-    bool operator()(const pi lhs, const pi rhs) const {
-        return length(lhs) > length(rhs);
-    }
-};
-
-int optimal_lengths_sum(vpi ranges) {
-    if (ranges.empty()) return -1;
-
-    const pi r1 = ranges.front();
-    pop_heap(ranges.begin(), ranges.end(), Cmp{});
-    ranges.pop_back();
-
-    while (!ranges.empty()) {
-        const pi r2 = ranges.front();
-        pop_heap(ranges.begin(), ranges.end(), Cmp{});
-        ranges.pop_back();
-
-        if (intersect(r1, r2)) continue;
-        return length(r1) + length(r2);
-    }
-
-    return -1;
+    for (int i = 2; i <= sz; ++i) ans[i] = min(ans[i], ans[i - 1]);
+    return ans;
 }
 
 struct Solution {
     int minSumOfLengths(const vi &xs, const int t) const {
         if (xs.empty()) return -1;
+        const auto ltr = optimum_at_prefix_length(xs, t);
 
-        vpi ranges;
+        const vi ys(xs.crbegin(), xs.crend());
+        const auto rtl = optimum_at_prefix_length(ys, t);
+
         const int sz = xs.size();
-        int lo = 0, hi = 0, s = xs.front();
+        int ans = INT_MAX;
+        for (int i = 1; i < sz; ++i) {
+            const int prefix_length = i;
+            const int suffix_length = sz - i;
 
-        do {
-            if (s == t) {
-                ranges.emplace_back(lo, hi);
-                push_heap(ranges.begin(), ranges.end(), Cmp{});
+            if (ltr[prefix_length] != INT_MAX &&
+                rtl[suffix_length] != INT_MAX) {
+                ans = min(ans, ltr[prefix_length] + rtl[suffix_length]);
             }
-            step(xs, t, s, lo, hi);
-        } while (lo < sz);
-
-        return optimal_lengths_sum(ranges);
+        }
+        return ans == INT_MAX ? -1 : ans;
     }
 };
 
@@ -88,8 +69,8 @@ using TestCase = tuple<vi, int, int>;
 
 TEST_CASE("Solution") {
     const auto [xs, t, expected] = GENERATE(
-                                            TestCase{{}, 1, -1}, TestCase{{1},1,-1}, TestCase{{1,1,1,1}, 2, 4},
-TestCase{{3, 2, 2, 4, 3}, 3, 2}, TestCase{{7, 3, 4, 7}, 7, 2},
+        TestCase{{}, 1, -1}, TestCase{{1}, 1, -1}, TestCase{{1, 1, 1, 1}, 2, 4},
+        TestCase{{3, 2, 2, 4, 3}, 3, 2}, TestCase{{7, 3, 4, 7}, 7, 2},
         TestCase{{4, 3, 2, 6, 2, 3, 4}, 6, -1},
         TestCase{{5, 5, 4, 4, 5}, 3, -1},
         TestCase{{3, 1, 1, 1, 5, 1, 2, 1}, 3, 3}, TestCase{{1, 6, 1}, 7, -1},
