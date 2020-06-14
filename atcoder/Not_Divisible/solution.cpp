@@ -2,7 +2,6 @@
 using namespace std;
 using vi = vector<int>;
 using vb = vector<bool>;
-static const int MAXA = 1e6;
 
 bool no_twins(const vi &xs, const int i) {
     const int sz = xs.size();
@@ -11,8 +10,8 @@ bool no_twins(const vi &xs, const int i) {
     return l != xs[i] && r != xs[i];
 }
 
-void mark_multiples(vb &taken, const int x) {
-    for (int y = x; y <= MAXA; y += x) taken[y] = true;
+void mark_multiples(const int max_a, vb &taken, const int x) {
+    for (int y = x; y <= max_a; y += x) taken[y] = true;
 }
 
 int solve_on_sorted(const vi &xs) {
@@ -20,14 +19,15 @@ int solve_on_sorted(const vi &xs) {
     const int sz = xs.size();
     if (sz == 1 || xs[0] == 1) return 1;
 
-    vb taken(MAXA + 1, false);
+    vb taken(xs.back() + 1, false);
     int ans = 0;
 
     for (int i = 0; i < sz; ++i) {
         if (!taken[xs[i]] && no_twins(xs, i)) {
-            mark_multiples(taken, xs[i]);
             ++ans;
         }
+
+        mark_multiples(xs.back(), taken, xs[i]);
     }
 
     return ans;
