@@ -9,17 +9,15 @@ void step(const vi &xs, const int t, int &s, int &lo, int &hi) {
     const int sz = xs.size();
 
     if (s == t) {
+        s -= xs[lo];
         ++lo;
-        hi = lo;
-        if (lo < sz) s = xs[lo];
     } else if (s < t) {
         ++hi;
         if (hi < sz)
             s += xs[hi];
         else {
+            s -= xs[lo];
             ++lo;
-            hi = lo;
-            if (lo < sz) s = xs[lo];
         }
     } else {
         assert(s > t);
