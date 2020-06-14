@@ -23,6 +23,8 @@ int solve_on_sorted(const vi &xs) {
     int ans = 0;
 
     for (int i = 0; i < sz; ++i) {
+        if (i > 0 && xs[i] == xs[i - 1]) continue;
+
         if (!taken[xs[i]] && no_twins(xs, i)) {
             ++ans;
         }
