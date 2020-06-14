@@ -17,18 +17,13 @@ void mark_multiples(const int max_a, vb &taken, const int x) {
 int solve_on_sorted(const vi &xs) {
     if (xs.empty()) return 0;
     const int sz = xs.size();
-    if (sz == 1 || xs[0] == 1) return 1;
 
     vb taken(xs.back() + 1, false);
     int ans = 0;
 
     for (int i = 0; i < sz; ++i) {
         if (i > 0 && xs[i] == xs[i - 1]) continue;
-
-        if (!taken[xs[i]] && no_twins(xs, i)) {
-            ++ans;
-        }
-
+        if (!taken[xs[i]] && no_twins(xs, i)) ++ans;
         mark_multiples(xs.back(), taken, xs[i]);
     }
 
