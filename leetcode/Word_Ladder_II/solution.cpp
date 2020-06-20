@@ -3,10 +3,21 @@
 using namespace std;
 using vs = vector<string>;
 using vvs = vector<vs>;
+using Graph = unordered_multimap<int, int>;
+
+template <typename T> int index_of(const vector<T> &xs, const T &x) {
+    const auto it = find(xs.cbegin(), xs.cend(), x);
+    return it == xs.cend() ? -1 : distance(xs.cbegin(), it);
+}
+
+vvs all_paths(const vs &dict, const int s, const int t) { return {}; }
 
 struct Solution final {
-    vvs findLadders(const string &s, const string &t, const vs &dict)  const {
-        return {};
+    vvs findLadders(const string &s, const string &t, vs dict) const {
+        const int t_idx = index_of(dict, t);
+        if (t_idx == -1) return {};
+        dict.push_back(s);
+        return all_paths(dict, dict.size() - 1, t_idx);
     }
 };
 
