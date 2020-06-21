@@ -10,6 +10,10 @@ template <typename T> int index_of(const vector<T> &xs, const T &x) {
     return it == xs.cend() ? -1 : distance(xs.cbegin(), it);
 }
 
+bool are_adjacent(const string &x, const string &y) {
+    assert(x.size() == y.size());
+}
+
 vvs all_paths(const vs &dict, const int s, const int t) { return {}; }
 
 struct Solution final {
