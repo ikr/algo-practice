@@ -1,0 +1,54 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: ./add 'Problem Title With Spaces'"
+    exit 1
+fi
+
+name=$(echo -n "$1" | sed 's/ /_/g')
+
+code=$(cat <<EOF
+#include "lest.hpp"
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Solution final {
+    int solve_it() const { return 42; }
+};
+
+// clang-format off
+const lest::test tests[] = {
+    CASE("Example 1") {
+        const auto actual = Solution{}.solve_it();
+        const auto expected = 42;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 2") {
+        const auto actual = Solution{}.solve_it();
+        const auto expected = 42;
+        EXPECT(actual == expected);
+    },
+};
+// clang-format on
+
+int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
+EOF
+)
+
+makefile=$(cat <<EOF
+build:
+	g++ -Wall -Wextra -std=gnu++14 -pedantic-errors -o ./solution ./solution.cpp
+
+run: build
+	./solution -p
+EOF
+)
+
+mkdir "./$name"
+cd "./$name"
+ln -s ../../../lest/include/lest/lest.hpp ./lest.hpp
+echo "$code" > ./solution.cpp
+echo "$makefile" > ./Makefile
+echo '-std=c++14' > ./compile_flags.txt
+emacsclient -n ./solution.cpp
+echo "cd ./$name && make run" | xclip -selection clipboard
