@@ -11,6 +11,22 @@ template <typename T> constexpr int intof(const T x) {
     return static_cast<int>(x);
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 template <typename T> int index_of(const vector<T> &xs, const T &x) {
     const auto it = find(xs.cbegin(), xs.cend(), x);
     return it == xs.cend() ? -1 : distance(xs.cbegin(), it);
@@ -59,10 +75,12 @@ template <typename T> vector<T> join_paths(vector<T> xs, vector<T> ys) {
 }
 
 vi reconstruct_path(const umi &path_parents, const int dest) {
-    vi ans{dest};
-
-    for (int v = dest; !!path_parents.count(v); v = path_parents.at(v)) {
-        ans.push_back(path_parents.at(v));
+    vi ans;
+    int v = dest;
+    for (;;) {
+        ans.push_back(v);
+        if (!path_parents.count(v)) break;
+        v = path_parents.at(v);
     }
 
     reverse(ans.begin(), ans.end());
