@@ -12,6 +12,29 @@ template <typename T> int index_of(const vector<T> &xs, const T &x) {
 
 bool are_adjacent(const string &x, const string &y) {
     assert(x.size() == y.size());
+    const int sz = x.size();
+    int different = 0;
+    for (int i = 0; i != sz; ++i) {
+        if (x[i] != y[i]) {
+            ++different;
+            if (different > 1) return false;
+        }
+    }
+    return different == 1;
+}
+
+Graph build_graph(const vs &dict) {
+    const int sz = dict.size();
+    Graph ans;
+    for (int i = 0; i < sz - 1; ++i) {
+        for (int j = i + 1; i < sz; ++j) {
+            if (are_adjacent(dict[i], dict[j])) {
+                ans.emplace(i, j);
+                ans.emplace(j, i);
+            }
+        }
+    }
+    return ans;
 }
 
 vvs all_paths(const vs &dict, const int s, const int t) { return {}; }
