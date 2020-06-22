@@ -162,6 +162,12 @@ const lest::test tests[] = {
         const vvs expected{};
         EXPECT(actual == expected);
     },
+    CASE("Test case 26") {
+        const vs dict{"ted","tex","red","tax","tad","den","rex","pee"};
+        const auto actual = Solution{}.findLadders("red", "tax", dict);
+        const vvs expected{{"red","ted","tad","tax"},{"red","ted","tex","tax"},{"red","rex","tex","tax"}};
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
