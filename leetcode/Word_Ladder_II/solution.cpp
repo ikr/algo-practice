@@ -32,6 +32,17 @@ template <typename T> int index_of(const vector<T> &xs, const T &x) {
     return it == xs.cend() ? -1 : distance(xs.cbegin(), it);
 }
 
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const unordered_map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 bool are_adjacent(const string &x, const string &y) {
     assert(x.size() == y.size());
     const int sz = x.size();
@@ -79,7 +90,7 @@ vi reconstruct_path(const umi &path_parents, const int dest) {
     int v = dest;
     for (;;) {
         ans.push_back(v);
-        if (!path_parents.count(v)) break;
+        if (!path_parents.count(v) || path_parents.at(v) == -1) break;
         v = path_parents.at(v);
     }
 
@@ -88,7 +99,8 @@ vi reconstruct_path(const umi &path_parents, const int dest) {
 }
 
 void bfs_step(vvs &ans, const vs &dict, const Graph &g, qi &q,
-              umi &own_path_parents, const umi &opposite_path_parents) {
+              umi &own_path_parents, const umi &opposite_path_parents,
+              const bool do_reverse) {
     const int u = q.front();
     q.pop();
 
@@ -104,13 +116,15 @@ void bfs_step(vvs &ans, const vs &dict, const Graph &g, qi &q,
             vi xs = reconstruct_path(own_path_parents, u);
             vi ys = reconstruct_path(opposite_path_parents, v);
             if (intof(xs.size() + ys.size()) <= shortest_path_size) {
-                ans.emplace_back(
-                    path_of_words(dict, join_paths(move(xs), move(ys))));
+                auto zs = join_paths(move(xs), move(ys));
+                if (do_reverse) reverse(zs.begin(), zs.end());
+                ans.emplace_back(path_of_words(dict, zs));
             }
+        } else {
+            q.push(v);
         }
 
         own_path_parents[v] = u;
-        q.push(v);
     }
 }
 
@@ -119,20 +133,20 @@ vvs all_paths(const vs &dict, const int s, const int t) {
 
     qi s_q;
     s_q.push(s);
-    umi s_path_parents;
+    umi s_path_parents{{s, -1}};
 
     qi t_q;
     t_q.push(t);
-    umi t_path_parents;
+    umi t_path_parents{{t, -1}};
 
     vvs ans;
     while (!s_q.empty() || !t_q.empty()) {
         if (!s_q.empty()) {
-            bfs_step(ans, dict, g, s_q, s_path_parents, t_path_parents);
+            bfs_step(ans, dict, g, s_q, s_path_parents, t_path_parents, false);
         }
 
         if (!t_q.empty()) {
-            bfs_step(ans, dict, g, t_q, t_path_parents, s_path_parents);
+            bfs_step(ans, dict, g, t_q, t_path_parents, s_path_parents, true);
         }
     }
 
