@@ -4,6 +4,7 @@ using namespace std;
 using vs = vector<string>;
 using vvs = vector<vs>;
 using vi = vector<int>;
+using vvi = vector<vi>;
 using qi = queue<int>;
 using umi = unordered_map<int, int>;
 using Graph = unordered_multimap<int, int>;
@@ -11,36 +12,9 @@ template <typename T> constexpr int intof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> int index_of(const vector<T> &xs, const T &x) {
     const auto it = find(xs.cbegin(), xs.cend(), x);
     return it == xs.cend() ? -1 : distance(xs.cbegin(), it);
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const unordered_map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
 }
 
 bool are_adjacent(const string &x, const string &y) {
@@ -98,9 +72,8 @@ vi reconstruct_path(const umi &path_parents, const int dest) {
     return ans;
 }
 
-void bfs_step(vvs &ans, const vs &dict, const Graph &g, qi &q,
-              umi &own_path_parents, const umi &opposite_path_parents,
-              const bool do_reverse) {
+void bfs_step(vvi &ans, const Graph &g, qi &q, umi &own_path_parents,
+              const umi &opposite_path_parents, const bool do_reverse) {
     const int u = q.front();
     q.pop();
 
@@ -115,10 +88,11 @@ void bfs_step(vvs &ans, const vs &dict, const Graph &g, qi &q,
 
             vi xs = reconstruct_path(own_path_parents, u);
             vi ys = reconstruct_path(opposite_path_parents, v);
+
             if (intof(xs.size() + ys.size()) <= shortest_path_size) {
                 auto zs = join_paths(move(xs), move(ys));
                 if (do_reverse) reverse(zs.begin(), zs.end());
-                ans.emplace_back(path_of_words(dict, zs));
+                ans.emplace_back(zs);
             }
         } else {
             q.push(v);
@@ -126,6 +100,17 @@ void bfs_step(vvs &ans, const vs &dict, const Graph &g, qi &q,
 
         own_path_parents[v] = u;
     }
+}
+
+vvs paths_of_words(const vs &dict, vvi xss) {
+    const int sz = xss.size();
+    sort(xss.begin(), xss.end());
+
+    vvs ans;
+    for (int i = 0; i < sz; i += 2) {
+        ans.emplace_back(path_of_words(dict, xss[i]));
+    }
+    return ans;
 }
 
 vvs all_paths(const vs &dict, const int s, const int t) {
@@ -139,18 +124,18 @@ vvs all_paths(const vs &dict, const int s, const int t) {
     t_q.push(t);
     umi t_path_parents{{t, -1}};
 
-    vvs ans;
+    vvi xss;
     while (!s_q.empty() || !t_q.empty()) {
         if (!s_q.empty()) {
-            bfs_step(ans, dict, g, s_q, s_path_parents, t_path_parents, false);
+            bfs_step(xss, g, s_q, s_path_parents, t_path_parents, false);
         }
 
         if (!t_q.empty()) {
-            bfs_step(ans, dict, g, t_q, t_path_parents, s_path_parents, true);
+            bfs_step(xss, g, t_q, t_path_parents, s_path_parents, true);
         }
     }
 
-    return ans;
+    return paths_of_words(dict, xss);
 }
 
 struct Solution final {
