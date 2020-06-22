@@ -5,12 +5,7 @@ using vs = vector<string>;
 using vvs = vector<vs>;
 using vi = vector<int>;
 using vvi = vector<vi>;
-using qi = queue<int>;
-using umi = unordered_map<int, int>;
 using Graph = unordered_multimap<int, int>;
-template <typename T> constexpr int intof(const T x) {
-    return static_cast<int>(x);
-}
 
 template <typename T> int index_of(const vector<T> &xs, const T &x) {
     const auto it = find(xs.cbegin(), xs.cend(), x);
@@ -53,85 +48,37 @@ vs path_of_words(const vs &dict, const vi &indices) {
     return ans;
 }
 
-template <typename T> vector<T> join_paths(vector<T> xs, vector<T> ys) {
-    reverse(ys.begin(), ys.end());
-    copy(ys.cbegin(), ys.cend(), back_inserter(xs));
-    return xs;
-}
-
-vi reconstruct_path(const umi &path_parents, const int dest) {
-    vi ans;
-    int v = dest;
-    for (;;) {
-        ans.push_back(v);
-        if (!path_parents.count(v) || path_parents.at(v) == -1) break;
-        v = path_parents.at(v);
-    }
-
-    reverse(ans.begin(), ans.end());
-    return ans;
-}
-
-void bfs_step(vvi &ans, const Graph &g, qi &q, umi &own_path_parents,
-              const umi &opposite_path_parents, const bool do_reverse) {
-    const int u = q.front();
-    q.pop();
-
-    const auto [first, last] = g.equal_range(u);
-    for (auto it = first; it != last; ++it) {
-        const int v = it->second;
-        if (own_path_parents.count(v)) continue;
-
-        if (opposite_path_parents.count(v)) {
-            const int shortest_path_size =
-                ans.empty() ? INT_MAX : ans[0].size();
-
-            vi xs = reconstruct_path(own_path_parents, u);
-            vi ys = reconstruct_path(opposite_path_parents, v);
-
-            if (intof(xs.size() + ys.size()) <= shortest_path_size) {
-                auto zs = join_paths(move(xs), move(ys));
-                if (do_reverse) reverse(zs.begin(), zs.end());
-                ans.emplace_back(zs);
-            }
-        } else {
-            q.push(v);
-        }
-
-        own_path_parents[v] = u;
-    }
-}
-
-vvs paths_of_words(const vs &dict, vvi xss) {
-    const int sz = xss.size();
-    sort(xss.begin(), xss.end());
-
-    vvs ans;
-    for (int i = 0; i < sz; i += 2) {
-        ans.emplace_back(path_of_words(dict, xss[i]));
-    }
+vvs paths_of_words(const vs &dict, const vvi &xss) {
+    vvs ans(xss.size());
+    const auto map = [&dict](const vi &xs) { return path_of_words(dict, xs); };
+    transform(xss.cbegin(), xss.cend(), ans.begin(), map);
     return ans;
 }
 
 vvs all_paths(const vs &dict, const int s, const int t) {
     const auto g = build_graph(dict);
 
-    qi s_q;
-    s_q.push(s);
-    umi s_path_parents{{s, -1}};
-
-    qi t_q;
-    t_q.push(t);
-    umi t_path_parents{{t, -1}};
+    int optimal_path_length = INT_MAX;
+    unordered_set<int> discovered{s};
+    queue<vi> q;
+    q.push(vi{s});
 
     vvi xss;
-    while (!s_q.empty() || !t_q.empty()) {
-        if (!s_q.empty()) {
-            bfs_step(xss, g, s_q, s_path_parents, t_path_parents, false);
-        }
 
-        if (!t_q.empty()) {
-            bfs_step(xss, g, t_q, t_path_parents, s_path_parents, true);
+    while (!q.empty()) {
+        const int level_size = q.size();
+        for (int i = 0; i != level_size; ++i) {
+            const vi path = q.front();
+            q.pop();
+
+            assert(!path.empty());
+            const int u = path.back();
+
+            const auto [first, last] = g.equal_range(u);
+            for (auto it = first; it != last; ++it) {
+                const int v = it->second;
+                if (discovered.count(v)) continue;
+            }
         }
     }
 
