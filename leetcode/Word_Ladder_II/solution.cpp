@@ -69,9 +69,9 @@ vvs all_paths(const vs &dict, const int s, const int t) {
 
     vvi xss;
 
+    unordered_set<int> discovered;
     bool done = false;
     while (!q.empty()) {
-        unordered_set<int> discovered;
         const int level_size = q.size();
 
         for (int i = 0; i != level_size; ++i) {
@@ -106,7 +106,6 @@ vvs all_paths(const vs &dict, const int s, const int t) {
             }
         }
         if (done) break;
-        discovered.clear();
     }
 
     return paths_of_words(dict, xss);
