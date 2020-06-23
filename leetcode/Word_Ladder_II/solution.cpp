@@ -124,6 +124,14 @@ const lest::test tests[] = {
         const vvs expected{};
         EXPECT(actual == expected);
     },
+    CASE("Test case 18") {
+        const vs dict{"hot","cog","dot","dog","hit","lot","log"};
+        auto actual = Solution{}.findLadders("hit","cog", dict);
+        sort(actual.begin(), actual.end());
+        vvs expected{{"hit","hot","dot","dog","cog"},{"hit","hot","lot","log","cog"}};
+        sort(expected.begin(), expected.end());
+        EXPECT(actual == expected);
+    },
     CASE("Test case 26") {
         const vs dict{"ted","tex","red","tax","tad","den","rex","pee"};
         auto actual = Solution{}.findLadders("red", "tax", dict);
