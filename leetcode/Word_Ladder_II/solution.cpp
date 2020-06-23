@@ -70,42 +70,33 @@ vvs all_paths(const vs &dict, const int s, const int t) {
     vvi xss;
 
     unordered_set<int> discovered;
-    bool done = false;
     while (!q.empty()) {
-        const int level_size = q.size();
+        const vi path = q.front();
+        q.pop();
 
-        for (int i = 0; i != level_size; ++i) {
-            const vi path = q.front();
-            q.pop();
+        for (auto it = path.crbegin(); it != path.crend(); ++it) {
+            if (discovered.count(*it)) break;
+            discovered.insert(*it);
+        }
 
-            for (auto it = path.crbegin(); it != path.crend(); ++it) {
-                if (discovered.count(*it)) break;
-                discovered.insert(*it);
-            }
+        assert(!path.empty());
+        const int u = path.back();
+        const int incremented_path_length = path.size() + 1;
+        if (incremented_path_length > optimal_path_length) break;
 
-            assert(!path.empty());
-            const int u = path.back();
-            const int incremented_path_length = path.size() + 1;
-            if (incremented_path_length > optimal_path_length) {
-                done = true;
-                break;
-            }
+        const auto [first, last] = g.equal_range(u);
+        for (auto it = first; it != last; ++it) {
+            const int v = it->second;
+            if (discovered.count(v)) continue;
 
-            const auto [first, last] = g.equal_range(u);
-            for (auto it = first; it != last; ++it) {
-                const int v = it->second;
-                if (discovered.count(v)) continue;
-
-                if (v == t) {
-                    optimal_path_length =
-                        min(optimal_path_length, incremented_path_length);
-                    xss.emplace_back(append(path, v));
-                } else {
-                    q.push(append(path, v));
-                }
+            if (v == t) {
+                optimal_path_length =
+                    min(optimal_path_length, incremented_path_length);
+                xss.emplace_back(append(path, v));
+            } else {
+                q.push(append(path, v));
             }
         }
-        if (done) break;
     }
 
     return paths_of_words(dict, xss);
