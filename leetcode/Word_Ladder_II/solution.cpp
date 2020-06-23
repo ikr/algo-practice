@@ -55,11 +55,15 @@ vvs paths_of_words(const vs &dict, const vvi &xss) {
     return ans;
 }
 
+template <typename T> vector<T> append(vector<T> xs, const T &x) {
+    xs.push_back(x);
+    return xs;
+}
+
 vvs all_paths(const vs &dict, const int s, const int t) {
     const auto g = build_graph(dict);
 
     int optimal_path_length = INT_MAX;
-    unordered_set<int> discovered{s};
     queue<vi> q;
     q.push(vi{s});
 
@@ -67,17 +71,28 @@ vvs all_paths(const vs &dict, const int s, const int t) {
 
     while (!q.empty()) {
         const int level_size = q.size();
+
         for (int i = 0; i != level_size; ++i) {
             const vi path = q.front();
             q.pop();
+            unordered_set<int> discovered(path.cbegin(), path.cend());
 
             assert(!path.empty());
             const int u = path.back();
+            const int path_length = path.size() + 1;
 
             const auto [first, last] = g.equal_range(u);
             for (auto it = first; it != last; ++it) {
                 const int v = it->second;
                 if (discovered.count(v)) continue;
+                discovered.insert(v);
+
+                if (v == t) {
+                    optimal_path_length = min(optimal_path_length, path_length);
+                    xss.emplace_back(append(path, v));
+                } else if (path_length < optimal_path_length) {
+                    q.push(append(path, v));
+                }
             }
         }
     }
@@ -111,8 +126,10 @@ const lest::test tests[] = {
     },
     CASE("Test case 26") {
         const vs dict{"ted","tex","red","tax","tad","den","rex","pee"};
-        const auto actual = Solution{}.findLadders("red", "tax", dict);
-        const vvs expected{{"red","ted","tad","tax"},{"red","ted","tex","tax"},{"red","rex","tex","tax"}};
+        auto actual = Solution{}.findLadders("red", "tax", dict);
+        sort(actual.begin(), actual.end());
+        vvs expected{{"red","ted","tad","tax"},{"red","ted","tex","tax"},{"red","rex","tex","tax"}};
+        sort(expected.begin(), expected.end());
         EXPECT(actual == expected);
     },
 };
