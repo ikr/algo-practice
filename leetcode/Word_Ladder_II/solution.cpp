@@ -69,30 +69,41 @@ vvs all_paths(const vs &dict, const int s, const int t) {
 
     vvi xss;
 
+    bool done = false;
     while (!q.empty()) {
-        const vi path = q.front();
-        q.pop();
-        unordered_set<int> discovered(path.cbegin(), path.cend());
+        unordered_set<int> discovered;
+        const int level_size = q.size();
 
-        assert(!path.empty());
-        const int u = path.back();
-        const int incremented_path_length = path.size() + 1;
-        if (incremented_path_length > optimal_path_length) continue;
+        for (int i = 0; i != level_size; ++i) {
+            const vi path = q.front();
+            q.pop();
+            discovered.insert(path.cbegin(), path.cend());
 
-        const auto [first, last] = g.equal_range(u);
-        for (auto it = first; it != last; ++it) {
-            const int v = it->second;
-            if (discovered.count(v)) continue;
-            discovered.insert(v);
+            assert(!path.empty());
+            const int u = path.back();
+            const int incremented_path_length = path.size() + 1;
+            if (incremented_path_length > optimal_path_length) {
+                done = true;
+                break;
+            }
 
-            if (v == t) {
-                optimal_path_length =
-                    min(optimal_path_length, incremented_path_length);
-                xss.emplace_back(append(path, v));
-            } else {
-                q.push(append(path, v));
+            const auto [first, last] = g.equal_range(u);
+            for (auto it = first; it != last; ++it) {
+                const int v = it->second;
+                if (discovered.count(v)) continue;
+
+                if (v == t) {
+                    optimal_path_length =
+                        min(optimal_path_length, incremented_path_length);
+                    xss.emplace_back(append(path, v));
+                } else {
+                    q.push(append(path, v));
+                }
             }
         }
+        if (done) break;
+
+        discovered.clear();
     }
 
     return paths_of_words(dict, xss);
