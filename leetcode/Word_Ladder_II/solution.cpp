@@ -77,7 +77,11 @@ vvs all_paths(const vs &dict, const int s, const int t) {
         for (int i = 0; i != level_size; ++i) {
             const vi path = q.front();
             q.pop();
-            discovered.insert(path.cbegin(), path.cend());
+
+            for (auto it = path.crbegin(); it != path.crend(); ++it) {
+                if (discovered.count(*it)) break;
+                discovered.insert(*it);
+            }
 
             assert(!path.empty());
             const int u = path.back();
@@ -102,7 +106,6 @@ vvs all_paths(const vs &dict, const int s, const int t) {
             }
         }
         if (done) break;
-
         discovered.clear();
     }
 
