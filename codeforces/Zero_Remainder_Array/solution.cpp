@@ -20,16 +20,17 @@ ll count_moves(const int k, const vi &xs) {
     ll ans = 1;
 
     while (!counts_by_m.empty()) {
-        const auto hit_it = counts_by_m.find(k - ans % k);
+        const ll d = k - ans % k;
+        auto it = counts_by_m.lower_bound(d);
 
-        if (hit_it != counts_by_m.end()) {
+        if (it != counts_by_m.end() && it->first == d) {
             ++ans;
-            dec(counts_by_m, hit_it);
         } else {
-            const auto max_it = --counts_by_m.end();
-            ans += k - max_it->first + 1;
-            dec(counts_by_m, max_it);
+            if (it != counts_by_m.begin()) --it;
+            ans += k - (ans % k + it->first) % k + 1;
         }
+
+        dec(counts_by_m, it);
     }
 
     return ans;
