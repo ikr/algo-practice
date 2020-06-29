@@ -1,25 +1,34 @@
 #include <bits/stdc++.h>
 using namespace std;
 using vi = vector<int>;
-using ummi = unordered_multimap<int, int>;
+using mi = map<int, int>;
+using ll = long long;
 
-int count_moves(const int k, const vi &xs) {
-    ummi xs_by_rem;
+void dec(mi &m, const mi::iterator it) {
+    --(it->second);
+    if (!it->second) m.erase(it);
+}
+
+ll count_moves(const int k, const vi &xs) {
+    mi counts_by_m;
     for (const auto x : xs) {
-        if (x % k) {
-            xs_by_rem.emplace(x % k, x);
-        }
+        if (x % k == 0) continue;
+        ++counts_by_m[x % k];
     }
+    if (counts_by_m.empty()) return 0;
 
-    if (xs_by_rem.empty()) return 0;
+    ll ans = 1;
 
-    int ans = 1;
+    while (!counts_by_m.empty()) {
+        const auto hit_it = counts_by_m.find(k - ans % k);
 
-    for (int x = 1; !xs_by_rem.empty(); ++x, ++ans) {
-        const int d = k - (x % k);
-        if (xs_by_rem.count(d)) {
-            const auto it = xs_by_rem.find(d);
-            xs_by_rem.erase(it);
+        if (hit_it != counts_by_m.end()) {
+            ++ans;
+            dec(counts_by_m, hit_it);
+        } else {
+            const auto max_it = --counts_by_m.end();
+            ans += k - max_it->first + 1;
+            dec(counts_by_m, max_it);
         }
     }
 
