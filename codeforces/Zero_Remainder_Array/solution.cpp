@@ -26,7 +26,11 @@ ll count_moves(const int k, const vi &xs) {
         if (it != counts_by_m.end() && it->first == d) {
             ++ans;
         } else {
-            if (it != counts_by_m.begin()) --it;
+            if (it != counts_by_m.begin())
+                --it;
+            else
+                it = --(counts_by_m.end());
+
             ans += k - (ans % k + it->first) % k + 1;
         }
 
