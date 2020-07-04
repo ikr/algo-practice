@@ -1,11 +1,8 @@
 #include <bits/stdc++.h>
+#include <climits>
 using namespace std;
 using vi = vector<int>;
 using pi = pair<int, int>;
-
-template <typename T> constexpr int intof(const T x) {
-    return static_cast<int>(x);
-}
 
 struct Book final {
     int reading_time;
@@ -52,33 +49,30 @@ int min_total_reading_time(vector<Book> books, const int k) {
     const auto &[ab_reading_times, a_reading_times, b_reading_times] =
         by_reader;
 
-    vector<pi> dp(k + 1, {0, 0});
-    if (!ab_reading_times.empty()) dp[1] = {1, 0};
-    if (!a_reading_times.empty() && !b_reading_times.empty()) {
-        const int curr = dp[1].first ? ab_reading_times[0] : INT_MAX;
-        if (a_reading_times[0] + b_reading_times[0] < curr) dp[1] = {0, 1};
-    }
+    const int sz_ab = ab_reading_times.size();
+    const int sz_a = a_reading_times.size();
+    const int sz_b = b_reading_times.size();
 
-    for (int i = 2; i <= k; ++i) {
-        const auto [and_num, xor_num] = dp[i - 1];
-        if (!and_num && !xor_num) return -1;
-
-        int addition = INT_MAX;
-
-        if (and_num && and_num + 1 <= intof(ab_reading_times.size())) {
-            addition = ab_reading_times[and_num];
-            dp[i] = {and_num + 1, xor_num};
+    int and_num = 0, xor_num = 0;
+    for (int i = 1; i <= k; ++i) {
+        if (and_num + 1 > sz_ab && (xor_num + 1 > sz_a || xor_num + 1 > sz_b)) {
+            return -1;
         }
 
-        if (xor_num + 1 <= intof(a_reading_times.size()) &&
-            xor_num + 1 <= intof(b_reading_times.size()) &&
-            a_reading_times[xor_num] + b_reading_times[xor_num] < addition) {
-            dp[i] = {and_num, xor_num + 1};
+        int increment = INT_MAX;
+        if (and_num + 1 <= sz_ab) {
+            increment = ab_reading_times[and_num];
+        }
+
+        if (xor_num + 1 <= sz_a && xor_num + 1 <= sz_b &&
+            increment > a_reading_times[xor_num] + b_reading_times[xor_num]) {
+            ++xor_num;
+        } else {
+            ++and_num;
         }
     }
 
-    const auto ans = sum_up_answer(by_reader, dp.back());
-    return ans ? ans : -1;
+    return sum_up_answer(by_reader, {and_num, xor_num});
 }
 
 int main() {
