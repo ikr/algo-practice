@@ -3,6 +3,10 @@ using namespace std;
 using vi = vector<int>;
 using ti = tuple<int, int, int>;
 
+template <typename T> constexpr int intof(const T x) {
+    return static_cast<int>(x);
+}
+
 struct Book final {
     int reading_time;
     bool liked_by_alice;
@@ -39,6 +43,11 @@ int sum_up_answer(const tuple<vi, vi, vi> &by_reader, const ti &counts) {
                       b_reading_times.cbegin() + b_num, 0);
 }
 
+constexpr bool exists(const ti &abc) {
+    const auto [a, b, c] = abc;
+    return !!a || !!b || !!c;
+}
+
 int min_total_reading_time(vector<Book> books, const int k) {
     sort(books.begin(), books.end(), [](const auto &lhs, const auto &rhs) {
         return lhs.reading_time < rhs.reading_time;
@@ -49,6 +58,30 @@ int min_total_reading_time(vector<Book> books, const int k) {
         by_reader;
 
     vector<ti> dp(k + 1, {0, 0, 0});
+    if (!ab_reading_times.empty()) dp[1] = {1, 0, 0};
+
+    for (int i = 2; i <= k; ++i) {
+        int addition = INT_MAX;
+
+        if (exists(dp[i - 1]) &&
+            get<0>(dp[i - 1]) + 1 <= intof(ab_reading_times.size())) {
+            const auto [ab, a, b] = dp[i - 1];
+            addition = ab_reading_times[ab];
+            dp[i] = {ab + 1, a, b};
+            assert(ab + 1 + a + b == i);
+        }
+
+        if (exists(dp[i - 2]) || i == 2) {
+            const auto [ab, a, b] = dp[i - 2];
+
+            if (a + 1 <= intof(a_reading_times.size()) &&
+                b + 1 <= intof(b_reading_times.size()) &&
+                a_reading_times[a] + b_reading_times[b] < addition) {
+                dp[i] = {ab, a + 1, b + 1};
+                assert(ab + a + 1 + b + 1 == i);
+            }
+        }
+    }
 
     const auto ans = sum_up_answer(by_reader, dp.back());
     return ans ? ans : -1;
