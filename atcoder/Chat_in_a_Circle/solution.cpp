@@ -18,6 +18,16 @@ ll max_total_comfort(vi xs) {
     for (int i = 3; i < sz; ++i) {
         const int x = xs[i];
 
+        if (x == l) {
+            ans += l;
+            continue;
+        }
+
+        if (x == r) {
+            ans += r;
+            continue;
+        }
+
         if (l >= r) {
             ans += l;
             l = x;
