@@ -5,40 +5,7 @@ using ll = long long;
 
 ll max_total_comfort(vi xs) {
     sort(xs.begin(), xs.end(), greater<int>{});
-    const int sz = xs.size();
-
-    if (sz == 2) return max(xs[0], xs[1]);
-    assert(sz >= 3);
-
-    int l = xs[1];
-    int r = xs[2];
-
-    ll ans = xs[0] + xs[1];
-
-    for (int i = 3; i < sz; ++i) {
-        const int x = xs[i];
-
-        if (x == l) {
-            ans += l;
-            continue;
-        }
-
-        if (x == r) {
-            ans += r;
-            continue;
-        }
-
-        if (l >= r) {
-            ans += l;
-            l = x;
-            continue;
-        }
-
-        ans += r;
-        r = x;
-    }
-
-    return ans;
+    return accumulate(xs.cbegin(), xs.cend() - 1, 0LL);
 }
 
 int main() {
