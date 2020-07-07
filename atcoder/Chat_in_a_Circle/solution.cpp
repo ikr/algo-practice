@@ -9,7 +9,7 @@ ll max_total_comfort(vi xs) {
 
     ll ans = xs[0];
     for (int i = 1; i < sz / 2; ++i) ans += 2 * xs[i];
-    if (sz % 2) ans += xs[sz - 2];
+    if (sz % 2) ans += xs[sz / 2];
     return ans;
 }
 
