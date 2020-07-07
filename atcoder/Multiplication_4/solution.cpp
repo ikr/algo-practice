@@ -35,12 +35,14 @@ int zip_to_positive_product(const vi &negative, const vi &positive, int k) {
     for (auto nit = negative.cbegin(), pit = positive.cbegin(); k > 0; --k) {
         if (nit == negative.cend()) {
             ans *= *pit;
+            ans %= M;
             ++pit;
             continue;
         }
 
         if (pit == positive.cend()) {
             ans *= *nit;
+            ans %= M;
             ++nit;
             continue;
         }
@@ -49,17 +51,21 @@ int zip_to_positive_product(const vi &negative, const vi &positive, int k) {
         if (last_negative) {
             if (ans < 0LL) {
                 ans *= *nit;
+                ans %= M;
                 ++nit;
             } else {
                 ans *= *pit;
+                ans %= M;
                 ++pit;
             }
         } else {
             if (*pit >= -(*nit)) {
                 ans *= *pit;
+                ans %= M;
                 ++pit;
             } else {
                 ans *= *nit;
+                ans %= M;
                 ++nit;
             }
         }
