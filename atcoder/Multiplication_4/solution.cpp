@@ -23,27 +23,43 @@ pair<vi, vi> sorted_sign_groups(const vi &xs) {
             positive.push_back(x);
     }
 
-    sort(negative.begin(), negative.end(), greater<int>{});
+    sort(negative.begin(), negative.end());
     sort(positive.begin(), positive.end(), greater<int>{});
 
     return {negative, positive};
 }
 
-int max_product(const vi &xs, const int k) {
-    const int sz = xs.size();
+int zip_to_positive_product(const vi &negative, const vi &positive, int k) {
+    ll ans = 1LL;
 
-    if (k == sz) {
-        return accumulate(
-            xs.cbegin(), xs.cend(), 1LL,
-            [](const ll lhs, const ll rhs) { return modulo(lhs * rhs); });
+    for (auto nit = negative.cbegin(), pit = positive.cbegin(); k > 0; --k) {
+        break;
     }
 
+    return modulo(ans);
+}
+
+int max_product(const vi &xs, const int k) {
+    const int sz = xs.size();
+    const auto mmul = [](const ll lhs, const ll rhs) {
+        return modulo(lhs * rhs);
+    };
+
+    if (k == sz) return accumulate(xs.cbegin(), xs.cend(), 1LL, mmul);
     if (k == 1) return modulo(*max_element(xs.cbegin(), xs.cend()));
 
     const auto [negative, positive] = sorted_sign_groups(xs);
     if (intof(negative.size() + positive.size()) < k) return 0;
 
-    return -1;
+    if (positive.empty() && k % 2) {
+        const int zeroes = sz - intof(negative.size() + positive.size());
+
+        return zeroes ? 0
+                      : accumulate(negative.crbegin(), negative.crbegin() + k,
+                                   1LL, mmul);
+    }
+
+    return zip_to_positive_product(negative, positive, k);
 }
 
 int main() {
