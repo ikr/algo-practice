@@ -1,0 +1,48 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: ./add 'Problem Title With Spaces'"
+    exit 1
+fi
+
+name=$(echo -n "$1" | sed 's/ /_/g')
+
+code=$(cat <<EOF
+#include <bits/stdc++.h>
+using namespace std;
+
+int solve() {
+    return -1;
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    int t;
+    cin >> t;
+    for (int i = 1; i <= t; ++i) {
+        cout << "Case #" << i << ": " << solve() << '\n';
+    }
+
+    return 0;
+}
+EOF
+)
+
+makefile=$(cat <<EOF
+build:
+	g++ -Wall -Wextra -std=gnu++14 -pedantic-errors -fsanitize=address -o ./solution ./solution.cpp
+
+run: build
+	./solution
+EOF
+)
+
+mkdir "./$name"
+cd "./$name"
+echo "$code" > ./solution.cpp
+echo "$makefile" > ./Makefile
+echo '-std=c++14' > ./compile_flags.txt
+emacsclient -n ./solution.cpp
+echo "cd ./$name && make run" | xclip -selection clipboard
