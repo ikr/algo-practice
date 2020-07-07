@@ -33,7 +33,36 @@ int zip_to_positive_product(const vi &negative, const vi &positive, int k) {
     ll ans = 1LL;
 
     for (auto nit = negative.cbegin(), pit = positive.cbegin(); k > 0; --k) {
-        break;
+        if (nit == negative.cend()) {
+            ans *= *pit;
+            ++pit;
+            continue;
+        }
+
+        if (pit == positive.cend()) {
+            ans *= *nit;
+            ++nit;
+            continue;
+        }
+
+        const bool last_negative = (nit + 1 == negative.cend());
+        if (last_negative) {
+            if (ans < 0LL) {
+                ans *= *nit;
+                ++nit;
+            } else {
+                ans *= *pit;
+                ++pit;
+            }
+        } else {
+            if (*pit >= -(*nit)) {
+                ans *= *pit;
+                ++pit;
+            } else {
+                ans *= *nit;
+                ++nit;
+            }
+        }
     }
 
     return modulo(ans);
