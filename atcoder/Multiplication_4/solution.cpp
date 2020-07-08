@@ -24,7 +24,7 @@ pair<vi, vi> sorted_sign_groups(const vi &xs) {
 }
 
 void mul_step(ll &ans, vi::const_iterator &it) {
-    cout << "x " << *it << " → " << ((ans * (*it)) % M) << '\n';
+    // cout << "x " << *it << " → " << ((ans * (*it)) % M) << '\n';
     ans *= *it;
     ans %= M;
     ++it;
@@ -34,27 +34,17 @@ int zip_to_positive_product(const vi &negative, const vi &positive, int k) {
     ll ans = 1LL;
 
     for (auto nit = negative.cbegin(), pit = positive.cbegin(); k > 0; --k) {
-        if (nit == negative.cend()) {
+        if (nit == negative.cend() || nit + 1 == negative.cend()) {
             mul_step(ans, pit);
             continue;
         }
 
-        if (pit == positive.cend()) {
+        if (*pit >= -(*nit) || k == 1)
+            mul_step(ans, pit);
+        else {
             mul_step(ans, nit);
-            continue;
-        }
-
-        const bool last_negative = (nit + 1 == negative.cend());
-        if (last_negative) {
-            if (ans < 0LL)
-                mul_step(ans, nit);
-            else
-                mul_step(ans, pit);
-        } else {
-            if (*pit > -(*nit))
-                mul_step(ans, pit);
-            else
-                mul_step(ans, nit);
+            mul_step(ans, nit);
+            --k;
         }
     }
 
