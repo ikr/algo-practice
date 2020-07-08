@@ -23,28 +23,56 @@ pair<vi, vi> sorted_sign_groups(const vi &xs) {
     return {negative, positive};
 }
 
-void mul_step(ll &ans, vi::const_iterator &it) {
-    // cout << "x " << *it << " → " << ((ans * (*it)) % M) << '\n';
+void mul_step(ll &ans, vi::const_iterator &it, int &k) {
+    cout << "x " << *it << " → " << ((ans * (*it)) % M) << '\n';
     ans *= *it;
     ans %= M;
     ++it;
+    --k;
 }
 
 int zip_to_positive_product(const vi &negative, const vi &positive, int k) {
     ll ans = 1LL;
 
-    for (auto nit = negative.cbegin(), pit = positive.cbegin(); k > 0; --k) {
-        if (nit == negative.cend() || nit + 1 == negative.cend()) {
-            mul_step(ans, pit);
+    for (auto nit = negative.cbegin(), pit = positive.cbegin(); k > 0;) {
+        if (nit == negative.cend() || nit + 1 == negative.cend() || k == 1) {
+            mul_step(ans, pit, k);
             continue;
         }
 
-        if (*pit >= -(*nit) || k == 1)
-            mul_step(ans, pit);
-        else {
-            mul_step(ans, nit);
-            mul_step(ans, nit);
-            --k;
+        if (pit == positive.cend()) {
+            mul_step(ans, nit, k);
+            mul_step(ans, nit, k);
+            continue;
+        }
+
+        const int p1 = *pit;
+        const int n1 = *nit;
+
+        if (p1 > n1) {
+            mul_step(ans, pit, k);
+            continue;
+        }
+
+        const int n2 = *(nit + 1);
+
+        if (pit + 1 != positive.cend()) {
+            const int p2 = *(pit + 1);
+
+            if (p1 * p2 > n1 * n2) {
+                mul_step(ans, pit, k);
+                mul_step(ans, pit, k);
+            } else {
+                mul_step(ans, nit, k);
+                mul_step(ans, nit, k);
+            }
+        } else {
+            if (k % 2) {
+                mul_step(ans, pit, k);
+            }
+
+            mul_step(ans, nit, k);
+            mul_step(ans, nit, k);
         }
     }
 
