@@ -24,6 +24,7 @@ pair<vi, vi> sorted_sign_groups(const vi &xs) {
 }
 
 void mul_step(ll &ans, vi::const_iterator &it) {
+    cout << "x " << *it << " → " << ((ans * (*it)) % M) << '\n';
     ans *= *it;
     ans %= M;
     ++it;
