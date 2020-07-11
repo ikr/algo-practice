@@ -2,28 +2,30 @@
 using namespace std;
 using ll = long long;
 using vi = vector<int>;
+using oi = optional<int>;
 static constexpr ll M = 1e9 + 7;
 
 constexpr int modulo(const ll x) { return ((x % M) + M) % M; }
 constexpr int sign(const int x) { return x < 0 ? -1 : 1; }
 
-int swap_for_positive_product(vi &xs, const int k) {
+oi product_after_replace_positive(vi xs, const int k) { return nullopt; }
+
+oi product_after_replace_negative(vi xs, const int k) { return nullopt; }
+
+constexpr int omax(const oi x, const oi y) {
+    if (!!x && !!y) return max(*x, *y);
+    return !!x ? *x : *y;
+}
+
+int swap_for_positive_product(const vi &xs, const int k) {
     const ll p =
         accumulate(xs.cbegin(), xs.cbegin() + k, 1LL,
                    [](const ll lhs, const ll rhs) { return (lhs * rhs) % M; });
 
     if (p >= 0) return p;
 
-    int i = k - 1, j = k;
-    while (sign(xs[i]) == sign(xs[j])) {
-        --i;
-        ++j;
-    }
-
-    swap(xs[i], xs[j]);
-    return accumulate(
-        xs.cbegin(), xs.cbegin() + k, 1LL,
-        [](const ll lhs, const ll rhs) { return modulo(lhs * rhs); });
+    return omax(product_after_replace_positive(xs, k),
+                product_after_replace_negative(xs, k));
 }
 
 int max_product(vi &xs, const int k) {
