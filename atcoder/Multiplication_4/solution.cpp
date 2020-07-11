@@ -5,105 +5,44 @@ using vi = vector<int>;
 static constexpr ll M = 1e9 + 7;
 
 constexpr int modulo(const ll x) { return ((x % M) + M) % M; }
+constexpr int sign(const int x) { return x < 0 ? -1 : 1; }
 
-pair<vi, vi> sorted_sign_groups(const vi &xs) {
-    vi negative;
-    vi positive;
+int swap_for_positive_product(vi &xs, const int k) {
+    const ll p =
+        accumulate(xs.cbegin(), xs.cbegin() + k, 1LL,
+                   [](const ll lhs, const ll rhs) { return (lhs * rhs) % M; });
 
-    for (const auto x : xs) {
-        if (x < 0)
-            negative.push_back(x);
-        else if (x > 0)
-            positive.push_back(x);
+    if (p >= 0) return p;
+
+    int i = k - 1, j = k;
+    while (sign(xs[i]) == sign(xs[j])) {
+        --i;
+        ++j;
     }
 
-    sort(negative.begin(), negative.end());
-    sort(positive.begin(), positive.end(), greater<int>{});
-
-    return {negative, positive};
+    swap(xs[i], xs[j]);
+    return accumulate(
+        xs.cbegin(), xs.cbegin() + k, 1LL,
+        [](const ll lhs, const ll rhs) { return modulo(lhs * rhs); });
 }
 
-void mul_step(ll &ans, vi::const_iterator &it, int &k) {
-    cout << "x " << *it << " → " << ((ans * (*it)) % M) << '\n';
-    ans *= *it;
-    ans %= M;
-    ++it;
-    --k;
-}
-
-int zip_to_positive_product(const vi &negative, const vi &positive, int k) {
-    ll ans = 1LL;
-
-    for (auto nit = negative.cbegin(), pit = positive.cbegin(); k > 0;) {
-        if (nit == negative.cend() || nit + 1 == negative.cend() || k == 1) {
-            mul_step(ans, pit, k);
-            continue;
-        }
-
-        if (pit == positive.cend()) {
-            mul_step(ans, nit, k);
-            mul_step(ans, nit, k);
-            continue;
-        }
-
-        const int p1 = *pit;
-        const int n1 = *nit;
-
-        if (p1 > n1) {
-            mul_step(ans, pit, k);
-            continue;
-        }
-
-        const int n2 = *(nit + 1);
-
-        if (pit + 1 != positive.cend()) {
-            const int p2 = *(pit + 1);
-
-            if (p1 * p2 > n1 * n2) {
-                mul_step(ans, pit, k);
-                mul_step(ans, pit, k);
-            } else {
-                mul_step(ans, nit, k);
-                mul_step(ans, nit, k);
-            }
-        } else {
-            if (k % 2) {
-                mul_step(ans, pit, k);
-            }
-
-            mul_step(ans, nit, k);
-            mul_step(ans, nit, k);
-        }
-    }
-
-    return modulo(ans);
-}
-
-template <typename T> int even_size(const T &xs) {
-    return (xs.size() % 2) ? xs.size() - 1 : xs.size();
-}
-
-int max_product(const vi &xs, const int k) {
+int max_product(vi &xs, const int k) {
     const int sz = xs.size();
-    const auto mmul = [](const ll lhs, const ll rhs) {
-        return modulo(lhs * rhs);
-    };
 
-    if (k == sz) return accumulate(xs.cbegin(), xs.cend(), 1LL, mmul);
+    sort(xs.begin(), xs.end(),
+         [](const int lhs, const int rhs) { return abs(lhs) > abs(rhs); });
+
+    const int negative =
+        count_if(xs.cbegin(), xs.cend(), [](const int x) { return x < 0; });
+
+    if (k == sz || (negative == sz && k % 2))
+        return accumulate(
+            xs.crbegin(), xs.crbegin() + k, 1LL,
+            [](const ll lhs, const ll rhs) { return modulo(lhs * rhs); });
+
     if (k == 1) return modulo(*max_element(xs.cbegin(), xs.cend()));
 
-    const auto [negative, positive] = sorted_sign_groups(xs);
-    if (even_size(negative) + static_cast<int>(positive.size()) < k) return 0;
-
-    if (positive.empty() && k % 2) {
-        const int zeroes = sz - negative.size() - positive.size();
-
-        return zeroes ? 0
-                      : accumulate(negative.crbegin(), negative.crbegin() + k,
-                                   1LL, mmul);
-    }
-
-    return zip_to_positive_product(negative, positive, k);
+    return swap_for_positive_product(xs, k);
 }
 
 int main() {
