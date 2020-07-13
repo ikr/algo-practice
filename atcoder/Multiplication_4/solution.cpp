@@ -8,9 +8,61 @@ static constexpr ll M = 1e9 + 7;
 constexpr int modulo(const ll x) { return ((x % M) + M) % M; }
 constexpr int sign(const int x) { return x < 0 ? -1 : 1; }
 
-oi product_after_replace_positive(vi xs, const int k) { return nullopt; }
+template <typename T> constexpr bool is_non_negative(const T x) {
+    return x >= 0;
+}
 
-oi product_after_replace_negative(vi xs, const int k) { return nullopt; }
+template <typename T> constexpr bool is_negative(const T x) { return x < 0; }
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+int modprod_of_k_first(const vi &xs, const int k) {
+    vi ys(k, 0);
+    copy(xs.cbegin(), xs.cbegin() + k, ys.begin());
+
+    cout << ys << '\n';
+    cout << "prod "
+         << accumulate(
+                xs.cbegin(), xs.cbegin() + k, 1LL,
+                [](const ll lhs, const ll rhs) { return (lhs * rhs) % M; })
+         << '\n';
+
+    return accumulate(
+        xs.cbegin(), xs.cbegin() + k, 1LL,
+        [](const ll lhs, const ll rhs) { return (lhs * rhs) % M; });
+}
+
+oi product_after_replace_non_negative(vi xs, const int k) {
+    auto it_non_negative =
+        find_if(xs.rend() - k, xs.rend(), is_non_negative<int>);
+    if (it_non_negative == xs.rend()) return nullopt;
+
+    auto it_negative = find_if(xs.begin() + k, xs.end(), is_negative<int>);
+    if (it_negative == xs.end()) return nullopt;
+
+    swap(*it_non_negative, *it_negative);
+    return modprod_of_k_first(xs, k);
+}
+
+oi product_after_replace_negative(vi xs, const int k) {
+    auto it_negative = find_if(xs.rend() - k, xs.rend(), is_negative<int>);
+    if (it_negative == xs.rend()) return nullopt;
+
+    auto it_non_negative =
+        find_if(xs.begin() + k, xs.end(), is_non_negative<int>);
+    if (it_non_negative == xs.end()) return nullopt;
+
+    swap(*it_negative, *it_non_negative);
+    return modprod_of_k_first(xs, k);
+}
 
 constexpr int omax(const oi x, const oi y) {
     if (!!x && !!y) return max(*x, *y);
@@ -18,13 +70,10 @@ constexpr int omax(const oi x, const oi y) {
 }
 
 int swap_for_positive_product(const vi &xs, const int k) {
-    const ll p =
-        accumulate(xs.cbegin(), xs.cbegin() + k, 1LL,
-                   [](const ll lhs, const ll rhs) { return (lhs * rhs) % M; });
-
+    const ll p = modprod_of_k_first(xs, k);
     if (p >= 0) return p;
 
-    return omax(product_after_replace_positive(xs, k),
+    return omax(product_after_replace_non_negative(xs, k),
                 product_after_replace_negative(xs, k));
 }
 
