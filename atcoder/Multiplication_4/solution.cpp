@@ -46,15 +46,15 @@ optional<pi> negative_swap(const vi &xs, const int k) {
 }
 
 pi optimal_swap(const vi &xs, const pi swapA, const pi swapB) {
-    const ll a = xs[swapA.first];
-    const ll b = xs[swapA.second];
-    const ll c = xs[swapB.first];
-    const ll d = xs[swapB.second];
+    const auto a = xs[swapA.first];
+    const auto b = xs[swapA.second];
+    const auto c = xs[swapB.first];
+    const auto d = xs[swapB.second];
 
     assert(a != 0 && c != 0);
 
-    const double ra = static_cast<double>(b) / a;
-    const double rb = static_cast<double>(c) / d;
+    const double ra = abs(static_cast<double>(b) / static_cast<double>(a));
+    const double rb = abs(static_cast<double>(d) / static_cast<double>(c));
 
     return ra >= rb ? swapA : swapB;
 }
