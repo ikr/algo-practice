@@ -2,7 +2,7 @@
 using namespace std;
 using ll = long long;
 using vi = vector<int>;
-using oi = optional<int>;
+using pi = pair<int, int>;
 static constexpr ll M = 1e9 + 7;
 
 constexpr int modulo(const ll x) { return ((x % M) + M) % M; }
@@ -14,67 +14,72 @@ template <typename T> constexpr bool is_non_negative(const T x) {
 
 template <typename T> constexpr bool is_negative(const T x) { return x < 0; }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int modprod_of_k_first(const vi &xs, const int k) {
-    vi ys(k, 0);
-    copy(xs.cbegin(), xs.cbegin() + k, ys.begin());
-
-    cout << ys << '\n';
-    cout << "prod "
-         << accumulate(
-                xs.cbegin(), xs.cbegin() + k, 1LL,
-                [](const ll lhs, const ll rhs) { return (lhs * rhs) % M; })
-         << '\n';
-
     return accumulate(
         xs.cbegin(), xs.cbegin() + k, 1LL,
         [](const ll lhs, const ll rhs) { return (lhs * rhs) % M; });
 }
 
-oi product_after_replace_non_negative(vi xs, const int k) {
+optional<pi> non_negative_swap(const vi &xs, const int k) {
     auto it_non_negative =
-        find_if(xs.rend() - k, xs.rend(), is_non_negative<int>);
-    if (it_non_negative == xs.rend()) return nullopt;
+        find_if(xs.crend() - k, xs.crend(), is_non_negative<int>);
+    if (it_non_negative == xs.crend()) return nullopt;
 
-    auto it_negative = find_if(xs.begin() + k, xs.end(), is_negative<int>);
-    if (it_negative == xs.end()) return nullopt;
+    auto it_negative = find_if(xs.cbegin() + k, xs.cend(), is_negative<int>);
+    if (it_negative == xs.cend()) return nullopt;
 
-    swap(*it_non_negative, *it_negative);
-    return modprod_of_k_first(xs, k);
+    return pi{distance(it_non_negative, xs.rend() - 1),
+              distance(xs.begin(), it_negative)};
 }
 
-oi product_after_replace_negative(vi xs, const int k) {
-    auto it_negative = find_if(xs.rend() - k, xs.rend(), is_negative<int>);
-    if (it_negative == xs.rend()) return nullopt;
+optional<pi> negative_swap(const vi &xs, const int k) {
+    const auto it_negative =
+        find_if(xs.crend() - k, xs.crend(), is_negative<int>);
+    if (it_negative == xs.crend()) return nullopt;
 
-    auto it_non_negative =
-        find_if(xs.begin() + k, xs.end(), is_non_negative<int>);
-    if (it_non_negative == xs.end()) return nullopt;
+    const auto it_non_negative =
+        find_if(xs.cbegin() + k, xs.cend(), is_non_negative<int>);
+    if (it_non_negative == xs.cend()) return nullopt;
 
-    swap(*it_negative, *it_non_negative);
-    return modprod_of_k_first(xs, k);
+    return pi{distance(it_negative, xs.crend() - 1),
+              distance(xs.cbegin(), it_non_negative)};
 }
 
-constexpr int omax(const oi x, const oi y) {
-    if (!!x && !!y) return max(*x, *y);
-    return !!x ? *x : *y;
+pi optimal_swap(const vi &xs, const pi swapA, const pi swapB) {
+    const ll a = xs[swapA.first];
+    const ll b = xs[swapA.second];
+    const ll c = xs[swapB.first];
+    const ll d = xs[swapB.second];
+
+    assert(a != 0 && c != 0);
+
+    const double ra = static_cast<double>(b) / a;
+    const double rb = static_cast<double>(c) / d;
+
+    return ra >= rb ? swapA : swapB;
 }
 
-int swap_for_positive_product(const vi &xs, const int k) {
+int swap_for_positive_product(vi xs, const int k) {
     const ll p = modprod_of_k_first(xs, k);
     if (p >= 0) return p;
 
-    return omax(product_after_replace_non_negative(xs, k),
-                product_after_replace_negative(xs, k));
+    const auto non_negative_pair = non_negative_swap(xs, k);
+    const auto negative_pair = negative_swap(xs, k);
+
+    if (non_negative_pair && negative_pair) {
+        const auto [i, j] =
+            optimal_swap(xs, *non_negative_pair, *negative_pair);
+        swap(xs[i], xs[j]);
+    } else if (non_negative_pair) {
+        const auto [i, j] = *non_negative_pair;
+        swap(xs[i], xs[j]);
+    } else {
+        assert(negative_pair);
+        const auto [i, j] = *negative_pair;
+        swap(xs[i], xs[j]);
+    }
+
+    return modprod_of_k_first(xs, k);
 }
 
 int max_product(vi &xs, const int k) {
