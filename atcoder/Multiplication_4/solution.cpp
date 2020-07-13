@@ -45,18 +45,21 @@ optional<pi> negative_swap(const vi &xs, const int k) {
               distance(xs.cbegin(), it_non_negative)};
 }
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 pi optimal_swap(const vi &xs, const pi swapA, const pi swapB) {
-    const auto a = xs[swapA.first];
-    const auto b = xs[swapA.second];
-    const auto c = xs[swapB.first];
-    const auto d = xs[swapB.second];
+    const ll a = xs[swapA.first];
+    const ll b = xs[swapA.second];
+    const ll c = xs[swapB.first];
+    const ll d = xs[swapB.second];
 
     assert(a != 0 && c != 0);
 
-    const double ra = abs(static_cast<double>(b) / static_cast<double>(a));
-    const double rb = abs(static_cast<double>(d) / static_cast<double>(c));
-
-    return ra >= rb ? swapA : swapB;
+    return b * c >= a * d ? swapA : swapB;
 }
 
 int swap_for_positive_product(vi xs, const int k) {
