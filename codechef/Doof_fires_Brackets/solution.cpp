@@ -1,56 +1,60 @@
 #include <bits/stdc++.h>
+#include <climits>
 using namespace std;
 
-pair<unordered_set<int>, set<pair<int, int>>> balanced_ranges(const string &s) {
+unordered_map<int, int> gather_balanced_ranges_rights_by_left(const string &s) {
     const int sz = s.size();
     stack<int> st;
-    unordered_set<int> ans1;
-    set<pair<int, int>> ans2;
+    unordered_map<int, int> ans;
 
     for (int i = 0; i < sz; ++i) {
         if (s[i] == '(') {
             st.push(i);
         } else if (!st.empty()) {
             assert(s[i] == ')');
-            ans1.insert(st.top());
-            ans2.insert({st.top(), i});
+            ans[st.top()] = i;
             st.pop();
         }
-    }
-
-    return {ans1, ans2};
-}
-
-set<int> gather_bads(const string &s, const unordered_set<int> &good_lefts) {
-    const int sz = s.size();
-    set<int> ans;
-
-    for (int i = 0; i < sz; ++i) {
-        if (s[i] == ')') continue;
-        if (!good_lefts.count(i)) ans.insert(i);
     }
 
     return ans;
 }
 
+unordered_multimap<int, int> gather_indices_by_x(const vector<int> &xs) {
+    const int sz = xs.size();
+    unordered_multimap<int, int> ans;
+    for (int i = 0; i != sz; ++i) {
+        ans.emplace(xs[i], i);
+    }
+    return ans;
+}
+
 vector<int> min_counter_attack_indices(const string &brackets,
                                        const vector<int> &xs) {
-    const auto [good_lefts, goods] = balanced_ranges(brackets);
-    const auto bads = gather_bads(brackets, good_lefts);
+    const auto goods = gather_balanced_ranges_rights_by_left(brackets);
+    const auto idx = gather_indices_by_x(xs);
 
     const int qs = xs.size();
     vector<int> ans(qs, -2);
 
-    for (int i = 0; i < qs; ++i) {
-        const auto git = goods.lower_bound(pair<int, int>{xs[i], -1});
+    const int sz = brackets.size();
+    for (int i = sz - 1, closest_good = INT_MAX, closest_bad = INT_MAX; i >= 0;
+         --i) {
+        if (brackets[i] == '(') {
+            if (goods.count(i)) {
+                closest_good = i;
+            } else {
+                closest_bad = i;
+            }
+        }
 
-        if (git == goods.cend()) {
-            ans[i] = -2;
-        } else {
-            const auto bit = bads.lower_bound(xs[i]);
-            const int bi = bit == bads.cend() ? INT_MAX : *bit;
+        if (!idx.count(i)) continue;
 
-            ans[i] = bi < git->first ? -2 : git->second;
+        const auto [first, last] = idx.equal_range(i);
+        for (auto j = first; j != last; ++j) {
+            if (closest_good < closest_bad) {
+                ans[j->second] = goods.at(closest_good);
+            }
         }
     }
 
