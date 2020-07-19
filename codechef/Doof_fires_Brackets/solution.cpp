@@ -83,8 +83,6 @@ int main() {
         for (const auto x : min_counter_attack_indices(s, xs)) {
             cout << (x + 1) << '\n';
         }
-
-        cout << flush;
     }
 
     return 0;
