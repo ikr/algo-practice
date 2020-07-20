@@ -18,8 +18,9 @@ bool wins(const vector<int> &squares, const unordered_set<int> squares_set,
         } else {
             memo[n] = -1;
 
-            for (const int x : squares) {
-                if (x > n) break;
+            for (auto it = squares.crbegin(); it != squares.crend(); ++it) {
+                const int x = *it;
+                if (x > n) continue;
 
                 if (!wins(squares, squares_set, memo, n - x)) {
                     memo[n] = 1;
@@ -67,6 +68,21 @@ const lest::test tests[] = {
     CASE("Example 5") {
         const auto actual = Solution{}.winnerSquareGame(17);
         const auto expected = false;
+        EXPECT(actual == expected);
+    },
+    CASE("N is 1337") {
+        const auto actual = Solution{}.winnerSquareGame(1337);
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("N is 21000") {
+        const auto actual = Solution{}.winnerSquareGame(21000);
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("N is 100000") {
+        const auto actual = Solution{}.winnerSquareGame(100000);
+        const auto expected = true;
         EXPECT(actual == expected);
     },
 };
