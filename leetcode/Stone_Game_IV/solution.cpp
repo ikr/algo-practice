@@ -10,7 +10,7 @@ vector<int> precompute_squares(const int n_max) {
     return ans;
 }
 
-bool wins(const vector<int> &squares, const unordered_set<int> squares_set,
+bool wins(const vector<int> &squares, const unordered_set<int> &squares_set,
           vector<int> &memo, const int n) {
     if (!memo[n]) {
         if (squares_set.count(n)) {
