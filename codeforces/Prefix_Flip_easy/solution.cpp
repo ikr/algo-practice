@@ -1,37 +1,42 @@
 #include <bits/stdc++.h>
 using namespace std;
 using vi = vector<int>;
-using vs = vector<string>;
 
 template <typename T> constexpr int intof(const T x) {
     return static_cast<int>(x);
 }
 
-constexpr char flip(const char bit) { return bit == '1' ? '0' : '1'; }
+vector<bool> vectorize(const string &bits) {
+    vector<bool> ans(bits.size(), false);
+    transform(bits.cbegin(), bits.cend(), ans.begin(),
+              [](const char c) { return c == '1'; });
+    return ans;
+}
 
-string invert_reverse(string bits, const int prefix_length) {
-    transform(bits.begin(), bits.begin() + prefix_length, bits.begin(), flip);
+vector<bool> invert_reverse(vector<bool> bits, const int prefix_length) {
+    transform(bits.begin(), bits.begin() + prefix_length, bits.begin(),
+              [](const bool b) { return !b; });
     reverse(bits.begin(), bits.begin() + prefix_length);
     return bits;
 }
 
-vs adjacent(const string &bits) {
+vector<vector<bool>> adjacent(const vector<bool> &bits) {
     const int sz = bits.size();
-    vs ans;
+    vector<vector<bool>> ans;
     for (int i = 1; i <= sz; ++i) {
         ans.push_back(invert_reverse(bits, i));
     }
     return ans;
 }
 
-vi prefix_lengths_sequence(const string &a, const string &b) {
+vi prefix_lengths_sequence(const vector<bool> &a, const vector<bool> &b) {
     if (a == b) return {};
 
-    queue<string> q;
+    queue<vector<bool>> q;
     queue<vi> qseq;
     q.push(a);
     qseq.push(vi{});
-    unordered_set<string> discovered{a};
+    unordered_set<vector<bool>> discovered{a};
 
     while (!q.empty()) {
         const auto u = q.front();
@@ -76,7 +81,7 @@ int main() {
         assert(intof(a.size()) == sz);
         assert(intof(b.size()) == sz);
 
-        const auto ans = prefix_lengths_sequence(a, b);
+        const auto ans = prefix_lengths_sequence(vectorize(a), vectorize(b));
         cout << ans.size();
         for (const auto l : ans) {
             cout << ' ' << l;
