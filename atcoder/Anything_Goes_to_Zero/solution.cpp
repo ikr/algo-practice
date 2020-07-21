@@ -3,21 +3,11 @@ using namespace std;
 using ll = long long;
 using vi = vector<int>;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 vi f_table(const int lim) {
     vi ans(lim + 1, 1);
     ans[0] = 0;
 
-    for (int i = 2; i <= lim; ++i) {
+    for (int i = 3; i <= lim; ++i) {
         const int p = __builtin_popcount(i);
         ans[i] = 1 + ans[i % p];
     }
@@ -35,7 +25,7 @@ int two_exp_mod(const int power, const int m) {
 
 int big_bin_mod(const string &bits, const int m) {
     const int sz = bits.size();
-    ll ans = 0;
+    int ans = 0;
 
     for (auto it = bits.crbegin(); it != bits.crend(); ++it) {
         if (*it == '0') continue;
