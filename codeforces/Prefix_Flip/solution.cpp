@@ -2,24 +2,20 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-constexpr char flip(const char b) { return b == '1' ? '0' : '1'; }
-
 vector<int> seq_to_zero(string bits) {
     const int sz = bits.size();
     vector<int> ans;
+    if (!sz) return ans;
 
+    bool ones = bits[0] == '1';
     for (int i = 0; i < sz - 1; ++i) {
         if (bits[i] != bits[i + 1]) {
             ans.push_back(i + 1);
-            transform(bits.cbegin(), bits.cbegin() + i + 1, bits.begin(), flip);
+            ones = !ones;
         }
     }
 
-    if (all_of(bits.cbegin(), bits.cend(),
-               [](const char b) { return b == '1'; })) {
-        ans.push_back(sz);
-    }
-
+    if (ones) ans.push_back(sz);
     return ans;
 }
 
