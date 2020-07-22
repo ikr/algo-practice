@@ -42,7 +42,7 @@ vi f_xi_values(const string &bits) {
     const int sz = bits.size();
     const int ones = count(bits.cbegin(), bits.cend(), '1');
     const vi ys = f_table(1e5 + 1);
-    const int a = !ones ? 0 : big_bin_mod(bits, ones - 1);
+    const int a = (ones <= 1) ? 0 : big_bin_mod(bits, ones - 1);
     const int b = big_bin_mod(bits, ones + 1);
 
     vi ans(sz, 0);
@@ -50,11 +50,10 @@ vi f_xi_values(const string &bits) {
     for (int power = sz - 1; power >= 0; --power) {
         const int i = sz - 1 - power;
 
-        if (bits[i] == '1') {
+        if (bits[i] == '1' && ones != 1) {
             const int m = ones - 1;
             ans[i] = 1 + ys[(a - two_exp_mod(power, m) + m) % m];
-        } else {
-            assert(bits[i] == '0');
+        } else if (bits[i] == '0') {
             const int m = ones + 1;
             ans[i] = 1 + ys[(b + two_exp_mod(power, m) + m) % m];
         }
