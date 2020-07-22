@@ -15,7 +15,7 @@ vi f_table(const int lim) {
     return ans;
 }
 
-int two_exp_mod(const int power, const int m) {
+ll two_exp_mod(const ll power, const ll m) {
     if (!power) return 1;
     if (power % 2) return (2 * two_exp_mod(power - 1, m)) % m;
 
@@ -23,9 +23,9 @@ int two_exp_mod(const int power, const int m) {
     return (sq * sq) % m;
 }
 
-int big_bin_mod(const string &bits, const int m) {
+ll big_bin_mod(const string &bits, const ll m) {
     const int sz = bits.size();
-    int ans = 0;
+    ll ans = 0;
 
     for (auto it = bits.crbegin(); it != bits.crend(); ++it) {
         if (*it == '0') continue;
@@ -42,8 +42,8 @@ vi f_xi_values(const string &bits) {
     const int sz = bits.size();
     const int ones = count(bits.cbegin(), bits.cend(), '1');
     const vi ys = f_table(1e5 + 1);
-    const int a = (ones <= 1) ? 0 : big_bin_mod(bits, ones - 1);
-    const int b = big_bin_mod(bits, ones + 1);
+    const ll a = (ones <= 1) ? 0 : big_bin_mod(bits, ones - 1);
+    const ll b = big_bin_mod(bits, ones + 1);
 
     vi ans(sz, 0);
 
@@ -51,10 +51,10 @@ vi f_xi_values(const string &bits) {
         const int i = sz - 1 - power;
 
         if (bits[i] == '1' && ones != 1) {
-            const int m = ones - 1;
+            const ll m = ones - 1;
             ans[i] = 1 + ys[(a - two_exp_mod(power, m) + m) % m];
         } else if (bits[i] == '0') {
-            const int m = ones + 1;
+            const ll m = ones + 1;
             ans[i] = 1 + ys[(b + two_exp_mod(power, m) + m) % m];
         }
     }
