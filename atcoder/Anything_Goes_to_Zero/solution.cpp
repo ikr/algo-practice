@@ -41,7 +41,7 @@ ll big_bin_mod(const string &bits, const ll m) {
 vi f_xi_values(const string &bits) {
     const int sz = bits.size();
     const int ones = count(bits.cbegin(), bits.cend(), '1');
-    const vi ys = f_table(1e5 + 1);
+    const vi ys = f_table(2 * 1e5 + 1);
     const ll a = (ones <= 1) ? 0 : big_bin_mod(bits, ones - 1);
     const ll b = big_bin_mod(bits, ones + 1);
 
