@@ -24,7 +24,7 @@ unordered_multimap<int, int> gather_children(const vector<int> &parent) {
 vector<int>
 gather_counts_by_level(const int N,
                        const unordered_multimap<int, int> &children) {
-    vector<int> ans(N + 1, 0);
+    vector<int> ans(N, 0);
     ans[0] = 1;
 
     function<void(int, int)> recur;
