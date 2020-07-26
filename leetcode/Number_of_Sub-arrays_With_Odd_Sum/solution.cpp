@@ -2,35 +2,36 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+using vi = vector<int>;
 static constexpr ll M = 1e9 + 7;
 
 struct Solution final {
-    int numOfSubarrays(const vector<int> &xs) const {
+    int numOfSubarrays(const vi &xs) const {
+        if (xs.empty()) return 0;
         const int sz = xs.size();
-        vector<int> indices_of_odds;
 
-        for (int i = 0; i < sz; i++) {
-            if (xs[i] % 2) indices_of_odds.push_back(i);
-        }
+        // DP[i] — count of subarrays with even sum, ending at index i
+        vi ev(sz, 0);
 
-        if (indices_of_odds.empty()) return 0;
-        const int osz = indices_of_odds.size();
-        ll ans = 0;
+        // DP[i] — count of subarrays with odd sum, ending at index i
+        vi od(sz, 0);
 
-        for (int i = 0; i < osz; ++i) {
-            for (int j = i; j < osz; j += 2) {
-                const int lo = indices_of_odds[i];
-                const int hi = indices_of_odds[j];
+        if (xs[0] % 2)
+            od[0] = 1;
+        else
+            ev[0] = 1;
 
-                ll l = (i == 0 ? lo + 1 : lo - indices_of_odds[i - 1]);
-                ll r = (j == osz - 1 ? sz - hi : indices_of_odds[i + 1] - hi);
-
-                ans += l * r;
-                ans %= M;
+        for (int i = 1; i < sz; ++i) {
+            if (xs[i] % 2) {
+                od[i] = ev[i - 1] + 1;
+                ev[i] = od[i - 1];
+            } else {
+                ev[i] = ev[i - 1] + 1;
+                od[i] = od[i - 1];
             }
         }
 
-        return ans;
+        return accumulate(od.cbegin(), od.cend(), 0LL, plus<ll>{}) % M;
     }
 };
 
