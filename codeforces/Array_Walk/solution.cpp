@@ -33,10 +33,10 @@ int best_score(const vector<int> &xs, const int k, const int z) {
     const int r_only = accumulate(xs.cbegin(), xs.cbegin() + k + 1, 0);
     int ans = r_only;
 
-    for (int iz = 1; iz <= z; ++iz) {
+    for (int iz = 1; iz <= z && k - 2 * iz >= 0; ++iz) {
         int candidate = r_only;
 
-        for (int j = 1; j <= 2 * iz; ++j) {
+        for (int j = 0; j < 2 * iz; ++j) {
             assert(k - j >= 0);
             candidate -= xs[k - j];
         }
@@ -46,7 +46,7 @@ int best_score(const vector<int> &xs, const int k, const int z) {
         candidate += xs[best[k + 1 - 2 * iz] - 1];
         candidate += xs[best[k + 1 - 2 * iz]];
 
-        ans = min(ans, candidate);
+        ans = max(ans, candidate);
     }
 
     return ans;
