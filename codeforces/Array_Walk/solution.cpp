@@ -43,8 +43,8 @@ int best_score(const vector<int> &xs, const int k, const int z) {
 
         assert(k + 1 - 2 * iz > 0);
 
-        candidate += xs[best[k + 1 - 2 * iz] - 1];
-        candidate += xs[best[k + 1 - 2 * iz]];
+        candidate += xs[best[k + 1 - 2 * iz] - 1] * iz;
+        candidate += xs[best[k + 1 - 2 * iz]] * iz;
 
         ans = max(ans, candidate);
     }
