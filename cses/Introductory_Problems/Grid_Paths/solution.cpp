@@ -39,6 +39,12 @@ constexpr bool in_bounds(const pair<int, int> coord) {
     return ro >= 0 && ro <= RO_MAX && co >= 0 && co <= CO_MAX;
 }
 
+constexpr bool
+is_possible(const unordered_set<pair<int, int>, PairHash<int, int>> &covered,
+            const pair<int, int> coord) {
+    return in_bounds(coord) && !covered.count(coord);
+}
+
 int matching_paths_count(const string &pattern) {
     unordered_set<pair<int, int>, PairHash<int, int>> covered{{0, 0}};
     int ans = 0;
@@ -55,9 +61,7 @@ int matching_paths_count(const string &pattern) {
              pattern[i] == '?' ? vc{'U', 'D', 'L', 'R'} : vc{pattern[i]}) {
             const auto coord_prime = coord + delta(dir);
 
-            if (!in_bounds(coord_prime) || covered.count(coord_prime)) {
-                continue;
-            }
+            if (!is_possible(covered, coord_prime)) continue;
 
             covered.insert(coord_prime);
             recur(i + 1, coord_prime);
