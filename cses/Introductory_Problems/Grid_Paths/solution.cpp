@@ -63,6 +63,36 @@ int matching_paths_count(const string &pattern) {
 
             if (!is_possible(covered, coord_prime)) continue;
 
+            switch (dir) {
+            case 'U':
+                if (!is_possible(covered, coord_prime + delta('U')) &&
+                    is_possible(covered, coord_prime + delta('L')) &&
+                    is_possible(covered, coord_prime + delta('R')))
+                    continue;
+                break;
+
+            case 'D':
+                if (!is_possible(covered, coord_prime + delta('D')) &&
+                    is_possible(covered, coord_prime + delta('L')) &&
+                    is_possible(covered, coord_prime + delta('R')))
+                    continue;
+                break;
+
+            case 'L':
+                if (!is_possible(covered, coord_prime + delta('L')) &&
+                    is_possible(covered, coord_prime + delta('U')) &&
+                    is_possible(covered, coord_prime + delta('D')))
+                    continue;
+                break;
+
+            case 'R':
+                if (!is_possible(covered, coord_prime + delta('R')) &&
+                    is_possible(covered, coord_prime + delta('U')) &&
+                    is_possible(covered, coord_prime + delta('D')))
+                    continue;
+                break;
+            }
+
             covered.insert(coord_prime);
             recur(i + 1, coord_prime);
             covered.erase(coord_prime);
