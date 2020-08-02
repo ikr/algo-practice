@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
+using vc = vector<char>;
 
 static constexpr int RO_MAX = 6;
 static constexpr int CO_MAX = 6;
@@ -39,14 +40,32 @@ constexpr bool in_bounds(const pair<int, int> coord) {
 }
 
 int matching_paths_count(const string &pattern) {
-    unordered_set<pair<int, int>, PairHash<int, int>> covered;
+    unordered_set<pair<int, int>, PairHash<int, int>> covered{{0, 0}};
     int ans = 0;
     function<void(int, pair<int, int>)> recur;
 
-    recur = [&pattern, &ans, &covered](const int i,
-                                       const pair<int, int> coord) {
-        if (coord == DEST_COORD && i != DEST_I) return;
+    recur = [&recur, &pattern, &ans, &covered](const int i,
+                                               const pair<int, int> coord) {
+        if (coord == DEST_COORD) {
+            if (i == DEST_I) ++ans;
+            return;
+        }
+
+        for (const auto dir :
+             pattern[i] == '?' ? vc{'U', 'D', 'L', 'R'} : vc{pattern[i]}) {
+            const auto coord_prime = coord + delta(dir);
+
+            if (!in_bounds(coord_prime) || covered.count(coord_prime)) {
+                continue;
+            }
+
+            covered.insert(coord_prime);
+            recur(i + 1, coord_prime);
+            covered.erase(coord_prime);
+        }
     };
+
+    recur(0, {0, 0});
 
     return ans;
 }
@@ -57,6 +76,7 @@ int main() {
 
     string s;
     cin >> s;
+    cout << matching_paths_count(s) << '\n';
 
     return 0;
 }
