@@ -1,28 +1,43 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-constexpr int SZ = 'z' - 'a' + 1;
+constexpr int AZ = 'z' - 'a' + 1;
 
-string solve(const string &s) {
+vector<set<int>> gather_char_indices(const string &s) {
     const int sz = s.size();
-    vector<int> best(SZ, -1);
+    vector<set<int>> ans(AZ);
 
     for (int i = 0; i < sz; ++i) {
-        if (best[s[i] - 'a'] == -1) {
-            best[s[i] - 'a'] = i;
-        }
+        ans[s[i] - 'a'].insert(i);
     }
 
+    return ans;
+}
+
+string solve(const string &s) {
     string ans;
-    int last = INT_MIN;
+    vector<bool> used(AZ, false);
+    const auto indices_by_char = gather_char_indices(s);
 
-    for (int i = SZ - 1; i >= 0; --i) {
-        if (best[i] == -1) continue;
+    for (int last_index = -1;;) {
+        bool appended = false;
 
-        if (best[i] > last) {
-            ans += static_cast<char>('a' + i);
-            last = best[i];
+        for (auto cit = indices_by_char.crbegin();
+             cit != indices_by_char.crend(); ++cit) {
+            const char c = 'z' - distance(indices_by_char.crbegin(), cit);
+            if (used[c - 'a']) continue;
+
+            const auto iit = cit->upper_bound(last_index);
+            if (iit == cit->cend()) continue;
+
+            ans += c;
+            used[c - 'a'] = true;
+            last_index = *iit;
+            appended = true;
+            break;
         }
+
+        if (!appended) break;
     }
 
     return ans;
