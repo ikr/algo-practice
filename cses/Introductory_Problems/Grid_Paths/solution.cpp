@@ -28,13 +28,13 @@ constexpr pair<int, int> delta(const char dir) {
     }
 }
 
-constexpr bool in_bounds(const pair<int, int> coord) {
+constexpr bool in_bounds(const pair<int, int> &coord) {
     const auto [ro, co] = coord;
     return ro >= 0 && ro <= RO_MAX && co >= 0 && co <= CO_MAX;
 }
 
 constexpr bool is_possible(const vector<vector<bool>> &covered,
-                           const pair<int, int> coord) {
+                           const pair<int, int> &coord) {
     const auto [ro, co] = coord;
     return in_bounds(coord) && !covered[ro][co];
 }
@@ -46,7 +46,7 @@ int matching_paths_count(const string &pattern) {
     function<void(int, pair<int, int>)> recur;
 
     recur = [&recur, &pattern, &ans, &covered](const int i,
-                                               const pair<int, int> coord) {
+                                               const pair<int, int> &coord) {
         if (coord == DEST_COORD) {
             if (i == DEST_I) ++ans;
             return;
