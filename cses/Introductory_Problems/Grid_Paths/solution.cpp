@@ -12,12 +12,6 @@ constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
     return {lhs.first + rhs.first, lhs.second + rhs.second};
 }
 
-template <typename T1, typename T2> struct PairHash final {
-    size_t operator()(const pair<T1, T2> &p) const {
-        return 31 * hash<T1>{}(p.first) + hash<T2>{}(p.second);
-    }
-};
-
 constexpr pair<int, int> delta(const char dir) {
     switch (dir) {
     case 'U':
@@ -39,14 +33,15 @@ constexpr bool in_bounds(const pair<int, int> coord) {
     return ro >= 0 && ro <= RO_MAX && co >= 0 && co <= CO_MAX;
 }
 
-constexpr bool
-is_possible(const unordered_set<pair<int, int>, PairHash<int, int>> &covered,
-            const pair<int, int> coord) {
-    return in_bounds(coord) && !covered.count(coord);
+constexpr bool is_possible(const vector<vector<bool>> &covered,
+                           const pair<int, int> coord) {
+    const auto [ro, co] = coord;
+    return in_bounds(coord) && !covered[ro][co];
 }
 
 int matching_paths_count(const string &pattern) {
-    unordered_set<pair<int, int>, PairHash<int, int>> covered{{0, 0}};
+    vector<vector<bool>> covered(RO_MAX + 1, vector<bool>(CO_MAX + 1, false));
+    covered[0][0] = true;
     int ans = 0;
     function<void(int, pair<int, int>)> recur;
 
@@ -93,9 +88,9 @@ int matching_paths_count(const string &pattern) {
                 break;
             }
 
-            covered.insert(coord_prime);
+            covered[coord_prime.first][coord_prime.second] = true;
             recur(i + 1, coord_prime);
-            covered.erase(coord_prime);
+            covered[coord_prime.first][coord_prime.second] = false;
         }
     };
 
