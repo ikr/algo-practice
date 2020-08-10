@@ -57,35 +57,17 @@ int matching_paths_count(const string &pattern) {
 
             if (!is_possible(covered, coord_prime)) continue;
 
-            switch (dir) {
-            case 'U':
-                if (!is_possible(covered, coord_prime + delta('U')) &&
-                    is_possible(covered, coord_prime + delta('L')) &&
-                    is_possible(covered, coord_prime + delta('R')))
-                    continue;
-                break;
+            if ((dir == 'U' || dir == 'D') &&
+                !is_possible(covered, coord_prime + delta(dir)) &&
+                is_possible(covered, coord_prime + delta('L')) &&
+                is_possible(covered, coord_prime + delta('R')))
+                continue;
 
-            case 'D':
-                if (!is_possible(covered, coord_prime + delta('D')) &&
-                    is_possible(covered, coord_prime + delta('L')) &&
-                    is_possible(covered, coord_prime + delta('R')))
-                    continue;
-                break;
-
-            case 'L':
-                if (!is_possible(covered, coord_prime + delta('L')) &&
-                    is_possible(covered, coord_prime + delta('U')) &&
-                    is_possible(covered, coord_prime + delta('D')))
-                    continue;
-                break;
-
-            case 'R':
-                if (!is_possible(covered, coord_prime + delta('R')) &&
-                    is_possible(covered, coord_prime + delta('U')) &&
-                    is_possible(covered, coord_prime + delta('D')))
-                    continue;
-                break;
-            }
+            if ((dir == 'L' || dir == 'R') &&
+                !is_possible(covered, coord_prime + delta(dir)) &&
+                is_possible(covered, coord_prime + delta('U')) &&
+                is_possible(covered, coord_prime + delta('D')))
+                continue;
 
             covered[coord_prime.first][coord_prime.second] = true;
             recur(i + 1, coord_prime);
