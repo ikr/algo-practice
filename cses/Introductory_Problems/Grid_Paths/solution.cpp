@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 using namespace std;
-using vc = vector<char>;
 
 static constexpr int RO_MAX = 6;
 static constexpr int CO_MAX = 6;
@@ -53,7 +52,7 @@ int matching_paths_count(const string &pattern) {
         }
 
         for (const auto dir :
-             pattern[i] == '?' ? vc{'U', 'D', 'L', 'R'} : vc{pattern[i]}) {
+             pattern[i] == '?' ? string("UDLR") : string(1, pattern[i])) {
             const auto coord_prime = coord + delta(dir);
 
             if (!is_possible(covered, coord_prime)) continue;
