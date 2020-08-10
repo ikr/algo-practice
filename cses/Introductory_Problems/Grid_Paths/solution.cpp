@@ -4,7 +4,7 @@ using namespace std;
 static constexpr int RO_MAX = 6;
 static constexpr int CO_MAX = 6;
 static constexpr int DEST_I = (RO_MAX + 1) * (CO_MAX + 1) - 1;
-static constexpr pair<int, int> DEST_COORD{6, 0};
+static constexpr pair<int, int> DEST_COORD{RO_MAX, 0};
 
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
