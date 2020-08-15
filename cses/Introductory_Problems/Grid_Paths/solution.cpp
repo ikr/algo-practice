@@ -10,8 +10,9 @@ static constexpr pair<int, int> UP{-1, 0};
 static constexpr pair<int, int> DOWN{1, 0};
 static constexpr pair<int, int> LEFT{0, -1};
 static constexpr pair<int, int> RIGHT{0, 1};
+static constexpr pair<int, int> ZERO{0, 0};
 
-constexpr pair<int, int> delta(const char dir) {
+constexpr const pair<int, int> &delta(const char dir) {
     switch (dir) {
     case 'U':
         return UP;
@@ -23,7 +24,7 @@ constexpr pair<int, int> delta(const char dir) {
         return RIGHT;
     default:
         assert(false && "Invalid direction char");
-        return {0, 0};
+        return ZERO;
     }
 }
 
@@ -36,54 +37,50 @@ constexpr bool is_possible(const vector<vector<bool>> &covered, const int ro,
     return in_bounds(ro, co) && !covered[ro][co];
 }
 
+void recur(const string &pattern, int &ans, vector<vector<bool>> &covered,
+           const int i, const int ro, const int co) {
+    if (ro == RO_MAX && co == 0) {
+        if (i == DEST_I) ++ans;
+        return;
+    }
+
+    for (const auto dir :
+         pattern[i] == '?' ? ALL_DIRS : string(1, pattern[i])) {
+        const auto [delta_ro, delta_co] = delta(dir);
+        const int ro_prime = ro + delta_ro;
+        const int co_prime = co + delta_co;
+
+        if (!is_possible(covered, ro_prime, co_prime)) continue;
+
+        if (!is_possible(covered, ro_prime + delta_ro, co_prime + delta_co)) {
+            switch (dir) {
+            case 'U':
+            case 'D':
+                if (is_possible(covered, ro_prime, co_prime - 1) &&
+                    is_possible(covered, ro_prime, co_prime + 1))
+                    continue;
+                break;
+
+            case 'L':
+            case 'R':
+                if (is_possible(covered, ro_prime - 1, co_prime) &&
+                    is_possible(covered, ro_prime + 1, co_prime))
+                    continue;
+                break;
+            }
+        }
+
+        covered[ro_prime][co_prime] = true;
+        recur(pattern, ans, covered, i + 1, ro_prime, co_prime);
+        covered[ro_prime][co_prime] = false;
+    }
+}
+
 int matching_paths_count(const string &pattern) {
     vector<vector<bool>> covered(RO_MAX + 1, vector<bool>(CO_MAX + 1, false));
     covered[0][0] = true;
     int ans = 0;
-    function<void(int, int, int)> recur;
-
-    recur = [&recur, &pattern, &ans, &covered](const int i, const int ro,
-                                               const int co) {
-        if (ro == RO_MAX && co == 0) {
-            if (i == DEST_I) ++ans;
-            return;
-        }
-
-        for (const auto dir :
-             pattern[i] == '?' ? ALL_DIRS : string(1, pattern[i])) {
-            const auto [delta_ro, delta_co] = delta(dir);
-            const int ro_prime = ro + delta_ro;
-            const int co_prime = co + delta_co;
-
-            if (!is_possible(covered, ro_prime, co_prime)) continue;
-
-            if (!is_possible(covered, ro_prime + delta_ro,
-                             co_prime + delta_co)) {
-                switch (dir) {
-                case 'U':
-                case 'D':
-                    if (is_possible(covered, ro_prime, co_prime - 1) &&
-                        is_possible(covered, ro_prime, co_prime + 1))
-                        continue;
-                    break;
-
-                case 'L':
-                case 'R':
-                    if (is_possible(covered, ro_prime - 1, co_prime) &&
-                        is_possible(covered, ro_prime + 1, co_prime))
-                        continue;
-                    break;
-                }
-            }
-
-            covered[ro_prime][co_prime] = true;
-            recur(i + 1, ro_prime, co_prime);
-            covered[ro_prime][co_prime] = false;
-        }
-    };
-
-    recur(0, 0, 0);
-
+    recur(pattern, ans, covered,0, 0, 0);
     return ans;
 }
 
