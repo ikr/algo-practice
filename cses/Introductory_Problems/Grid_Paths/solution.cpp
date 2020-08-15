@@ -54,15 +54,21 @@ int matching_paths_count(const string &pattern) {
 
             if (!is_possible(covered, ro_prime + delta_ro,
                              co_prime + delta_co)) {
-                if ((dir == 'U' || dir == 'D') &&
-                    is_possible(covered, ro_prime, co_prime - 1) &&
-                    is_possible(covered, ro_prime, co_prime + 1))
-                    continue;
+                switch (dir) {
+                case 'U':
+                case 'D':
+                    if (is_possible(covered, ro_prime, co_prime - 1) &&
+                        is_possible(covered, ro_prime, co_prime + 1))
+                        continue;
+                    break;
 
-                if ((dir == 'L' || dir == 'R') &&
-                    is_possible(covered, ro_prime - 1, co_prime) &&
-                    is_possible(covered, ro_prime + 1, co_prime))
-                    continue;
+                case 'L':
+                case 'R':
+                    if (is_possible(covered, ro_prime - 1, co_prime) &&
+                        is_possible(covered, ro_prime + 1, co_prime))
+                        continue;
+                    break;
+                }
             }
 
             covered[ro_prime][co_prime] = true;
