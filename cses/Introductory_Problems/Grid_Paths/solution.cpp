@@ -80,7 +80,7 @@ int matching_paths_count(const string &pattern) {
     vector<vector<bool>> covered(RO_MAX + 1, vector<bool>(CO_MAX + 1, false));
     covered[0][0] = true;
     int ans = 0;
-    recur(pattern, ans, covered,0, 0, 0);
+    recur(pattern, ans, covered, 0, 0, 0);
     return ans;
 }
 
