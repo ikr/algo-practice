@@ -6,16 +6,21 @@ static constexpr int CO_MAX = 6;
 static constexpr int DEST_I = (RO_MAX + 1) * (CO_MAX + 1) - 1;
 static const string ALL_DIRS{"UDLR"};
 
+static constexpr pair<int, int> UP{-1, 0};
+static constexpr pair<int, int> DOWN{1, 0};
+static constexpr pair<int, int> LEFT{0, -1};
+static constexpr pair<int, int> RIGHT{0, 1};
+
 constexpr pair<int, int> delta(const char dir) {
     switch (dir) {
     case 'U':
-        return {-1, 0};
+        return UP;
     case 'D':
-        return {1, 0};
+        return DOWN;
     case 'L':
-        return {0, -1};
+        return LEFT;
     case 'R':
-        return {0, 1};
+        return RIGHT;
     default:
         assert(false && "Invalid direction char");
         return {0, 0};
