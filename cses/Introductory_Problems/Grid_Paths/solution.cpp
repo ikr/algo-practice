@@ -4,12 +4,7 @@ using namespace std;
 static constexpr int RO_MAX = 6;
 static constexpr int CO_MAX = 6;
 static constexpr int DEST_I = (RO_MAX + 1) * (CO_MAX + 1) - 1;
-static constexpr pair<int, int> DEST_COORD{RO_MAX, 0};
-
-template <typename T>
-constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
-    return {lhs.first + rhs.first, lhs.second + rhs.second};
-}
+static const string ALL_DIRS{"UDLR"};
 
 constexpr pair<int, int> delta(const char dir) {
     switch (dir) {
@@ -27,55 +22,56 @@ constexpr pair<int, int> delta(const char dir) {
     }
 }
 
-constexpr bool in_bounds(const pair<int, int> &coord) {
-    const auto [ro, co] = coord;
+constexpr bool in_bounds(const int ro, const int co) {
     return ro >= 0 && ro <= RO_MAX && co >= 0 && co <= CO_MAX;
 }
 
-constexpr bool is_possible(const vector<vector<bool>> &covered,
-                           const pair<int, int> &coord) {
-    const auto [ro, co] = coord;
-    return in_bounds(coord) && !covered[ro][co];
+constexpr bool is_possible(const vector<vector<bool>> &covered, const int ro,
+                           const int co) {
+    return in_bounds(ro, co) && !covered[ro][co];
 }
 
 int matching_paths_count(const string &pattern) {
     vector<vector<bool>> covered(RO_MAX + 1, vector<bool>(CO_MAX + 1, false));
     covered[0][0] = true;
     int ans = 0;
-    function<void(int, pair<int, int>)> recur;
+    function<void(int, int, int)> recur;
 
-    recur = [&recur, &pattern, &ans, &covered](const int i,
-                                               const pair<int, int> &coord) {
-        if (coord == DEST_COORD) {
+    recur = [&recur, &pattern, &ans, &covered](const int i, const int ro,
+                                               const int co) {
+        if (ro == RO_MAX && co == 0) {
             if (i == DEST_I) ++ans;
             return;
         }
 
         for (const auto dir :
-             pattern[i] == '?' ? string("UDLR") : string(1, pattern[i])) {
-            const auto coord_prime = coord + delta(dir);
+             pattern[i] == '?' ? ALL_DIRS : string(1, pattern[i])) {
+            const auto [delta_ro, delta_co] = delta(dir);
+            const int ro_prime = ro + delta_ro;
+            const int co_prime = co + delta_co;
 
-            if (!is_possible(covered, coord_prime)) continue;
+            if (!is_possible(covered, ro_prime, co_prime)) continue;
 
-            if ((dir == 'U' || dir == 'D') &&
-                !is_possible(covered, coord_prime + delta(dir)) &&
-                is_possible(covered, coord_prime + delta('L')) &&
-                is_possible(covered, coord_prime + delta('R')))
-                continue;
+            if (!is_possible(covered, ro_prime + delta_ro,
+                             co_prime + delta_co)) {
+                if ((dir == 'U' || dir == 'D') &&
+                    is_possible(covered, ro_prime, co_prime - 1) &&
+                    is_possible(covered, ro_prime, co_prime + 1))
+                    continue;
 
-            if ((dir == 'L' || dir == 'R') &&
-                !is_possible(covered, coord_prime + delta(dir)) &&
-                is_possible(covered, coord_prime + delta('U')) &&
-                is_possible(covered, coord_prime + delta('D')))
-                continue;
+                if ((dir == 'L' || dir == 'R') &&
+                    is_possible(covered, ro_prime - 1, co_prime) &&
+                    is_possible(covered, ro_prime + 1, co_prime))
+                    continue;
+            }
 
-            covered[coord_prime.first][coord_prime.second] = true;
-            recur(i + 1, coord_prime);
-            covered[coord_prime.first][coord_prime.second] = false;
+            covered[ro_prime][co_prime] = true;
+            recur(i + 1, ro_prime, co_prime);
+            covered[ro_prime][co_prime] = false;
         }
     };
 
-    recur(0, {0, 0});
+    recur(0, 0, 0);
 
     return ans;
 }
