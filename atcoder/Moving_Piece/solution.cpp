@@ -3,6 +3,22 @@
 using namespace std;
 using ll = long long;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 vector<int> reverse_permutation(const vector<int> &ps) {
     const int n = ps.size();
     vector<int> ans(n, 0);
@@ -16,10 +32,7 @@ vector<int> reverse_permutation(const vector<int> &ps) {
 
 ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
     const int n = xs.size();
-    const int r = k % n;
-    const int q = k / n;
-
-    ll ans = q ? q * accumulate(xs.cbegin(), xs.cend(), 0LL, plus<ll>{}) : 0LL;
+    const int r = min(n + 1, k);
 
     const auto rps = reverse_permutation(ps);
 
@@ -32,14 +45,16 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
         }
     }
 
-    ll addition = 0;
+    cout << dp << '\n';
+
+    ll ans = INT_MIN;
     for (const auto &row : dp) {
-        for (const auto score : row) {
-            addition = max(addition, score);
+        for (int j = 1; j <= r; ++j) {
+            ans = max(ans, row[j]);
         }
     }
 
-    return ans + addition;
+    return ans;
 }
 
 int main() {
