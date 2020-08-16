@@ -22,25 +22,20 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
     ll ans = q ? q * accumulate(xs.cbegin(), xs.cend(), 0LL, plus<ll>{}) : 0LL;
 
     const auto rps = reverse_permutation(ps);
-    vector<vector<pair<int, ll>>> dp(
-        n, vector<pair<int, ll>>(r + 1, {0, LONG_LONG_MIN}));
 
-    for (int i = 0; i < n; ++i) {
-        dp[i][0] = {i, 0};
-    }
+    // Score, when [standing at square i] after [exactly j moves used]
+    vector<vector<ll>> dp(n, vector<ll>(r + 1, 0));
 
     for (int j = 1; j <= r; ++j) {
         for (int i = 0; i < n; ++i) {
-            const int idx = ps[dp[rps[i]][j - 1].first];
-            const ll score = dp[rps[i]][j - 1].second + xs[ps[i]];
-            dp[i][j] = {idx, score};
+            dp[i][j] = dp[rps[i]][j - 1] + xs[i];
         }
     }
 
     ll addition = 0;
     for (const auto &row : dp) {
-        for (const auto p : row) {
-            addition = max(addition, p.second);
+        for (const auto score : row) {
+            addition = max(addition, score);
         }
     }
 
