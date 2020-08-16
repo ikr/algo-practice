@@ -3,22 +3,6 @@
 using namespace std;
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 vector<int> reverse_permutation(const vector<int> &ps) {
     const int n = ps.size();
     vector<int> ans(n, 0);
@@ -30,31 +14,48 @@ vector<int> reverse_permutation(const vector<int> &ps) {
     return ans;
 }
 
+ll circuits_score(const vector<int> &xs, const ll k) {
+    const ll n = xs.size();
+
+    if (k / n) {
+        const ll s = accumulate(xs.cbegin(), xs.cend(), 0LL, plus<ll>{});
+        if (s > 0) return s * (k / n);
+    }
+
+    return 0;
+}
+
 ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
     const int n = xs.size();
-    const int r = min(n + 1, k);
 
     const auto rps = reverse_permutation(ps);
 
     // Score, when [standing at square i] after [exactly j moves used]
-    vector<vector<ll>> dp(n, vector<ll>(r + 1, 0));
+    vector<vector<ll>> dp(n, vector<ll>(n, 0));
 
-    for (int j = 1; j <= r; ++j) {
+    for (int j = 1; j < n; ++j) {
         for (int i = 0; i < n; ++i) {
             dp[i][j] = dp[rps[i]][j - 1] + xs[i];
         }
     }
 
-    cout << dp << '\n';
-
-    ll ans = INT_MIN;
+    ll a1 = LONG_LONG_MIN;
+    ll a2 = LONG_LONG_MIN;
     for (const auto &row : dp) {
-        for (int j = 1; j <= r; ++j) {
-            ans = max(ans, row[j]);
+        for (int j = 1; j <= min(k, n - 1); ++j) {
+            a1 = max(a1, row[j]);
+        }
+
+        for (int j = 1; j <= k % n; ++j) {
+            a2 = max(a2, row[j]);
         }
     }
 
-    return ans;
+    if (a1 != LONG_LONG_MIN && a2 != LONG_LONG_MIN) {
+        return max(a1, a2 + circuits_score(xs, k));
+    }
+
+    return a1 != LONG_LONG_MIN ? a1 : a2;
 }
 
 int main() {
