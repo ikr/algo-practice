@@ -26,7 +26,7 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
         n, vector<pair<int, ll>>(r + 1, {0, LONG_LONG_MIN}));
 
     for (int i = 0; i < n; ++i) {
-        dp[i][0] = {i, LONG_LONG_MIN};
+        dp[i][0] = {i, 0};
     }
 
     for (int j = 1; j <= r; ++j) {
