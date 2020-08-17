@@ -51,6 +51,8 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
         }
     }
 
+    cout << "cs:" << circuits_score(xs, k) << '\n';
+
     if (a1 != LONG_LONG_MIN && a2 != LONG_LONG_MIN) {
         return max(a1, a2 + circuits_score(xs, k));
     }
