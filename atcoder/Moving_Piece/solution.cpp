@@ -1,7 +1,22 @@
 #include <bits/stdc++.h>
-#include <climits>
 using namespace std;
 using ll = long long;
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
 
 vector<int> reverse_permutation(const vector<int> &ps) {
     const int n = ps.size();
@@ -14,18 +29,7 @@ vector<int> reverse_permutation(const vector<int> &ps) {
     return ans;
 }
 
-ll circuits_score(const vector<int> &xs, const ll k) {
-    const ll n = xs.size();
-
-    if (k / n) {
-        const ll s = accumulate(xs.cbegin(), xs.cend(), 0LL, plus<ll>{});
-        if (s > 0) return s * (k / n);
-    }
-
-    return 0;
-}
-
-ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
+vector<ll> max_score_by_moves(const vector<int> &ps, const vector<int> &xs) {
     const int n = xs.size();
 
     const auto rps = reverse_permutation(ps);
@@ -39,25 +43,48 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
         }
     }
 
-    ll a1 = LONG_LONG_MIN;
-    ll a2 = LONG_LONG_MIN;
-    for (const auto &row : dp) {
-        for (int j = 1; j <= min(k, n - 1); ++j) {
-            a1 = max(a1, row[j]);
-        }
+    vector<ll> ans(n, LONG_LONG_MIN);
+    ans[0] = 0;
 
-        for (int j = 1; j <= k % n; ++j) {
-            a2 = max(a2, row[j]);
+    for (int j = 1; j < n; ++j) {
+        for (int i = 0; i < n; ++i) {
+            ans[j] = max(ans[j], dp[i][j]);
         }
     }
 
-    cout << "cs:" << circuits_score(xs, k) << '\n';
+    return ans;
+}
 
-    if (a1 != LONG_LONG_MIN && a2 != LONG_LONG_MIN) {
-        return max(a1, a2 + circuits_score(xs, k));
+vector<vector<int>> gather_cycles(const vector<int> &ps) {
+    const int n = ps.size();
+    vector<vector<int>> ans;
+    vector<bool> discovered(n, false);
+    vector<int> curr;
+
+    function<void(int)> dfs;
+    dfs = [&dfs, &ans, &curr, &discovered, &ps](const int x) {
+        discovered[x] = true;
+        curr.push_back(x);
+        const int y = ps[x];
+
+        if (discovered[y]) {
+            ans.push_back(curr);
+            curr.clear();
+        } else {
+            dfs(y);
+        }
+    };
+
+    for (const auto x : ps) {
+        if (!discovered[x]) dfs(x);
     }
 
-    return a1 != LONG_LONG_MIN ? a1 : a2;
+    return ans;
+}
+
+ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
+    cout << gather_cycles(ps) << '\n';
+    return 0;
 }
 
 int main() {
