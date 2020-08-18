@@ -18,6 +18,12 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     return os;
 }
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 vector<int> reverse_permutation(const vector<int> &ps) {
     const int n = ps.size();
     vector<int> ans(n, 0);
@@ -82,9 +88,60 @@ vector<vector<int>> gather_cycles(const vector<int> &ps) {
     return ans;
 }
 
+ll total_score(const vector<int> &xs, const vector<int> &indices) {
+    ll ans = 0;
+    for (const auto i : indices) ans += xs[i];
+    return ans;
+}
+
+optional<pair<int, ll>> best_fitting_positive_cycle_length_and_score(
+    const vector<int> &ps, const vector<int> &xs, const int k) {
+    optional<pair<int, ll>> ans = nullopt;
+    const auto cycles = gather_cycles(ps);
+
+    for (const auto &ys : cycles) {
+        const int sz = ys.size();
+        if (k < sz) continue;
+
+        const auto ys_score = total_score(xs, ys);
+        if (ys_score <= 0) continue;
+
+        if (!ans) {
+            ans = {sz, ys_score};
+            continue;
+        }
+
+        const ll champion = k / ans->first * ans->second;
+        const ll candidate = k / sz * ys_score;
+
+        if (candidate > champion) ans = {sz, ys_score};
+    }
+
+    return ans;
+}
+
 ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
-    cout << gather_cycles(ps) << '\n';
-    return 0;
+    const int n = xs.size();
+    const auto sm = max_score_by_moves(ps, xs);
+
+    const auto circuit =
+        best_fitting_positive_cycle_length_and_score(ps, xs, k);
+
+    if (!circuit) {
+        return *max_element(sm.cbegin(), sm.cbegin() + min(k + 1, n));
+    } else {
+        const auto [c_size, c_score] = *circuit;
+        const int limitA = k % c_size + 1;
+        const int limitB = min(k - (k / c_size - 1) * c_size + 1, n);
+
+        cout << "circuit:" << *circuit << " limitA:" << limitA
+             << " limitB:" << limitB << endl;
+
+        return max(k / c_size * c_score +
+                       *max_element(sm.cbegin(), sm.cbegin() + limitA),
+                   (k / c_size - 1) * c_score +
+                       *max_element(sm.cbegin(), sm.cbegin() + limitB));
+    }
 }
 
 int main() {
