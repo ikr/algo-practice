@@ -112,11 +112,9 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
 
         if (k % c_size == 0) {
             const int limit = c_size + 1;
-            return max(
-                {*max_element(sm.cbegin() + 1, sm.cbegin() + min(k + 1, n + 1)),
-                 k / c_size * c_score,
-                 (k / c_size - 1) * c_score +
-                     *max_element(sm.cbegin() + 1, sm.cbegin() + limit)});
+            return max(k / c_size * c_score,
+                       (k / c_size - 1) * c_score +
+                           *max_element(sm.cbegin() + 1, sm.cbegin() + limit));
         } else {
             const int limit = k % c_size + 1;
             return k / c_size * c_score +
