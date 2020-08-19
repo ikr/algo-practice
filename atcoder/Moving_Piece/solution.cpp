@@ -109,13 +109,17 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
         return *max_element(sm.cbegin() + 1, sm.cbegin() + min(k + 1, n));
     } else {
         const auto [c_size, c_score] = *circuit;
-        const int limitA = k % c_size + 1;
-        const int limitB = min(k - (k / c_size - 1) * c_size + 1, n);
 
-        return max(k / c_size * c_score +
-                       *max_element(sm.cbegin() + 1, sm.cbegin() + limitA),
-                   (k / c_size - 1) * c_score +
-                       *max_element(sm.cbegin() + 1, sm.cbegin() + limitB));
+        if (k % c_size == 0) {
+            const int limit = c_size + 1;
+            return max(k / c_size * c_score,
+                       (k / c_size - 1) * c_score +
+                           *max_element(sm.cbegin() + 1, sm.cbegin() + limit));
+        } else {
+            const int limit = k % c_size + 1;
+            return k / c_size * c_score +
+                   *max_element(sm.cbegin() + 1, sm.cbegin() + limit);
+        }
     }
 }
 
