@@ -19,18 +19,18 @@ vector<ll> max_score_by_moves(const vector<int> &ps, const vector<int> &xs) {
     const auto rps = reverse_permutation(ps);
 
     // Score, when [standing at square i] after [exactly j moves used]
-    vector<vector<ll>> dp(n, vector<ll>(n, 0));
+    vector<vector<ll>> dp(n, vector<ll>(n + 1, 0));
 
-    for (int j = 1; j < n; ++j) {
+    for (int j = 1; j <= n; ++j) {
         for (int i = 0; i < n; ++i) {
             dp[i][j] = dp[rps[i]][j - 1] + xs[i];
         }
     }
 
-    vector<ll> ans(n, LONG_LONG_MIN);
+    vector<ll> ans(n + 1, LONG_LONG_MIN);
     ans[0] = 0;
 
-    for (int j = 1; j < n; ++j) {
+    for (int j = 1; j <= n; ++j) {
         for (int i = 0; i < n; ++i) {
             ans[j] = max(ans[j], dp[i][j]);
         }
@@ -106,7 +106,7 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
         best_fitting_positive_cycle_length_and_score(ps, xs, k);
 
     if (!circuit) {
-        return *max_element(sm.cbegin() + 1, sm.cbegin() + min(k + 1, n));
+        return *max_element(sm.cbegin() + 1, sm.cbegin() + min(k + 1, n + 1));
     } else {
         const auto [c_size, c_score] = *circuit;
 
