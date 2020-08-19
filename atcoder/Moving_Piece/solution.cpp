@@ -2,28 +2,6 @@
 using namespace std;
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
 vector<int> reverse_permutation(const vector<int> &ps) {
     const int n = ps.size();
     vector<int> ans(n, 0);
@@ -128,19 +106,16 @@ ll max_score(const vector<int> &ps, const vector<int> &xs, const int k) {
         best_fitting_positive_cycle_length_and_score(ps, xs, k);
 
     if (!circuit) {
-        return *max_element(sm.cbegin(), sm.cbegin() + min(k + 1, n));
+        return *max_element(sm.cbegin() + 1, sm.cbegin() + min(k + 1, n));
     } else {
         const auto [c_size, c_score] = *circuit;
         const int limitA = k % c_size + 1;
         const int limitB = min(k - (k / c_size - 1) * c_size + 1, n);
 
-        cout << "circuit:" << *circuit << " limitA:" << limitA
-             << " limitB:" << limitB << endl;
-
         return max(k / c_size * c_score +
-                       *max_element(sm.cbegin(), sm.cbegin() + limitA),
+                       *max_element(sm.cbegin() + 1, sm.cbegin() + limitA),
                    (k / c_size - 1) * c_score +
-                       *max_element(sm.cbegin(), sm.cbegin() + limitB));
+                       *max_element(sm.cbegin() + 1, sm.cbegin() + limitB));
     }
 }
 
