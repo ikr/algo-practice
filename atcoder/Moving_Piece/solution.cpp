@@ -15,7 +15,6 @@ vector<int> reverse_permutation(const vector<int> &ps) {
 
 vector<ll> max_score_by_moves(const vector<int> &ps, const vector<int> &xs) {
     const int n = xs.size();
-
     const auto rps = reverse_permutation(ps);
 
     // Score, when [standing at square i] after [exactly j moves used]
