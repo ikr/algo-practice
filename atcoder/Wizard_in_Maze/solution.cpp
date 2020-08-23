@@ -1,5 +1,4 @@
 #include <bits/stdc++.h>
-#include <iterator>
 using namespace std;
 using pi = pair<int, int>;
 
@@ -45,11 +44,11 @@ vector<vector<int>> mark_components(const vector<string> &rows) {
     return ans;
 }
 
-unordered_multimap<int, int>
+unordered_map<int, unordered_set<int>>
 build_componenets_graph(const vector<vector<int>> &comp) {
     const int H = comp.size();
     const int W = comp[0].size();
-    unordered_multimap<int, int> ans;
+    unordered_map<int, unordered_set<int>> ans;
     const set<pi> adj{{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
     for (int ro = 0; ro < H; ++ro) {
@@ -66,8 +65,8 @@ build_componenets_graph(const vector<vector<int>> &comp) {
                     const pi d{dro, dco};
                     if (adj.count(d)) continue;
 
-                    ans.emplace(comp[ro][co], comp[ro + dro][co + dco]);
-                    ans.emplace(comp[ro + dro][co + dco], comp[ro][co]);
+                    ans[comp[ro][co]].insert(comp[ro + dro][co + dco]);
+                    ans[comp[ro + dro][co + dco]].insert(comp[ro][co]);
                 }
             }
         }
@@ -124,6 +123,7 @@ int min_warps(const vector<string> &rows, const pi s, const pi t) {
         const int initial_warps = rows[s.first][s.second] == '#' ? 1 : 0;
         if (c == tcomp) return initial_warps;
         ans[c] = initial_warps;
+        q.push(c);
     }
 
     while (!q.empty()) {
@@ -131,9 +131,9 @@ int min_warps(const vector<string> &rows, const pi s, const pi t) {
         q.pop();
         assert(ans.count(u));
 
-        const auto [first, last] = g.equal_range(u);
-        for (auto it = first; it != last; ++it) {
-            const int v = it->second;
+        if (!g.count(u)) continue;
+        const auto &vs = g.at(u);
+        for (const auto v : vs) {
             if (ans.count(v)) continue;
             ans[v] = ans[u] + 1;
             q.push(v);
