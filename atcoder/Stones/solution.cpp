@@ -2,26 +2,19 @@
 using namespace std;
 
 bool first_wins(const vector<int> &xs, const int k) {
-    const int n = xs.size();
-
-    // winning on [i stones] using pull-numbers [up to index j]
-    vector<vector<bool>> dp(k + 1, vector(n, false));
+    // winning on [i stones]
+    vector<bool> dp(k + 1, false);
 
     for (int i = 1; i <= k; ++i) {
-        const int x = xs[0];
-        dp[i][0] = (i / x) % 2 == 1;
-    }
-
-    for (int j = 1; j < n; ++j) {
-        for (int i = 1; i <= k; ++i) {
-            const int x = xs[j];
-
-            dp[i][j] =
-                i - x >= 0 ? !dp[i - x][j] || dp[i][j - 1] : dp[i][j - 1];
+        for (const auto x : xs) {
+            if (i - x >= 0 && !dp[i - x]) {
+                dp[i] = true;
+                break;
+            }
         }
     }
 
-    return dp[k][n - 1];
+    return dp[k];
 }
 
 int main() {
