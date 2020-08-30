@@ -18,7 +18,7 @@ double solve(vector<int> xs, const int d) {
     sort(begin(xs), end(xs));
 
     double lo = 0;
-    double hi = 1e9;
+    double hi = 1e10;
     double mid = -1;
 
     for (int i = 0; i < 100; ++i) {
@@ -36,7 +36,7 @@ double solve(vector<int> xs, const int d) {
 int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
-    cout.precision(15);
+    cout << setprecision(6) << fixed;
 
     int t;
     cin >> t;
