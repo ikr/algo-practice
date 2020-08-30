@@ -1,13 +1,36 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
-double solve(const vector<int> &xs, const int d) {
+bool can_hit_all(const vector<int> &xs, const int d, const double c) {
     const int n = xs.size();
-    const auto [lo, hi] = minmax_element(cbegin(xs), cend(xs));
+    double p = xs[0] + c;
 
-    const double span = *hi - *lo;
-    return (span + d) / n;
+    for (int i = 1; i < n; ++i) {
+        p = max(p, static_cast<double>(xs[i]));
+        if (p > xs[i] + d) return false;
+        p += c;
+    }
+
+    return true;
+}
+
+double solve(vector<int> xs, const int d) {
+    sort(begin(xs), end(xs));
+
+    double lo = 0;
+    double hi = 1e9;
+    double mid = -1;
+
+    for (int i = 0; i < 100; ++i) {
+        mid = lo + (hi - lo) / 2.0;
+
+        if (can_hit_all(xs, d, mid))
+            lo = mid;
+        else
+            hi = mid;
+    }
+
+    return mid;
 }
 
 int main() {
