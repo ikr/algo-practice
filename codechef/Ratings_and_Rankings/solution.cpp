@@ -1,18 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 using pi = pair<int, int>;
+using vi = vector<int>;
+using vvi = vector<vi>;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-vector<pi> gather_sorted_rating_and_player_pairs(const vector<int> &rts) {
+vector<pi> gather_sorted_rating_and_player_pairs(const vi &rts) {
     const int n = rts.size();
     vector<pi> ans(n);
 
@@ -28,11 +20,11 @@ vector<pi> gather_sorted_rating_and_player_pairs(const vector<int> &rts) {
     return ans;
 }
 
-vector<int> gather_ranks(const vector<int> &rts) {
+vi gather_ranks(const vi &rts) {
     const int n = rts.size();
     const auto rt_pls = gather_sorted_rating_and_player_pairs(rts);
 
-    vector<int> ans(n, 0);
+    vi ans(n, 0);
     for (int i = 0, rk = 1, rt = rt_pls[0].first; i < n; ++i) {
         if (rt_pls[i].first != rt) rk = i + 1;
         ans[rt_pls[i].second] = rk;
@@ -42,36 +34,45 @@ vector<int> gather_ranks(const vector<int> &rts) {
     return ans;
 }
 
-int solve(vector<int> rts, const vector<vector<int>> &rows) {
-    const int n = rts.size();
-    const int m = rows[0].size();
-    vector<int> rts_hi = rts;
-    vector<int> rks_hi = gather_ranks(rts);
+int first_best_row(const vvi &rows, const int co,
+                   function<bool(int, int)> cmp) {
+    optional<int> best;
+    int ans = -1;
 
-    unordered_set<int> ans_players;
-
-    for (int i = 0; i < m; ++i) {
-        for (int j = 0; j < n; ++j) {
-            const int d = rows[j][i];
-
-            rts[j] += d;
-            rts_hi[j] = max(rts_hi[j], rts[j]);
-        }
-
-        const auto rks = gather_ranks(rts);
-        for (int j = 0; j < n; ++j) {
-            rks_hi[j] = min(rks_hi[j], rks[j]);
-        }
-
-        for (int j = 0; j < n; ++j) {
-            if ((rts_hi[j] == rts[j] && rks_hi[j] != rks[j]) ||
-                (rks_hi[j] == rks[j] && rts_hi[j] != rts[j])) {
-                ans_players.insert(i);
-            }
+    for (int i = 1; i < static_cast<int>(rows.size()); ++i) {
+        if (!best || cmp(*best, rows[i][co])) {
+            best = rows[i][co];
+            ans = i;
         }
     }
 
-    return ans_players.size();
+    assert(ans >= 0);
+    return ans;
+}
+
+int solve(vi initial_rts, const vvi &deltas_by_player_by_month) {
+    const int n = initial_rts.size();
+    const int m = deltas_by_player_by_month[0].size();
+
+    vvi rts = vvi(m + 1, initial_rts);
+    vvi rks = vvi(m + 1);
+
+    for (int i = 1; i <= m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            rts[i][j] = rts[i - 1][j] + deltas_by_player_by_month[j][i - 1];
+        }
+
+        rks[i] = gather_ranks(rts[i]);
+    }
+
+    int ans = 0;
+    for (int j = 0; j < n; ++j) {
+        if (first_best_row(rts, j, less<int>{}) !=
+            first_best_row(rks, j, greater<int>{})) {
+            ++ans;
+        }
+    }
+    return ans;
 }
 
 int main() {
@@ -84,10 +85,10 @@ int main() {
         int n, m;
         cin >> n >> m;
 
-        vector<int> rts(n, 0);
+        vi rts(n, 0);
         for (auto &rt : rts) cin >> rt;
 
-        vector<vector<int>> rows(n, vector<int>(m, 0));
+        vvi rows(n, vi(m, 0));
         for (auto &ro : rows) {
             for (auto &d : ro) {
                 cin >> d;
