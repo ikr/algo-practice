@@ -1,9 +1,10 @@
+#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
 using Result = string;
 static const Result PAIRWISE{"pairwise coprime"};
-static const Result SETWISE{"pairwise coprime"};
+static const Result SETWISE{"setwise coprime"};
 static const Result NEITHER{"not coprime"};
 static constexpr int N_MAX = 1e6;
 
@@ -14,6 +15,17 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
         os << *i;
     }
     os << ']';
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const unordered_map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
     return os;
 }
 
@@ -60,7 +72,27 @@ vector<int> prime_factors(const vector<bool> &primes,
         if (primes[q]) ans.push_back(q);
     }
 
+    sort(begin(ans), end(ans));
+    ans.erase(unique(begin(ans), end(ans)), cend(ans));
+
     return ans;
+}
+
+bool all_ones(const unordered_map<int, int> &cs) {
+    for (const auto [k, v] : cs) {
+        if (v != 1) return false;
+    }
+
+    return true;
+}
+
+bool an_omnipresent_exists(const int n, const unordered_map<int, int> &cs) {
+    for (const auto [k, v] : cs) {
+        cout << "n:" << n << " v:" << v << '\n';
+        if (v == n) return true;
+    }
+
+    return true;
 }
 
 Result solve(vector<int> xs) {
@@ -79,6 +111,15 @@ Result solve(vector<int> xs) {
             ++cs[p];
         }
     }
+
+    cout << cs << '\n';
+
+    if (original_size != xs.size()) {
+        return an_omnipresent_exists(xs.size(), cs) ? NEITHER : SETWISE;
+    }
+
+    if (all_ones(cs)) return PAIRWISE;
+    return an_omnipresent_exists(xs.size(), cs) ? NEITHER : SETWISE;
 }
 
 int main() {
