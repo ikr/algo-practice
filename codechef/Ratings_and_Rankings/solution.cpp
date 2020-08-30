@@ -1,32 +1,42 @@
 #include <bits/stdc++.h>
-#include <climits>
 using namespace std;
+using pi = pair<int, int>;
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+vector<pi> gather_sorted_rating_and_player_pairs(const vector<int> &rts) {
+    const int n = rts.size();
+    vector<pi> ans(n);
+
+    for (int i = 0; i < n; ++i) {
+        ans[i] = pi{rts[i], i};
+    }
+
+    sort(begin(ans), end(ans), [](const pi lhs, const pi rhs) {
+        return lhs.first == rhs.first ? lhs.second < rhs.second
+                                      : lhs.first > rhs.first;
+    });
+
+    return ans;
+}
 
 vector<int> gather_ranks(const vector<int> &rts) {
     const int n = rts.size();
-    multimap<int, int> players_by_rt;
+    const auto rt_pls = gather_sorted_rating_and_player_pairs(rts);
 
-    for (int i = 0; i < n; ++i) {
-        players_by_rt.emplace(rts[i], i);
-    }
-
-    int prev_rt = INT_MIN;
-    int curr_rk = 0;
-
-    vector<int> ans(n, -1);
-
-    for (auto it = crbegin(players_by_rt); it != crend(players_by_rt); ++it) {
-        const auto [rt, pl] = *it;
-
-        if (prev_rt == INT_MIN) {
-            curr_rk = 1;
-        } else if (prev_rt != rt) {
-            curr_rk = count_if(cbegin(ans), cend(ans),
-                               [](int rt) { return rt != -1; }) +
-                      1;
-        }
-        ans[pl] = curr_rk;
-        prev_rt = rt;
+    vector<int> ans(n, 0);
+    for (int i = 0, rk = 1, rt = rt_pls[0].first; i < n; ++i) {
+        if (rt_pls[i].first != rt) rk = i + 1;
+        ans[rt_pls[i].second] = rk;
+        rt = rt_pls[i].first;
     }
 
     return ans;
