@@ -1,11 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-set<int> gather_span_lengths(const vector<bool> &xs) {
+multiset<int> gather_span_lengths(const vector<bool> &xs) {
     const int n = xs.size();
 
     int start = -1;
-    set<int> ans;
+    multiset<int> ans;
 
     for (int i = 0; i < n; ++i) {
         if (xs[i]) {
@@ -21,7 +21,7 @@ set<int> gather_span_lengths(const vector<bool> &xs) {
     return ans;
 }
 
-bool winning(const set<int> &spans) {
+bool winning(const multiset<int> &spans) {
     if (spans.empty()) return false;
 
     const int hi = *crbegin(spans);
