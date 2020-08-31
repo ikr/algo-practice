@@ -106,6 +106,7 @@ int main() {
     vector<int> xs(n, 0);
     for (auto &x : xs) cin >> x;
 
+    xs.erase(remove(begin(xs), end(xs), 1), cend(xs));
     cout << solve(xs) << '\n';
 
     return 0;
