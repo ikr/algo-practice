@@ -60,14 +60,6 @@ bool all_ones(const unordered_map<int, int> &cs) {
     return true;
 }
 
-bool an_omnipresent_exists(const int n, const unordered_map<int, int> &cs) {
-    for (const auto [k, v] : cs) {
-        if (v == n) return true;
-    }
-
-    return false;
-}
-
 Result solve(vector<int> xs) {
     const auto primes = sieve(N_MAX);
     const auto primes_seq = seq_of(primes, PRIMES_COUNT_UP_TO_N_MAX);
@@ -82,7 +74,11 @@ Result solve(vector<int> xs) {
     }
 
     if (all_ones(cs)) return PAIRWISE;
-    return an_omnipresent_exists(xs.size(), cs) ? NEITHER : SETWISE;
+
+    return reduce(cbegin(xs) + 1, cend(xs), xs[0],
+                  [](const int a, const int b) { return gcd(a, b); }) == 1
+               ? SETWISE
+               : NEITHER;
 }
 
 int main() {
