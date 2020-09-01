@@ -6,6 +6,7 @@ static const Result PAIRWISE{"pairwise coprime"};
 static const Result SETWISE{"setwise coprime"};
 static const Result NEITHER{"not coprime"};
 static constexpr int N_MAX = 1e6;
+static constexpr int PRIMES_COUNT_UP_TO_N_MAX = 78498;
 
 vector<bool> sieve(const int n) {
     vector<bool> ans(n + 1, true);
@@ -21,9 +22,9 @@ vector<bool> sieve(const int n) {
     return ans;
 }
 
-vector<int> seq_of(const vector<bool> &xs) {
+vector<int> seq_of(const vector<bool> &xs, const int expected_count) {
     vector<int> ans;
-    ans.reserve(xs.size() / 3);
+    ans.reserve(expected_count);
 
     for (auto i = 0U; i < xs.size(); ++i) {
         if (xs[i]) ans.push_back(i);
@@ -41,17 +42,12 @@ vector<int> prime_factors(const vector<bool> &primes,
 
     for (const auto p : primes_seq) {
         if (p > sq) break;
-        const int r = x % p;
-        if (r) continue;
+        if (x % p) continue;
 
         ans.push_back(p);
-
         const int q = x / p;
-        if (primes[q]) ans.push_back(q);
+        if (q > sq && primes[q]) ans.push_back(q);
     }
-
-    sort(begin(ans), end(ans));
-    ans.erase(unique(begin(ans), end(ans)), cend(ans));
 
     return ans;
 }
@@ -74,15 +70,14 @@ bool an_omnipresent_exists(const int n, const unordered_map<int, int> &cs) {
 
 Result solve(vector<int> xs) {
     const auto primes = sieve(N_MAX);
-    const auto primes_seq = seq_of(primes);
+    const auto primes_seq = seq_of(primes, PRIMES_COUNT_UP_TO_N_MAX);
+    assert(primes_seq.size() == PRIMES_COUNT_UP_TO_N_MAX);
 
     // Ho many times a prime is a factor of one of the xs
     unordered_map<int, int> cs;
 
     for (const auto x : xs) {
-        for (const auto p : prime_factors(primes, primes_seq, x)) {
-            ++cs[p];
-        }
+        for (const int p : prime_factors(primes, primes_seq, x)) ++cs[p];
     }
 
     if (all_ones(cs)) return PAIRWISE;
