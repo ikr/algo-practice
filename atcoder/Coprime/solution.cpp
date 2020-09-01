@@ -11,9 +11,9 @@ static constexpr int PRIMES_COUNT_UP_TO_N_MAX = 78498;
 vector<bool> sieve(const int n) {
     vector<bool> ans(n + 1, true);
     ans[0] = false;
-    ans[1] = false;
+    if (n) ans[1] = false;
 
-    const int sq = static_cast<int>(sqrt(n));
+    const int sq = sqrt(n);
     for (int i = 2; i <= sq; ++i) {
         if (!ans[i]) continue;
         for (int j = i * i; j <= n; j += i) ans[j] = false;
@@ -72,6 +72,7 @@ Result solve(vector<int> xs) {
     const auto primes = sieve(N_MAX);
     const auto primes_seq = seq_of(primes, PRIMES_COUNT_UP_TO_N_MAX);
     assert(primes_seq.size() == PRIMES_COUNT_UP_TO_N_MAX);
+    assert(primes_seq.back() == 999983);
 
     // Ho many times a prime is a factor of one of the xs
     unordered_map<int, int> cs;
