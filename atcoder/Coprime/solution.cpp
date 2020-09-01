@@ -37,7 +37,7 @@ vector<int> prime_factors(const vector<bool> &primes,
                           const vector<int> &primes_seq, const int x) {
     if (primes[x]) return {x};
 
-    const int sq = static_cast<int>(sqrt(x));
+    const int sq = sqrt(x);
     vector<int> ans;
 
     for (const auto p : primes_seq) {
@@ -93,8 +93,6 @@ int main() {
     vector<int> xs(n, 0);
     for (auto &x : xs) cin >> x;
 
-    xs.erase(remove(begin(xs), end(xs), 1), cend(xs));
     cout << solve(xs) << '\n';
-
     return 0;
 }
