@@ -1,88 +1,57 @@
 #include <bits/stdc++.h>
 using namespace std;
-using vi = vector<int>;
+using Ints = vector<int>;
+using Graph = unordered_multimap<int, int>;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
+Graph gather_children(const Ints &parent) {
+    const int N = parent.size() - 1;
+    Graph ans;
+    for (int i = 2; i <= N; ++i) ans.emplace(parent[i], i);
+    return ans;
 }
 
-int tree_beauty(const vi &parent, const int step_a, const int step_b,
-                const int start_a, const int start_b) {
-    const auto step_up = [&parent](int x, int step) -> int {
-        while (x > 0 && step > 0) {
-            x = parent[x];
-            --step;
+Ints gather_skip_sources_counts(const int N, const Graph &children,
+                                const int step) {
+    Ints ans(N + 1, 0);
+
+    Ints path;
+    function<void(int)> dfs;
+
+    dfs = [&dfs, &children, &step, &path, &ans](const int x) {
+        path.push_back(x);
+        const auto range = children.equal_range(x);
+
+        for (auto it = range.first; it != range.second; ++it) {
+            dfs(it->second);
         }
 
-        return x;
+        ++ans[x];
+        const int sz = path.size();
+        const int target = sz - 1 - step;
+        if (target >= 0) ans[path[target]] += ans[x];
+
+        path.pop_back();
     };
 
-    unordered_set<int> colored;
-
-    const auto color_up = [&parent, &colored, &step_up](const int start,
-                                                        const int step) {
-        int x = start;
-
-        do {
-            colored.insert(x);
-            x = step_up(x, step);
-        } while (x > 0);
-    };
-
-    color_up(start_a, step_a);
-    color_up(start_b, step_b);
-
-    return colored.size();
-}
-
-vi gather_leaves(const vi &parent) {
-    const int N = parent.size() - 1;
-    const unordered_set<int> p_set(cbegin(parent), cend(parent));
-
-    vi ans;
-    ans.reserve(N / 2);
-    for (int i = 1; i <= N; ++i) {
-        if (!p_set.count(i)) ans.push_back(i);
-    }
+    dfs(1);
     return ans;
 }
 
-vi gather_skip_descendants_counts(const vi &parent, const vi &leaves,
-                                  const int step) {
+double solve(const Ints &parent, const int step_a, const int step_b) {
     const int N = parent.size() - 1;
-    vi ans(N + 1, 0);
+    const auto children = gather_children(parent);
+    const auto src_a = gather_skip_sources_counts(N, children, step_a);
+    const auto src_b = gather_skip_sources_counts(N, children, step_b);
 
-    for (const int l : leaves) {
-        int curr = l;
-        vi chain;
-        do {
-            chain.push_back(0);
-            const int chain_size = chain.size();
+    double ans = 0;
+    for (int i = 0; i <= N; ++i) {
+        const double p_a = src_a[i];
+        const double p_b = src_b[i];
 
-            if (chain_size - 1 - step >= 0) {
-                int &me = chain.back();
-                me = chain[chain_size - 1 - step] + 1;
-                ans[curr] += me;
-            }
-
-            curr = parent[curr];
-        } while (curr);
+        ans += (p_a + p_b) / N - (p_a * p_b) / N / N;
     }
 
     return ans;
-}
-
-double solve(const vi &parent, const int step_a, const int step_b) {
-    const int N = parent.size() - 1;
-    const auto leaves = gather_leaves(parent);
-    cout << gather_skip_descendants_counts(parent, leaves, 1) << '\n';
-    return leaves.size();
 }
 
 int main() {
@@ -96,7 +65,7 @@ int main() {
         int N, A, B;
         cin >> N >> A >> B;
 
-        vi parent(N + 1, 0);
+        Ints parent(N + 1, 0);
         for (int i = 2; i <= N; ++i) cin >> parent[i];
 
         cout << "Case #" << i << ": " << solve(parent, A, B) << '\n';
