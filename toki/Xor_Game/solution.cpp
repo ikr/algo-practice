@@ -2,27 +2,30 @@
 using namespace std;
 using ll = long long;
 
-ll max_xor(vector<ll> &xs) {
-    map<ll, int> counts;
-    for (const auto x : xs) ++counts[x];
+ll max_xor(const vector<ll> &xs) {
+    const ll intact = accumulate(xs.cbegin() + 1, xs.cend(), xs[0],
+                                 [](const ll a, const ll b) { return a ^ b; });
 
+    ll hi = intact;
     ll to_flip = -1;
 
-    for (auto it = counts.crbegin(); it != counts.crend(); ++it) {
-        if (it->second % 2 == 0) {
-            to_flip = it->first;
-            break;
+    for (const ll x : xs) {
+        if ((intact ^ x) > hi) {
+            hi = intact ^ x;
+            to_flip = x;
         }
     }
 
-    ll ans = 0;
-    for (const auto x : xs) {
-        if (x == to_flip) {
-            to_flip = -1;
-        } else {
-            ans ^= x;
-        }
+    if (to_flip == -1) return intact;
+
+    ll ans = hi;
+    ll x = to_flip >> 1;
+
+    while (x) {
+        ans = max(hi ^ x, ans);
+        x = x >> 1;
     }
+
     return ans;
 }
 
