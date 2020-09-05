@@ -2,7 +2,7 @@
 using namespace std;
 using ll = long long;
 
-ll max_xor(const vector<ll> &xs) {
+ll max_xor(vector<ll> &xs) {
     const ll intact = accumulate(xs.cbegin() + 1, xs.cend(), xs[0],
                                  [](const ll a, const ll b) { return a ^ b; });
 
@@ -18,12 +18,12 @@ ll max_xor(const vector<ll> &xs) {
 
     if (to_flip == -1) return intact;
 
-    ll ans = hi;
-    ll x = to_flip >> 1;
+    sort(xs.begin(), xs.end());
 
-    while (x) {
+    ll ans = hi;
+    for (const auto x : xs) {
+        if (x >= to_flip) break;
         ans = max(hi ^ x, ans);
-        x = x >> 1;
     }
 
     return ans;
