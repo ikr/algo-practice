@@ -9,9 +9,7 @@ vector<int> gather_bits_freq(const vector<ull> &xs) {
     for (const ull x : xs) {
         bitset<BIT_MAX + 1> bits{x};
         for (int i = 0; i <= BIT_MAX; ++i) {
-            if (bits[i]) {
-                ++ans[i];
-            }
+            if (bits[i]) ++ans[i];
         }
     }
 
