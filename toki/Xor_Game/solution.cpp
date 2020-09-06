@@ -26,8 +26,7 @@ int highest_set_bit_with_even_freq(const vector<int> &bits_freq) {
 
 ull max_xor(const vector<ull> &xs) {
     const int hi = highest_set_bit_with_even_freq(gather_bits_freq(xs));
-    const ull s = accumulate(xs.cbegin() + 1, xs.cend(), xs[0],
-                             [](const ull a, const ull b) { return a ^ b; });
+    const ull s = accumulate(xs.cbegin() + 1, xs.cend(), xs[0], bit_xor<ull>{});
     if (hi == -1) return s;
     const ull mask = (1 << (hi + 1)) - 1;
     return s | mask;
