@@ -1,32 +1,38 @@
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
+using ull = unsigned long long;
+static constexpr int BIT_MAX = 59; // log2(1e18)
 
-ll max_xor(vector<ll> &xs) {
-    const ll intact = accumulate(xs.cbegin() + 1, xs.cend(), xs[0],
-                                 [](const ll a, const ll b) { return a ^ b; });
+vector<int> gather_bits_freq(const vector<ull> &xs) {
+    vector<int> ans(BIT_MAX + 1, 0);
 
-    ll hi = intact;
-    ll to_flip = -1;
-
-    for (const ll x : xs) {
-        if ((intact ^ x) > hi) {
-            hi = intact ^ x;
-            to_flip = x;
+    for (const ull x : xs) {
+        bitset<BIT_MAX + 1> bits{x};
+        for (int i = 0; i <= BIT_MAX; ++i) {
+            if (bits[i]) {
+                ++ans[i];
+            }
         }
     }
 
-    if (to_flip == -1) return intact;
+    return ans;
+}
 
-    sort(xs.begin(), xs.end());
-
-    ll ans = hi;
-    for (const auto x : xs) {
-        if (x >= to_flip) break;
-        ans = max(hi ^ x, ans);
+int highest_set_bit_with_even_freq(const vector<int> &bits_freq) {
+    for (int i = BIT_MAX; i >= 0; --i) {
+        if (bits_freq[i] && (bits_freq[i] % 2 == 0)) return i;
     }
 
-    return ans;
+    return -1;
+}
+
+ull max_xor(vector<ull> &xs) {
+    const int hi = highest_set_bit_with_even_freq(gather_bits_freq(xs));
+    const ull s = accumulate(xs.cbegin() + 1, xs.cend(), xs[0],
+                             [](const ull a, const ull b) { return a ^ b; });
+    if (hi == -1) return s;
+    const ull mask = (1 << (hi + 1)) - 1;
+    return s | mask;
 }
 
 int main() {
@@ -35,7 +41,7 @@ int main() {
 
     int sz;
     cin >> sz;
-    vector<ll> xs(sz, 0);
+    vector<ull> xs(sz, 0);
     for (auto &x : xs) cin >> x;
 
     cout << max_xor(xs) << '\n';
