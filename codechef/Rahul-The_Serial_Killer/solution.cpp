@@ -5,13 +5,13 @@ int min_kills(const vector<int> &xs) {
     unordered_map<int, int> counts;
     for (const int x : xs) ++counts[x];
 
-    priority_queue<pair<int, int>> q;
-    for (const auto [x, freq] : counts) q.emplace(freq, x);
+    priority_queue<int> q;
+    for (const auto [x, freq] : counts) q.push(freq);
 
     int ans = 0;
 
     while (!q.empty()) {
-        const auto [f1, x1] = q.top();
+        const auto f1 = q.top();
         q.pop();
 
         if (q.empty()) {
@@ -19,14 +19,13 @@ int min_kills(const vector<int> &xs) {
             break;
         }
 
-        const auto [f2, x2] = q.top();
+        const auto f2 = q.top();
         q.pop();
 
-        const int y = min(f1, f2);
-        ans += y;
+        ++ans;
 
-        if (f1 - y > 0) q.emplace(f1 - y, x1);
-        if (f2 - y > 0) q.emplace(f2 - y, x2);
+        if (f1 - 1) q.push(f1 - 1);
+        if (f2 - 1) q.push(f2 - 1);
     }
 
     return ans;
