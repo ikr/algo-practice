@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-constexpr int LIM = 1e5;
+constexpr int LIM = 2e5;
 
 vector<int> divisors(const int x) {
     vector<int> ans{1};
@@ -31,7 +31,7 @@ struct BobtheBuilder final {
         costs[B] = 0;
         deque<int> q{B};
 
-        for (int i = 0; i < 2111; ++i) {
+        for (int i = 0; i < 4000; ++i) {
             const int u = q.front();
             q.pop_front();
 
