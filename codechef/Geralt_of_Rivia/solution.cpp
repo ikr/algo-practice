@@ -27,9 +27,22 @@ bool can_reach(const int n, const Graph &g, const int s, const int d) {
 }
 
 int max_coins(const int n, const Graph &g) {
-    int ans = g.count(0);
+    vector<pair<int, int>> cc;
     for (int i = 1; i < n; ++i) {
-        if (can_reach(n, g, 0, i)) ans += g.count(i);
+        cc.emplace_back(g.count(i), i);
+    }
+    sort(begin(cc), end(cc));
+
+    int ans = g.count(0);
+    int curr = 0;
+    for (const auto [coins, city] : cc) {
+
+        if (can_reach(n, g, curr, city)) {
+            ans += coins;
+            curr = city;
+        } else {
+            break;
+        }
     }
     return ans;
 }
