@@ -9,9 +9,10 @@ vector<int> divisors(const int x) {
     const int sq = sqrt(x);
 
     for (int i = 2; i <= sq; ++i) {
-        if (x % i == 0) {
+        const auto d = div(x, i);
+        if (d.rem == 0) {
             ans.push_back(i);
-            if (x / i > sq) ans.push_back(x / i);
+            if (d.quot > sq) ans.push_back(d.quot);
         }
     }
 
@@ -31,18 +32,18 @@ struct BobtheBuilder final {
         costs[B] = 0;
         deque<int> q{B};
 
-        for (int i = 0; i < 4000; ++i) {
+        while (!q.empty()) {
             const int u = q.front();
             q.pop_front();
 
             for (const int v : divs[u]) {
-                if (costs[v] != -1 && costs[u] > costs[v]) continue;
+                if (costs[v] != -1 && costs[u] >= costs[v]) continue;
                 costs[v] = costs[u];
                 q.push_front(v);
             }
 
             const int v = u + K;
-            if (costs[v] == -1 || costs[u] + 1 < costs[v]) {
+            if (v < LIM && (costs[v] == -1 || costs[u] + 1 < costs[v])) {
                 costs[v] = costs[u] + 1;
                 q.push_back(v);
             }
