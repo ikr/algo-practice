@@ -1,22 +1,24 @@
 #include <bits/stdc++.h>
 using namespace std;
-using Graph = unordered_multimap<char, char>;
+using Graph = multimap<char, char>;
 constexpr int SZ = CHAR_MAX + 1;
 
 int max_coins(const char s, Graph &g) {
-    vector<bool> discovered(SZ, false);
+    vector<bool> counted(SZ, false);
     int ans = 0;
     function<void(int)> recur;
 
     recur = [&](const char u) {
-        discovered[u] = true;
-        ans += g.count(u);
+        if (!counted[u]) {
+            counted[u] = true;
+            ans += g.count(u);
+        }
 
-        while (g.count(u)) {
+        if (g.count(u)) {
             const auto it = g.equal_range(u).first;
             const int v = it->second;
             g.erase(it);
-            if (!discovered[v]) recur(v);
+            recur(v);
         }
     };
 
