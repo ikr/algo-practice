@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-constexpr int LIM = 2e5;
+constexpr int LIM = 1e5;
 
 vector<int> divisors(const int x) {
     vector<int> ans{1};
@@ -36,13 +36,13 @@ struct BobtheBuilder final {
             q.pop_front();
 
             for (const int v : divs[u]) {
-                if (costs[v] != -1) continue;
+                if (costs[v] != -1 && costs[u] > costs[v]) continue;
                 costs[v] = costs[u];
                 q.push_front(v);
             }
 
             const int v = u + K;
-            if (costs[v] == -1) {
+            if (costs[v] == -1 || costs[u] + 1 < costs[v]) {
                 costs[v] = costs[u] + 1;
                 q.push_back(v);
             }
