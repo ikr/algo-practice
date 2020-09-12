@@ -2,27 +2,43 @@
 using namespace std;
 using Graph = unordered_multimap<int, int>;
 
-int max_coins(const int n, const Graph &g) {
-    vector<bool> parents(n, false);
-    function<int(int)> recur;
+int max_coins(const int n, const int s, Graph &g) {
+    vector<bool> discovered(n, false);
+    int ans = 0;
+    function<void(int)> recur;
 
     recur = [&](const int u) {
-        parents[u] = true;
+        discovered[u] = true;
+        ans += g.count(u);
 
-        int sub = -1;
-        const auto [first, last] = g.equal_range(u);
-        for (auto it = first; it != last; ++it) {
+        while (g.count(u)) {
+            const auto it = g.equal_range(u).first;
             const int v = it->second;
-            if (parents[v]) continue;
-
-            sub = recur(v);
+            g.erase(it);
+            if (!discovered[v]) recur(v);
         }
-
-        parents[u] = false;
-        return sub == -1 ? g.count(u) : sub + g.count(u);
     };
 
-    return recur(0);
+    recur(s);
+    return ans;
+}
+
+unordered_map<string, int> build_index(vector<string> cities) {
+    const int n = cities.size();
+    sort(begin(cities), end(cities));
+    unordered_map<string, int> ans;
+    for (int i = 0; i < n; ++i) ans[cities[i]] = i;
+    return ans;
+}
+
+vector<string> unique_cities(const vector<pair<string, string>> &edges,
+                             const string &origin) {
+    unordered_set<string> uq{origin};
+    for (const auto &[c1, c2] : edges) {
+        uq.insert(c1);
+        uq.insert(c2);
+    }
+    return vector<string>(cbegin(uq), cend(uq));
 }
 
 int main() {
@@ -38,32 +54,20 @@ int main() {
         string c;
         cin >> c;
 
-        vector<string> names{c};
-        unordered_map<string, int> index{{c, 0}};
-        Graph g;
-
+        vector<pair<string, string>> edges;
         for (int i = 0; i < n; ++i) {
             string a, b;
             cin >> a >> b;
-
-            int ia = index.count(a) ? index.at(a) : -1;
-            if (ia == -1) {
-                ia = names.size();
-                names.push_back(a);
-                index[a] = ia;
-            }
-
-            int ib = index.count(b) ? index.at(b) : -1;
-            if (ib == -1) {
-                ib = names.size();
-                names.push_back(b);
-                index[b] = ib;
-            }
-
-            g.emplace(ia, ib);
+            edges.emplace_back(a, b);
         }
+        sort(begin(edges), end(edges));
 
-        cout << max_coins(names.size(), g) << '\n';
+        const auto cities = unique_cities(edges, c);
+        const auto idx = build_index(cities);
+
+        Graph g;
+        for (const auto &[a, b] : edges) g.emplace(idx.at(a), idx.at(b));
+        cout << max_coins(cities.size(), idx.at(c), g) << '\n';
     }
 
     return 0;
