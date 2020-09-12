@@ -2,49 +2,27 @@
 using namespace std;
 using Graph = unordered_multimap<int, int>;
 
-bool can_reach(const int n, const Graph &g, const int s, const int d) {
-    queue<int> q;
-    q.push(s);
-    vector<bool> discovered(n, false);
-    discovered[s] = true;
+int max_coins(const int n, const Graph &g) {
+    vector<bool> parents(n, false);
+    function<int(int)> recur;
 
-    while (!q.empty()) {
-        const int u = q.front();
-        q.pop();
+    recur = [&](const int u) {
+        parents[u] = true;
+
+        int sub = -1;
         const auto [first, last] = g.equal_range(u);
-
         for (auto it = first; it != last; ++it) {
             const int v = it->second;
-            if (v == d) return true;
-            if (discovered[v]) continue;
+            if (parents[v]) continue;
 
-            discovered[v] = true;
-            q.push(v);
+            sub = recur(v);
         }
-    }
 
-    return false;
-}
+        parents[u] = false;
+        return sub == -1 ? g.count(u) : sub + g.count(u);
+    };
 
-int max_coins(const int n, const Graph &g) {
-    vector<pair<int, int>> cc;
-    for (int i = 1; i < n; ++i) {
-        cc.emplace_back(g.count(i), i);
-    }
-    sort(begin(cc), end(cc));
-
-    int ans = g.count(0);
-    int curr = 0;
-    for (const auto [coins, city] : cc) {
-
-        if (can_reach(n, g, curr, city)) {
-            ans += coins;
-            curr = city;
-        } else {
-            break;
-        }
-    }
-    return ans;
+    return recur(0);
 }
 
 int main() {
