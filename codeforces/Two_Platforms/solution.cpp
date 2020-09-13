@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int rights(const int k, const vector<int> &xs, const int i) {
+int rhs_count(const int k, const vector<int> &xs, const int i) {
     const int n = xs.size();
     assert(i >= 0);
     assert(i < n);
@@ -31,17 +31,17 @@ int max_saved(const int k, const vector<int> &xs) {
 
 void test_stuff() {
     vector<int> xs{1, 1, 2, 3, 4, 5, 5, 10};
-    assert(rights(1, xs, 0) == 3);
+    assert(rhs_count(1, xs, 0) == 3);
 
-    const int res = rights(1, xs, 1);
+    const int res = rhs_count(1, xs, 1);
     cout << "→ " << res << endl;
-    assert(rights(1, xs, 1) == 2);
-    assert(rights(1, xs, 2) == 2);
-    assert(rights(1, xs, 3) == 2);
-    assert(rights(1, xs, 4) == 3);
-    assert(rights(1, xs, 5) == 2);
-    assert(rights(1, xs, 6) == 1);
-    assert(rights(1, xs, 7) == 1);
+    assert(rhs_count(1, xs, 1) == 2);
+    assert(rhs_count(1, xs, 2) == 2);
+    assert(rhs_count(1, xs, 3) == 2);
+    assert(rhs_count(1, xs, 4) == 3);
+    assert(rhs_count(1, xs, 5) == 2);
+    assert(rhs_count(1, xs, 6) == 1);
+    assert(rhs_count(1, xs, 7) == 1);
 }
 
 int main() {
