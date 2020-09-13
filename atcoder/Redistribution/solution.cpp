@@ -2,16 +2,6 @@
 using namespace std;
 constexpr int M = 1e9 + 7;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int solve(const int s) {
     if (s < 3) return 0;
 
