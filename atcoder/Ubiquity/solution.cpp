@@ -16,10 +16,10 @@ int solve(const ll n) {
     if (n == 2) return 2;
 
     const ll total = m_exp(10, n);
+    const ll ones = m_exp(9, n);
     const ll nones = m_exp(8, n);
-    const ll ones = (n * m_exp(8, n - 1)) % M;
 
-    return (((total - nones - 2 * ones) % M) + M) % M;
+    return (((total - 2 * ones + nones) % M) + M) % M;
 }
 
 int main() {
