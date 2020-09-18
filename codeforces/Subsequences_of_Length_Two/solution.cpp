@@ -2,6 +2,7 @@
 using namespace std;
 using vi = vector<int>;
 using vvi = vector<vi>;
+constexpr int INF = 1e9;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
@@ -39,35 +40,35 @@ int max_occurances_one_letter(const int k, const string &s, const char l) {
     return (ls + d) * (ls + d - 1) / 2;
 }
 
-vi gather_freq_of(const char needle, const string &haystack) {
-    const int n = haystack.size();
-    vi ans(n, 0);
-    for (int i = 1; i < n; ++i) {
-        ans[i] = ans[i - 1];
-        if (haystack[i - 1] == needle) ++ans[i];
-    }
-    return ans;
-}
-
 int max_occurances(const int k, const string &s, const char a, const char b) {
     if (a == b) return max_occurances_one_letter(k, s, a);
     const int n = s.size();
-    const auto a_freq = gather_freq_of(a, s);
 
-    // Maximum number of occurances [up to index p] after [r replacements used]
-    vvi dp(n, vi(k + 1, 0));
+    // The value is -INF if the indices combination is impossible. Otherwise,
+    // it's the maximum number of occurances [up to index p] after [r
+    // replacements used] when there are [exactly q a-s up to p]
+    vector<vvi> dp(n, vvi(k + 1, vi(n + 1, -INF)));
+
+    if (s[0] == a) {
+        dp[0][0][1] = 0;
+    } else {
+        dp[0][0][0] = 0;
+        if (k > 0) dp[0][1][1] = 0;
+    }
 
     for (int p = 1; p < n; ++p) {
-        dp[p][0] = dp[p - 1][0];
-        if (s[p] == b) dp[p][0] += a_freq[p];
-
-        for (int r = 1; r <= k; ++r) {
+        for (int r = 0; r <= k; ++r) {
+            for (int q = 0; q <= n; ++q) {
+            }
         }
     }
 
     cout << dp << '\n';
 
-    return *max_element(cbegin(dp.back()), cend(dp.back()));
+    return accumulate(cbegin(dp.back()), cend(dp.back()), 0,
+                      [](const int acc, const vi &xs) {
+                          return max(acc, *max_element(cbegin(xs), cend(xs)));
+                      });
 }
 
 int main() {
