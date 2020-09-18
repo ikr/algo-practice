@@ -4,33 +4,6 @@ using vi = vector<int>;
 using vvi = vector<vi>;
 constexpr int INF = 1e9;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 int max_occurances_one_letter(const int k, const string &s, const char l) {
     const int n = s.size();
     const int ls = count(cbegin(s), cend(s), l);
@@ -59,11 +32,24 @@ int max_occurances(const int k, const string &s, const char a, const char b) {
     for (int p = 1; p < n; ++p) {
         for (int r = 0; r <= k; ++r) {
             for (int q = 0; q <= n; ++q) {
+                // No change
+                const int o1 =
+                    (s[p] == b
+                         ? dp[p - 1][r][q] + q
+                         : (s[p] == a ? (q == 0 ? -INF : dp[p - 1][r][q - 1])
+                                      : dp[p - 1][r][q]));
+
+                // Replace with a
+                const int o2 =
+                    ((q == 0 || r == 0) ? -INF : dp[p - 1][r - 1][q - 1]);
+
+                // Replace with b
+                const int o3 = (r == 0 ? -INF : dp[p - 1][r - 1][q] + q);
+
+                dp[p][r][q] = max({o1, o2, o3});
             }
         }
     }
-
-    cout << dp << '\n';
 
     return accumulate(cbegin(dp.back()), cend(dp.back()), 0,
                       [](const int acc, const vi &xs) {
