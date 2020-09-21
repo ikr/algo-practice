@@ -17,6 +17,7 @@ vector<int> interleave(const vector<int> &xs, const int cheaps) {
     for (int l = 1, r = n - 1; l <= cheaps; ++l, --r) {
         ans.push_back(xs[r]);
         ans.push_back(xs[l]);
+        if (l == cheaps && n % 2 == 0) ans.push_back(xs[r - 1]);
     }
 
     return ans;
