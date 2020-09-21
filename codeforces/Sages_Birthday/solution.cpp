@@ -23,14 +23,39 @@ vector<int> interleave(const vector<int> &xs, const int cheaps) {
     return ans;
 }
 
+bool is_possible(const vector<int> &xs, const int cheaps) {
+    const int n = xs.size();
+    const int i = cheaps;
+    const int j = n - 1 - cheaps + 1;
+    return i < j && xs[i] > xs[j];
+}
+
 pair<int, vector<int>> solve(vector<int> &xs) {
     const int n = xs.size();
     if (n <= 2) return {0, xs};
 
     sort(rbegin(xs), rend(xs));
 
-    const int cnt = n % 2 == 0 ? (n / 2 - 1) : n / 2;
-    return {cnt, interleave(xs, cnt)};
+    int lo = 1;
+    if (!is_possible(xs, lo)) return {0, xs};
+    int hi = n % 2 == 0 ? (n / 2 - 1) : n / 2;
+    if (is_possible(xs, hi)) return {hi, interleave(xs, hi)};
+
+    while (lo < hi) {
+        if (lo + 1 == hi) {
+            return is_possible(xs, hi) ? pair{hi, interleave(xs, hi)}
+                                       : pair{lo, interleave(xs, lo)};
+        }
+
+        const int mid = lo + (hi - lo) / 2;
+        if (is_possible(xs, mid)) {
+            lo = mid;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    return {lo, interleave(xs, lo)};
 }
 
 int main() {
