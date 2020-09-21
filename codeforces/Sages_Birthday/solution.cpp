@@ -14,27 +14,22 @@ vector<int> interleave(const vector<int> &xs, const int cheaps) {
     vector<int> ans{xs[0]};
     ans.reserve(cheaps * 2 + 1);
 
-    unordered_multiset<int> curr_freq{xs[0]};
+    int lo = 1;
+    int hi = n - 1;
 
     for (int l = 1, r = n - 1; l <= cheaps; ++l, --r) {
         ans.push_back(xs[r]);
-        curr_freq.insert(xs[r]);
+        hi = r - 1;
         ans.push_back(xs[l]);
-        curr_freq.insert(xs[l]);
+        lo = l + 1;
 
         if (l == cheaps && n % 2 == 0) {
             ans.push_back(xs[r - 1]);
-            curr_freq.insert(xs[r - 1]);
+            hi = r - 2;
         }
     }
 
-    const unordered_multiset<int> full_freq(cbegin(xs), cend(xs));
-    for (const int x : xs) {
-        if (curr_freq.count(x) < full_freq.count(x)) {
-            curr_freq.insert(x);
-            ans.push_back(x);
-        }
-    }
+    for (int i = lo; i <= hi; ++i) ans.push_back(xs[i]);
 
     return ans;
 }
