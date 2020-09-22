@@ -11,41 +11,38 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 vector<int> interleave(const vector<int> &xs, const int cheaps) {
     const int n = xs.size();
-    vector<int> ans{xs[0]};
-    ans.reserve(cheaps * 2 + 1);
+    vector<int> ans(n, 0);
+    ans[0] = xs.back();
+    int k = 1;
 
-    int lo = 1;
-    int hi = n - 1;
-
-    for (int l = 1, r = n - 1; l <= cheaps; ++l, --r) {
-        ans.push_back(xs[r]);
-        hi = r - 1;
-        ans.push_back(xs[l]);
-        lo = l + 1;
-
-        if (l == cheaps && n % 2 == 0) {
-            ans.push_back(xs[r - 1]);
-            hi = r - 2;
-        }
+    for (int i = cheaps - 1, j = n - 2; i >= 0; --i, --j) {
+        ans[k++] = xs[i];
+        ans[k++] = xs[j];
     }
 
-    for (int i = lo; i <= hi; ++i) ans.push_back(xs[i]);
+    for (int i = cheaps; k < n && i < n - 1 - cheaps; ++i) {
+        ans[k++] = xs[i];
+    }
 
     return ans;
 }
 
 bool is_possible(const vector<int> &xs, const int cheaps) {
     const int n = xs.size();
-    const int i = cheaps;
-    const int j = n - 1 - cheaps + 1;
-    return i < j && xs[i] > xs[j];
+    if (xs.back() <= xs[cheaps - 1]) return false;
+
+    for (int i = cheaps - 1, j = n - 2; i >= 0; --i, --j) {
+        if (i >= j || xs[i] >= xs[j]) return false;
+    }
+
+    return true;
 }
 
 pair<int, vector<int>> solve(vector<int> &xs) {
     const int n = xs.size();
     if (n <= 2) return {0, xs};
 
-    sort(rbegin(xs), rend(xs));
+    sort(begin(xs), end(xs));
 
     int lo = 1;
     if (!is_possible(xs, lo)) return {0, xs};
