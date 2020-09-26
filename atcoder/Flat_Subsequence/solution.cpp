@@ -1,48 +1,30 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-vector<int> gather_prevs(const vector<int> &xs, const int k) {
-    const int n = xs.size();
-    stack<int> s;
-    vector<int> ans(n, -1);
-
-    for (int i = 0; i < n; ++i) {
-        while (!s.empty() && abs(xs[s.top()] - xs[i]) > k) {
-            s.pop();
-        }
-
-        if (!s.empty()) ans[i] = s.top();
-        s.push(i);
-    }
-
-    return ans;
+template <typename T> constexpr int intof(const T x) {
+    return static_cast<int>(x);
 }
 
 int solve(const vector<int> &xs, const int k) {
     const int n = xs.size();
-    const auto prevs = gather_prevs(xs, k);
+    vector<multiset<int>> trees(n);
+    trees[0].insert(xs[0]);
 
-    vector<int> dp(n, 1);
     for (int i = 1; i < n; ++i) {
-        if (prevs[i] != -1) {
-            dp[i] = dp[prevs[i]] + 1;
-        }
+        trees[i] = trees[i - 1];
+        trees[i].insert(xs[i]);
     }
 
-    cout << prevs << '\n';
-    cout << dp << '\n';
+    int ans = 1;
 
-    return *max_element(cbegin(dp), cend(dp));
+    for (int i = 1; i < n; ++i) {
+        const auto tree = trees[i - 1];
+        const auto lo = tree.lower_bound(max(0, xs[i] - k));
+        const auto hi = tree.upper_bound(xs[i] + k);
+        ans = max(ans, intof(distance(lo, hi)));
+    }
+
+    return ans;
 }
 
 int main() {
