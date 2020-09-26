@@ -1,29 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int count_componernts(const int n, const unordered_multimap<int, int> &g) {
-    vector<int> cs(n, -1);
-    int curr = -1;
-
-    function<void(int)> dfs;
-    dfs = [&dfs, &g, &cs, &curr](const int x) {
-        cs[x] = curr;
-
-        const auto [first, last] = g.equal_range(x);
-        for (auto it = first; it != last; ++it) {
-            if (cs[it->second] >= 0) continue;
-            dfs(it->second);
-        }
-    };
-
+int count_sources(const int n, const unordered_multimap<int, int> &ins) {
+    int ans = 0;
     for (int i = 0; i < n; ++i) {
-        if (cs[i] == -1) {
-            ++curr;
-            dfs(i);
-        }
+        if (ins.count(i) == 0) ++ans;
     }
-
-    return curr + 1;
+    return ans;
 }
 
 int main() {
@@ -36,15 +19,15 @@ int main() {
         int n;
         cin >> n;
 
-        unordered_multimap<int, int> g(n);
+        unordered_multimap<int, int> ins;
 
         for (int i = 1; i <= n - 1; ++i) {
             int u, v;
             cin >> u >> v;
-            g.emplace(u - 1, v - 1);
+            ins.emplace(v - 1, u - 1);
         }
 
-        cout << (count_componernts(n, g) - 1) << '\n';
+        cout << (count_sources(n, ins) - 1) << '\n';
     }
 
     return 0;
