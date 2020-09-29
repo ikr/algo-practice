@@ -15,7 +15,7 @@ int solve(const vector<int> &xs, const int k) {
 
     for (const int x : xs) {
         const int h =
-            max_lengths_by_val.prod(max(0, x - k), min(hi + 1, x + k));
+            max_lengths_by_val.prod(max(0, x - k), min(hi + 1, x + k + 1));
         max_lengths_by_val.set(x, h + 1);
     }
 
