@@ -2,10 +2,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int intof(const T x) {
-    return static_cast<int>(x);
-}
-
 constexpr int mmax(const int x, const int y) { return max(x, y); }
 constexpr int e() { return 0; }
 
