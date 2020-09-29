@@ -1,3 +1,4 @@
+#include <atcoder/segtree>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -5,26 +6,20 @@ template <typename T> constexpr int intof(const T x) {
     return static_cast<int>(x);
 }
 
+constexpr int mmax(const int x, const int y) { return max(x, y); }
+constexpr int e() { return 0; }
+
 int solve(const vector<int> &xs, const int k) {
-    const int n = xs.size();
-    vector<multiset<int>> trees(n);
-    trees[0].insert(xs[0]);
+    const int hi = *max_element(cbegin(xs), cend(xs));
+    atcoder::segtree<int, mmax, e> max_lengths_by_val(hi + 1);
 
-    for (int i = 1; i < n; ++i) {
-        trees[i] = trees[i - 1];
-        trees[i].insert(xs[i]);
+    for (const int x : xs) {
+        const int h =
+            max_lengths_by_val.prod(max(0, x - k), min(hi + 1, x + k));
+        max_lengths_by_val.set(x, h + 1);
     }
 
-    int ans = 1;
-
-    for (int i = 1; i < n; ++i) {
-        const auto tree = trees[i - 1];
-        const auto lo = tree.lower_bound(max(0, xs[i] - k));
-        const auto hi = tree.upper_bound(xs[i] + k);
-        ans = max(ans, intof(distance(lo, hi)));
-    }
-
-    return ans;
+    return max_lengths_by_val.all_prod();
 }
 
 int main() {
