@@ -14,7 +14,7 @@ pair<int, int> ijth(vector<int> xs, const int i, const int j) {
 
 int min_ops(const vector<int> &xs, const int X, const int p, const int k) {
     const auto [px, kx] = ijth(xs, p, k);
-    if (px == kx) return 0;
+    if (px == X) return 0;
     return -1;
 }
 
