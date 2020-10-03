@@ -1,21 +1,19 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-pair<int, int> ijth(vector<int> xs, const int i, const int j) {
-    const int n = xs.size();
-    assert(i < n);
-    assert(i >= 0);
-    assert(j < n);
-    assert(j >= 0);
+int min_ops(vector<int> &xs, const int X, const int p, const int k) {
+    partial_sort(begin(xs), begin(xs) + p, end(xs));
+    if (xs[p - 1] == X) return 0;
 
-    partial_sort(begin(xs), begin(xs) + max(i, j), end(xs));
-    return {xs[i], xs[j]};
-}
+    if (xs[p - 1] > X) {
+        return count_if(cbegin(xs), cbegin(xs) + p,
+                        [X](const int x) { return x > X; });
+    }
 
-int min_ops(const vector<int> &xs, const int X, const int p, const int k) {
-    const auto [px, kx] = ijth(xs, p, k);
-    if (px == X) return 0;
-    return -1;
+    if (k > p) return -1;
+
+    return count_if(cbegin(xs) + k - 1, cend(xs),
+                    [X](const int x) { return x < X; });
 }
 
 int main() {
