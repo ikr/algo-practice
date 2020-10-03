@@ -12,7 +12,7 @@ int min_ops(vector<int> &xs, const int X, const int p, const int k) {
 
     if (k > p) return -1;
 
-    return count_if(cbegin(xs) + k - 1, cend(xs),
+    return count_if(cbegin(xs) + p - 1, cend(xs),
                     [X](const int x) { return x < X; });
 }
 
