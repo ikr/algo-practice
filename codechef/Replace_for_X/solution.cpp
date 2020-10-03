@@ -6,6 +6,8 @@ int min_ops(vector<int> &xs, const int X, const int p, const int k) {
     if (xs[p - 1] == X) return 0;
 
     if (xs[p - 1] > X) {
+        if (k < p) return -1;
+
         return count_if(cbegin(xs), cbegin(xs) + p,
                         [X](const int x) { return x > X; });
     }
