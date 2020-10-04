@@ -2,6 +2,7 @@
 using namespace std;
 using vi = vector<int>;
 using vvi = vector<vi>;
+using Iter = multimap<int, int>::const_iterator;
 constexpr static int INF = 1e9;
 
 template <typename T> struct mmax {
@@ -95,6 +96,39 @@ int bruteforce(vvi xss) {
     return ans;
 }
 
+vector<multimap<int, int>> gather_indices_by_coord(const vvi &xss) {
+    const int n = xss.size();
+    const int d = xss[0].size();
+
+    vector<multimap<int, int>> ans(d);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < d; ++j) {
+            ans[j].emplace(xss[i][j], i);
+        }
+    }
+    return ans;
+}
+
+vector<pair<Iter, Iter>> gather_cursors(const vector<multimap<int, int>> &vmm) {
+    vector<pair<Iter, Iter>> ans;
+    transform(cbegin(vmm), cend(vmm), back_inserter(ans), [](const auto &mm) {
+        return pair<Iter, Iter>{cbegin(mm), --cend(mm)};
+    });
+    return ans;
+}
+
+int mst_cheb_weight(const vvi &xss) {
+    const int n = xss.size();
+    if (n == 1) return 0;
+
+    const auto indices_by_coord = gather_indices_by_coord(xss);
+    auto cursors = gather_cursors(indices_by_coord);
+    vector<bool> discovered(n, false);
+    int discovered_count = 0;
+
+    return -1;
+}
+
 int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
@@ -107,8 +141,9 @@ int main() {
         for (auto &x : xs) cin >> x;
     }
 
-    cout << bruteforce(xss) << '\n';
     // test_rotation(xss);
+    cout << bruteforce(xss) << '\n';
+    cout << mst_cheb_weight(rotate45_(xss)) << '\n';
 
     return 0;
 }
