@@ -5,6 +5,64 @@ using vvi = vector<vi>;
 using Iter = multimap<int, int>::const_iterator;
 constexpr static int INF = 1e9;
 
+namespace atcoder {
+struct dsu final {
+    dsu() : _n(0) {}
+    dsu(int n) : _n(n), parent_or_size(n, -1) {}
+
+    int merge(int a, int b) {
+        assert(0 <= a && a < _n);
+        assert(0 <= b && b < _n);
+        int x = leader(a), y = leader(b);
+        if (x == y) return x;
+        if (-parent_or_size[x] < -parent_or_size[y]) swap(x, y);
+        parent_or_size[x] += parent_or_size[y];
+        parent_or_size[y] = x;
+        return x;
+    }
+
+    bool same(int a, int b) {
+        assert(0 <= a && a < _n);
+        assert(0 <= b && b < _n);
+        return leader(a) == leader(b);
+    }
+
+    int leader(int a) {
+        assert(0 <= a && a < _n);
+        if (parent_or_size[a] < 0) return a;
+        return parent_or_size[a] = leader(parent_or_size[a]);
+    }
+
+    int size(int a) {
+        assert(0 <= a && a < _n);
+        return -parent_or_size[leader(a)];
+    }
+
+    vector<vector<int>> groups() {
+        vector<int> leader_buf(_n), group_size(_n);
+        for (int i = 0; i < _n; i++) {
+            leader_buf[i] = leader(i);
+            group_size[leader_buf[i]]++;
+        }
+        vector<vector<int>> result(_n);
+        for (int i = 0; i < _n; i++) {
+            result[i].reserve(group_size[i]);
+        }
+        for (int i = 0; i < _n; i++) {
+            result[leader_buf[i]].push_back(i);
+        }
+        result.erase(remove_if(result.begin(), result.end(),
+                               [&](const vector<int> &v) { return v.empty(); }),
+                     result.end());
+        return result;
+    }
+
+  private:
+    int _n;
+    vector<int> parent_or_size;
+};
+} // namespace atcoder
+
 template <typename T> struct mmax {
     constexpr T operator()(const T &a, const T &b) const {
         return std::max(a, b);
@@ -112,21 +170,63 @@ vector<multimap<int, int>> gather_indices_by_coord(const vvi &xss) {
 vector<pair<Iter, Iter>> gather_cursors(const vector<multimap<int, int>> &vmm) {
     vector<pair<Iter, Iter>> ans;
     transform(cbegin(vmm), cend(vmm), back_inserter(ans), [](const auto &mm) {
-        return pair<Iter, Iter>{cbegin(mm), --cend(mm)};
+        return pair<Iter, Iter>{cbegin(mm), prev(cend(mm))};
     });
     return ans;
+}
+
+void advance(pair<Iter, Iter> &itjt) {
+    auto &[it, jt] = itjt;
+    assert(it != jt);
+
+    const auto x = it->first;
+    const auto xx = next(it)->first;
+    const auto yy = prev(jt)->first;
+    const auto y = jt->first;
+
+    if (abs(xx - y) > abs(x - yy)) {
+        ++it;
+    } else {
+        --jt;
+    }
 }
 
 int mst_cheb_weight(const vvi &xss) {
     const int n = xss.size();
     if (n == 1) return 0;
+    const int d = xss[0].size();
 
     const auto indices_by_coord = gather_indices_by_coord(xss);
     auto cursors = gather_cursors(indices_by_coord);
-    vector<bool> discovered(n, false);
-    int discovered_count = 0;
+    atcoder::dsu g(n);
+    int ans = 0;
 
-    return -1;
+    for (;;) {
+        int best_w = -1;
+        int best_k = -1;
+
+        for (int k = 0; k < d; ++k) {
+            auto &[it, jt] = cursors[k];
+            if (it == jt) continue;
+
+            const int w = abs(it->first - jt->first);
+
+            if (w > best_w) {
+                best_w = w;
+                best_k = k;
+            }
+        }
+
+        if (best_w == -1) break;
+        auto &[it, jt] = cursors[best_k];
+        if (!g.same(it->second, jt->second)) {
+            ans += abs(it->first - jt->first);
+            g.merge(it->second, jt->second);
+        }
+        advance(cursors[best_k]);
+    }
+
+    return ans;
 }
 
 int main() {
