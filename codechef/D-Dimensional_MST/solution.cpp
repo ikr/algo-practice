@@ -3,7 +3,6 @@ using namespace std;
 using vi = vector<int>;
 using vvi = vector<vi>;
 using Iter = multimap<int, int>::const_iterator;
-constexpr static int INF = 1e9;
 
 namespace atcoder {
 struct dsu final {
@@ -134,8 +133,8 @@ int manh_(const vi &xs, const vi &ys) {
 }
 
 int cheb(const vi &xs, const vi &ys) {
-    return ttransform_reduce(cbegin(xs), cend(xs), cbegin(ys), -INF,
-                             mmax<int>{}, manh);
+    return ttransform_reduce(cbegin(xs), cend(xs), cbegin(ys), -1, mmax<int>{},
+                             manh);
 }
 
 void test_rotation(const vvi &xss) {
