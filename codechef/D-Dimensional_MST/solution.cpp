@@ -69,6 +69,7 @@ void test_rotation(const vvi &xss) {
 
 int bruteforce(vvi xss) {
     vvi yss{xss.back()};
+    yss.reserve(xss.size());
     xss.pop_back();
     int ans = 0;
 
