@@ -83,11 +83,41 @@ R ttransform_reduce(Iter first1, Iter last1, Iter first2, R init, Binop1 binop1,
 
 vi rotate45(const vi &xs) {
     const int sz = xs.size();
-    const int s = accumulate(cbegin(xs), cend(xs), 0);
+    if (sz == 1) return xs;
+    if (sz == 2) return {xs[0] + xs[1], xs[1] - xs[0]};
 
-    vi ans(sz + 1, s);
-    for (int i = 1; i <= sz; ++i) ans[i] -= 2 * xs[i - 1];
-    return ans;
+    if (sz == 3)
+        return {xs[0] + xs[1] + xs[2], xs[0] + xs[1] - xs[2],
+                xs[0] - xs[1] + xs[2], xs[0] - xs[1] - xs[2]};
+
+    if (sz == 4)
+        return {xs[0] + xs[1] + xs[2] + xs[3], xs[0] - xs[1] + xs[2] + xs[3],
+                xs[0] + xs[1] - xs[2] + xs[3], xs[0] + xs[1] + xs[2] - xs[3],
+                xs[0] - xs[1] - xs[2] + xs[3], xs[0] + xs[1] - xs[2] - xs[3],
+                xs[0] - xs[1] + xs[2] - xs[3], xs[0] - xs[1] - xs[2] - xs[3]};
+
+    if (sz == 5)
+        return {xs[0] + xs[1] + xs[2] + xs[3] + xs[4],
+                xs[0] - xs[1] + xs[2] + xs[3] + xs[4],
+                xs[0] + xs[1] - xs[2] + xs[3] + xs[4],
+                xs[0] + xs[1] + xs[2] - xs[3] + xs[4],
+                xs[0] + xs[1] + xs[2] + xs[3] - xs[4],
+
+                xs[0] - xs[1] - xs[2] + xs[3] + xs[4],
+                xs[0] - xs[1] + xs[2] - xs[3] + xs[4],
+                xs[0] - xs[1] + xs[2] + xs[3] - xs[4],
+                xs[0] + xs[1] - xs[2] - xs[3] + xs[4],
+                xs[0] + xs[1] - xs[2] + xs[3] - xs[4],
+                xs[0] + xs[1] + xs[2] - xs[3] - xs[4],
+
+                xs[0] - xs[1] - xs[2] - xs[3] + xs[4],
+                xs[0] - xs[1] - xs[2] + xs[3] - xs[4],
+                xs[0] + xs[1] - xs[2] - xs[3] - xs[4],
+
+                xs[0] - xs[1] - xs[2] - xs[3] - xs[4]};
+
+    assert(false && "Higher dimensions not supported");
+    return xs;
 }
 
 vvi rotate45_(const vvi &xss) {
@@ -241,7 +271,7 @@ int main() {
         for (auto &x : xs) cin >> x;
     }
 
-    // test_rotation(xss);
+    test_rotation(xss);
     cout << bruteforce(xss) << '\n';
     cout << mst_cheb_weight(rotate45_(xss)) << '\n';
 
