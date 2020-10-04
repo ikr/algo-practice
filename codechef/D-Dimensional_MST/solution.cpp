@@ -196,7 +196,7 @@ vector<multimap<int, int>> gather_indices_by_coord(const vvi &xss) {
     return ans;
 }
 
-vector<pair<Iter, Iter>> gather_cursors(const vector<multimap<int, int>> &vmm) {
+vector<pair<Iter, Iter>> gather_edges(const vector<multimap<int, int>> &vmm) {
     vector<pair<Iter, Iter>> ans;
     transform(cbegin(vmm), cend(vmm), back_inserter(ans), [](const auto &mm) {
         return pair<Iter, Iter>{cbegin(mm), prev(cend(mm))};
@@ -204,20 +204,11 @@ vector<pair<Iter, Iter>> gather_cursors(const vector<multimap<int, int>> &vmm) {
     return ans;
 }
 
-void advance(pair<Iter, Iter> &itjt) {
-    auto &[it, jt] = itjt;
-    assert(it != jt);
-
-    const auto x = it->first;
-    const auto xx = next(it)->first;
-    const auto yy = prev(jt)->first;
-    const auto y = jt->first;
-
-    if (abs(xx - y) > abs(x - yy)) {
-        ++it;
-    } else {
-        --jt;
-    }
+vector<Iter> gather_cursors(const vector<multimap<int, int>> &vmm) {
+    vector<Iter> ans;
+    transform(cbegin(vmm), cend(vmm), back_inserter(ans),
+              [](const auto &mm) { return cbegin(mm); });
+    return ans;
 }
 
 int mst_cheb_weight(const vvi &xss) {
@@ -226,6 +217,7 @@ int mst_cheb_weight(const vvi &xss) {
     const int d = xss[0].size();
 
     const auto indices_by_coord = gather_indices_by_coord(xss);
+    const auto edges = gather_edges(indices_by_coord);
     auto cursors = gather_cursors(indices_by_coord);
     atcoder::dsu g(n);
     int ans = 0;
@@ -235,10 +227,14 @@ int mst_cheb_weight(const vvi &xss) {
         int best_k = -1;
 
         for (int k = 0; k < d; ++k) {
-            auto &[it, jt] = cursors[k];
-            if (it == jt) continue;
+            const auto [lo, hi] = edges[k];
+            const Iter it = cursors[k];
+            if (it == next(hi)) continue;
 
-            const int w = abs(it->first - jt->first);
+            const int w =
+                abs(it->first - lo->first) > abs(it->first - hi->first)
+                    ? abs(it->first - lo->first)
+                    : abs(it->first - hi->first);
 
             if (w > best_w) {
                 best_w = w;
@@ -247,14 +243,23 @@ int mst_cheb_weight(const vvi &xss) {
         }
 
         if (best_w == -1) break;
-        auto &[it, jt] = cursors[best_k];
-        if (!g.same(it->second, jt->second)) {
-            cout << "x:" << it->first << " y:" << jt->first
-                 << " aug:" << abs(it->first - jt->first) << '\n';
-            ans += abs(it->first - jt->first);
-            g.merge(it->second, jt->second);
+        const auto [lo, hi] = edges[best_k];
+        Iter &it = cursors[best_k];
+
+        const int x = abs(it->first - lo->first) > abs(it->first - hi->first)
+                          ? lo->second
+                          : it->second;
+
+        const int y = abs(it->first - lo->first) > abs(it->first - hi->first)
+                          ? it->second
+                          : hi->second;
+
+        if (!g.same(x, y)) {
+            ans += best_w;
+            g.merge(x, y);
         }
-        advance(cursors[best_k]);
+
+        ++it;
     }
 
     assert(g.size(0) == n);
@@ -273,8 +278,8 @@ int main() {
         for (auto &x : xs) cin >> x;
     }
 
-    test_rotation(xss);
-    cout << bruteforce(xss) << '\n';
+    // test_rotation(xss);
+    // cout << bruteforce(xss) << '\n';
     cout << mst_cheb_weight(rotate45_(xss)) << '\n';
 
     return 0;
