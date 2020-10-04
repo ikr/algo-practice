@@ -256,6 +256,7 @@ int mst_cheb_weight(const vvi &xss) {
         advance(cursors[best_k]);
     }
 
+    assert(g.size(0) == n);
     return ans;
 }
 
