@@ -249,6 +249,8 @@ int mst_cheb_weight(const vvi &xss) {
         if (best_w == -1) break;
         auto &[it, jt] = cursors[best_k];
         if (!g.same(it->second, jt->second)) {
+            cout << "x:" << it->first << " y:" << jt->first
+                 << " aug:" << abs(it->first - jt->first) << '\n';
             ans += abs(it->first - jt->first);
             g.merge(it->second, jt->second);
         }
