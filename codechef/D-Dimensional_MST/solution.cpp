@@ -2,7 +2,8 @@
 using namespace std;
 using vi = vector<int>;
 using vvi = vector<vi>;
-using Iter = multimap<int, int>::const_iterator;
+using pi = pair<int, int>;
+using vpi = vector<pi>;
 
 namespace atcoder {
 struct dsu final {
@@ -37,13 +38,13 @@ struct dsu final {
         return -parent_or_size[leader(a)];
     }
 
-    vector<vector<int>> groups() {
-        vector<int> leader_buf(_n), group_size(_n);
+    vvi groups() {
+        vi leader_buf(_n), group_size(_n);
         for (int i = 0; i < _n; i++) {
             leader_buf[i] = leader(i);
             group_size[leader_buf[i]]++;
         }
-        vector<vector<int>> result(_n);
+        vvi result(_n);
         for (int i = 0; i < _n; i++) {
             result[i].reserve(group_size[i]);
         }
@@ -51,14 +52,14 @@ struct dsu final {
             result[leader_buf[i]].push_back(i);
         }
         result.erase(remove_if(result.begin(), result.end(),
-                               [&](const vector<int> &v) { return v.empty(); }),
+                               [&](const vi &v) { return v.empty(); }),
                      result.end());
         return result;
     }
 
   private:
     int _n;
-    vector<int> parent_or_size;
+    vi parent_or_size;
 };
 } // namespace atcoder
 
@@ -183,32 +184,32 @@ int bruteforce(vvi xss) {
     return ans;
 }
 
-vector<multimap<int, int>> gather_indices_by_coord(const vvi &xss) {
+vector<vpi> gather_indices_by_coord(const vvi &xss) {
     const int n = xss.size();
     const int d = xss[0].size();
 
-    vector<multimap<int, int>> ans(d);
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < d; ++j) {
-            ans[j].emplace(xss[i][j], i);
-        }
+    vector<vpi> ans(d, vpi(n));
+    for (int j = 0; j < d; ++j) {
+        for (int i = 0; i < n; ++i) ans[j][i] = pi{xss[i][j], i};
+        sort(begin(ans[j]), end(ans[j]));
     }
     return ans;
 }
 
-vector<pair<Iter, Iter>> gather_edges(const vector<multimap<int, int>> &vmm) {
-    vector<pair<Iter, Iter>> ans;
-    transform(cbegin(vmm), cend(vmm), back_inserter(ans), [](const auto &mm) {
-        return pair<Iter, Iter>{cbegin(mm), prev(cend(mm))};
-    });
-    return ans;
-}
+void advance(const vpi &indices_by_coord, pi &lohi) {
+    auto &[lo, hi] = lohi;
+    assert(lo != hi);
 
-vector<Iter> gather_cursors(const vector<multimap<int, int>> &vmm) {
-    vector<Iter> ans;
-    transform(cbegin(vmm), cend(vmm), back_inserter(ans),
-              [](const auto &mm) { return cbegin(mm); });
-    return ans;
+    const auto x = indices_by_coord[lo].first;
+    const auto xx = indices_by_coord[lo + 1].first;
+    const auto yy = indices_by_coord[hi - 1].first;
+    const auto y = indices_by_coord[hi].first;
+
+    if (y - xx > yy - x) {
+        ++lo;
+    } else {
+        --hi;
+    }
 }
 
 int mst_cheb_weight(const vvi &xss) {
@@ -217,8 +218,7 @@ int mst_cheb_weight(const vvi &xss) {
     const int d = xss[0].size();
 
     const auto indices_by_coord = gather_indices_by_coord(xss);
-    const auto edges = gather_edges(indices_by_coord);
-    auto cursors = gather_cursors(indices_by_coord);
+    vpi spans(d, pi{0, n - 1});
     atcoder::dsu g(n);
     int ans = 0;
 
@@ -227,14 +227,11 @@ int mst_cheb_weight(const vvi &xss) {
         int best_k = -1;
 
         for (int k = 0; k < d; ++k) {
-            const auto [lo, hi] = edges[k];
-            const Iter it = cursors[k];
-            if (it == next(hi)) continue;
+            const auto [lo, hi] = spans[k];
+            if (lo == hi) continue;
 
             const int w =
-                abs(it->first - lo->first) > abs(it->first - hi->first)
-                    ? abs(it->first - lo->first)
-                    : abs(it->first - hi->first);
+                indices_by_coord[k][hi].first - indices_by_coord[k][lo].first;
 
             if (w > best_w) {
                 best_w = w;
@@ -243,23 +240,15 @@ int mst_cheb_weight(const vvi &xss) {
         }
 
         if (best_w == -1) break;
-        const auto [lo, hi] = edges[best_k];
-        Iter &it = cursors[best_k];
-
-        const int x = abs(it->first - lo->first) > abs(it->first - hi->first)
-                          ? lo->second
-                          : it->second;
-
-        const int y = abs(it->first - lo->first) > abs(it->first - hi->first)
-                          ? it->second
-                          : hi->second;
+        const int x = indices_by_coord[best_k][spans[best_k].first].second;
+        const int y = indices_by_coord[best_k][spans[best_k].second].second;
 
         if (!g.same(x, y)) {
             ans += best_w;
             g.merge(x, y);
         }
 
-        ++it;
+        advance(indices_by_coord[best_k], spans[best_k]);
     }
 
     assert(g.size(0) == n);
@@ -278,8 +267,8 @@ int main() {
         for (auto &x : xs) cin >> x;
     }
 
-    // test_rotation(xss);
-    // cout << bruteforce(xss) << '\n';
+    test_rotation(xss);
+    cout << bruteforce(xss) << '\n';
     cout << mst_cheb_weight(rotate45_(xss)) << '\n';
 
     return 0;
