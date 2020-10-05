@@ -4,6 +4,7 @@ using vi = vector<int>;
 using vvi = vector<vi>;
 using pi = pair<int, int>;
 using vpi = vector<pi>;
+using ll = long long;
 
 namespace atcoder {
 struct dsu final {
@@ -198,7 +199,7 @@ vector<vpi> gather_indices_by_coord(const vvi &xss) {
     return ans;
 }
 
-int mst_cheb_weight(const vvi &xss) {
+ll mst_cheb_weight(const vvi &xss) {
     const int n = xss.size();
     if (n == 1) return 0;
     const int d = xss[0].size();
@@ -206,7 +207,7 @@ int mst_cheb_weight(const vvi &xss) {
     const auto indices_by_coord = gather_indices_by_coord(xss);
     vpi spans(d, pi{0, n - 1});
     atcoder::dsu g(n);
-    int ans = 0;
+    ll ans = 0;
 
     for (;;) {
         int best_w = -1;
