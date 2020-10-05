@@ -163,6 +163,7 @@ int bruteforce(vvi xss) {
     vvi yss{xss.back()};
     yss.reserve(xss.size());
     xss.pop_back();
+    if (xss.empty()) return 0;
     int ans = 0;
 
     do {
@@ -281,8 +282,8 @@ int main() {
         for (auto &x : xs) cin >> x;
     }
 
-    // test_rotation(xss);
-    // cout << bruteforce(xss) << '\n';
+    test_rotation(xss);
+    cout << bruteforce(xss) << '\n';
     cout << mst_cheb_weight(rotate45_(xss)) << '\n';
 
     return 0;
