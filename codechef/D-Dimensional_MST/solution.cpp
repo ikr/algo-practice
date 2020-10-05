@@ -63,6 +63,8 @@ struct dsu final {
 };
 } // namespace atcoder
 
+enum class Dir { FWD, BWD };
+
 template <typename T> struct mmax {
     constexpr T operator()(const T &a, const T &b) const {
         return std::max(a, b);
@@ -196,22 +198,6 @@ vector<vpi> gather_indices_by_coord(const vvi &xss) {
     return ans;
 }
 
-void advance(const vpi &indices_by_coord, pi &lohi) {
-    auto &[lo, hi] = lohi;
-    assert(lo != hi);
-
-    const auto x = indices_by_coord[lo].first;
-    const auto xx = indices_by_coord[lo + 1].first;
-    const auto yy = indices_by_coord[hi - 1].first;
-    const auto y = indices_by_coord[hi].first;
-
-    if (y - xx > yy - x) {
-        ++lo;
-    } else {
-        --hi;
-    }
-}
-
 int mst_cheb_weight(const vvi &xss) {
     const int n = xss.size();
     if (n == 1) return 0;
@@ -225,30 +211,57 @@ int mst_cheb_weight(const vvi &xss) {
     for (;;) {
         int best_w = -1;
         int best_k = -1;
+        Dir best_dir = Dir::FWD;
 
         for (int k = 0; k < d; ++k) {
-            const auto [lo, hi] = spans[k];
-            if (lo == hi) continue;
+            const auto [fwd, bwd] = spans[k];
 
-            const int w =
-                indices_by_coord[k][hi].first - indices_by_coord[k][lo].first;
+            if (fwd < n - 1) {
+                const int fwd_w = indices_by_coord[k][n - 1].first -
+                                  indices_by_coord[k][fwd].first;
 
-            if (w > best_w) {
-                best_w = w;
-                best_k = k;
+                if (fwd_w > best_w) {
+                    best_w = fwd_w;
+                    best_k = k;
+                    best_dir = Dir::FWD;
+                }
+            }
+
+            if (bwd > 0) {
+                const int bwd_w = indices_by_coord[k][bwd].first -
+                                  indices_by_coord[k][0].first;
+
+                if (bwd_w > best_w) {
+                    best_w = bwd_w;
+                    best_k = k;
+                    best_dir = Dir::BWD;
+                }
             }
         }
 
         if (best_w == -1) break;
-        const int x = indices_by_coord[best_k][spans[best_k].first].second;
-        const int y = indices_by_coord[best_k][spans[best_k].second].second;
 
-        if (!g.same(x, y)) {
-            ans += best_w;
-            g.merge(x, y);
+        if (best_dir == Dir::FWD) {
+            const int x = indices_by_coord[best_k][spans[best_k].first].second;
+            const int y = indices_by_coord[best_k][n - 1].second;
+
+            if (!g.same(x, y)) {
+                ans += best_w;
+                g.merge(x, y);
+            }
+
+            ++spans[best_k].first;
+        } else {
+            const int x = indices_by_coord[best_k][0].second;
+            const int y = indices_by_coord[best_k][spans[best_k].second].second;
+
+            if (!g.same(x, y)) {
+                ans += best_w;
+                g.merge(x, y);
+            }
+
+            --spans[best_k].second;
         }
-
-        advance(indices_by_coord[best_k], spans[best_k]);
     }
 
     assert(g.size(0) == n);
@@ -267,8 +280,8 @@ int main() {
         for (auto &x : xs) cin >> x;
     }
 
-    test_rotation(xss);
-    cout << bruteforce(xss) << '\n';
+    // test_rotation(xss);
+    // cout << bruteforce(xss) << '\n';
     cout << mst_cheb_weight(rotate45_(xss)) << '\n';
 
     return 0;
