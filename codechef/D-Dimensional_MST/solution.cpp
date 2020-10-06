@@ -159,12 +159,12 @@ void test_rotation(const vvi &xss) {
     cout << '\n';
 }
 
-int bruteforce(vvi xss) {
+ll naive_prim(vvi xss) {
     vvi yss{xss.back()};
     yss.reserve(xss.size());
     xss.pop_back();
     if (xss.empty()) return 0;
-    int ans = 0;
+    ll ans = 0;
 
     do {
         int best_d = -1;
@@ -185,6 +185,30 @@ int bruteforce(vvi xss) {
         xss.erase(best_it);
     } while (!xss.empty());
 
+    return ans;
+}
+
+ll naive_kruskal(const vvi &xss) {
+    const ll n = xss.size();
+    vector<pair<int, pi>> edges_by_weight;
+    edges_by_weight.reserve(n * (n - 1) / 2);
+
+    for (ll i = 0; i < n - 1; ++i) {
+        for (ll j = i + 1; j < n; ++j) {
+            edges_by_weight.emplace_back(manh_(xss[i], xss[j]), pi{i, j});
+        }
+    }
+
+    sort(rbegin(edges_by_weight), rend(edges_by_weight));
+    atcoder::dsu g(n);
+    ll ans = 0;
+    for (const auto [w, e] : edges_by_weight) {
+        const auto [u, v] = e;
+        if (!g.same(u, v)) {
+            ans += w;
+            g.merge(u, v);
+        }
+    }
     return ans;
 }
 
@@ -282,9 +306,10 @@ int main() {
         for (auto &x : xs) cin >> x;
     }
 
-    test_rotation(xss);
-    cout << bruteforce(xss) << '\n';
-    cout << mst_cheb_weight(rotate45_(xss)) << '\n';
+    // test_rotation(xss);
+    // cout << naive_prim(xss) << '\n';
+    cout << naive_kruskal(xss) << '\n';
+    // cout << mst_cheb_weight(rotate45_(xss)) << '\n';
 
     return 0;
 }
