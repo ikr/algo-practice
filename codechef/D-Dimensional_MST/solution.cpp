@@ -101,6 +101,7 @@ vi rotate45(const vi &xs) {
 
     if (sz == 5)
         return {xs[0] + xs[1] + xs[2] + xs[3] + xs[4],
+
                 xs[0] - xs[1] + xs[2] + xs[3] + xs[4],
                 xs[0] + xs[1] - xs[2] + xs[3] + xs[4],
                 xs[0] + xs[1] + xs[2] - xs[3] + xs[4],
@@ -115,6 +116,7 @@ vi rotate45(const vi &xs) {
 
                 xs[0] - xs[1] - xs[2] - xs[3] + xs[4],
                 xs[0] - xs[1] - xs[2] + xs[3] - xs[4],
+                xs[0] - xs[1] + xs[2] - xs[3] - xs[4],
                 xs[0] + xs[1] - xs[2] - xs[3] - xs[4],
 
                 xs[0] - xs[1] - xs[2] - xs[3] - xs[4]};
@@ -157,35 +159,6 @@ void test_rotation(const vvi &xss) {
         }
     }
     cout << '\n';
-}
-
-ll naive_prim(vvi xss) {
-    vvi yss{xss.back()};
-    yss.reserve(xss.size());
-    xss.pop_back();
-    if (xss.empty()) return 0;
-    ll ans = 0;
-
-    do {
-        int best_d = -1;
-        auto best_it = xss.cend();
-
-        for (auto jt = cbegin(yss); jt != cend(yss); ++jt) {
-            for (auto it = cbegin(xss); it != cend(xss); ++it) {
-                const int d = manh_(*jt, *it);
-                if (d > best_d) {
-                    best_d = d;
-                    best_it = it;
-                }
-            }
-        }
-
-        ans += best_d;
-        yss.push_back(*best_it);
-        xss.erase(best_it);
-    } while (!xss.empty());
-
-    return ans;
 }
 
 ll naive_kruskal(const vvi &xss) {
@@ -294,6 +267,56 @@ ll mst_cheb_weight(const vvi &xss) {
     return ans;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
+template <typename T> struct RndInt final {
+    RndInt(const T lo, const T hi) : m_gen{random_device{}()}, m_dist{lo, hi} {}
+    T next() { return m_dist(m_gen); }
+
+  private:
+    mt19937 m_gen;
+    uniform_int_distribution<T> m_dist;
+};
+
+void compare_naive_and_optimal() {
+    const int trials = 200;
+    const int n = 7;
+    const int d = 5;
+    const int lo = 1;
+    const int hi = 10;
+    RndInt<int> rnd(lo, hi);
+
+    for (int k = 0; k < trials; ++k) {
+        vvi xss(n, vi(d, -1));
+        for (auto &xs : xss) {
+            for (auto &x : xs) x = rnd.next();
+        }
+
+        if (mst_cheb_weight(rotate45_(xss)) != naive_kruskal(xss)) {
+            cout << "\n" << k << " Boom!\n" << xss;
+            break;
+        } else {
+            cout << '.';
+        }
+    }
+
+    cout << '\n';
+}
+
 int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
@@ -307,9 +330,9 @@ int main() {
     }
 
     // test_rotation(xss);
-    // cout << naive_prim(xss) << '\n';
-    cout << naive_kruskal(xss) << '\n';
-    // cout << mst_cheb_weight(rotate45_(xss)) << '\n';
+    // cout << naive_kruskal(xss) << '\n';
+    cout << mst_cheb_weight(rotate45_(xss)) << '\n';
+    // compare_naive_and_optimal();
 
     return 0;
 }
