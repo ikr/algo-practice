@@ -1,17 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T>
-ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 unordered_set<int> distinct_distances(const vector<int> &xs) {
     const int n = xs.size();
     unordered_set<int> ans;
