@@ -1,6 +1,17 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T>
+ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 unordered_set<int> distinct_distances(const vector<int> &xs) {
     const int n = xs.size();
     unordered_set<int> ans;
@@ -32,22 +43,22 @@ int max_sq_num(const vector<int> &xs, const vector<int> &ys, const int H) {
     const auto [common, unpaired] =
         intersect(distinct_distances(xs), distinct_distances(ys));
 
-    int surplus = 0;
+    int win = 0;
 
-    for (const int y : ys) {
+    for (int i = 0; i <= H; ++i) {
         unordered_set<int> ds;
 
-        for (int i = 0; i <= H; ++i) {
+        for (const int y : ys) {
             if (present.count(i)) continue;
             const int curr = abs(i - y);
             if (!unpaired.count(curr)) continue;
             ds.insert(curr);
         }
 
-        surplus = max(surplus, static_cast<int>(ds.size()));
+        win = max(win, static_cast<int>(ds.size()));
     }
 
-    return common + surplus;
+    return common + win;
 }
 
 int main() {
