@@ -1,18 +1,19 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-set<int> distinct_distances(const vector<int> &xs) {
+unordered_set<int> distinct_distances(const vector<int> &xs) {
     const int n = xs.size();
-    set<int> ans;
+    unordered_set<int> ans;
     for (int i = 0; i < n - 1; ++i) {
         for (int j = i + 1; j < n; ++j) {
-            if (xs[i] != xs[j]) ans.insert(abs(xs[i] - xs[j]));
+            if (xs[i] != xs[j]) ans.insert(xs[j] - xs[i]);
         }
     }
     return ans;
 }
 
-pair<int, set<int>> intersect(set<int> xs, const set<int> &ys) {
+pair<int, unordered_set<int>> intersect(unordered_set<int> xs,
+                                        const unordered_set<int> &ys) {
     int common_count = 0;
     for (auto it = cbegin(xs); it != cend(xs);) {
         if (ys.count(*it)) {
@@ -26,7 +27,27 @@ pair<int, set<int>> intersect(set<int> xs, const set<int> &ys) {
 }
 
 int max_sq_num(const vector<int> &xs, const vector<int> &ys, const int H) {
-    return 0;
+    const unordered_set<int> present(cbegin(ys), cend(ys));
+
+    const auto [common, unpaired] =
+        intersect(distinct_distances(xs), distinct_distances(ys));
+
+    int surplus = 0;
+
+    for (const int y : ys) {
+        unordered_set<int> ds;
+
+        for (int i = 0; i <= H; ++i) {
+            if (present.count(i)) continue;
+            const int curr = abs(i - y);
+            if (!unpaired.count(curr)) continue;
+            ds.insert(curr);
+        }
+
+        surplus = max(surplus, static_cast<int>(ds.size()));
+    }
+
+    return common + surplus;
 }
 
 int main() {
