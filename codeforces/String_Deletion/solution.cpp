@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
+using Iter = deque<int>::iterator;
 
 deque<int> seg_lengths(const string &ds) {
     const int n = ds.size();
@@ -22,38 +23,40 @@ deque<int> seg_lengths(const string &ds) {
     return ans;
 }
 
+void perform_op(deque<int> &xs, Iter &it) {
+    assert(!xs.empty());
+
+    const auto advance = [&]() {
+        it = find_if(it, end(xs), [](const int x) { return x > 1; });
+    };
+
+    if (it != end(xs)) {
+        --(*it);
+        advance();
+    } else {
+        xs.pop_front();
+    }
+
+    if (!xs.empty()) {
+        if (it == begin(xs)) {
+            ++it;
+            advance();
+        }
+
+        xs.pop_front();
+    }
+}
+
 int max_ops(const string &ds) {
     auto ls = seg_lengths(ds);
     auto it = find_if(begin(ls), end(ls), [](const int x) { return x > 1; });
     int ans = 0;
 
     while (!ls.empty()) {
-        if (it != end(ls)) {
-            if (*it > 1) {
-                --(*it);
-                if (it == begin(ls)) {
-                    it = find_if(it + 1, end(ls),
-                                 [](const int x) { return x > 1; });
-                }
-            } else {
-                it =
-                    find_if(it + 1, end(ls), [](const int x) { return x > 1; });
-
-                if (it != end(ls)) {
-                    --(*it);
-
-                    if (*it == 1) {
-                        it = find_if(it + 1, end(ls),
-                                     [](const int x) { return x > 1; });
-                    }
-                }
-                ls.pop_front();
-            }
-        }
-
-        if (!ls.empty()) ls.pop_front();
+        perform_op(ls, it);
         ++ans;
     }
+
     return ans;
 }
 
