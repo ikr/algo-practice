@@ -18,38 +18,34 @@ using is_unsigned_int128 =
 
 template <class T>
 using make_unsigned_int128 =
-    typename std::conditional<std::is_same<T, __int128_t>::value, __uint128_t,
+    typename std::conditional<is_same<T, __int128_t>::value, __uint128_t,
                               unsigned __int128>;
 
 template <class T>
 using is_integral =
-    typename std::conditional<std::is_integral<T>::value ||
-                                  is_signed_int128<T>::value ||
-                                  is_unsigned_int128<T>::value,
-                              std::true_type, std::false_type>::type;
+    typename conditional<is_integral<T>::value || is_signed_int128<T>::value ||
+                             is_unsigned_int128<T>::value,
+                         true_type, false_type>::type;
 
 template <class T>
 using is_signed_int =
-    typename std::conditional<(is_integral<T>::value &&
-                               std::is_signed<T>::value) ||
-                                  is_signed_int128<T>::value,
-                              std::true_type, std::false_type>::type;
+    typename conditional<(is_integral<T>::value && is_signed<T>::value) ||
+                             is_signed_int128<T>::value,
+                         true_type, false_type>::type;
 
 template <class T>
 using is_unsigned_int =
-    typename std::conditional<(is_integral<T>::value &&
-                               std::is_unsigned<T>::value) ||
-                                  is_unsigned_int128<T>::value,
-                              std::true_type, std::false_type>::type;
+    typename conditional<(is_integral<T>::value && is_unsigned<T>::value) ||
+                             is_unsigned_int128<T>::value,
+                         true_type, false_type>::type;
 
 template <class T>
-using to_unsigned = typename std::conditional<
+using to_unsigned = typename conditional<
     is_signed_int128<T>::value, make_unsigned_int128<T>,
-    typename std::conditional<std::is_signed<T>::value, std::make_unsigned<T>,
-                              std::common_type<T>>::type>::type;
+    typename conditional<is_signed<T>::value, make_unsigned<T>,
+                         common_type<T>>::type>::type;
 
-template <class T>
-using is_signed_int_t = enable_if_t<is_signed_int<T>::value>;
+template <class T> using is_signed_int_t = enable_if_t<is_signed_int<T>::value>;
 
 template <class T>
 using is_unsigned_int_t = enable_if_t<is_unsigned_int<T>::value>;
