@@ -123,11 +123,11 @@ vector<int> permutation_of_reversed(const string &s) {
 ll count_inversions(const vector<int> &xs) {
     const int n = xs.size();
     ll ans = 0;
+    atcoder::fenwick_tree<int> t(n);
 
-    for (int i = 0; i < n - 1; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            if (xs[i] > xs[j]) ++ans;
-        }
+    for (int i = n - 1; i >= 0; --i) {
+        t.add(xs[i], 1);
+        ans += t.sum(0, xs[i]);
     }
 
     return ans;
