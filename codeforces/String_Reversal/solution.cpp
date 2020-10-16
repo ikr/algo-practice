@@ -3,16 +3,6 @@ using namespace std;
 using ll = long long;
 static constexpr int SZ = 'z' - 'a' + 1;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 string reversed(string s) {
     reverse(begin(s), end(s));
     return s;
