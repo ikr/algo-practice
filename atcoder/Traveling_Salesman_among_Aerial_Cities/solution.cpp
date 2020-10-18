@@ -27,12 +27,45 @@ ll gather_tsp_answer(const vector<Coord> &ps, const vector<vector<ll>> &dp) {
     return ans;
 }
 
+vector<int> pop_one_more_bit(const int n, const int x) {
+    vector<int> ans;
+    ans.reserve(n);
+
+    for (int i = 1; i < n; ++i) {
+        const int mask = 1 << i;
+        if (x & mask) continue;
+        ans.push_back(x | mask);
+    }
+
+    return ans;
+}
+
+set<int> pop_one_more_bit(const int n, const vector<int> &xs) {
+    set<int> ans;
+
+    for (const auto x : xs) {
+        const auto ys = pop_one_more_bit(n, x);
+        ans.insert(cbegin(ys), cend(ys));
+    }
+
+    return ans;
+}
+
 ll solve_tsp(const vector<Coord> &ps) {
     const int n = ps.size();
+    const int complete_set = (1 << n) - 1;
 
     // minimal distance from point 0
     // [to point i] [over j bits-defined subset of points]
     vector<vector<ll>> dp(n, vector<ll>(1 << n, INF));
+
+    vector<set<int>> subsets_by_point(n);
+
+    for (int i = 1; i < n; ++i) {
+        const int mask = 1 | (1 << i);
+        subsets_by_point[i].insert(mask);
+        dp[i][mask] = dist(ps[0], ps[i]);
+    }
 
     return gather_tsp_answer(ps, dp);
 }
