@@ -9,22 +9,6 @@ template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
 }
 
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<set<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 ll dist(const Coord &x, const Coord &y) {
     const auto [a, b, c] = x;
     const auto [p, q, r] = y;
@@ -81,12 +65,9 @@ ll solve_tsp(const vector<Coord> &ps) {
         subsets_by_point[i].insert(mask);
         dp[i][mask] = dist(ps[0], ps[i]);
     }
-    cout << subsets_by_point << '\n';
 
     for (int k = 3; k <= n; ++k) {
         for (auto &ss : subsets_by_point) ss = pop_one_more_bit(n, ss);
-
-        cout << subsets_by_point << '\n';
 
         for (int i = 1; i < n; ++i) {
             for (const auto &ss : subsets_by_point[i]) {
