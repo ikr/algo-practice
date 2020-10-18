@@ -28,7 +28,7 @@ vector<int> pop_one_more_bit(const int n, const int x) {
     return ans;
 }
 
-set<int> pop_one_more_bit(const int n, const vector<int> &xs) {
+set<int> pop_one_more_bit(const int n, const set<int> &xs) {
     set<int> ans;
 
     for (const auto x : xs) {
@@ -64,6 +64,22 @@ ll solve_tsp(const vector<Coord> &ps) {
         const int mask = 1 | (1 << i);
         subsets_by_point[i].insert(mask);
         dp[i][mask] = dist(ps[0], ps[i]);
+    }
+
+    for (int k = 3; k <= n; ++k) {
+        for (auto &ss : subsets_by_point) ss = pop_one_more_bit(n, ss);
+
+        for (int i = 1; i < n; ++i) {
+            for (const auto &ss : subsets_by_point[i]) {
+                for (int b = 1; b < n; ++b) {
+                    const int mask = 1 << b;
+                    if ((mask & ss) && b != i) {
+                        dp[i][ss] = min(dp[i][ss],
+                                        dp[b][ss & ~mask] + dist(ps[b], ps[i]));
+                    }
+                }
+            }
+        }
     }
 
     return gather_tsp_answer(ps, dp);
