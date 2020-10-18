@@ -11,10 +11,10 @@ ll diff(const ll m, const ll x, const ll y) {
 ll solve(const int n, const vector<int> &xs) {
     ll ans = 1e18;
 
-    for (int i = 0; i < n; ++i) {
+    for (const auto y : xs) {
         ll candidate = 0;
         for (const auto x : xs) {
-            candidate += diff(n, x, i);
+            candidate += diff(n, x, y);
         }
 
         ans = min(ans, candidate);
