@@ -15,18 +15,6 @@ ll dist(const Coord &x, const Coord &y) {
     return abs(llof(p) - a) + abs(llof(q) - b) + max(0LL, llof(r) - c);
 }
 
-ll gather_tsp_answer(const vector<Coord> &ps, const vector<vector<ll>> &dp) {
-    const int n = dp.size();
-    const int complete_set = (1 << n) - 1;
-    ll ans = INF;
-
-    for (int i = 1; i < n; ++i) {
-        ans = min(ans, dp[i][complete_set] + dist(ps[i], ps[0]));
-    }
-
-    return ans;
-}
-
 vector<int> pop_one_more_bit(const int n, const int x) {
     vector<int> ans;
     ans.reserve(n);
@@ -51,9 +39,20 @@ set<int> pop_one_more_bit(const int n, const vector<int> &xs) {
     return ans;
 }
 
+ll gather_tsp_answer(const vector<Coord> &ps, const vector<vector<ll>> &dp) {
+    const int n = dp.size();
+    const int complete_set = (1 << n) - 1;
+    ll ans = INF;
+
+    for (int i = 1; i < n; ++i) {
+        ans = min(ans, dp[i][complete_set] + dist(ps[i], ps[0]));
+    }
+
+    return ans;
+}
+
 ll solve_tsp(const vector<Coord> &ps) {
     const int n = ps.size();
-    const int complete_set = (1 << n) - 1;
 
     // minimal distance from point 0
     // [to point i] [over j bits-defined subset of points]
