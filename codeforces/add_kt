@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: ./add 'Problem Title With Spaces'"
+    exit 1
+fi
+
+name=$(echo -n "$1" | sed 's/ /_/g')
+
+code=$(cat <<EOF
+fun main() {
+    repeat(readInt()) {
+    }
+}
+
+private fun readLn() = readLine()!!
+private fun readInt() = readLn().toInt()
+private fun readLong() = readLn().toLong()
+private fun readStrings() = readLn().split(" ")
+private fun readInts() = readStrings().map(String::toInt)
+private fun readLongs() = readStrings().map(String::toLong)
+EOF
+)
+
+makefile=$(cat <<EOF
+build:
+	kotlinc ./solution.kt -include-runtime -d ./solution.jar
+
+run: build
+	java -jar ./solution.jar
+EOF
+)
+
+mkdir "./$name"
+cd "./$name"
+echo "$code" > ./solution.kt
+echo "$makefile" > ./Makefile
+emacsclient -n ./solution.kt
+echo "cd ./$name && make run" | xclip -selection clipboard
