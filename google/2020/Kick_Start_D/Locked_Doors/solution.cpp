@@ -17,45 +17,58 @@ vi inc_all(vi xs) {
     return xs;
 }
 
-vi rooms_order(const vi &doors, const int start) {
-    vi ans{start};
-    pi span{start, start};
-    const int sz = doors.size() + 1;
-
-    while (span.first != 0 || span.second != sz - 1) {
-        if (span.first != 0 && span.second != sz - 1) {
-            if (doors[span.first - 1] < doors[span.second]) {
-                ans.push_back(span.first - 1);
-                --span.first;
-            } else {
-                ans.push_back(span.second + 1);
-                ++span.second;
-            }
-
-            continue;
-        }
-
-        if (span.first != 0) {
-            ans.push_back(span.first - 1);
-            --span.first;
-        } else {
-            assert(span.second != sz - 1);
-            ans.push_back(span.second + 1);
-            ++span.second;
-        }
+template <typename Iter1, typename Iter2, typename F>
+void closest_dom_indices(const Iter1 in_first, const Iter1 in_last, Iter2 out,
+                         const F as_index) {
+    stack<Iter1> st;
+    for (auto it = in_first; it != in_last; ++it, ++out) {
+        while (!st.empty() && *st.top() < *it) st.pop();
+        *out = st.empty() ? -1 : as_index(st.top());
+        st.push(it);
     }
+}
 
+vi gather_ltr_dom_indices(const vi &doors) {
+    vi ans(doors.size(), -1);
+    closest_dom_indices(
+        cbegin(doors), cend(doors), begin(ans),
+        [&doors](const auto it) -> int { return distance(cbegin(doors), it); });
     return ans;
 }
 
-vi query_results(const vi &doors, const vpi &queries) {
-    vi ans;
-    unordered_map<int, vi> memo;
+vi gather_rtl_dom_indices(const vi &doors) {
+    vi ans(doors.size(), -1);
+    closest_dom_indices(crbegin(doors), crend(doors), rbegin(ans),
+                        [&doors](const auto it) -> int {
+                            return doors.size() - 1 -
+                                   distance(crbegin(doors), it);
+                        });
+    return ans;
+}
 
-    for (const auto q : queries) {
-        if (!memo.count(q.first)) memo[q.first] = rooms_order(doors, q.first);
-        ans.push_back(memo[q.first][q.second]);
-    }
+vi gather_dom_indices(const vi &doors) {
+    const auto ltr = gather_ltr_dom_indices(doors);
+    const auto rtl = gather_rtl_dom_indices(doors);
+
+    vi ans(doors.size(), -1);
+    transform(cbegin(ltr), cend(ltr), cbegin(rtl), begin(ans),
+              [&doors](const int i, const int j) -> int {
+                  const int x = i == -1 ? INT_MAX : doors[i];
+                  const int y = j == -1 ? INT_MAX : doors[j];
+                  return x < y ? i : j;
+              });
+    return ans;
+}
+
+int kth_room(const vi &doors, const int s, const int k) { return s; }
+
+vi query_results(const vi &doors, const vpi &queries) {
+    gather_dom_indices(doors);
+    vi ans(queries.size());
+
+    transform(
+        cbegin(queries), cend(queries), begin(ans),
+        [&doors](const pi &q) { return kth_room(doors, q.first, q.second); });
 
     return ans;
 }
