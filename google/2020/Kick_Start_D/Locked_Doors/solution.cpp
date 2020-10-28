@@ -60,10 +60,46 @@ vi gather_dom_indices(const vi &doors) {
     return ans;
 }
 
+vi gather_subtree_sizes(const vi &parents) {
+    const int n = parents.size();
+    unordered_multimap<int, int> g;
+    int r = -1;
+    for (int i = 0; i < n; ++i) {
+        if (parents[i] < 0) {
+            r = i;
+            continue;
+        }
+        g.emplace(parents[i], i);
+    }
+    assert(r >= 0);
+
+    vi ans(n, 0);
+    function<int(int)> dfs;
+
+    dfs = [&ans, &g, &dfs](const int u) {
+        if (!ans[u]) {
+            ans[u] = 1;
+
+            if (g.count(u)) {
+                const auto r = g.equal_range(u);
+                for (auto it = r.first; it != r.second; ++it) {
+                    ans[u] += dfs(it->second);
+                }
+            }
+        }
+
+        return ans[u];
+    };
+
+    dfs(r);
+    return ans;
+}
+
 int kth_room(const vi &doors, const int s, const int k) { return s; }
 
 vi query_results(const vi &doors, const vpi &queries) {
-    gather_dom_indices(doors);
+    const auto szs = gather_subtree_sizes(gather_dom_indices(doors));
+
     vi ans(queries.size());
 
     transform(
