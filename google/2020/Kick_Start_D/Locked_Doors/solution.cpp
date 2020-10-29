@@ -3,6 +3,7 @@ using namespace std;
 using vi = vector<int>;
 using pi = pair<int, int>;
 using vpi = vector<pi>;
+using Graph = unordered_multimap<int, int>;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -60,7 +61,7 @@ vi gather_dom_indices(const vi &doors) {
     return ans;
 }
 
-vi gather_subtree_sizes(const vi &parents) {
+pair<Graph, int> gather_children_and_root(const vi &parents) {
     const int n = parents.size();
     unordered_multimap<int, int> g;
     int r = -1;
@@ -72,8 +73,15 @@ vi gather_subtree_sizes(const vi &parents) {
         g.emplace(parents[i], i);
     }
     assert(r >= 0);
+    return {g, r};
+}
 
-    vi ans(n, 0);
+vi gather_subtree_sizes(const vi &parents) {
+    const auto children_and_root = gather_children_and_root(parents);
+    const auto g = children_and_root.first;
+    const int r = children_and_root.second;
+
+    vi ans(parents.size(), 0);
     function<int(int)> dfs;
 
     dfs = [&ans, &g, &dfs](const int u) {
@@ -81,8 +89,8 @@ vi gather_subtree_sizes(const vi &parents) {
             ans[u] = 1;
 
             if (g.count(u)) {
-                const auto r = g.equal_range(u);
-                for (auto it = r.first; it != r.second; ++it) {
+                const auto span = g.equal_range(u);
+                for (auto it = span.first; it != span.second; ++it) {
                     ans[u] += dfs(it->second);
                 }
             }
@@ -94,6 +102,8 @@ vi gather_subtree_sizes(const vi &parents) {
     dfs(r);
     return ans;
 }
+
+int lowest_covering_ancestor() { return 0; }
 
 int kth_room(const vi &doors, const int s, const int k) { return s; }
 
