@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 using vi = vector<int>;
+using vvi = vector<vi>;
 using pi = pair<int, int>;
 using vpi = vector<pi>;
 using Graph = unordered_multimap<int, int>;
@@ -103,7 +104,30 @@ vi gather_subtree_sizes(const vi &parents) {
     return ans;
 }
 
-int lowest_covering_ancestor() { return 0; }
+constexpr unsigned int mlog2(const unsigned int x) {
+    return 8U * sizeof(unsigned int) - __builtin_clz(x) - 1U;
+}
+
+vvi gather_lifts(const vi &parents) {
+    const int n = parents.size();
+    const int m = mlog2(n - 1) + 1;
+
+    vvi ans(m, vi(n, -1));
+    ans[0] = parents;
+
+    for (int k = 1; k < m; ++k) {
+        for (int i = 0; i < n; ++i) {
+            ans[k][i] = ans[k - 1][ans[k - 1][i]];
+        }
+    }
+
+    return ans;
+}
+
+int lowest_covering_ancestor(const vvi &lifts, const vi &subtree_sizes,
+                             const int u, const int target_size) {
+    return 0;
+}
 
 int kth_room(const vi &doors, const int s, const int k) { return s; }
 
