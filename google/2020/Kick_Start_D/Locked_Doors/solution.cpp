@@ -5,6 +5,7 @@ using vvi = vector<vi>;
 using pi = pair<int, int>;
 using vpi = vector<pi>;
 using Graph = unordered_multimap<int, int>;
+using Tree = pair<Graph, int>;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -62,7 +63,7 @@ vi gather_dom_indices(const vi &doors) {
     return ans;
 }
 
-pair<Graph, int> gather_children_and_root(const vi &parents) {
+Tree gather_children_and_root(const vi &parents) {
     const int n = parents.size();
     unordered_multimap<int, int> g;
     int r = -1;
@@ -77,12 +78,11 @@ pair<Graph, int> gather_children_and_root(const vi &parents) {
     return {g, r};
 }
 
-vi gather_subtree_sizes(const vi &parents) {
-    const auto children_and_root = gather_children_and_root(parents);
+vi gather_subtree_sizes(const int n, const Tree &children_and_root) {
     const auto g = children_and_root.first;
     const int r = children_and_root.second;
 
-    vi ans(parents.size(), 0);
+    vi ans(n, 0);
     function<int(int)> dfs;
 
     dfs = [&ans, &g, &dfs](const int u) {
@@ -126,13 +126,35 @@ vvi gather_lifts(const vi &parents) {
 
 int lowest_covering_ancestor(const vvi &lifts, const vi &subtree_sizes,
                              const int u, const int target_size) {
+    if (subtree_sizes[u] >= target_size) return u;
+    // TODO
     return 0;
 }
 
-int kth_room(const vi &doors, const int s, const int k) { return s; }
+pi left_right_child(const Graph &g, const int u) {
+    const auto span = g.equal_range(u);
+    if (span.first == cend(g)) return {-1, -1};
+
+    const int v = span.first->second;
+
+    if (next(span.first) == span.second) {
+        return v < u ? pi{v, -1} : pi{-1, v};
+    }
+
+    const int w = next(span.first)->second;
+
+    return {min(v, w), max(v, w)};
+}
+
+int kth_room(const vi &doors, const int s, const int k) {
+    // TODO
+    return s;
+}
 
 vi query_results(const vi &doors, const vpi &queries) {
-    const auto szs = gather_subtree_sizes(gather_dom_indices(doors));
+    const auto parents = gather_dom_indices(doors);
+    const auto children_and_root = gather_children_and_root(parents);
+    const auto szs = gather_subtree_sizes(parents.size(), children_and_root);
 
     vi ans(queries.size());
 
