@@ -1,5 +1,4 @@
 #include <bits/stdc++.h>
-#include <functional>
 using namespace std;
 using ll = long long;
 
@@ -47,7 +46,7 @@ vector<ll> factorize(const vector<bool> &primes, ll x) {
 
 pair<ll, ll> min_sum_split(const vector<ll> &factorization) {
     const int sz = factorization.size();
-    if (sz == 1) return {-1, -1};
+    if (sz == 1) return {1, factorization.front()};
 
     const ll prod = accumulate(cbegin(factorization), cend(factorization), 1LL,
                                multiplies<ll>{});
