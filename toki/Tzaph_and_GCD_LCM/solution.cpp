@@ -60,8 +60,6 @@ pair<ll, ll> find_pair(const ll gcd_v, const ll lcm_v) {
     if (rem == 1) return {gcd_v, gcd_v};
 
     const auto [x, y] = min_sum_split(factorize(sieve(1e6), rem));
-    if (x == -1) return {-1, -1};
-
     return {x * gcd_v, y * gcd_v};
 }
 
