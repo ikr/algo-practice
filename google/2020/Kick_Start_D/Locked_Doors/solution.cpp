@@ -167,7 +167,8 @@ vi query_results(const vi &doors, const vpi &queries) {
     const auto children_and_root = gather_children_and_root(dom_indices);
     const auto szs =
         gather_subtree_sizes(dom_indices.size(), children_and_root);
-    const auto parents = as_parents(dom_indices, children_and_root.second);
+    const auto lifts =
+        gather_lifts(as_parents(dom_indices, children_and_root.second));
 
     vi ans(queries.size());
 
