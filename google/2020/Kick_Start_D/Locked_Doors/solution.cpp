@@ -126,8 +126,16 @@ vvi gather_lifts(const vi &parents) {
 
 int lowest_covering_ancestor(const vvi &lifts, const vi &subtree_sizes,
                              const int u, const int target_size) {
+    assert(target_size <= static_cast<int>(subtree_sizes.size()));
     if (subtree_sizes[u] >= target_size) return u;
-    // TODO
+
+    const auto sz = [&subtree_sizes](const int x) -> int {
+        return x == -1 ? subtree_sizes.size() : subtree_sizes[x];
+    };
+
+    const int max_k = lifts.size() - 1;
+    assert(sz(lifts[max_k][u]) == static_cast<int>(subtree_sizes.size()));
+
     return 0;
 }
 
