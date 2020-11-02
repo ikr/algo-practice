@@ -63,16 +63,16 @@ vi gather_dom_indices(const vi &doors) {
     return ans;
 }
 
-Tree gather_children_and_root(const vi &parents) {
-    const int n = parents.size();
+Tree gather_children_and_root(const vi &dom_indices) {
+    const int n = dom_indices.size();
     unordered_multimap<int, int> g;
     int r = -1;
     for (int i = 0; i < n; ++i) {
-        if (parents[i] < 0) {
+        if (dom_indices[i] < 0) {
             r = i;
             continue;
         }
-        g.emplace(parents[i], i);
+        g.emplace(dom_indices[i], i);
     }
     assert(r >= 0);
     return {g, r};
@@ -117,6 +117,7 @@ vvi gather_lifts(const vi &parents) {
 
     for (int k = 1; k < m; ++k) {
         for (int i = 0; i < n; ++i) {
+            assert(ans[k - 1][i] >= 0);
             ans[k][i] = ans[k - 1][ans[k - 1][i]];
         }
     }
@@ -129,12 +130,9 @@ int lowest_covering_ancestor(const vvi &lifts, const vi &subtree_sizes,
     assert(target_size <= static_cast<int>(subtree_sizes.size()));
     if (subtree_sizes[u] >= target_size) return u;
 
-    const auto sz = [&subtree_sizes](const int x) -> int {
-        return x == -1 ? subtree_sizes.size() : subtree_sizes[x];
-    };
-
     const int max_k = lifts.size() - 1;
-    assert(sz(lifts[max_k][u]) == static_cast<int>(subtree_sizes.size()));
+    assert(subtree_sizes[lifts[max_k][u]] ==
+           static_cast<int>(subtree_sizes.size()));
 
     return 0;
 }
@@ -159,10 +157,17 @@ int kth_room(const vi &doors, const int s, const int k) {
     return s;
 }
 
+vi as_parents(vi dom_indices, const int root) {
+    dom_indices[root] = root;
+    return dom_indices;
+}
+
 vi query_results(const vi &doors, const vpi &queries) {
-    const auto parents = gather_dom_indices(doors);
-    const auto children_and_root = gather_children_and_root(parents);
-    const auto szs = gather_subtree_sizes(parents.size(), children_and_root);
+    const auto dom_indices = gather_dom_indices(doors);
+    const auto children_and_root = gather_children_and_root(dom_indices);
+    const auto szs =
+        gather_subtree_sizes(dom_indices.size(), children_and_root);
+    const auto parents = as_parents(dom_indices, children_and_root.second);
 
     vi ans(queries.size());
 
