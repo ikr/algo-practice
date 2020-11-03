@@ -134,7 +134,18 @@ int lowest_covering_ancestor(const vvi &lifts, const vi &subtree_sizes,
     assert(subtree_sizes[lifts[max_k][u]] ==
            static_cast<int>(subtree_sizes.size()));
 
-    return 0;
+    int k = max_k - 1;
+    while (subtree_sizes[lifts[k][u]] >= target_size) --k;
+    int v = lifts[k][u];
+    assert(subtree_sizes[v] < target_size);
+
+    while (subtree_sizes[lifts[0][v]] < target_size) {
+        assert(subtree_sizes[lifts[k][v]] >= target_size);
+        while (subtree_sizes[lifts[k][v]] >= target_size) --k;
+        v = lifts[k][v];
+    }
+
+    return lifts[0][v];
 }
 
 pi left_right_child(const Graph &g, const int u) {
@@ -152,7 +163,24 @@ pi left_right_child(const Graph &g, const int u) {
     return {min(v, w), max(v, w)};
 }
 
-int kth_room(const vi &doors, const int s, const int k) {
+int kth_room(const vi &doors, const vi &subtree_sizes, const vvi &lifts,
+             const int s, const int k) {
+    const auto s_door = [&doors, s]() -> int {
+        if (s == 0) return 0;
+        const int max_room = doors.size();
+        if (s == max_room) return max_room - 1;
+
+        const int left_door = s - 1;
+        const int right_door = s;
+        return doors[left_door] < doors[right_door] ? left_door : right_door;
+    }();
+
+    cout << "s:" << s << " s_door:" << s_door << endl;
+
+    const int lca = lowest_covering_ancestor(lifts, subtree_sizes, s_door, k);
+
+    cout << "lca:" << lca << endl;
+
     // TODO
     return s;
 }
@@ -172,9 +200,9 @@ vi query_results(const vi &doors, const vpi &queries) {
 
     vi ans(queries.size());
 
-    transform(
-        cbegin(queries), cend(queries), begin(ans),
-        [&doors](const pi &q) { return kth_room(doors, q.first, q.second); });
+    transform(cbegin(queries), cend(queries), begin(ans), [&](const pi &q) {
+        return kth_room(doors, szs, lifts, q.first, q.second);
+    });
 
     return ans;
 }
