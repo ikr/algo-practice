@@ -19,12 +19,6 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 vi inc_all(vi xs) {
     for (auto &x : xs) ++x;
     return xs;
