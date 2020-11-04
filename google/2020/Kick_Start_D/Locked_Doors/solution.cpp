@@ -162,9 +162,9 @@ int lowest_covering_ancestor(const vvi &lifts, const vi &subtree_sizes,
     return lifts[0][v];
 }
 
-pi left_right_child(const Graph &g, const int u) {
-    const auto span = g.equal_range(u);
-    if (span.first == cend(g)) return {-1, -1};
+pi left_right_child(const Graph &children, const int u) {
+    const auto span = children.equal_range(u);
+    if (span.first == cend(children)) return {-1, -1};
 
     const int v = span.first->second;
 
@@ -178,7 +178,7 @@ pi left_right_child(const Graph &g, const int u) {
 }
 
 int kth_room(const vi &doors, const vi &subtree_sizes, const vvi &lifts,
-             const int s, const int k) {
+             const Graph &children, const int s, const int k) {
     const auto s_door = [&doors, s]() -> int {
         if (s == 0) return 0;
         const int max_room = doors.size();
@@ -189,16 +189,17 @@ int kth_room(const vi &doors, const vi &subtree_sizes, const vvi &lifts,
         return doors[left_door] < doors[right_door] ? left_door : right_door;
     }();
 
-    cout << "s:" << s << " s_door:" << s_door << " k:" << k << endl;
-    cout << "szs: " << subtree_sizes << endl;
-    cout << "lifts:\n" << lifts << endl;
-
     const int lca = lowest_covering_ancestor(lifts, subtree_sizes, s_door, k);
 
-    cout << "lca:" << lca << endl;
+    if (lca == s_door) {
+        const bool left_door = (s_door == s - 1);
+        return left_door ? s - k : s + k;
+    }
 
-    // TODO
-    return s;
+    const auto lr = left_right_child(children, lca);
+
+    return s_door < lca ? (lca + k - subtree_sizes[lr.first])
+                        : (lca - k + 1 + subtree_sizes[lr.second]);
 }
 
 vi as_parents(vi dom_indices, const int root) {
@@ -217,7 +218,8 @@ vi query_results(const vi &doors, const vpi &queries) {
     vi ans(queries.size());
 
     transform(cbegin(queries), cend(queries), begin(ans), [&](const pi &q) {
-        return kth_room(doors, szs, lifts, q.first, q.second);
+        return kth_room(doors, szs, lifts, children_and_root.first, q.first,
+                        q.second);
     });
 
     return ans;
