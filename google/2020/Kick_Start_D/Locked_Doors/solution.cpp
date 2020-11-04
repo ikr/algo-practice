@@ -7,11 +7,21 @@ using vpi = vector<pi>;
 using Graph = unordered_multimap<int, int>;
 using Tree = pair<Graph, int>;
 
+template <typename T> constexpr int intof(const T x) {
+    return static_cast<int>(x);
+}
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
         if (i != xs.cbegin()) os << ' ';
         os << *i;
     }
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
     return os;
 }
 
@@ -110,7 +120,7 @@ constexpr unsigned int mlog2(const unsigned int x) {
 
 vvi gather_lifts(const vi &parents) {
     const int n = parents.size();
-    const int m = mlog2(n - 1) + 1;
+    const int m = mlog2(n - 1) + 1 + 1;
 
     vvi ans(m, vi(n, -1));
     ans[0] = parents;
@@ -127,15 +137,19 @@ vvi gather_lifts(const vi &parents) {
 
 int lowest_covering_ancestor(const vvi &lifts, const vi &subtree_sizes,
                              const int u, const int target_size) {
-    assert(target_size <= static_cast<int>(subtree_sizes.size()));
+    assert(target_size <= intof(subtree_sizes.size()));
     if (subtree_sizes[u] >= target_size) return u;
+    if (subtree_sizes[lifts[0][u]] >= target_size) return lifts[0][u];
 
     const int max_k = lifts.size() - 1;
-    assert(subtree_sizes[lifts[max_k][u]] ==
-           static_cast<int>(subtree_sizes.size()));
+    assert(subtree_sizes[lifts[max_k][u]] == intof(subtree_sizes.size()));
 
     int k = max_k - 1;
-    while (subtree_sizes[lifts[k][u]] >= target_size) --k;
+    while (subtree_sizes[lifts[k][u]] >= target_size) {
+        --k;
+        assert(k >= 0);
+    }
+
     int v = lifts[k][u];
     assert(subtree_sizes[v] < target_size);
 
@@ -175,7 +189,9 @@ int kth_room(const vi &doors, const vi &subtree_sizes, const vvi &lifts,
         return doors[left_door] < doors[right_door] ? left_door : right_door;
     }();
 
-    cout << "s:" << s << " s_door:" << s_door << endl;
+    cout << "s:" << s << " s_door:" << s_door << " k:" << k << endl;
+    cout << "szs: " << subtree_sizes << endl;
+    cout << "lifts:\n" << lifts << endl;
 
     const int lca = lowest_covering_ancestor(lifts, subtree_sizes, s_door, k);
 
