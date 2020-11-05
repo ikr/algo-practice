@@ -24,8 +24,8 @@ private fun minimizeBits(bits: CharArray, k: Int) {
         if (bits[i] == '1' && bits[i + 1] == '0') yn += i
     }
 
-    repeat(k) {
-        if (yn.isEmpty()) return@repeat
+    for (ii in 1..k) {
+        if (yn.isEmpty()) break
 
         val i = yn.first()
         yn.remove(i)
