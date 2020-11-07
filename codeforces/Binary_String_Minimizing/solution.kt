@@ -12,28 +12,35 @@ fun main() {
 private fun minimizeBits(bits: CharArray, k: Int) {
     if (bits.size < 2) return
 
-    val bubbleSortComps = bits.size.toLong() * (bits.size.toLong() - 1L) / 2L
-    if (k >= bubbleSortComps) {
-        bits.sort()
+    var (lo, hi) = onesRange(bits)
+    if (lo == -1) return
+
+    recur(bits, k, lo, hi)
+}
+
+private fun recur(bits: CharArray, k: Int, lo: Int, hi: Int) {
+    if (hi == bits.size - 1) return
+
+    val n = hi - lo + 1
+    if (k <= n) {
+        swap(bits, hi - k + 1, hi + 1)
         return
     }
 
-    val yn = sortedSetOf<Int>()
+    swap(bits, lo, hi + 1)
+    recur(bits, k - n, lo + 1, lastIndexOfOne(bits, hi + 1))
+}
 
-    for (i in 0..(bits.size - 2)) {
-        if (bits[i] == '1' && bits[i + 1] == '0') yn += i
-    }
+private fun onesRange(bits: CharArray): Pair<Int, Int> {
+    val lo = bits.indexOf('1')
+    if (lo == -1) return -1 to -1
+    return lo to lastIndexOfOne(bits, lo)
+}
 
-    for (ii in 1..k) {
-        if (yn.isEmpty()) break
-
-        val i = yn.first()
-        yn.remove(i)
-        swap(bits, i, i + 1)
-
-        if (i > 0 && bits[i - 1] == '1') yn += (i - 1)
-        if (i + 1 < bits.size - 1 && bits[i + 2] == '0') yn += (i + 1)
-    }
+private fun lastIndexOfOne(bits: CharArray, after: Int): Int {
+    var i = after
+    while (i < bits.size - 1 && bits[i + 1] == '1') ++i
+    return i
 }
 
 private fun swap(xs: CharArray, i: Int, j: Int) {
