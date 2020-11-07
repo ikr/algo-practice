@@ -12,13 +12,13 @@ fun main() {
 private fun minimizeBits(bits: CharArray, k: Long) {
     if (bits.size < 2) return
 
-    var (lo, hi) = onesRange(bits)
+    val (lo, hi) = onesRange(bits)
     if (lo == -1) return
 
     recur(bits, k, lo, hi)
 }
 
-private fun recur(bits: CharArray, k: Long, lo: Int, hi: Int) {
+private tailrec fun recur(bits: CharArray, k: Long, lo: Int, hi: Int) {
     if (hi == bits.size - 1 || k == 0L) return
 
     val n = hi - lo + 1
