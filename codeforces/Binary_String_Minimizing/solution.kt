@@ -1,15 +1,15 @@
 fun main() {
     repeat(readInt()) {
-        val (n, k) = readInts()
+        val (n, k) = readLongs()
         val bits = readLn().toCharArray()
-        assert(bits.size == n)
+        assert(bits.size.toLong() == n)
 
         minimizeBits(bits, k)
         println(bits.joinToString(""))
     }
 }
 
-private fun minimizeBits(bits: CharArray, k: Int) {
+private fun minimizeBits(bits: CharArray, k: Long) {
     if (bits.size < 2) return
 
     var (lo, hi) = onesRange(bits)
@@ -18,12 +18,12 @@ private fun minimizeBits(bits: CharArray, k: Int) {
     recur(bits, k, lo, hi)
 }
 
-private fun recur(bits: CharArray, k: Int, lo: Int, hi: Int) {
-    if (hi == bits.size - 1) return
+private fun recur(bits: CharArray, k: Long, lo: Int, hi: Int) {
+    if (hi == bits.size - 1 || k == 0L) return
 
     val n = hi - lo + 1
     if (k <= n) {
-        swap(bits, hi - k + 1, hi + 1)
+        swap(bits, hi - k.toInt() + 1, hi + 1)
         return
     }
 
