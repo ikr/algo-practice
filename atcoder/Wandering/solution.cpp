@@ -2,16 +2,6 @@
 using namespace std;
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 template <typename T> struct mmax {
     constexpr T operator()(const T &a, const T &b) const {
         return std::max(a, b);
