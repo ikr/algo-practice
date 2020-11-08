@@ -2,16 +2,6 @@
 using namespace std;
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 vector<int> digits_reversed(ll x) {
     vector<int> ans;
     while (x) {
@@ -21,29 +11,43 @@ vector<int> digits_reversed(ll x) {
     return ans;
 }
 
-pair<int, int> gather_mod12_counts(const vector<int> &xs) {
+tuple<int, int, int> gather_mod012_counts(const vector<int> &xs) {
+    int c0 = 0;
     int c1 = 0;
     int c2 = 0;
 
     for (const int x : xs) {
-        const int r = x % 3;
-        if (r == 1) {
+        switch (x % 3) {
+        case 1:
             ++c1;
-        } else if (r == 2) {
+            break;
+        case 2:
             ++c2;
+            break;
+        default:
+            assert(x % 3 == 0);
+            ++c0;
         }
     }
 
-    return {c1, c2};
+    return {c0, c1, c2};
 }
 
 int recur(const int c1, const int c2) {
-    if ((c1 + 2 * c2) % 3 == 0) return 0;
+    if ((c1 + 2 * c2) % 3 == 0) return c1 + c2;
+
+    const int o1 = c1 > 0 ? recur(c1 - 1, c2) : 0;
+    const int o2 = c2 > 0 ? recur(c1, c2 - 1) : 0;
+    return max(o1, o2);
 }
 
 int min_removals(const ll x) {
-    const auto [c1, c2] = gather_mod12_counts(digits_reversed(x));
-    return recur(c1, c2);
+    const auto ds = digits_reversed(x);
+    const int n = ds.size();
+    const auto [c0, c1, c2] = gather_mod012_counts(ds);
+
+    const int len = c0 + recur(c1, c2);
+    return len ? n - len : -1;
 }
 
 int main() {
@@ -52,6 +56,6 @@ int main() {
 
     ll x;
     cin >> x;
-
+    cout << min_removals(x) << '\n';
     return 0;
 }
