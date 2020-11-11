@@ -2,25 +2,64 @@
 using namespace std;
 using ll = long long;
 
-ll diff(const ll m, const ll x, const ll y) {
-    const auto a = min(x, y);
-    const auto b = max(x, y);
-    return min(b - a, a + m - b);
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+bool straight(const int n, const int a, const int b) {
+    assert(a <= b);
+    return b - a <= a + n - b;
+}
+
+int lowest_upshift_index(const int n, const vector<int> &xs, const int i) {
+    assert(i >= 0);
+    const int w = xs.size();
+    assert(i < w);
+
+    if (i == 0 || !straight(n, xs[i - 1], xs[i])) return -1;
+    if (straight(n, xs[0], xs[i])) return 0;
+
+    int lo = 0;
+    int hi = i - 1;
+
+    while (lo < hi) {
+        if (lo + 1 == hi) return hi;
+
+        const int mid = lo + (hi - lo) / 2;
+        if (straight(n, xs[mid], xs[i])) {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
+    }
+
+    return hi;
+}
+
+int highest_downshift_index(const int n, const vector<int> &xs, const int i) {
+    assert(i >= 0);
+    const int w = xs.size();
+    assert(i < w);
+
+    return -1;
 }
 
 ll solve(const int n, const vector<int> &xs) {
-    ll ans = 1e18;
+    const int w = xs.size();
 
-    for (const auto y : xs) {
-        ll candidate = 0;
-        for (const auto x : xs) {
-            candidate += diff(n, x, y);
-        }
-
-        ans = min(ans, candidate);
+    cout << "\nxs: " << xs << '\n';
+    for (int i = 0; i < w; ++i) {
+        cout << i << ':' << lowest_upshift_index(n, xs, i) << ' ';
     }
+    cout << '\n';
 
-    return ans;
+    return -1;
 }
 
 int main() {
@@ -37,6 +76,7 @@ int main() {
             cin >> x;
             --x;
         }
+        sort(begin(xs), end(xs));
 
         cout << "Case #" << i << ": " << solve(n, xs) << '\n';
     }
