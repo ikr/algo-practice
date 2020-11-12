@@ -65,7 +65,7 @@ ll moves_to(const int n, const vector<ll> &xs, const vector<ll> &ss,
 
     const int a = lowest_upshift_index(n, xs, i);
     if (a != -1) {
-        const int sz = i - a + 1;
+        const int sz = i - a;
         ans += sz * xs[i] - (ss[i] - ss[a]);
     }
 
