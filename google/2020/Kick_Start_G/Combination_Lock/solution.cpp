@@ -45,7 +45,22 @@ int highest_downshift_index(const int n, const vector<int> &xs, const int i) {
     const int w = xs.size();
     assert(i < w);
 
-    return -1;
+    if (i == w - 1 || !straight(n, xs[i], xs[i + 1])) return -1;
+    if (straight(n, xs[i], xs[w - 1])) return w - 1;
+
+    int lo = i + 1;
+    int hi = w - 1;
+
+    while (hi - lo != 1) {
+        const int mid = lo + (hi - lo) / 2;
+        if (straight(n, xs[i], xs[mid])) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return lo;
 }
 
 ll solve(const int n, const vector<int> &xs) {
@@ -54,6 +69,10 @@ ll solve(const int n, const vector<int> &xs) {
     cout << "\nxs: " << xs << '\n';
     for (int i = 0; i < w; ++i) {
         cout << i << ':' << lowest_upshift_index(n, xs, i) << ' ';
+    }
+    cout << '\n';
+    for (int i = 0; i < w; ++i) {
+        cout << i << ':' << highest_downshift_index(n, xs, i) << ' ';
     }
     cout << '\n';
 
