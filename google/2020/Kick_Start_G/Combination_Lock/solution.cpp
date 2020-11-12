@@ -2,6 +2,16 @@
 using namespace std;
 using ll = long long;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 bool straight(const int n, const int a, const int b) {
     assert(a <= b);
     return b - a <= a + n - b;
@@ -62,28 +72,35 @@ vector<ll> gather_partial_sums(const vector<ll> &xs) {
 ll moves_to(const int n, const vector<ll> &xs, const vector<ll> &ss,
             const int i) {
     ll ans = 0;
+    cout << "\ni:" << i << '\n';
 
     const int a = lowest_upshift_index(n, xs, i);
+    cout << "a:" << a << '\n';
     if (a != -1) {
-        const int sz = i - a;
+        const ll sz = i - a;
         ans += sz * xs[i] - (ss[i] - ss[a]);
+        cout << "1. ans:" << ans << '\n';
     }
 
     if (a > 0) {
-        const int sz = a;
+        const ll sz = a;
         ans += ss[a] + (n - xs[i]) * sz;
+        cout << "2. ans:" << ans << '\n';
     }
 
     const int b = highest_downshift_index(n, xs, i);
+    cout << "b:" << b << '\n';
     if (b != -1) {
-        const int sz = b - i + 1;
-        ans += ss[b + 1] - ss[i] - sz * xs[i];
+        const ll sz = b - i;
+        ans += ss[b + 1] - ss[i + 1] - sz * xs[i];
+        cout << "3. ans:" << ans << '\n';
     }
 
     const int w = xs.size();
     if (b > i && b < w - 1) {
-        const int sz = w - b;
-        ans += sz * xs[i] + sz * n - (ss[w] - ss[b]);
+        const ll sz = w - 1 - b;
+        ans += sz * xs[i] + sz * n - (ss[w] - ss[b + 1]);
+        cout << "4. ans:" << ans << '\n';
     }
 
     return ans;
@@ -96,6 +113,27 @@ ll min_moves(const int n, const vector<ll> &xs) {
 
     for (int i = 0; i < w; ++i) {
         ans = min(ans, moves_to(n, xs, ss, i));
+    }
+
+    return ans;
+}
+
+ll diff(const ll n, const ll x, const ll y) {
+    const auto a = min(x, y);
+    const auto b = max(x, y);
+    return min(b - a, a + n - b);
+}
+
+ll bruteforce(const int n, const vector<ll> &xs) {
+    ll ans = 1e18;
+
+    for (const auto y : xs) {
+        ll candidate = 0;
+        for (const auto x : xs) {
+            candidate += diff(n, x, y);
+        }
+
+        ans = min(ans, candidate);
     }
 
     return ans;
@@ -117,6 +155,7 @@ int main() {
         }
         sort(begin(xs), end(xs));
 
+        cout << "Case #" << i << ": " << bruteforce(n, xs) << '\n';
         cout << "Case #" << i << ": " << min_moves(n, xs) << '\n';
     }
 
