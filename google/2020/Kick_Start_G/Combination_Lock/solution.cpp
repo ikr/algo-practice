@@ -2,16 +2,6 @@
 using namespace std;
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 bool straight(const int n, const int a, const int b) {
     assert(a <= b);
     return b - a <= a + n - b;
@@ -64,14 +54,39 @@ int highest_downshift_index(const int n, const vector<ll> &xs, const int i) {
 }
 
 vector<ll> gather_partial_sums(const vector<ll> &xs) {
-    vector<ll> ans(xs.size(), 0);
-    partial_sum(cbegin(xs), cend(xs), begin(ans));
+    vector<ll> ans(xs.size() + 1, 0);
+    partial_sum(cbegin(xs), cend(xs), next(begin(ans)));
     return ans;
 }
 
 ll moves_to(const int n, const vector<ll> &xs, const vector<ll> &ss,
             const int i) {
-    return 0;
+    ll ans = 0;
+
+    const int a = lowest_upshift_index(n, xs, i);
+    if (a != -1) {
+        const int sz = i - a + 1;
+        ans += sz * xs[i] - (ss[i] - ss[a]);
+    }
+
+    if (a > 0) {
+        const int sz = a;
+        ans += ss[a] + (n - xs[i]) * sz;
+    }
+
+    const int b = highest_downshift_index(n, xs, i);
+    if (b != -1) {
+        const int sz = b - i + 1;
+        ans += ss[b + 1] - ss[i] - sz * xs[i];
+    }
+
+    const int w = xs.size();
+    if (b > i && b < w - 1) {
+        const int sz = w - b;
+        ans += sz * xs[i] + sz * n - (ss[w] - ss[b]);
+    }
+
+    return ans;
 }
 
 ll min_moves(const int n, const vector<ll> &xs) {
