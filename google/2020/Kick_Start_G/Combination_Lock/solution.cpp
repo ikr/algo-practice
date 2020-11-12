@@ -28,9 +28,7 @@ int lowest_upshift_index(const int n, const vector<int> &xs, const int i) {
     int lo = 0;
     int hi = i - 1;
 
-    while (lo < hi) {
-        if (lo + 1 == hi) return hi;
-
+    while (hi - lo != 1) {
         const int mid = lo + (hi - lo) / 2;
         if (straight(n, xs[mid], xs[i])) {
             hi = mid;
