@@ -17,7 +17,7 @@ bool straight(const int n, const int a, const int b) {
     return b - a <= a + n - b;
 }
 
-int lowest_upshift_index(const int n, const vector<int> &xs, const int i) {
+int lowest_upshift_index(const int n, const vector<ll> &xs, const int i) {
     assert(i >= 0);
     const int w = xs.size();
     assert(i < w);
@@ -40,7 +40,7 @@ int lowest_upshift_index(const int n, const vector<int> &xs, const int i) {
     return hi;
 }
 
-int highest_downshift_index(const int n, const vector<int> &xs, const int i) {
+int highest_downshift_index(const int n, const vector<ll> &xs, const int i) {
     assert(i >= 0);
     const int w = xs.size();
     assert(i < w);
@@ -63,20 +63,27 @@ int highest_downshift_index(const int n, const vector<int> &xs, const int i) {
     return lo;
 }
 
-ll solve(const int n, const vector<int> &xs) {
+vector<ll> gather_partial_sums(const vector<ll> &xs) {
+    vector<ll> ans(xs.size(), 0);
+    partial_sum(cbegin(xs), cend(xs), begin(ans));
+    return ans;
+}
+
+ll moves_to(const int n, const vector<ll> &xs, const vector<ll> &ss,
+            const int i) {
+    return 0;
+}
+
+ll min_moves(const int n, const vector<ll> &xs) {
     const int w = xs.size();
+    const auto ss = gather_partial_sums(xs);
+    ll ans = 1e18;
 
-    cout << "\nxs: " << xs << '\n';
     for (int i = 0; i < w; ++i) {
-        cout << i << ':' << lowest_upshift_index(n, xs, i) << ' ';
+        ans = min(ans, moves_to(n, xs, ss, i));
     }
-    cout << '\n';
-    for (int i = 0; i < w; ++i) {
-        cout << i << ':' << highest_downshift_index(n, xs, i) << ' ';
-    }
-    cout << '\n';
 
-    return -1;
+    return ans;
 }
 
 int main() {
@@ -88,14 +95,14 @@ int main() {
     for (int i = 1; i <= t; ++i) {
         int w, n;
         cin >> w >> n;
-        vector<int> xs(w, 0);
+        vector<ll> xs(w, 0);
         for (auto &x : xs) {
             cin >> x;
             --x;
         }
         sort(begin(xs), end(xs));
 
-        cout << "Case #" << i << ": " << solve(n, xs) << '\n';
+        cout << "Case #" << i << ": " << min_moves(n, xs) << '\n';
     }
 
     return 0;
