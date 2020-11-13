@@ -22,7 +22,7 @@ int lowest_upshift_index(const int n, const vector<ll> &xs, const int i) {
     const int w = xs.size();
     assert(i < w);
 
-    if (i == 0 || !straight(n, xs[i - 1], xs[i])) return -1;
+    if (i == 0 || !straight(n, xs[i - 1], xs[i])) return i;
     if (straight(n, xs[0], xs[i])) return 0;
 
     int lo = 0;
@@ -45,7 +45,7 @@ int highest_downshift_index(const int n, const vector<ll> &xs, const int i) {
     const int w = xs.size();
     assert(i < w);
 
-    if (i == w - 1 || !straight(n, xs[i], xs[i + 1])) return -1;
+    if (i == w - 1 || !straight(n, xs[i], xs[i + 1])) return i;
     if (straight(n, xs[i], xs[w - 1])) return w - 1;
 
     int lo = i + 1;
@@ -72,35 +72,31 @@ vector<ll> gather_partial_sums(const vector<ll> &xs) {
 ll moves_to(const int n, const vector<ll> &xs, const vector<ll> &ss,
             const int i) {
     ll ans = 0;
-    cout << "\ni:" << i << '\n';
+    // cout << "\ni:" << i << '\n';
 
     const int a = lowest_upshift_index(n, xs, i);
-    cout << "a:" << a << '\n';
-    if (a != -1) {
-        const ll sz = i - a;
-        ans += sz * xs[i] - (ss[i] - ss[a]);
-        cout << "1. ans:" << ans << '\n';
-    }
+    // cout << "a:" << a << '\n';
+
+    ans += (i - a) * xs[i] - (ss[i] - ss[a]);
+    // cout << "1. ans:" << ans << '\n';
 
     if (a > 0) {
         const ll sz = a;
         ans += ss[a] + (n - xs[i]) * sz;
-        cout << "2. ans:" << ans << '\n';
+        // cout << "2. ans:" << ans << '\n';
     }
 
     const int b = highest_downshift_index(n, xs, i);
-    cout << "b:" << b << '\n';
-    if (b != -1) {
-        const ll sz = b - i;
-        ans += ss[b + 1] - ss[i + 1] - sz * xs[i];
-        cout << "3. ans:" << ans << '\n';
-    }
+    // cout << "b:" << b << '\n';
+
+    ans += ss[b + 1] - ss[i + 1] - (b - i) * xs[i];
+    // cout << "3. ans:" << ans << '\n';
 
     const int w = xs.size();
-    if (b > i && b < w - 1) {
+    if (b < w - 1) {
         const ll sz = w - 1 - b;
         ans += sz * xs[i] + sz * n - (ss[w] - ss[b + 1]);
-        cout << "4. ans:" << ans << '\n';
+        // cout << "4. ans:" << ans << '\n';
     }
 
     return ans;
@@ -155,7 +151,7 @@ int main() {
         }
         sort(begin(xs), end(xs));
 
-        cout << "Case #" << i << ": " << bruteforce(n, xs) << '\n';
+        // cout << "Case #" << i << ": " << bruteforce(n, xs) << '\n';
         cout << "Case #" << i << ": " << min_moves(n, xs) << '\n';
     }
 
