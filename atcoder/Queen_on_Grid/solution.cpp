@@ -3,31 +3,48 @@ using namespace std;
 using ll = long long;
 static constexpr ll M = 1e9 + 7;
 
+constexpr ll inc_nz(const ll x) { return x == 0LL ? 0LL : x + 1; }
+
 ll solve(const vector<string> &rows) {
+    if (rows[0][0] == '#' || rows.back().back() == '#') return 0;
+
     const int H = rows.size();
     const int W = rows[0].size();
 
-    vector<vector<ll>> dp(H, vector<ll>(W, 0));
-    dp[0][0] = rows[0][0] == '.' ? 1 : 0;
+    vector<vector<ll>> horz(H, vector<ll>(W, 0));
+    vector<vector<ll>> vert(H, vector<ll>(W, 0));
+    vector<vector<ll>> diag(H, vector<ll>(W, 0));
 
     for (int c = 1; c < W; ++c) {
-        dp[0][c] = rows[0][c] == '.' ? dp[0][c - 1] : 0;
+        horz[0][c] = rows[0][c] == '.' ? horz[0][c - 1] + 1 : 0;
     }
 
     for (int r = 1; r < H; ++r) {
-        dp[r][0] = rows[r][0] == '.' ? dp[r - 1][0] : 0;
+        vert[r][0] = rows[r][0] == '.' ? vert[r - 1][0] : 0;
     }
 
     for (int r = 1; r < H; ++r) {
         for (int c = 1; c < W; ++c) {
             if (rows[r][c] == '#') continue;
 
-            dp[r][c] = dp[r - 1][c - 1] + dp[r - 1][c] + dp[r][c - 1];
-            dp[r][c] %= M;
+            diag[r][c] = (r == 1 && c == 1)
+                             ? 1
+                             : (inc_nz(diag[r - 1][c - 1]) +
+                                horz[r - 1][c - 1] + vert[r - 1][c - 1]);
+
+            horz[r][c] =
+                diag[r][c - 1] + inc_nz(horz[r][c - 1]) + vert[r][c - 1];
+
+            vert[r][c] =
+                diag[r - 1][c] + horz[r - 1][c] + inc_nz(vert[r - 1][c]);
+
+            diag[r][c] %= M;
+            horz[r][c] %= M;
+            vert[r][c] %= M;
         }
     }
 
-    return dp.back().back();
+    return (horz.back().back() + vert.back().back() + diag.back().back()) % M;
 }
 
 int main() {
