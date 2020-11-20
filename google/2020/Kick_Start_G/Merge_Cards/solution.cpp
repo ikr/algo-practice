@@ -2,30 +2,56 @@
 using namespace std;
 using ll = long long;
 
-pair<ll, vector<ll>> merge_two(vector<ll> xs, const int i) {
-    xs[i] = xs[i] + xs[i + 1];
-    xs.erase(cbegin(xs) + i + 1);
-    return {xs[i], xs};
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
 }
 
-double recur(const vector<ll> &xs) {
-    const int sz = xs.size();
-    if (sz == 2) return accumulate(cbegin(xs), cend(xs), 0LL, plus<ll>{});
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
 
-    double ans = 0;
+double score(const vector<double> &xs, vector<vector<double>> &memo,
+             const int l, const int r) {
+    const int n = xs.size();
 
-    for (int i = 0; i < sz - 1; ++i) {
-        const auto merged = merge_two(xs, i);
-        const auto score = merged.first;
-        const auto sub = merged.second;
+    assert(l < r);
+    assert(l >= 0);
+    assert(l < n);
+    assert(r >= 0);
+    assert(r < n);
 
-        ans += (score + recur(sub)) / (sz - 1);
+    if (memo[l][r] < 0) {
+        double s = xs[l] + xs[l + 1];
+        if (r - l > 1) s += xs[r - 1] + xs[r];
+
+        // The line of the last merge
+        for (int i = l + 1; i <= r - 2; ++i) {
+            const double bef = score(xs, memo, l, i);
+            const double aft = score(xs, memo, i + 1, r);
+            s += bef + aft;
+        }
+
+        memo[l][r] = s / (r - l);
     }
 
-    return ans;
+    return memo[l][r];
 }
 
-double solve(const vector<ll> xs) { return recur(xs); }
+double solve(const vector<double> &xs) {
+    const int n = xs.size();
+    vector<vector<double>> memo(n, vector<double>(n, -1));
+    const auto ans = score(xs, memo, 0, n - 1);
+    cout << '\n' << memo << '\n';
+    return ans;
+}
 
 int main() {
     ios_base::sync_with_stdio(0);
@@ -37,7 +63,7 @@ int main() {
     for (int i = 1; i <= t; ++i) {
         int n;
         cin >> n;
-        vector<ll> xs(n, 0);
+        vector<double> xs(n, 0);
         for (auto &x : xs) cin >> x;
 
         cout << "Case #" << i << ": " << solve(xs) << '\n';
