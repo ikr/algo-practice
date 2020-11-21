@@ -29,26 +29,28 @@ double score(const vector<double> &xs, vector<vector<double>> &memo,
     assert(r < n);
 
     if (memo[l][r] < 0) {
-        double s = 0;
+        if (r - l == 1) {
+            memo[l][r] = xs[l] + xs[r];
+        } else {
+            double s = 0;
 
-        // The line of the last merge
-        for (int i = l; i < r; ++i) {
-            if (i == l) {
-                const double suff =
-                    r - l == 1 ? xs[r] : score(xs, memo, l + 1, r);
-                s += xs[l] + suff;
-            } else if (i == r - 1) {
-                const double pref =
-                    r - l == 1 ? xs[l] : score(xs, memo, l, r - 1);
-                s += pref + xs[r];
-            } else {
-                const double pref = score(xs, memo, l, i);
-                const double suff = score(xs, memo, i + 1, r);
-                s += pref + xs[i] + suff;
+            // The line of the last merge
+            for (int i = l; i < r; ++i) {
+                if (i == l) {
+                    const double suff = score(xs, memo, l + 1, r);
+                    s += xs[l] + 2 * suff;
+                } else if (i == r - 1) {
+                    const double pref = score(xs, memo, l, r - 1);
+                    s += 2 * pref + xs[r];
+                } else {
+                    const double pref = score(xs, memo, l, i);
+                    const double suff = score(xs, memo, i + 1, r);
+                    s += 2 * pref + 2 * suff;
+                }
             }
-        }
 
-        memo[l][r] = s / static_cast<double>(r - l);
+            memo[l][r] = s / r - l;
+        }
     }
 
     return memo[l][r];
