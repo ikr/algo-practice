@@ -2,15 +2,13 @@
 using namespace std;
 
 bool can_be_good(const string &s, const int l, const int r) {
-    for (int d = 1; d <= r - l; ++d) {
-        const string front = s.substr(l, d);
-        const int lo = s.find(front);
-        if (lo < l - 1) return true;
+    const char front = s[l];
+    const int lo = s.find(front);
+    if (lo < l) return true;
 
-        const string back = s.substr(r - d + 1, d);
-        const auto hi = s.find(back, r - d + 2);
-        if (hi != string::npos) return true;
-    }
+    const char back = s[r];
+    const auto hi = s.find(back, r + 1);
+    if (hi != string::npos) return true;
 
     return false;
 }
