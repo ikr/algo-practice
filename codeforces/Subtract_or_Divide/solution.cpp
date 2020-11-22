@@ -1,28 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int next_x(const int x) {
-    assert(x != 1);
-    const int lim = sqrt(x);
-    int q = -1;
-    for (int i = lim; i > 1; --i) {
-        if (x % i) continue;
-        const int j = x / i;
-        q = max({q, i, j});
-    }
-    return (q == -1) ? (x - 1) : (x / q);
-}
-
 int moves(const int n) {
-    int x = n;
-    int ans = 0;
-
-    while (x != 1) {
-        x = next_x(x);
-        ++ans;
-    }
-
-    return ans;
+    if (n == 1) return 0;
+    if (n == 2) return 1;
+    if (n < 5) return 2;
+    return n % 2 + 2;
 }
 
 int main() {
