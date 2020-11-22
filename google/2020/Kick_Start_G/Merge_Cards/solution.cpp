@@ -1,67 +1,20 @@
 #include <bits/stdc++.h>
+#include <numeric>
 using namespace std;
-using ll = long long;
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
-double score(const vector<double> &xs, vector<vector<double>> &memo,
-             const int l, const int r) {
-    const int n = xs.size();
-
-    assert(l < r);
-    assert(l >= 0);
-    assert(l < n);
-    assert(r >= 0);
-    assert(r < n);
-
-    if (memo[l][r] < 0) {
-        if (r - l == 1) {
-            memo[l][r] = xs[l] + xs[r];
-        } else {
-            double s = 0;
-
-            // The line of the last merge
-            for (int i = l; i < r; ++i) {
-                if (i == l) {
-                    const double suff = score(xs, memo, l + 1, r);
-                    s += xs[l] + 2 * suff;
-                } else if (i == r - 1) {
-                    const double pref = score(xs, memo, l, r - 1);
-                    s += 2 * pref + xs[r];
-                } else {
-                    const double pref = score(xs, memo, l, i);
-                    const double suff = score(xs, memo, i + 1, r);
-                    s += 2 * pref + 2 * suff;
-                }
-            }
-
-            memo[l][r] = s / r - l;
-        }
-    }
-
-    return memo[l][r];
-}
 
 double solve(const vector<double> &xs) {
     const int n = xs.size();
-    vector<vector<double>> memo(n, vector<double>(n, -1));
-    const auto ans = score(xs, memo, 0, n - 1);
-    cout << '\n' << memo << '\n';
-    return ans;
+    vector<double> ss(n + 1, 0);
+    partial_sum(cbegin(xs), cend(xs), next(begin(ss)));
+
+    double acc = 0;
+
+    for (int i = 0; i < n - 1; ++i) {
+        acc += ss[i + 1];
+        acc += ss[n] - ss[i + 1];
+    }
+
+    return ss[n] + acc / (n - 1.0);
 }
 
 int main() {
