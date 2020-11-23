@@ -32,7 +32,7 @@ EOF
 
 makefile=$(cat <<EOF
 build:
-	g++ -Wall -Wextra -std=gnu++14 -pedantic-errors -fsanitize=address -o ./solution ./solution.cpp
+	g++ -Wall -Wextra -std=gnu++17 -pedantic-errors -fsanitize=address -o ./solution ./solution.cpp
 
 run: build
 	./solution
@@ -43,6 +43,6 @@ mkdir "./$name"
 cd "./$name"
 echo "$code" > ./solution.cpp
 echo "$makefile" > ./Makefile
-echo '-std=c++14' > ./compile_flags.txt
+echo '-std=c++17' > ./compile_flags.txt
 emacsclient -n ./solution.cpp
 echo "cd ./$name && make run" | xclip -selection clipboard
