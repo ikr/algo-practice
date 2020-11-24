@@ -1,10 +1,9 @@
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
-ll path_moves(const vector<int> &xs, const int m) {
+int path_moves(const vector<int> &xs, const int m) {
     const int sz = xs.size();
-    ll ans = 0;
+    int ans = 0;
     for (int i = 1; i < sz; ++i) {
         if (xs[i - 1] < xs[i]) {
             ans += xs[i] - xs[i - 1];
@@ -15,16 +14,28 @@ ll path_moves(const vector<int> &xs, const int m) {
     return ans;
 }
 
-ll moves(const vector<int> &xs, const int m) {
+set<int>::const_iterator after_largest_gap(const set<int> &xss) {
+    int top_gap = -1;
+    auto ans = cbegin(xss);
+
+    for (auto it = next(cbegin(xss)); it != cend(xss); ++it) {
+        const auto pit = prev(it);
+        const int gap = *it - *pit;
+        if (gap > top_gap) {
+            top_gap = gap;
+            ans = it;
+        }
+    }
+
+    return ans;
+}
+
+int moves(const vector<int> &xs, const int m) {
     set<int> xss(cbegin(xs), cend(xs));
     const int n = xss.size();
     if (n == 1) return 0;
 
-    const int lo = *cbegin(xss);
-    const int hi = *crbegin(xss);
-    const int mid = lo + (hi - lo) / 2;
-    const auto mid_it = xss.upper_bound(mid);
-
+    const auto mid_it = after_largest_gap(xss);
     const vector<int> pa(cbegin(xss), cend(xss));
 
     vector<int> pb(mid_it, cend(xss));
