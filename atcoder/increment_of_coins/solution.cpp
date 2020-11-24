@@ -5,40 +5,41 @@ template <typename T> constexpr double doof(const T x) {
     return static_cast<double>(x);
 }
 
-static constexpr double INF = 1e16;
-
-double recur(vector<vector<vector<double>>> &dp, const int a, const int b,
-             const int c) {
-    if (dp[a][b][c] == INF) {
-        dp[a][b][c] = (doof(a - 1) * (recur(dp, a - 1, b, c) + 1) +
-                       doof(b - 1) * (recur(dp, a, b - 1, c) + 1) +
-                       doof(c - 1) * (recur(dp, a, b, c - 1) + 1)) /
-                      doof(a + b + c - 1);
-    }
-
-    return dp[a][b][c];
-}
-
 double solve(const int a0, const int b0, const int c0) {
-    vector<vector<vector<double>>> dp(
-        101, vector<vector<double>>(101, vector<double>(101, INF)));
+    vector<vector<vector<double>>> P(
+        101, vector<vector<double>>(101, vector<double>(101, 0)));
 
-    dp[a0][b0][c0] = 0;
+    P[a0][b0][c0] = 1;
 
-    if (a0) recur(dp, 100, b0, c0);
-    if (b0) recur(dp, a0, 100, c0);
-    if (c0) recur(dp, a0, b0, 100);
+    for (int a = a0; a <= (a0 ? 100 : 0); ++a) {
+        for (int b = b0; b <= (b0 ? 100 : 0); ++b) {
+            for (int c = c0; c <= (c0 ? 100 : 0); ++c) {
+                if (a == a0 && b == b0 && c == c0) continue;
 
-    double ans = INF;
+                if (a) {
+                    P[a][b][c] += (a - 1) * P[a - 1][b][c];
+                }
 
-    for (int i = 0; i <= 100; ++i) {
-        for (int j = 0; j <= 100; ++j) {
-            ans = min(ans, dp[100][i][j]);
-            ans = min(ans, dp[i][100][j]);
-            ans = min(ans, dp[i][j][100]);
+                if (b) {
+                    P[a][b][c] += (b - 1) * P[a][b - 1][c];
+                }
+
+                if (c) {
+                    P[a][b][c] += (c - 1) * P[a][b][c - 1];
+                }
+
+                P[a][b][c] /= doof(a + b + c - 1);
+            }
         }
     }
 
+    double ans = 0;
+    for (int i = 0; i < 100; ++i) {
+        for (int j = 0; j < 100; ++j) {
+            ans += doof(100 + i + j - a0 - b0 - c0) *
+                   (P[100][i][j] + P[i][100][j] + P[i][j][100]);
+        }
+    }
     return ans;
 }
 
