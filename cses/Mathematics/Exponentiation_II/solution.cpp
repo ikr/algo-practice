@@ -2,19 +2,17 @@
 using namespace std;
 using ll = long long;
 static constexpr ll M = 1e9 + 7;
+static constexpr ll PHI = 1e9 + 6;
 
-ll mpow(const ll base, const ll exp) {
+ll mpow_mod(const ll base, const ll exp, const ll m) {
     if (!exp) return 1;
-    if (exp % 2) return (base * mpow(base, exp - 1)) % M;
-    const ll q = mpow(base, exp / 2);
-    return (q * q) % M;
+    if (exp % 2) return (base * mpow_mod(base, exp - 1, m)) % m;
+    const ll q = mpow_mod(base, exp / 2, m);
+    return (q * q) % m;
 }
 
 ll mpow_abc(const ll a, const ll b, const ll c) {
-    if (!c) return a;
-    if (c % 2) return mpow_abc(mpow(a, b), b, c - 1);
-    const ll q = mpow_abc(a, b, c / 2);
-    return mpow_abc(q, b, c / 2);
+    return mpow_mod(a, mpow_mod(b, c, PHI), M);
 }
 
 int main() {
