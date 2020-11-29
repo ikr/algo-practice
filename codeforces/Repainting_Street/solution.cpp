@@ -25,20 +25,20 @@ bool is_beautiful(const vector<int> &freqs) {
                     [](const int x) { return x > 0; }) == 1;
 }
 
-set<int> gather_indices_of_others(const vector<int> xs, const int y) {
-    const int n = xs.size();
-    set<int> ans;
+vector<set<int>> gather_indices_of_others(const vector<int> &xs,
+                                          const vector<int> &ys) {
+    vector<set<int>> ans(ys.size());
 
-    for (int i = 0; i < n; ++i) {
-        if (xs[i] != y) ans.insert(i);
+    for (auto i = 0U; i < xs.size(); ++i) {
+        for (auto j = 0U; j < ys.size(); ++j) {
+            if (xs[i] != ys[j]) ans[j].insert(i);
+        }
     }
 
     return ans;
 }
 
-int min_days(const vector<int> xs, const int k, const int x0) {
-    const auto ys = gather_indices_of_others(xs, x0);
-
+int min_days(const vector<int> &xs, const int k, const set<int> &ys) {
     const int n = xs.size();
     int ans = 0;
     int i = -1;
@@ -54,14 +54,15 @@ int min_days(const vector<int> xs, const int k, const int x0) {
     return ans;
 }
 
-int min_days(const vector<int> xs, const int k) {
+int min_days(const vector<int> &xs, const int k) {
     const auto freqs = gather_freqs(xs);
     if (is_beautiful(freqs)) return 0;
 
     int ans = 1e9;
 
-    for (const auto x0 : positive_value_indices(freqs)) {
-        ans = min(ans, min_days(xs, k, x0));
+    for (const auto &ys :
+         gather_indices_of_others(xs, positive_value_indices(freqs))) {
+        ans = min(ans, min_days(xs, k, ys));
     }
 
     return ans;
