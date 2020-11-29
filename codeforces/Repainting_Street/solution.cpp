@@ -2,7 +2,8 @@
 using namespace std;
 
 int min_days(const vector<int> &xs, const int k, const int x0) {
-    auto it = find_if(cbegin(xs), cend(xs), [x0](const int x) { return x != x0; });
+    auto it =
+        find_if(cbegin(xs), cend(xs), [x0](const int x) { return x != x0; });
     int ans = it == cend(xs) ? 0 : 1;
 
     while (distance(it, cend(xs)) > k) {
@@ -20,7 +21,7 @@ int min_days(const vector<int> &xs, const int k) {
 
     int ans = 1e9;
 
-    for (const int x : xs) {
+    for (const int x : xss) {
         ans = min(ans, min_days(xs, k, x));
     }
 
