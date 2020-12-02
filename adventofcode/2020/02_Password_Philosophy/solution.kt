@@ -4,24 +4,22 @@ fun main() {
 }
 
 private fun isValid(policy: Policy, password: String): Boolean {
-    val freq = password.count { it == policy.letter }
-    val (lo, hi) = policy.freqRange
-    return lo <= freq && freq <= hi
+    val (i, j) = policy.xorIdx
+    if (i >= password.length || j >= password.length) return false
+    return (password[i] == policy.letter) xor (password[j] == policy.letter)
 }
 
 private fun parseLine(line: String): Pair<Policy, String> {
     val g = Regex("^(\\d+)-(\\d+) ([a-z]): ([a-z]+)$").matchEntire(line)!!.groups
-    val freqFrom: Int = g[1]!!.value.toInt()
-    val freqTo: Int = g[2]!!.value.toInt()
+    val idxA: Int = g[1]!!.value.toInt() - 1
+    val idxB: Int = g[2]!!.value.toInt() - 1
     val letter: Char = g[3]!!.value[0]
     val password: String = g[4]!!.value
 
-    return Policy(freqFrom to freqTo, letter) to password
+    return Policy(idxA to idxB, letter) to password
 }
 
-private data class Policy(val freqRange: Pair<Int, Int>, val letter: Char) {
-    init { require(freqRange.first <= freqRange.second) }
-}
+private data class Policy(val xorIdx: Pair<Int, Int>, val letter: Char)
 
 private fun readLn() = readLine()!!
 private fun readInt() = readLn().toInt()
