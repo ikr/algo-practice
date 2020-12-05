@@ -38,15 +38,30 @@ int zoom_down(const vector<Half> &hs) {
     return hs.back() == Half::LO ? a : b;
 }
 
+set<pi> all_seats() {
+    set<pi> ans;
+    for (int r = 0; r < 128; ++r) {
+        for (int c = 0; c < 8; ++c) {
+            ans.emplace(r, c);
+        }
+    }
+    return ans;
+}
+
 int main() {
-    vector<int> xs;
+    auto missing = all_seats();
 
     for (string line; getline(cin, line);) {
         const int r = zoom_down(parse_path(row_path(line)));
         const int c = zoom_down(parse_path(col_path(line)));
-        xs.push_back(seat_id({r, c}));
+        missing.erase(pi{r, c});
     }
 
-    cout << (*max_element(cbegin(xs), cend(xs))) << '\n';
+    for (const auto [r, c] : missing) {
+        if (missing.count({r, c - 1}) || missing.count({r, c + 1})) continue;
+        cout << seat_id({r, c}) << '\n';
+        break;
+    }
+
     return 0;
 }
