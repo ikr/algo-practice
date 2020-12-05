@@ -10,12 +10,30 @@ constexpr ll pow_mod(const ll base, const ll exp, const ll m) {
     return (q * q) % m;
 }
 
-constexpr ll inv_mod(const ll x, const ll m) { return pow_mod(x, m - 2, m); }
+
+template <typename T> constexpr tuple<T, T, T> extended_gcd(const T a, const T b) {
+    auto [old_r, r] = pair{a, b};
+    auto [old_s, s] = pair<T, T>{1, 0};
+    auto [old_t, t] = pair<T, T>{0, 1};
+
+    while (r) {
+        const T quotient = old_r / r;
+        tie(old_r, r) = pair{r, old_r - quotient * r};
+        tie(old_s, s) = pair{s, old_s - quotient * s};
+        tie(old_t, t) = pair{t, old_t - quotient * t};
+    }
+
+    return {old_s, old_t, old_r};
+}
+
+template <typename T> constexpr T inv_mod(const T x, const T m) {
+    return (get<0>(extended_gcd(x, m)) + m) % m;
+}
 
 constexpr ll sum_1_to_n_mod(const ll n, const ll m) {
     ll ans = n * (n + 1);
     ans %= m;
-    ans *= inv_mod(2, m);
+    ans *= inv_mod(2LL, m);
     ans %= m;
     return ans;
 }
