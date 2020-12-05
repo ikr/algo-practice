@@ -10,13 +10,14 @@ constexpr ll pow_mod(const ll base, const ll exp, const ll m) {
     return (q * q) % m;
 }
 
-constexpr ll safe_mod(ll x, ll m) {
+namespace internal {
+constexpr ll safe_mod(ll x, const ll m) {
     x %= m;
     if (x < 0) x += m;
     return x;
 }
 
-constexpr std::pair<ll, ll> inv_gcd(ll a, ll b) {
+constexpr std::pair<ll, ll> inv_gcd(ll a, const ll b) {
     a = safe_mod(a, b);
     if (a == 0) return {b, 0};
 
@@ -24,7 +25,7 @@ constexpr std::pair<ll, ll> inv_gcd(ll a, ll b) {
     ll m0 = 0, m1 = 1;
 
     while (t) {
-        ll u = s / t;
+        const ll u = s / t;
         s -= t * u;
         m0 -= m1 * u;
 
@@ -39,10 +40,11 @@ constexpr std::pair<ll, ll> inv_gcd(ll a, ll b) {
     if (m0 < 0) m0 += b / s;
     return {s, m0};
 }
+} // namespace internal
 
-constexpr ll inv_mod(ll x, ll m) {
+constexpr ll inv_mod(const ll x, const ll m) {
     assert(1 <= m);
-    auto z = inv_gcd(x, m);
+    const auto z = internal::inv_gcd(x, m);
     assert(z.first == 1);
     return z.second;
 }
