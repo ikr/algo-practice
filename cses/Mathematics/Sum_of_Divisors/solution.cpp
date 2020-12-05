@@ -22,9 +22,24 @@ constexpr ll sum_1_to_n_mod(const ll n, const ll m) {
 
 ll sum_of_sum_of_divisors(const ll x) {
     ll ans = 0;
-    for (ll i = 1; i <= x; ++i) {
-        ans = (ans + (x / i) * i) % M;
+
+    for (ll lo = 1; lo <= x;) {
+        const ll q = x / lo;
+        const ll hi = x / q;
+
+        ll to_add = sum_1_to_n_mod(hi, M) - sum_1_to_n_mod(lo - 1, M);
+        to_add += M;
+        to_add %= M;
+
+        to_add *= (q % M);
+        to_add %= M;
+
+        ans += to_add;
+        ans %= M;
+
+        lo = hi + 1;
     }
+
     return ans;
 }
 
