@@ -10,28 +10,45 @@ constexpr ll pow_mod(const ll base, const ll exp, const ll m) {
     return (q * q) % m;
 }
 
-
-template <typename T> constexpr tuple<T, T, T> extended_gcd(const T a, const T b) {
-    auto [old_r, r] = pair{a, b};
-    auto [old_s, s] = pair<T, T>{1, 0};
-    auto [old_t, t] = pair<T, T>{0, 1};
-
-    while (r) {
-        const T quotient = old_r / r;
-        tie(old_r, r) = pair{r, old_r - quotient * r};
-        tie(old_s, s) = pair{s, old_s - quotient * s};
-        tie(old_t, t) = pair{t, old_t - quotient * t};
-    }
-
-    return {old_s, old_t, old_r};
+constexpr ll safe_mod(ll x, ll m) {
+    x %= m;
+    if (x < 0) x += m;
+    return x;
 }
 
-template <typename T> constexpr T inv_mod(const T x, const T m) {
-    return (get<0>(extended_gcd(x, m)) + m) % m;
+constexpr std::pair<ll, ll> inv_gcd(ll a, ll b) {
+    a = safe_mod(a, b);
+    if (a == 0) return {b, 0};
+
+    ll s = b, t = a;
+    ll m0 = 0, m1 = 1;
+
+    while (t) {
+        ll u = s / t;
+        s -= t * u;
+        m0 -= m1 * u;
+
+        auto tmp = s;
+        s = t;
+        t = tmp;
+        tmp = m0;
+        m0 = m1;
+        m1 = tmp;
+    }
+
+    if (m0 < 0) m0 += b / s;
+    return {s, m0};
+}
+
+constexpr ll inv_mod(ll x, ll m) {
+    assert(1 <= m);
+    auto z = inv_gcd(x, m);
+    assert(z.first == 1);
+    return z.second;
 }
 
 constexpr ll sum_1_to_n_mod(const ll n, const ll m) {
-    ll ans = n * (n + 1);
+    ll ans = (n % M) * ((n + 1) % M);
     ans %= m;
     ans *= inv_mod(2LL, m);
     ans %= m;
