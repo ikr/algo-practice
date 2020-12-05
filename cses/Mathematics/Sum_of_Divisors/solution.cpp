@@ -17,7 +17,7 @@ constexpr ll safe_mod(ll x, const ll m) {
     return x;
 }
 
-constexpr std::pair<ll, ll> inv_gcd(ll a, const ll b) {
+constexpr pair<ll, ll> inv_gcd(ll a, const ll b) {
     a = safe_mod(a, b);
     if (a == 0) return {b, 0};
 
