@@ -12,19 +12,22 @@ R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
     return ans;
 }
 
-int count_unique_chars(const vector<string> &ss) {
-    set<char> ans;
+int count_omnipresent_chars(const vector<string> &ss) {
+    const int sz = 'z' - 'a' + 1;
+    vector<int> freqs(sz, 0);
 
     for (const auto &s : ss) {
-        ans.insert(cbegin(s), cend(s));
+        for (const char c : s) ++freqs[c - 'a'];
     }
 
-    return ans.size();
+    const int n = ss.size();
+    return count_if(cbegin(freqs), cend(freqs),
+                    [n](const int f) { return f == n; });
 }
 
 int process_groups(const vector<vector<string>> &groups) {
     return ttransform_reduce(cbegin(groups), cend(groups), 0, plus<int>{},
-                             count_unique_chars);
+                             count_omnipresent_chars);
 }
 
 int main() {
