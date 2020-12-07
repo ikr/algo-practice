@@ -1,23 +1,23 @@
 fun main() {
     val aggs = generateSequence(::readLine).map(::parseLine).toList()
     val g = gather_graph(aggs)
+    val c = gather_cardinalities(aggs)
 
-    val ans = aggs.map { it.color }.count {
-        contains_recur(g, "shiny gold", it)
-    }
-
+    val ans = count_contained_recur(g, c, "shiny gold")
     println(ans)
 }
 
-private fun contains_recur(g: Map<String, List<String>>, needle: String, u: String): Boolean {
-    if (!g.containsKey(u)) return false
+private fun count_contained_recur(g: Map<String, List<String>>, c: Map<Pair<String, String>, Int>, u: String): Int {
+    if (!g.containsKey(u)) return 0
 
+    var ans = 0
     for (v in g[u]!!) {
-        if (v == needle) return true
-        if (contains_recur(g, needle, v)) return true
+        val factor = c[u to v]!!
+        ans += factor
+        ans += count_contained_recur(g, c, v) * factor
     }
 
-    return false
+    return ans
 }
 
 private fun gather_graph(aggs: List<Agg>): Map<String, List<String>> {
@@ -26,6 +26,18 @@ private fun gather_graph(aggs: List<Agg>): Map<String, List<String>> {
     for ((color, subs) in aggs) {
         val adj = subs.map { it.color }
         ans[color] = adj
+    }
+
+    return ans
+}
+
+private fun gather_cardinalities(aggs: List<Agg>): Map<Pair<String, String>, Int> {
+    val ans = mutableMapOf<Pair<String, String>, Int>()
+
+    for ((color, subs) in aggs) {
+        for (sub in subs) {
+            ans[color to sub.color] = sub.count
+        }
     }
 
     return ans
