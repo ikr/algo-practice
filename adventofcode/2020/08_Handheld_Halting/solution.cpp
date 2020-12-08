@@ -1,12 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-enum class Instr { JMP, ACC };
+enum class Instr { NOP, JMP, ACC };
 
 pair<Instr, int> parse_instr(const string &code, const string &arg) {
-    if (code == "nop") return {Instr::JMP, 1};
-
     const int x = stoi(arg);
+    if (code == "nop") return {Instr::NOP, x};
     if (code == "acc") return {Instr::ACC, x};
     return {Instr::JMP, x};
 }
@@ -21,7 +20,9 @@ int execute(const vector<pair<Instr, int>> &program) {
         done[pointer] = true;
 
         const auto [op, arg] = program.at(pointer);
-        if (op == Instr::ACC) {
+        if (op == Instr::NOP) {
+            ++pointer;
+        } else if (op == Instr::ACC) {
             ans += arg;
             ++pointer;
         } else {
