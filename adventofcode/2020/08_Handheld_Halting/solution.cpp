@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
+static constexpr int INF = 1e9;
 
 enum class Instr { NOP, JMP, ACC };
 
@@ -30,9 +31,15 @@ int execute(const vector<pair<Instr, int>> &program) {
         }
 
         pointer = ((pointer % n) + n) % n;
+        if (pointer == 0) return ans;
     }
 
-    return ans;
+    return INF;
+}
+
+Instr flip_op(const Instr op) {
+    if (op == Instr::ACC) return op;
+    return op == Instr::NOP ? Instr::JMP : Instr::NOP;
 }
 
 int main() {
@@ -44,6 +51,17 @@ int main() {
         program.push_back(parse_instr(s1, s2));
     }
 
-    cout << execute(program) << '\n';
+    for (auto &[op, arg] : program) {
+        op = flip_op(op);
+
+        const int result = execute(program);
+        if (result != INF) {
+            cout << result << '\n';
+            break;
+        }
+
+        op = flip_op(op);
+    }
+
     return 0;
 }
