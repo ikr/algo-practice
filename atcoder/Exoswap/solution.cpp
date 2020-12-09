@@ -1,6 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+vector<int> gather_indices(const vector<int> &xs) {
+    const int n = xs.size();
+    vector<int> ans(n, -1);
+    for (int i = 0; i < n; ++i) ans[xs[i]] = i;
+    return ans;
+}
+
 vector<int> find_swapups(const vector<int> &xs) { return xs; }
 
 int main() {
