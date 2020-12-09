@@ -41,6 +41,21 @@ ll first_outlier(const int pre, const vector<ll> &xs) {
     return -1;
 }
 
+pair<iter, iter> summing_up_range(const vector<ll> &xs, const ll target) {
+    const int n = xs.size();
+    vector<ll> ss(n + 1, 0);
+    partial_sum(cbegin(xs), cend(xs), next(begin(ss)));
+
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            const ll s = ss[j + 1] - ss[i];
+            if (s == target) return {cbegin(xs) + i, cbegin(xs) + j + 1};
+        }
+    }
+
+    return {cend(xs), cend(xs)};
+}
+
 int main() {
     vector<ll> xs;
 
@@ -48,6 +63,10 @@ int main() {
         xs.push_back(stoll(line));
     }
 
-    cout << first_outlier(25, xs) << '\n';
+    const ll outl = first_outlier(25, xs);
+    const auto [first, last] = summing_up_range(xs, outl);
+    const auto [lo, hi] = minmax_element(first, last);
+
+    cout << (*lo + *hi) << '\n';
     return 0;
 }
