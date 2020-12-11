@@ -77,6 +77,14 @@ pair<bool, vector<string>> evolve(const vector<string> &rows) {
     return {changed, ans};
 }
 
+int count_occupied(const vector<string> &rows) {
+    const auto occ_count = [](const string &s) -> int {
+        return count(cbegin(s), cend(s), '#');
+    };
+
+    return ttransform_reduce(cbegin(rows), cend(rows), 0, plus{}, occ_count);
+}
+
 int fixpoint_occupied_seats_count(vector<string> &rows) {
     for (;;) {
         bool changed = false;
@@ -84,11 +92,7 @@ int fixpoint_occupied_seats_count(vector<string> &rows) {
         if (!changed) break;
     }
 
-    const auto occ_count = [](const string &s) -> int {
-        return count(cbegin(s), cend(s), '#');
-    };
-
-    return ttransform_reduce(cbegin(rows), cend(rows), 0, plus{}, occ_count);
+    return count_occupied(rows);
 }
 
 int main() {
