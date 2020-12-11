@@ -18,29 +18,28 @@ constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
     return {lhs.first + rhs.first, lhs.second + rhs.second};
 }
 
-char get_v(const vector<string> &rows, const pi rc) {
+int count_neighs(const vector<string> &rows, const pi rc) {
     const int H = rows.size();
     const int W = rows[0].size();
 
-    const auto [ro, co] = rc;
-    if (ro < 0 || ro >= H || co < 0 || co >= W) return '.';
-    return rows[ro][co];
-}
-
-vector<pi> neighs(const pi rc) {
     const vector<pi> ds{{-1, 0}, {-1, 1}, {0, 1},  {1, 1},
                         {1, 0},  {1, -1}, {0, -1}, {-1, -1}};
-    vector<pi> ans(ds.size());
-    transform(cbegin(ds), cend(ds), begin(ans),
-              [rc](const pi d) { return rc + d; });
-    return ans;
-}
-
-int count_neighs(const vector<string> &rows, const pi rc) {
-    const auto [ro, co] = rc;
     int ans = 0;
-    for (const auto neigh : neighs({ro, co})) {
-        if (get_v(rows, neigh) == '#') ++ans;
+    for (const auto d : ds) {
+        auto [ro, co] = rc + d;
+
+        for (;;) {
+            if (ro < 0 || ro >= H || co < 0 || co >= W || rows[ro][co] == 'L') {
+                break;
+            }
+
+            if (rows[ro][co] == '#') {
+                ++ans;
+                break;
+            }
+
+            tie(ro, co) = pi{ro, co} + d;
+        }
     }
     return ans;
 }
@@ -66,7 +65,7 @@ pair<bool, vector<string>> evolve(const vector<string> &rows) {
                 }
             } else {
                 assert(v == '#');
-                if (nc >= 4) {
+                if (nc >= 5) {
                     ans[ro][co] = 'L';
                     changed = true;
                 }
