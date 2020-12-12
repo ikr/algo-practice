@@ -54,7 +54,7 @@ constexpr pi rotate(const pair<pi, pi> &rotation_matrix, const pi v) {
 
 int main() {
     pi pos{0, 0};
-    pi dir{1, 0};
+    pi dir{10, 1};
 
     for (string line; getline(cin, line);) {
         const char instr_code = line[0];
@@ -62,19 +62,19 @@ int main() {
 
         switch (instr_code) {
         case 'N':
-            pos = pos + pi{0, arg};
+            dir = dir + pi{0, arg};
             break;
 
         case 'S':
-            pos = pos + pi{0, -arg};
+            dir = dir + pi{0, -arg};
             break;
 
         case 'E':
-            pos = pos + pi{arg, 0};
+            dir = dir + pi{arg, 0};
             break;
 
         case 'W':
-            pos = pos + pi{-arg, 0};
+            dir = dir + pi{-arg, 0};
             break;
 
         case 'F':
