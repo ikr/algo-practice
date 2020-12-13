@@ -19,18 +19,19 @@ vector<pair<ll, int>> gather_ids_with_deltas(const vector<string> &tt) {
     return ans;
 }
 
+bool is_target(const vector<pair<ll, int>> &ids_ds, const ll x) {
+    for (const auto [id, d] : ids_ds) {
+        if ((x + d) % id != 0LL) return false;
+    }
+
+    return true;
+}
+
 ll solve(const vector<string> &tt) {
     const auto ids_ds = gather_ids_with_deltas(tt);
-
-    const ll m = accumulate(
-        cbegin(ids_ds), cend(ids_ds), 1LL,
-        [](const ll agg, const pair<ll, int> &p) { return agg * p.first; });
-
-    const ll ds = accumulate(
-        cbegin(ids_ds), cend(ids_ds), 0LL,
-        [](const ll agg, const pair<ll, int> &p) { return agg + p.second; });
-
-    return m - ds;
+    ll x = ids_ds.front().first;
+    while (!is_target(ids_ds, x)) x += 7LL;
+    return x;
 }
 
 int main() {
@@ -40,6 +41,5 @@ int main() {
     cin >> s;
 
     cout << solve(tokenize(regex(","), s)) << '\n';
-
     return 0;
 }
