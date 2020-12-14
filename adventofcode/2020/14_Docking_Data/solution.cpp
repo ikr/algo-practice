@@ -2,7 +2,6 @@
 #include <variant>
 using namespace std;
 using ull = unsigned long long;
-using pi = pair<int, int>;
 
 template <class... Ts> struct overloaded final : Ts... {
     using Ts::operator()...;
@@ -27,12 +26,12 @@ string reversed(string s) {
 }
 
 ull to_mask(const string &reversed_literal) {
-    const int n = reversed_literal.size();
+    const ull n = reversed_literal.size();
     ull ans = ~0ULL;
 
-    for (int i = 0; i < n; ++i) {
+    for (ull i = 0; i < n; ++i) {
         if (reversed_literal[i] != 'X') {
-            ans = ans & ~(1 << i);
+            ans = ans & ~(1ULL << i);
         }
     }
 
@@ -40,12 +39,12 @@ ull to_mask(const string &reversed_literal) {
 }
 
 ull to_forced_value(const string &reversed_literal) {
-    const int n = reversed_literal.size();
+    const ull n = reversed_literal.size();
     ull ans = 0ULL;
 
-    for (int i = 0; i < n; ++i) {
+    for (ull i = 0; i < n; ++i) {
         if (reversed_literal[i] == '1') {
-            ans |= (1 << i);
+            ans |= (1ULL << i);
         }
     }
 
@@ -54,6 +53,8 @@ ull to_forced_value(const string &reversed_literal) {
 
 struct Transformation final {
     ull apply(const ull x) const { return (x & m_mask) | m_forced_value; }
+
+    Transformation() : m_mask{~0ULL}, m_forced_value{0ULL} {}
 
     explicit Transformation(string literal) : m_mask{0}, m_forced_value{0} {
         reverse(begin(literal), end(literal));
@@ -66,7 +67,8 @@ struct Transformation final {
     ull m_forced_value;
 };
 
-using Command = variant<Transformation, pi>;
+using Assignment = pair<int, ull>;
+using Command = variant<Transformation, Assignment>;
 
 Command parse_line(const string &line) {
     const string mask_prefix = "mask = ";
@@ -79,7 +81,7 @@ Command parse_line(const string &line) {
     const auto address = parts[0].substr(mem_prefix.size());
     const auto value = parts[1];
 
-    return pi{stoi(address), stoi(value)};
+    return Assignment{stoi(address), stoull(value)};
 }
 
 int main() {
@@ -89,18 +91,18 @@ int main() {
         commands.push_back(parse_line(line));
     }
 
+    vector<ull> mem(100000, 0ULL);
+    Transformation curr_t;
+
     for (const auto c : commands) {
         match(
-            c,
-            [](const Transformation &t) -> Command {
-                cout << "SET TR\n";
-                return t;
-            },
-            [](const pi &ab) -> Command {
-                cout << '(' << ab.first << ' ' << ab.second << ")\n";
-                return ab;
+            c, [&](const Transformation &t) { curr_t = t; },
+            [&](const Assignment &ab) {
+                const auto [address, value] = ab;
+                mem[address] = curr_t.apply(value);
             });
     }
 
+    cout << accumulate(cbegin(mem), cend(mem), 0ULL) << '\n';
     return 0;
 }
