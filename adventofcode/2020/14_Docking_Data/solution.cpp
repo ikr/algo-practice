@@ -2,6 +2,7 @@
 #include <variant>
 using namespace std;
 using ull = unsigned long long;
+using ui = unsigned int;
 
 template <class... Ts> struct overloaded final : Ts... {
     using Ts::operator()...;
@@ -20,17 +21,12 @@ vector<string> split(const regex &delim, const string &s) {
                           sregex_token_iterator{});
 }
 
-string reversed(string s) {
-    reverse(begin(s), end(s));
-    return s;
-}
-
 ull to_mask(const string &reversed_literal) {
     const ull n = reversed_literal.size();
     ull ans = ~0ULL;
 
     for (ull i = 0; i < n; ++i) {
-        if (reversed_literal[i] != 'X') {
+        if (reversed_literal[i] != '.') {
             ans = ans & ~(1ULL << i);
         }
     }
@@ -51,6 +47,31 @@ ull to_forced_value(const string &reversed_literal) {
     return ans;
 }
 
+vector<string> generate_instances(const string &pattern) {
+    const int n = pattern.size();
+
+    vector<int> x_indices;
+    for (int i = 0; i < n; ++i) {
+        if (pattern[i] == 'X') x_indices.push_back(i);
+    }
+
+    if (x_indices.empty()) return {pattern};
+    const ui sz = x_indices.size();
+
+    vector<string> ans;
+    ans.reserve(1U << sz);
+    for (ui i = 0U; i < (1U << sz); ++i) {
+        bitset<32> bs{i};
+
+        string s{pattern};
+        for (ui j = 0; j < sz; ++j) {
+            s[x_indices[j]] = bs.test(j) ? '1' : '0';
+        }
+        ans.push_back(s);
+    }
+    return ans;
+}
+
 struct Transformation final {
     ull apply(const ull x) const { return (x & m_mask) | m_forced_value; }
 
@@ -67,13 +88,36 @@ struct Transformation final {
     ull m_forced_value;
 };
 
-using Assignment = pair<int, ull>;
-using Command = variant<Transformation, Assignment>;
+struct AssignmentScheme final {
+    AssignmentScheme() : m_literal{"...................................."} {}
+    explicit AssignmentScheme(const string &literal) : m_literal{literal} {}
+
+    void apply(unordered_map<ull, ull> &mem, const ull address,
+               const ull value) {
+        for (const auto &instance : generate_instances(m_literal)) {
+            const Transformation t{instance};
+            mem[t.apply(address)] = value;
+        }
+    }
+
+  private:
+    string m_literal;
+};
+
+using Assignment = pair<ull, ull>;
+using Command = variant<AssignmentScheme, Assignment>;
+
+string translate_literal(string literal) {
+    transform(cbegin(literal), cend(literal), begin(literal),
+              [](const char c) { return c == '0' ? '.' : c; });
+    return literal;
+}
 
 Command parse_line(const string &line) {
     const string mask_prefix = "mask = ";
     if (line.substr(0, mask_prefix.size()) == mask_prefix) {
-        return Transformation(line.substr(mask_prefix.size()));
+        const auto raw_literal = line.substr(mask_prefix.size());
+        return AssignmentScheme(translate_literal(raw_literal));
     }
 
     const auto parts = split(regex("] = "), line);
@@ -81,7 +125,7 @@ Command parse_line(const string &line) {
     const auto address = parts[0].substr(mem_prefix.size());
     const auto value = parts[1];
 
-    return Assignment{stoi(address), stoull(value)};
+    return Assignment{stoull(address), stoull(value)};
 }
 
 int main() {
@@ -91,18 +135,22 @@ int main() {
         commands.push_back(parse_line(line));
     }
 
-    vector<ull> mem(100000, 0ULL);
-    Transformation curr_t;
+    unordered_map<ull, ull> mem;
+    AssignmentScheme curr_sch;
 
     for (const auto c : commands) {
         match(
-            c, [&](const Transformation &t) { curr_t = t; },
+            c, [&](const AssignmentScheme &sch) { curr_sch = sch; },
+
             [&](const Assignment &ab) {
                 const auto [address, value] = ab;
-                mem[address] = curr_t.apply(value);
+                curr_sch.apply(mem, address, value);
             });
     }
 
-    cout << accumulate(cbegin(mem), cend(mem), 0ULL) << '\n';
+    cout << accumulate(
+                cbegin(mem), cend(mem), 0ULL,
+                [](const ull agg, const auto &el) { return agg + el.second; })
+         << '\n';
     return 0;
 }
