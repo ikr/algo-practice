@@ -52,9 +52,8 @@ vector<string> gather_nearby_tickets_block(const vector<string> &lines) {
     return vector<string>(next(header), cend(lines));
 }
 
-int solve(const vector<Field> &fields, vector<vector<int>> nearby_tickets) {
-    cout << "before clean-up: " << nearby_tickets.size() << '\n';
-
+void filter_out_invalid_tickets(const vector<Field> &fields,
+                                vector<vector<int>> &nearby_tickets) {
     const auto is_valid_ticket = [&fields](const vector<int> &t) {
         for (const int x : t) {
             if (none_of(cbegin(fields), cend(fields),
@@ -69,8 +68,54 @@ int solve(const vector<Field> &fields, vector<vector<int>> nearby_tickets) {
     nearby_tickets.erase(
         remove_if(begin(nearby_tickets), end(nearby_tickets), is_valid_ticket),
         cend(nearby_tickets));
+}
 
-    cout << "after clean-up: " << nearby_tickets.size() << '\n';
+set<int> complete_set(const int sz) {
+    set<int> ans;
+    for (int i = 0; i < sz; ++i) ans.insert(i);
+    return ans;
+}
+
+pair<int, int> first_singleton(const vector<set<int>> &poss) {
+    const int n = poss.size();
+
+    for (int i = 0; i< n; ++i) {
+        if (poss[i].size() == 1U) return {i, *poss[i].begin()};
+    }
+
+    return {-1, -1};
+}
+
+int solve(const vector<Field> &fields, vector<vector<int>> nearby_tickets) {
+    filter_out_invalid_tickets(fields, nearby_tickets);
+
+    const int n = fields.size();
+    vector<set<int>> poss(n, complete_set(n));
+
+    for (const auto &t : nearby_tickets) {
+        for (int i = 0; i < n; ++i) {
+            const int x = t[i];
+
+            for (int j = 0; j < n; ++j) {
+                if (!fields[j].is_valid(x)) {
+                    poss[i].erase(j);
+                }
+            }
+        }
+    }
+
+    vector<int> ans(n, -1);
+
+    for (;;) {
+        const auto [i, x] = first_singleton(poss);
+        if (i == -1) break;
+
+        for (auto &xs : poss) {
+            xs.erase(x);
+        }
+
+        ans[i] = x;
+    }
 
     return -1;
 }
