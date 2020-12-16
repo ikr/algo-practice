@@ -52,21 +52,27 @@ vector<string> gather_nearby_tickets_block(const vector<string> &lines) {
     return vector<string>(next(header), cend(lines));
 }
 
-int solve(const vector<Field> &fields,
-          const vector<vector<int>> &nearby_tickets) {
+int solve(const vector<Field> &fields, vector<vector<int>> nearby_tickets) {
+    cout << "before clean-up: " << nearby_tickets.size() << '\n';
 
-    int ans = 0;
-
-    for (const auto &xs : nearby_tickets) {
-        for (const int x : xs) {
+    const auto is_valid_ticket = [&fields](const vector<int> &t) {
+        for (const int x : t) {
             if (none_of(cbegin(fields), cend(fields),
                         [x](const auto &f) { return f.is_valid(x); })) {
-                ans += x;
+                return true;
             }
         }
-    }
 
-    return ans;
+        return false;
+    };
+
+    nearby_tickets.erase(
+        remove_if(begin(nearby_tickets), end(nearby_tickets), is_valid_ticket),
+        cend(nearby_tickets));
+
+    cout << "after clean-up: " << nearby_tickets.size() << '\n';
+
+    return -1;
 }
 
 vector<int> parse_tickets(const string &line) {
