@@ -1,16 +1,7 @@
+#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 using Range = pair<int, int>;
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
 
 vector<string> split(const regex &delim, const string &s) {
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), delim, -1),
@@ -22,6 +13,12 @@ struct Field final {
         : m_name{name}, m_r1{r1}, m_r2{r2} {}
 
     Field() {}
+
+    bool is_valid(const int x) const {
+        const auto [a, b] = m_r1;
+        const auto [c, d] = m_r2;
+        return (a <= x && x <= b) || (c <= x && x <= d);
+    }
 
     string m_name;
     Range m_r1;
@@ -39,10 +36,11 @@ string drop_last(string s) {
 }
 
 Field parse_field(const string &line) {
-    const auto parts = split(regex(" "), line);
-    cout << "parts:" << parts << '\n';
-    return Field(drop_last(parts[0]), parse_range(parts[1]),
-                 parse_range(parts[3]));
+    const auto top_parts = split(regex(": "), line);
+    const auto range_parts = split(regex(" "), top_parts[1]);
+
+    return Field(drop_last(top_parts[0]), parse_range(range_parts[0]),
+                 parse_range(range_parts[2]));
 }
 
 vector<string> gather_fields_block(const vector<string> &lines) {
@@ -56,7 +54,27 @@ vector<string> gather_nearby_tickets_block(const vector<string> &lines) {
 
 int solve(const vector<Field> &fields,
           const vector<vector<int>> &nearby_tickets) {
-    return 0;
+
+    int ans = 0;
+
+    for (const auto &xs : nearby_tickets) {
+        for (const int x : xs) {
+            if (none_of(cbegin(fields), cend(fields),
+                        [x](const auto &f) { return f.is_valid(x); })) {
+                ans += x;
+            }
+        }
+    }
+
+    return ans;
+}
+
+vector<int> parse_tickets(const string &line) {
+    const auto tokens = split(regex(","), line);
+    vector<int> ans(tokens.size());
+    transform(cbegin(tokens), cend(tokens), begin(ans),
+              [](const string &s) { return stoi(s); });
+    return ans;
 }
 
 int main() {
@@ -71,5 +89,11 @@ int main() {
     transform(cbegin(fields_block), cend(fields_block), begin(fields),
               parse_field);
 
+    const auto nearby_tickets_block = gather_nearby_tickets_block(lines);
+    vector<vector<int>> nearby_tickets(nearby_tickets_block.size());
+    transform(cbegin(nearby_tickets_block), cend(nearby_tickets_block),
+              begin(nearby_tickets), parse_tickets);
+
+    cout << solve(fields, nearby_tickets) << '\n';
     return 0;
 }
