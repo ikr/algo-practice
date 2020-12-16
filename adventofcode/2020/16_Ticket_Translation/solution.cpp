@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 using Range = pair<int, int>;
+using ll = long long;
 
 vector<string> split(const regex &delim, const string &s) {
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), delim, -1),
@@ -52,6 +53,11 @@ vector<string> gather_nearby_tickets_block(const vector<string> &lines) {
     return vector<string>(next(header), cend(lines));
 }
 
+string your_ticket_line(const vector<string> &lines) {
+    const auto header = find(cbegin(lines), cend(lines), "your ticket:");
+    return *next(header);
+}
+
 void filter_out_invalid_tickets(const vector<Field> &fields,
                                 vector<vector<int>> &nearby_tickets) {
     const auto is_valid_ticket = [&fields](const vector<int> &t) {
@@ -79,14 +85,17 @@ set<int> complete_set(const int sz) {
 pair<int, int> first_singleton(const vector<set<int>> &poss) {
     const int n = poss.size();
 
-    for (int i = 0; i< n; ++i) {
+    for (int i = 0; i < n; ++i) {
         if (poss[i].size() == 1U) return {i, *poss[i].begin()};
     }
 
     return {-1, -1};
 }
 
-int solve(const vector<Field> &fields, vector<vector<int>> nearby_tickets) {
+bool is_departure(const string &s) { return s.find("departure") == 0U; }
+
+ll solve(const vector<Field> &fields, const vector<int> &your_ticket,
+         vector<vector<int>> nearby_tickets) {
     filter_out_invalid_tickets(fields, nearby_tickets);
 
     const int n = fields.size();
@@ -104,7 +113,7 @@ int solve(const vector<Field> &fields, vector<vector<int>> nearby_tickets) {
         }
     }
 
-    vector<int> ans(n, -1);
+    vector<int> mappings(n, -1);
 
     for (;;) {
         const auto [i, x] = first_singleton(poss);
@@ -114,13 +123,21 @@ int solve(const vector<Field> &fields, vector<vector<int>> nearby_tickets) {
             xs.erase(x);
         }
 
-        ans[i] = x;
+        mappings[i] = x;
     }
 
-    return -1;
+    ll ans = 1;
+
+    for (int i = 0; i < n; ++i) {
+        if (is_departure(fields[mappings[i]].m_name)) {
+            ans *= your_ticket[i];
+        }
+    }
+
+    return ans;
 }
 
-vector<int> parse_tickets(const string &line) {
+vector<int> parse_ticket(const string &line) {
     const auto tokens = split(regex(","), line);
     vector<int> ans(tokens.size());
     transform(cbegin(tokens), cend(tokens), begin(ans),
@@ -143,8 +160,9 @@ int main() {
     const auto nearby_tickets_block = gather_nearby_tickets_block(lines);
     vector<vector<int>> nearby_tickets(nearby_tickets_block.size());
     transform(cbegin(nearby_tickets_block), cend(nearby_tickets_block),
-              begin(nearby_tickets), parse_tickets);
+              begin(nearby_tickets), parse_ticket);
 
-    cout << solve(fields, nearby_tickets) << '\n';
+    cout << solve(fields, parse_ticket(your_ticket_line(lines)), nearby_tickets)
+         << '\n';
     return 0;
 }
