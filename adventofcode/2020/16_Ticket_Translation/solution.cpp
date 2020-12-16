@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 using Range = pair<int, int>;
@@ -99,7 +98,7 @@ ll solve(const vector<Field> &fields, const vector<int> &your_ticket,
     filter_out_invalid_tickets(fields, nearby_tickets);
 
     const int n = fields.size();
-    vector<set<int>> poss(n, complete_set(n));
+    vector<set<int>> possibilities(n, complete_set(n));
 
     for (const auto &t : nearby_tickets) {
         for (int i = 0; i < n; ++i) {
@@ -107,7 +106,7 @@ ll solve(const vector<Field> &fields, const vector<int> &your_ticket,
 
             for (int j = 0; j < n; ++j) {
                 if (!fields[j].is_valid(x)) {
-                    poss[i].erase(j);
+                    possibilities[i].erase(j);
                 }
             }
         }
@@ -116,10 +115,10 @@ ll solve(const vector<Field> &fields, const vector<int> &your_ticket,
     vector<int> mappings(n, -1);
 
     for (;;) {
-        const auto [i, x] = first_singleton(poss);
+        const auto [i, x] = first_singleton(possibilities);
         if (i == -1) break;
 
-        for (auto &xs : poss) {
+        for (auto &xs : possibilities) {
             xs.erase(x);
         }
 
