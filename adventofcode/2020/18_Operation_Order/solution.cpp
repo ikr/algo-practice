@@ -3,16 +3,6 @@ using namespace std;
 using ll = long long;
 using Iter = string::const_iterator;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ", ";
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 string join(const vector<string> &tokens) {
     string ans;
     for (const auto &t : tokens) ans += t;
@@ -33,6 +23,37 @@ pair<vector<string>, Iter> tokenize(const Iter last, const Iter it,
     assert(*it == '+' || *it == '*' || ('0' <= *it && *it <= '9'));
     agg.push_back(string(1, *it));
     return tokenize(last, next(it), agg);
+}
+
+void parenthesize_one(vector<string> &tokens,
+                      const vector<string>::iterator it) {
+    const string prefix = *prev(it);
+    const string infix = *it;
+    const string suffix = *next(it);
+
+    const vector<string>::iterator jt = prev(it);
+    tokens.erase(it, next(next(it)));
+    *jt = "(" + prefix + infix + suffix + ")";
+}
+
+string parenthesize(const string &expr) {
+    if (expr.size() == 3U) return expr;
+
+    auto tokens = tokenize(cend(expr), cbegin(expr), {}).first;
+    for (auto &t : tokens) {
+        if (t[0] == '(') {
+            const int sz = t.size();
+            t = "(" + parenthesize(t.substr(1, sz - 2)) + ")";
+        }
+    }
+
+    for (;;) {
+        const auto it = find(begin(tokens), end(tokens), "+");
+        if (it == end(tokens)) break;
+        parenthesize_one(tokens, it);
+    }
+
+    return join(tokens);
 }
 
 template <typename Iter, typename R, typename Binop, typename Unaop>
@@ -81,8 +102,7 @@ int main() {
 
     for (string line; getline(cin, line);) {
         line.erase(remove(begin(line), end(line), ' '), cend(line));
-        lines.push_back(line);
-        cout << tokenize(cend(line), cbegin(line), {}).first << '\n';
+        lines.push_back(parenthesize(line));
     }
 
     cout << solve(lines) << '\n';
