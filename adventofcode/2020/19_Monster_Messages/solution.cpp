@@ -90,7 +90,7 @@ string extract_rule(const vector<RuleSpec> &idx, const int id) {
         idx[id], [](const string &s) { return s; }, extract_xs,
         [&](const pvi &p) {
             const auto &[xs, ys] = p;
-            return "((" + extract_xs(xs) + ")|(" + extract_xs(ys) + "))";
+            return "(?:(?:" + extract_xs(xs) + ")|(?:" + extract_xs(ys) + "))";
         });
 }
 
@@ -116,6 +116,5 @@ int main() {
         if (regex_match(m, re)) ++ans;
     }
     cout << ans << '\n';
-
     return 0;
 }
