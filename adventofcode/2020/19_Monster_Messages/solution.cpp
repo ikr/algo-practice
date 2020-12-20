@@ -79,6 +79,16 @@ vector<RuleSpec> gather_rules_index(const vector<Rule> &rules) {
 }
 
 string extract_rule(const vector<RuleSpec> &idx, const int id) {
+    if (id == 8) {
+        return extract_rule(idx, 42) + "+";
+    }
+
+    if (id == 11) {
+        const auto pref = extract_rule(idx, 42);
+        const auto suff = extract_rule(idx, 31);
+        return "(" + pref + "(?1)?" + suff + ")";
+    }
+
     const auto extract_xs = [&idx](const vi &xs) {
         vector<string> ans(xs.size());
         transform(cbegin(xs), cend(xs), begin(ans),
@@ -109,12 +119,16 @@ int main() {
     transform(cbegin(rules_block), cend(rules_block), begin(rules), parse_rule);
 
     const auto rules_idx = gather_rules_index(rules);
-    const regex re{extract_rule(rules_idx, 0)};
+    /*const regex re{extract_rule(rules_idx, 0)};
 
     int ans = 0;
     for (const auto &m : messages_block) {
         if (regex_match(m, re)) ++ans;
     }
-    cout << ans << '\n';
+    cout << ans << '\n';*/
+
+    cout << extract_rule(rules_idx, 0) << '\n';
+    // And then: cat ./in1 | grep -P '^…$' | wc -l
+    // as the std::regex doesn't seem to support the PCRE with recursion.
     return 0;
 }
