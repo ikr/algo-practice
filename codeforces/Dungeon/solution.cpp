@@ -2,19 +2,9 @@
 using namespace std;
 
 bool possible(const int a, const int b, const int c) {
-    if (!a) return false;
-
-    if (a == b && b == c) {
-        return a >= 3 && (b % 3 == 0);
-    }
-
-    if (a - 1 >= 3) {
-        const int k = (a - 1) / 3;
-        return possible(a - k * 3, b - k * 3, c - k * 3);
-    }
-
-    const int k = (c - a) / 7;
-    if (a < k) return false;
+    if ((a + b + c) % 9 != 0) return false;
+    const int k = (a + b + c) / 9;
+    return a >= k;
 }
 
 int main() {
