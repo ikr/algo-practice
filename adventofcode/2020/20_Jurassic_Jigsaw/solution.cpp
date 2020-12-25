@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
-
+using Rows = vector<string>;
 static constexpr int SZ = 10;
 
 template <typename Iter, typename R, typename Binop, typename Unaop>
@@ -26,27 +26,46 @@ int side_hash(string side) {
     return min(direct, flipped);
 }
 
+string column(const Rows &rows, const int co) {
+    int sz = rows.size();
+    string ans(sz, ' ');
+    for (int i = 0; i < sz; ++i) {
+        ans[i] = rows[i][co];
+    }
+    return ans;
+}
+
+Rows rotate_rows(const Rows &rows) {
+    const int sz = rows.size();
+    Rows ans(sz, string(sz, ' '));
+
+    for (int i = 0; i < sz; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            ans[j][sz - 1 - i] = rows[i][j];
+        }
+    }
+
+    return ans;
+}
+
+vector<Rows> complete_group(const Rows &rows) {
+    vector<Rows> ans{rows};
+    return ans;
+}
+
 struct Tile final {
-    Tile(const int id, const vector<string> &rows) : m_id{id}, m_rows{rows} {}
+    Tile(const int id, const Rows &rows) : m_id{id}, m_rows{rows} {}
     Tile() : m_id{0}, m_rows{} {}
     int id() const { return m_id; }
 
     vector<int> side_hashes() const {
-        return {side_hash(m_rows[0]), side_hash(column(SZ - 1)),
-                side_hash(m_rows[SZ - 1]), side_hash(column(0))};
+        return {side_hash(m_rows[0]), side_hash(column(m_rows, SZ - 1)),
+                side_hash(m_rows[SZ - 1]), side_hash(column(m_rows, 0))};
     }
 
   private:
-    string column(const int co) const {
-        string ans(SZ, ' ');
-        for (int i = 0; i < SZ; ++i) {
-            ans[i] = m_rows[i][co];
-        }
-        return ans;
-    }
-
     int m_id;
-    vector<string> m_rows;
+    Rows m_rows;
 };
 
 multimap<int, Tile> gather_index(const vector<Tile> &tiles) {
@@ -63,14 +82,12 @@ multimap<int, Tile> gather_index(const vector<Tile> &tiles) {
 
 Tile suggest_top_left_corner(const vector<Tile> &tiles,
                              const multimap<int, Tile> &index) {
-    cout << tiles.size() << " tiles\n";
-
     for (const auto &t : tiles) {
         const auto hs = t.side_hashes();
 
         const auto neighs = ttransform_reduce(
             cbegin(hs), cend(hs), 0, plus<int>{},
-            [&index](const int h) { return index.count(h) > 1 ? 1 : 0; });
+            [&index](const int h) { return index.count(h) - 1; });
 
         if (neighs == 2) return t;
     }
@@ -80,6 +97,15 @@ Tile suggest_top_left_corner(const vector<Tile> &tiles,
 }
 
 ll solve(const vector<Tile> &tiles) {
+    const Rows t0{"#.#.#####.", ".#..######", "..#.......", "######....",
+                  "####.#..#.", ".#...#.##.", "#.#####.##", "..#.###...",
+                  "..#.......", "..#.###..."};
+
+    const auto t1 = rotate_rows(t0);
+    for (const auto &r : t1) {
+        cout << r << '\n';
+    }
+
     const auto index = gather_index(tiles);
     return suggest_top_left_corner(tiles, index).id();
 }
@@ -87,7 +113,7 @@ ll solve(const vector<Tile> &tiles) {
 int main() {
     vector<Tile> tiles;
     int id = 0;
-    vector<string> rows;
+    Rows rows;
 
     for (string line; getline(cin, line);) {
         const string header{"Tile "};
