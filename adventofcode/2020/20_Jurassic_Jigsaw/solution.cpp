@@ -58,8 +58,17 @@ Rows flip_rows(Rows rows) {
 }
 
 vector<Rows> complete_group(const Rows &rows) {
-    vector<Rows> ans{rows};
-    return ans;
+    const auto direct_90 = rotate_rows(rows);
+    const auto direct_180 = rotate_rows(direct_90);
+    const auto direct_270 = rotate_rows(direct_180);
+
+    const auto flipped = flip_rows(rows);
+    const auto flipped_90 = rotate_rows(flipped);
+    const auto flipped_180 = rotate_rows(flipped_90);
+    const auto flipped_270 = rotate_rows(flipped_180);
+
+    return {rows,    direct_90,  direct_180,  direct_270,
+            flipped, flipped_90, flipped_180, flipped_270};
 }
 
 struct Tile final {
