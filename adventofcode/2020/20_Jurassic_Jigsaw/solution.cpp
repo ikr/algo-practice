@@ -78,10 +78,8 @@ struct Tile final {
     int id() const { return m_id; }
 
     vector<int> side_hashes() const {
-        const int sz = m_rows.size();
-
-        return {side_hash(m_rows[0]), side_hash(column(m_rows, sz - 1)),
-                side_hash(m_rows[sz - 1]), side_hash(column(m_rows, 0))};
+        return {side_hash(m_rows[0]), right_side_hash(), bottom_side_hash(),
+                side_hash(column(m_rows, 0))};
     }
 
     Tile orient_north_west(const multimap<int, Tile> &index) const {
