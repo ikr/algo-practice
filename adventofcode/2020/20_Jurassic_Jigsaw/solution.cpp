@@ -48,6 +48,15 @@ Rows rotate_rows(const Rows &rows) {
     return ans;
 }
 
+Rows flip_rows(Rows rows) {
+    transform(cbegin(rows), cend(rows), begin(rows), [](string row) {
+        reverse(begin(row), end(row));
+        return row;
+    });
+
+    return rows;
+}
+
 vector<Rows> complete_group(const Rows &rows) {
     vector<Rows> ans{rows};
     return ans;
@@ -101,7 +110,7 @@ ll solve(const vector<Tile> &tiles) {
                   "####.#..#.", ".#...#.##.", "#.#####.##", "..#.###...",
                   "..#.......", "..#.###..."};
 
-    const auto t1 = rotate_rows(t0);
+    const auto t1 = flip_rows(t0);
     for (const auto &r : t1) {
         cout << r << '\n';
     }
