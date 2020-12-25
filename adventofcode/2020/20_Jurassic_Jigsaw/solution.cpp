@@ -61,21 +61,27 @@ multimap<int, Tile> gather_index(const vector<Tile> &tiles) {
     return ans;
 }
 
-ll solve(const vector<Tile> &tiles) {
-    const auto index = gather_index(tiles);
+Tile suggest_top_left_corner(const vector<Tile> &tiles,
+                             const multimap<int, Tile> &index) {
+    cout << tiles.size() << " tiles\n";
 
-    ll ans = 1;
     for (const auto &t : tiles) {
         const auto hs = t.side_hashes();
 
         const auto neighs = ttransform_reduce(
             cbegin(hs), cend(hs), 0, plus<int>{},
-            [&index](const int h) { return index.count(h) - 1; });
+            [&index](const int h) { return index.count(h) > 1 ? 1 : 0; });
 
-        if (neighs == 2) ans *= t.id();
+        if (neighs == 2) return t;
     }
 
-    return ans;
+    assert(false && "/o\\");
+    return {};
+}
+
+ll solve(const vector<Tile> &tiles) {
+    const auto index = gather_index(tiles);
+    return suggest_top_left_corner(tiles, index).id();
 }
 
 int main() {
@@ -99,6 +105,7 @@ int main() {
 
         rows.push_back(line);
     }
+    tiles.emplace_back(id, rows);
 
     cout << solve(tiles) << '\n';
     return 0;
