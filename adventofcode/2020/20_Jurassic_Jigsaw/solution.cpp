@@ -81,6 +81,20 @@ struct Tile final {
                 side_hash(m_rows[SZ - 1]), side_hash(column(m_rows, 0))};
     }
 
+    Tile orient_north_west(const multimap<int, Tile> &index) const {
+        for (const auto &rows : complete_group(m_rows)) {
+            const bool topmost = index.count(side_hash(rows[0])) == 1;
+            if (!topmost) continue;
+
+            const bool leftmost = index.count(side_hash(column(rows, 0))) == 1;
+            if (!leftmost) continue;
+
+            return {m_id, rows};
+        }
+
+        assert(false && "Can't orient NW");
+    }
+
   private:
     int m_id;
     Rows m_rows;
@@ -110,21 +124,14 @@ Tile suggest_top_left_corner(const vector<Tile> &tiles,
         if (neighs == 2) return t;
     }
 
-    assert(false && "/o\\");
+    assert(false && "Can't suggest top-left");
     return {};
 }
 
 ll solve(const vector<Tile> &tiles) {
-    const Rows t0{"#.#.#####.", ".#..######", "..#.......", "######....",
-                  "####.#..#.", ".#...#.##.", "#.#####.##", "..#.###...",
-                  "..#.......", "..#.###..."};
-
-    const auto t1 = flip_rows(t0);
-    for (const auto &r : t1) {
-        cout << r << '\n';
-    }
-
     const auto index = gather_index(tiles);
+    const auto t =
+        suggest_top_left_corner(tiles, index).orient_north_west(index);
     return suggest_top_left_corner(tiles, index).id();
 }
 
