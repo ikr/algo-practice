@@ -95,6 +95,24 @@ struct Tile final {
         assert(false && "Can't orient NW");
     }
 
+    Tile snap_right(const Tile &left_neigh) {
+        const auto side = column(left_neigh.m_rows, SZ - 1);
+
+        for (const auto &rows : complete_group(m_rows)) {
+            if (side == column(rows, 0)) return {m_id, rows};
+        }
+
+        assert(false && "Can't snap right");
+    }
+
+    Tile snap_bottom(const Tile &top_neigh) {
+        for (const auto &rows : complete_group(m_rows)) {
+            if (top_neigh.m_rows.back() == rows[0]) return {m_id, rows};
+        }
+
+        assert(false && "Can't snap bottom");
+    }
+
   private:
     int m_id;
     Rows m_rows;
