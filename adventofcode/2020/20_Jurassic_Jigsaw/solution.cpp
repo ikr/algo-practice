@@ -98,7 +98,7 @@ struct Tile final {
         assert(false && "Can't orient NW");
     }
 
-    Tile snap_right(const Tile &left_neigh) {
+    Tile snap_right(const Tile &left_neigh) const {
         const int sz = m_rows.size();
         const auto side = column(left_neigh.m_rows, sz - 1);
 
@@ -109,13 +109,20 @@ struct Tile final {
         assert(false && "Can't snap right");
     }
 
-    Tile snap_bottom(const Tile &top_neigh) {
+    Tile snap_bottom(const Tile &top_neigh) const {
         for (const auto &rows : complete_group(m_rows)) {
             if (top_neigh.m_rows.back() == rows[0]) return {m_id, rows};
         }
 
         assert(false && "Can't snap bottom");
     }
+
+    int right_side_hash() const {
+        const int sz = m_rows.size();
+        return side_hash(column(m_rows, sz - 1));
+    }
+
+    int bottom_side_hash() const { return side_hash(m_rows.back()); }
 
   private:
     int m_id;
@@ -150,11 +157,44 @@ Tile suggest_top_left_corner(const vector<Tile> &tiles,
     return {};
 }
 
+Tile another_of(const multimap<int, Tile>::const_iterator first,
+                const multimap<int, Tile>::const_iterator last,
+                const int excluded_id) {
+    for (auto it = first; it != last; ++it) {
+        const auto [_, t] = *it;
+        if (t.id() != excluded_id) return t;
+    }
+
+    assert(false && "Can't determine another of");
+    return {};
+}
+
 ll solve(const vector<Tile> &tiles) {
+    const int k = sqrt(tiles.size());
+    assert(k * k == tiles.size());
+
+    vector<vector<Tile>> grid(k, vector<Tile>(k));
+
     const auto index = gather_index(tiles);
-    const auto t =
-        suggest_top_left_corner(tiles, index).orient_north_west(index);
-    return suggest_top_left_corner(tiles, index).id();
+    grid[0][0] = suggest_top_left_corner(tiles, index).orient_north_west(index);
+
+    for (int i = 1; i < k; ++i) {
+        const auto t0 = grid[0][i - 1];
+        const auto [first, last] = index.equal_range(t0.right_side_hash());
+        const auto t1 = another_of(first, last, t0.id());
+        grid[0][i] = t1.snap_right(t0);
+    }
+
+    for (int i = 1; i < k; ++i) {
+        for (int j = 0; j < k; ++j) {
+            const auto t0 = grid[i - 1][j];
+            const auto [first, last] = index.equal_range(t0.bottom_side_hash());
+            const auto t1 = another_of(first, last, t0.id());
+            grid[i][j] = t1.snap_bottom(t0);
+        }
+    }
+
+    return -1;
 }
 
 int main() {
@@ -178,7 +218,6 @@ int main() {
 
         rows.push_back(line);
     }
-    tiles.emplace_back(id, rows);
 
     cout << solve(tiles) << '\n';
     return 0;
