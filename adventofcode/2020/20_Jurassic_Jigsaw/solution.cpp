@@ -49,12 +49,12 @@ struct Tile final {
     vector<string> m_rows;
 };
 
-vector<int> gather_side_hash_freqs(const vector<Tile> &tiles) {
-    vector<int> ans(1U << SZ, 0);
+multimap<int, Tile> gather_index(const vector<Tile> &tiles) {
+    multimap<int, Tile> ans;
 
     for (const auto &t : tiles) {
         for (const auto h : t.side_hashes()) {
-            ++ans[h];
+            ans.emplace(h, t);
         }
     }
 
@@ -62,7 +62,7 @@ vector<int> gather_side_hash_freqs(const vector<Tile> &tiles) {
 }
 
 ll solve(const vector<Tile> &tiles) {
-    const auto side_hash_freqs = gather_side_hash_freqs(tiles);
+    const auto index = gather_index(tiles);
 
     ll ans = 1;
     for (const auto &t : tiles) {
@@ -70,7 +70,7 @@ ll solve(const vector<Tile> &tiles) {
 
         const auto neighs = ttransform_reduce(
             cbegin(hs), cend(hs), 0, plus<int>{},
-            [&side_hash_freqs](const int h) { return side_hash_freqs[h] - 1; });
+            [&index](const int h) { return index.count(h) - 1; });
 
         if (neighs == 2) ans *= t.id();
     }
