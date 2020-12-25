@@ -16,6 +16,7 @@ R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
 }
 
 int seq_hash(const string &s) {
+    assert(s.size() == SZ);
     return bitset<SZ>(s, 0, string::npos, '.', '#').to_ulong();
 }
 
@@ -77,8 +78,10 @@ struct Tile final {
     int id() const { return m_id; }
 
     vector<int> side_hashes() const {
-        return {side_hash(m_rows[0]), side_hash(column(m_rows, SZ - 1)),
-                side_hash(m_rows[SZ - 1]), side_hash(column(m_rows, 0))};
+        const int sz = m_rows.size();
+
+        return {side_hash(m_rows[0]), side_hash(column(m_rows, sz - 1)),
+                side_hash(m_rows[sz - 1]), side_hash(column(m_rows, 0))};
     }
 
     Tile orient_north_west(const multimap<int, Tile> &index) const {
@@ -96,7 +99,8 @@ struct Tile final {
     }
 
     Tile snap_right(const Tile &left_neigh) {
-        const auto side = column(left_neigh.m_rows, SZ - 1);
+        const int sz = m_rows.size();
+        const auto side = column(left_neigh.m_rows, sz - 1);
 
         for (const auto &rows : complete_group(m_rows)) {
             if (side == column(rows, 0)) return {m_id, rows};
