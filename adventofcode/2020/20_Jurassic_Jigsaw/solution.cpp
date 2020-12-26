@@ -2,22 +2,22 @@
 using namespace std;
 using ll = long long;
 using Rows = vector<string>;
-static constexpr int SZ = 10;
 
 int seq_hash(const string &s) {
-    assert(s.size() == SZ);
-    return bitset<SZ>(s, 0, string::npos, '.', '#').to_ulong();
+    constexpr int sz = 10;
+    assert(s.size() == sz);
+    return bitset<sz>(s, 0, string::npos, '.', '#').to_ulong();
 }
 
 int side_hash(string side) {
-    int direct = seq_hash(side);
+    const int direct = seq_hash(side);
     reverse(begin(side), end(side));
-    int flipped = seq_hash(side);
+    const int flipped = seq_hash(side);
     return min(direct, flipped);
 }
 
 string column(const Rows &rows, const int co) {
-    int sz = rows.size();
+    const int sz = rows.size();
     string ans(sz, ' ');
     for (int i = 0; i < sz; ++i) {
         ans[i] = rows[i][co];
@@ -105,8 +105,7 @@ struct Tile final {
     }
 
     int right_side_hash() const {
-        const int sz = m_rows.size();
-        return side_hash(column(m_rows, sz - 1));
+        return side_hash(column(m_rows, m_rows.size() - 1));
     }
 
     int bottom_side_hash() const { return side_hash(m_rows.back()); }
@@ -159,7 +158,7 @@ Tile another_of(const multimap<int, Tile>::const_iterator first,
     return {};
 }
 
-ll solve(const vector<Tile> &tiles) {
+vector<vector<Tile>> stitch_tiles_grid(const vector<Tile> &tiles) {
     const int k = sqrt(tiles.size());
     assert(k * k == tiles.size());
 
@@ -184,6 +183,11 @@ ll solve(const vector<Tile> &tiles) {
         }
     }
 
+    return grid;
+}
+
+ll solve(const vector<Tile> &tiles) {
+    const auto grid = stitch_tiles_grid(tiles);
     return -1;
 }
 
