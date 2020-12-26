@@ -65,6 +65,13 @@ struct Tile final {
     Tile(const int id, const Rows &rows) : m_id{id}, m_rows{rows} {}
     Tile() : m_id{0}, m_rows{} {}
     int id() const { return m_id; }
+    int printed_size() const { return m_rows.size() - 2; }
+
+    void print_to(Rows &rows, const int ro, const int co) const {
+        for (int i = 0; i < printed_size(); ++i) {
+            rows[ro + i].replace(co, printed_size(), m_rows[1 + i].substr(1, printed_size()));
+        }
+    }
 
     vector<int> side_hashes() const {
         return {side_hash(m_rows[0]), right_side_hash(), bottom_side_hash(),
@@ -117,13 +124,9 @@ struct Tile final {
 
 multimap<int, Tile> gather_index(const vector<Tile> &tiles) {
     multimap<int, Tile> ans;
-
     for (const auto &t : tiles) {
-        for (const auto h : t.side_hashes()) {
-            ans.emplace(h, t);
-        }
+        for (const auto h : t.side_hashes()) ans.emplace(h, t);
     }
-
     return ans;
 }
 
@@ -138,7 +141,6 @@ Tile suggest_top_left_corner(const vector<Tile> &tiles,
                               assert(h == h_);
                               return index.count(h) - 1;
                           });
-
         if (neighs == 2) return t;
     }
 
@@ -186,8 +188,23 @@ vector<vector<Tile>> stitch_tiles_grid(const vector<Tile> &tiles) {
     return grid;
 }
 
+Rows print_raster(const vector<vector<Tile>> &grid) {
+    const int k = grid.size();
+    const int d = grid[0][0].printed_size();
+    Rows ans(k * d, string(k * d, ' '));
+
+    for (int i = 0; i < k; ++i) {
+        for (int j = 0; j < k; ++j) grid[i][j].print_to(ans, i * d, j * d);
+    }
+
+    return ans;
+}
+
 ll solve(const vector<Tile> &tiles) {
-    const auto grid = stitch_tiles_grid(tiles);
+    const auto raster = print_raster(stitch_tiles_grid(tiles));
+    for (const auto &row : raster) {
+        cout << row << '\n';
+    }
     return -1;
 }
 
