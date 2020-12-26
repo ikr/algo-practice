@@ -4,17 +4,6 @@ using ll = long long;
 using Rows = vector<string>;
 static constexpr int SZ = 10;
 
-template <typename Iter, typename R, typename Binop, typename Unaop>
-R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
-    R ans = init;
-
-    for (auto it = first; it != last; ++it) {
-        ans = binop(ans, unaop(*it));
-    }
-
-    return ans;
-}
-
 int seq_hash(const string &s) {
     assert(s.size() == SZ);
     return bitset<SZ>(s, 0, string::npos, '.', '#').to_ulong();
@@ -144,9 +133,12 @@ Tile suggest_top_left_corner(const vector<Tile> &tiles,
     for (const auto &t : tiles) {
         const auto hs = t.side_hashes();
 
-        const auto neighs = ttransform_reduce(
-            cbegin(hs), cend(hs), 0, plus<int>{},
-            [&index](const int h) { return index.count(h) - 1; });
+        const auto neighs =
+            inner_product(cbegin(hs), cend(hs), cbegin(hs), 0, plus<int>{},
+                          [&index](const int h, const int h_) {
+                              assert(h == h_);
+                              return index.count(h) - 1;
+                          });
 
         if (neighs == 2) return t;
     }
