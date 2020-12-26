@@ -8,6 +8,20 @@ constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
     return {lhs.first + rhs.first, lhs.second + rhs.second};
 }
 
+template <typename Iter, typename R, typename Binop, typename Unaop>
+R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
+    return inner_product(first, last, first, init, binop,
+                         [&unaop](const auto &x,
+                                  __attribute__((unused))
+                                  const auto &x_) { return unaop(x); });
+}
+
+template <typename T> struct mmax final {
+    constexpr T operator()(const T &a, const T &b) const {
+        return std::max(a, b);
+    }
+};
+
 int seq_hash(const string &s) {
     constexpr int sz = 10;
     assert(s.size() == sz);
@@ -137,12 +151,10 @@ Tile suggest_top_left_corner(const vector<Tile> &tiles,
     for (const auto &t : tiles) {
         const auto hs = t.side_hashes();
 
-        const auto neighs =
-            inner_product(cbegin(hs), cend(hs), cbegin(hs), 0, plus<int>{},
-                          [&index](const int h, const int h_) {
-                              assert(h == h_);
-                              return index.count(h) - 1;
-                          });
+        const auto neighs = ttransform_reduce(
+            cbegin(hs), cend(hs), 0, plus<int>{},
+            [&index](const int h) { return index.count(h) - 1; });
+
         if (neighs == 2) return t;
     }
 
@@ -202,26 +214,51 @@ Rows print_raster(const vector<vector<Tile>> &grid) {
     return ans;
 }
 
-int count_monsters(const Rows &rows) {
-    const int sz = rows.size();
-    assert(sz == rows[0].size());
-
-    const vector<pair<int, int>> monster_path{
-        {0, 0}, {1, 1}, {0, 3}, {-1, 1}, {0, 1},  {1, 1}, {0, 3}, {-1, 1},
-        {0, 1}, {1, 1}, {0, 3}, {-1, 1}, {-1, 1}, {1, 0}, {0, 1}};
-
-    for (int ro = 0; ro < sz; ++ro) {
-        for (int co = 0; co < sz; ++co) {
-        }
-    }
+vector<pair<int, int>> monster_path() {
+    return {{0, 0}, {1, 1}, {0, 3}, {-1, 1}, {0, 1},  {1, 1}, {0, 3}, {-1, 1},
+            {0, 1}, {1, 1}, {0, 3}, {-1, 1}, {-1, 1}, {1, 0}, {0, 1}};
 }
 
-ll solve(const vector<Tile> &tiles) {
-    const auto raster = print_raster(stitch_tiles_grid(tiles));
-    for (const auto &row : raster) {
-        cout << row << '\n';
+int count_monsters(const Rows &rows) {
+    const int sz = rows.size();
+    assert(sz == static_cast<int>(rows[0].size()));
+
+    const auto is_match = [&](const pair<int, int> p) {
+        const auto [ro, co] = p;
+        return ro >= 0 && ro < sz && co >= 0 && co < sz && rows[ro][co] == '#';
+    };
+
+    int ans = 0;
+    for (int ro = 0; ro < sz; ++ro) {
+        for (int co = 0; co < sz; ++co) {
+            pair<int, int> p{ro, co};
+            bool matched = true;
+
+            for (const auto d : monster_path()) {
+                p = p + d;
+                if (!is_match(p)) {
+                    matched = false;
+                    break;
+                }
+            }
+
+            if (matched) ++ans;
+        }
     }
-    return -1;
+    return ans;
+}
+
+int count_pounds(const Rows &rows) {
+    return ttransform_reduce(
+        cbegin(rows), cend(rows), 0, plus<int>{},
+        [](const auto &s) { return count(cbegin(s), cend(s), '#'); });
+}
+
+int solve(const vector<Tile> &tiles) {
+    const auto rasters = complete_group(print_raster(stitch_tiles_grid(tiles)));
+    const int m = ttransform_reduce(cbegin(rasters), cend(rasters), 0,
+                                    mmax<int>{}, count_monsters);
+    return count_pounds(rasters[0]) - m * monster_path().size();
 }
 
 int main() {
