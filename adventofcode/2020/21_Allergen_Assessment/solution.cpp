@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
-#include <regex>
 using namespace std;
+using Words = vector<string>;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
@@ -22,13 +22,20 @@ string drop_last(string s) {
     return s;
 }
 
+int solve(const vector<pair<Words, Words>> &input) {
+    return 0;
+}
+
 int main() {
+    vector<pair<Words, Words>> input;
+
     for (string line; getline(cin, line);) {
         const auto parts = split(regex(" \\(contains "), line);
         const auto ingridients = split(regex(" "), parts[0]);
         const auto allergens = split(regex(", "), drop_last(parts[1]));
-        cout << ingridients << " " << allergens << '\n';
+        input.emplace_back(ingridients, allergens);
     }
 
+    cout << solve(input) << '\n';
     return 0;
 }
