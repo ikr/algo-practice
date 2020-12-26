@@ -3,6 +3,11 @@ using namespace std;
 using ll = long long;
 using Rows = vector<string>;
 
+template <typename T>
+constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
+    return {lhs.first + rhs.first, lhs.second + rhs.second};
+}
+
 int seq_hash(const string &s) {
     constexpr int sz = 10;
     assert(s.size() == sz);
@@ -19,9 +24,7 @@ int side_hash(string side) {
 string column(const Rows &rows, const int co) {
     const int sz = rows.size();
     string ans(sz, ' ');
-    for (int i = 0; i < sz; ++i) {
-        ans[i] = rows[i][co];
-    }
+    for (int i = 0; i < sz; ++i) ans[i] = rows[i][co];
     return ans;
 }
 
@@ -30,9 +33,7 @@ Rows rotate_rows(const Rows &rows) {
     Rows ans(sz, string(sz, ' '));
 
     for (int i = 0; i < sz; ++i) {
-        for (int j = 0; j < sz; ++j) {
-            ans[j][sz - 1 - i] = rows[i][j];
-        }
+        for (int j = 0; j < sz; ++j) ans[j][sz - 1 - i] = rows[i][j];
     }
 
     return ans;
@@ -69,7 +70,8 @@ struct Tile final {
 
     void print_to(Rows &rows, const int ro, const int co) const {
         for (int i = 0; i < printed_size(); ++i) {
-            rows[ro + i].replace(co, printed_size(), m_rows[1 + i].substr(1, printed_size()));
+            rows[ro + i].replace(co, printed_size(),
+                                 m_rows[1 + i].substr(1, printed_size()));
         }
     }
 
@@ -198,6 +200,20 @@ Rows print_raster(const vector<vector<Tile>> &grid) {
     }
 
     return ans;
+}
+
+int count_monsters(const Rows &rows) {
+    const int sz = rows.size();
+    assert(sz == rows[0].size());
+
+    const vector<pair<int, int>> monster_path{
+        {0, 0}, {1, 1}, {0, 3}, {-1, 1}, {0, 1},  {1, 1}, {0, 3}, {-1, 1},
+        {0, 1}, {1, 1}, {0, 3}, {-1, 1}, {-1, 1}, {1, 0}, {0, 1}};
+
+    for (int ro = 0; ro < sz; ++ro) {
+        for (int co = 0; co < sz; ++co) {
+        }
+    }
 }
 
 ll solve(const vector<Tile> &tiles) {
