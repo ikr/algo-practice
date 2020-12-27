@@ -1,6 +1,28 @@
 #include <bits/stdc++.h>
+#include <numeric>
 using namespace std;
 using Words = vector<string>;
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
 
 template <typename K, typename V>
 ostream &operator<<(ostream &os, const multimap<K, V> &m) {
@@ -13,13 +35,9 @@ ostream &operator<<(ostream &os, const multimap<K, V> &m) {
     return os;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
     return os;
 }
 
@@ -41,81 +59,68 @@ string drop_last(string s) {
     return s;
 }
 
-template <typename T> struct take_first final {
-    constexpr T operator()(const pair<T, T> &p) const { return p.first; }
-};
-
-template <typename T> struct take_second final {
-    constexpr T operator()(const pair<T, T> &p) const { return p.second; }
-};
-
 multimap<string, string>
-ingridients_x_allergens(const vector<pair<Words, Words>> &foods) {
-    const auto insert_into_set = [](set<string> agg, const Words &ws) {
-        agg.insert(cbegin(ws), cend(ws));
-        return agg;
-    };
+allergens_x_ingridients(const vector<pair<Words, Words>> &foods) {
+    multimap<string, string> ans;
 
-    const auto all_ingridients =
-        ttransform_reduce(cbegin(foods), cend(foods), set<string>{},
-                          insert_into_set, take_first<Words>{});
+    for (const auto &[ings, algs] : foods) {
+        for (const auto &alg : algs) {
+            if (ans.count(alg)) continue;
+            for (const auto &ing : ings) ans.emplace(alg, ing);
+        }
+    }
 
-    const auto all_allergens =
-        ttransform_reduce(cbegin(foods), cend(foods), set<string>{},
-                          insert_into_set, take_second<Words>{});
-
-    const auto pair_with = [](const string &a, const set<string> &bs) {
-        vector<pair<string, string>> ans(bs.size());
-        transform(cbegin(bs), cend(bs), begin(ans), [&a](const string &b) {
-            return pair{a, b};
-        });
-        return ans;
-    };
-
-    auto mm = ttransform_reduce(
-        cbegin(all_ingridients), cend(all_ingridients),
-        multimap<string, string>{},
-        [](auto agg, const auto &ps) {
-            agg.insert(cbegin(ps), cend(ps));
-            return agg;
-        },
-        [&](const string &w) { return pair_with(w, all_allergens); });
-
-    return mm;
+    return ans;
 }
 
 bool contains(const Words &haystack, const string &needle) {
     return find(cbegin(haystack), cend(haystack), needle) != cend(haystack);
 }
 
-int solve(const vector<pair<Words, Words>> &foods) {
-    auto mm = ingridients_x_allergens(foods);
+multimap<string, string>
+derive_allergens(const vector<pair<Words, Words>> &foods) {
+    auto mm = allergens_x_ingridients(foods);
 
-    const auto all_ingridients = ttransform_reduce(
-        cbegin(mm), cend(mm), set<string>{},
-        [](auto agg, const string &w) {
-            agg.insert(w);
-            return agg;
-        },
-        take_first<string>{});
+    for (auto it = cbegin(mm); it != cend(mm);) {
+        const auto [y, x] = *it;
 
-    for (const auto &[ings, algs] : foods) {
-        for (const auto &ing : ings) {
-            const auto [first, last] = mm.equal_range(ing);
-            for (auto it = first; it != last;) {
-                if (contains(algs, it->second)) {
-                    ++it;
-                } else {
-                    it = mm.erase(it);
-                }
+        bool confirmed = true;
+        for (const auto &[ings, algs] : foods) {
+
+            if (contains(algs, y) && !contains(ings, x)) {
+                confirmed = false;
+                break;
             }
+        }
+
+        if (confirmed) {
+            ++it;
+        } else {
+            it = mm.erase(it);
         }
     }
 
-    cout << all_ingridients << '\n' << mm << '\n';
+    return mm;
+}
 
-    return count_if(cbegin(all_ingridients), cend(all_ingridients),
-                    [&](const auto &ing) { return mm.count(ing) == 0; });
+int solve(const vector<pair<Words, Words>> &foods) {
+    const auto mm = derive_allergens(foods);
+
+    const auto ingridients_with_allergens = accumulate(
+        cbegin(mm), cend(mm), set<string>{}, [](auto agg, const auto &p) {
+            agg.insert(p.second);
+            return agg;
+        });
+
+    int ans = 0;
+
+    for (const auto &[ings, algs] : foods) {
+        for (const auto &ing : ings) {
+            if (!ingridients_with_allergens.count(ing)) ++ans;
+        }
+    }
+
+    return ans;
 }
 
 int main() {
