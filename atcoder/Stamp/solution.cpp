@@ -11,7 +11,7 @@ pair<int, vector<int>> gather_stamp_and_spans(const int n,
     int pre = 0;
 
     for (const auto x : xs) {
-        if (x == pre || x - 1 == pre) {
+        if (x == pre + 1) {
             pre = x;
             continue;
         }
