@@ -1,6 +1,30 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const deque<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
+template <typename T> constexpr int intof(const T x) {
+    return static_cast<int>(x);
+}
+
 enum class Winner { X, Y };
 
 int score(const deque<int> &xs) {
@@ -12,6 +36,9 @@ int score(const deque<int> &xs) {
 }
 
 pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
+    set<deque<int>> x_states;
+    set<deque<int>> y_states;
+
     while (!xs.empty() && !ys.empty()) {
         const int x = xs.front();
         xs.pop_front();
@@ -19,13 +46,29 @@ pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
         const int y = ys.front();
         ys.pop_front();
 
-        if (x > y) {
+        const Winner winner = [&]() {
+            if (intof(xs.size()) >= x && intof(ys.size()) >= y) {
+                const auto [ans, _] = play(xs, ys);
+                return ans;
+            }
+
+            return x > y ? Winner::X : Winner::Y;
+        }();
+
+        if (winner == Winner::X) {
             xs.push_back(x);
             xs.push_back(y);
         } else {
             ys.push_back(y);
             ys.push_back(x);
         }
+
+        if (x_states.count(xs) || y_states.count(ys)) {
+            return {Winner::X, xs};
+        }
+
+        x_states.insert(xs);
+        y_states.insert(ys);
     }
 
     return xs.empty() ? pair{Winner::Y, ys} : pair{Winner::X, xs};
