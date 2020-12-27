@@ -1,16 +1,5 @@
 #include <bits/stdc++.h>
-#include <numeric>
 using namespace std;
-
-template <typename T> ostream &operator<<(ostream &os, const deque<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
 
 int solve(deque<int> xs, deque<int> ys) {
     while (!xs.empty() && !ys.empty()) {
