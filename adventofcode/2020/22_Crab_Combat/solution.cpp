@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+enum class Winner { X, Y };
+
 int score(const deque<int> &xs) {
     const int n = xs.size();
     vector fs(n, 0);
@@ -9,7 +11,7 @@ int score(const deque<int> &xs) {
     return inner_product(cbegin(xs), cend(xs), cbegin(fs), 0);
 }
 
-int solve(deque<int> xs, deque<int> ys) {
+pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
     while (!xs.empty() && !ys.empty()) {
         const int x = xs.front();
         xs.pop_front();
@@ -26,7 +28,12 @@ int solve(deque<int> xs, deque<int> ys) {
         }
     }
 
-    return score(xs.empty() ? ys : xs);
+    return xs.empty() ? pair{Winner::Y, ys} : pair{Winner::X, xs};
+}
+
+int solve(const deque<int> &xs, const deque<int> &ys) {
+    const auto [_, zs] = play(xs, ys);
+    return score(zs);
 }
 
 int main() {
