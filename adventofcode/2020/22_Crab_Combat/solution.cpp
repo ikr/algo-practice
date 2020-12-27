@@ -1,6 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+int score(const deque<int> &xs) {
+    const int n = xs.size();
+    vector fs(n, 0);
+    iota(begin(fs), end(fs), 1);
+    reverse(begin(fs), end(fs));
+    return inner_product(cbegin(xs), cend(xs), cbegin(fs), 0);
+}
+
 int solve(deque<int> xs, deque<int> ys) {
     while (!xs.empty() && !ys.empty()) {
         const int x = xs.front();
@@ -18,14 +26,7 @@ int solve(deque<int> xs, deque<int> ys) {
         }
     }
 
-    const auto &zs = xs.empty() ? ys : xs;
-    const int n = zs.size();
-    vector fs(n, 0);
-    iota(begin(fs), end(fs), 1);
-    reverse(begin(fs), end(fs));
-
-
-    return inner_product(cbegin(zs), cend(zs), cbegin(fs), 0);
+    return score(xs.empty() ? ys : xs);
 }
 
 int main() {
