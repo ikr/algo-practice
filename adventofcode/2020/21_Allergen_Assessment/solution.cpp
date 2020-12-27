@@ -1,45 +1,6 @@
 #include <bits/stdc++.h>
-#include <numeric>
 using namespace std;
 using Words = vector<string>;
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const multimap<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
 
 template <typename Iter, typename R, typename Binop, typename Unaop>
 R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
@@ -103,24 +64,41 @@ derive_allergens(const vector<pair<Words, Words>> &foods) {
     return mm;
 }
 
-int solve(const vector<pair<Words, Words>> &foods) {
-    const auto mm = derive_allergens(foods);
+string join(const map<string, string> &xs) {
+    return accumulate(cbegin(xs), cend(xs), string{},
+                      [](auto agg, const auto &p) {
+                          if (!agg.empty()) agg += ',';
+                          agg += p.second;
+                          return agg;
+                      });
+}
 
-    const auto ingridients_with_allergens = accumulate(
-        cbegin(mm), cend(mm), set<string>{}, [](auto agg, const auto &p) {
-            agg.insert(p.second);
-            return agg;
-        });
+pair<string, string> find_singleton(const multimap<string, string> &mm) {
+    for (const auto &[alg, ing] : mm) {
+        if (mm.count(alg) == 1) return {alg, ing};
+    }
+    assert(false && "find_singleton");
+    return {};
+}
 
-    int ans = 0;
+string solve(const vector<pair<Words, Words>> &foods) {
+    auto mm = derive_allergens(foods);
+    map<string, string> ans;
 
-    for (const auto &[ings, algs] : foods) {
-        for (const auto &ing : ings) {
-            if (!ingridients_with_allergens.count(ing)) ++ans;
+    while (!mm.empty()) {
+        const auto [alg, ing] = find_singleton(mm);
+        ans.emplace(alg, ing);
+
+        for (auto it = cbegin(mm); it != cend(mm);) {
+            if (it->second == ing) {
+                it = mm.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 
-    return ans;
+    return join(ans);
 }
 
 int main() {
