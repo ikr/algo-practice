@@ -2,8 +2,11 @@
 using namespace std;
 using ll = long long;
 
-int stamp_size(const int n, const vector<int> &xs) {
-    int ans = 1e9 + 41;
+pair<int, vector<int>> gather_stamp_and_spans(const int n,
+                                              const vector<int> &xs) {
+    int stamp = 1e9 + 41;
+    vector<int> spans;
+    spans.reserve(xs.size());
 
     int pre = 0;
 
@@ -13,46 +16,25 @@ int stamp_size(const int n, const vector<int> &xs) {
             continue;
         }
 
-        ans = min(ans, x - pre - 1);
+        stamp = min(stamp, x - pre - 1);
+        spans.push_back(x - pre - 1);
         pre = x;
     }
 
     if (pre != n) {
-        ans = min(ans, n - pre);
+        stamp = min(stamp, n - pre);
+        spans.push_back(n - pre);
     }
 
-    return ans;
-}
-
-vector<int> span_lengths(const int n, const vector<int> &xs) {
-    vector<int> ans;
-    ans.reserve(xs.size());
-
-    int pre = 0;
-
-    for (const auto x : xs) {
-        if (x == pre || x - 1 == pre) {
-            pre = x;
-            continue;
-        }
-
-        ans.push_back(x - pre - 1);
-        pre = x;
-    }
-
-    if (pre != n) {
-        ans.push_back(n - pre);
-    }
-
-    return ans;
+    return {stamp, spans};
 }
 
 ll solve(const int n, const vector<int> &xs) {
-    const int k = stamp_size(n, xs);
+    const auto [k, spans] = gather_stamp_and_spans(n, xs);
 
     ll ans = 0;
 
-    for (const int y : span_lengths(n, xs)) {
+    for (const int y : spans) {
         ans += (y / k);
         if (y % k) ++ans;
     }
