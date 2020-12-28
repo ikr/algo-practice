@@ -93,6 +93,9 @@ int main() {
     }
 
     sort(begin(xs), end(xs));
+
+    assert(solve(n, xs) == oracle_solve(n, xs));
+
     cout << solve(n, xs) << '\n';
     cout << oracle_solve(n, xs) << '\n';
     return 0;
