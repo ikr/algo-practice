@@ -1,26 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const deque<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 template <typename T> constexpr int intof(const T x) {
     return static_cast<int>(x);
 }
@@ -35,6 +15,11 @@ int score(const deque<int> &xs) {
     return inner_product(cbegin(xs), cend(xs), cbegin(fs), 0);
 }
 
+template <typename T> deque<T> first_n(deque<T> xs, const int n) {
+    xs.erase(cbegin(xs) + n, cend(xs));
+    return xs;
+}
+
 pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
     set<pair<deque<int>, deque<int>>> states{{xs, ys}};
 
@@ -47,7 +32,7 @@ pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
 
         const Winner winner = [&]() {
             if (intof(xs.size()) >= x && intof(ys.size()) >= y) {
-                const auto [ans, _] = play(xs, ys);
+                const auto [ans, _] = play(first_n(xs, x), first_n(ys, y));
                 return ans;
             }
 
