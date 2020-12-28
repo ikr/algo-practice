@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for (( ; ; ))
+do
+    python3 ./gen.py |tee /dev/tty | ./solution
+    status=$?
+    [ $status != 0 ] && break
+done

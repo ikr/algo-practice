@@ -1,6 +1,14 @@
 import random
 
-n = random.randint(1, 10 ** 5)
-m = random.randint(1, n // 2);
+# N = 10 ** 9
+# M = 2 * 10 ** 5
+
+N = 20
+M = 10
+
+n = random.randint(1, N)
+m = random.randint(1, min(n, M));
 print(n, m);
-print(" ".join(map(str, random.sample(range(1, n + 1), m))))
+
+if (m > 0):
+  print(" ".join(map(str, random.sample(range(1, n + 1), m))))
