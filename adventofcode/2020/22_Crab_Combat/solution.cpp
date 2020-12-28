@@ -36,8 +36,8 @@ int score(const deque<int> &xs) {
 }
 
 pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
-    set<deque<int>> x_states;
-    set<deque<int>> y_states;
+    set<deque<int>> x_states{xs};
+    set<deque<int>> y_states{ys};
 
     while (!xs.empty() && !ys.empty()) {
         const int x = xs.front();
