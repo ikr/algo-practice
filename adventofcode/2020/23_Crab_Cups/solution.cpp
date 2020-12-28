@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const list<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 list<int> rotate_to(const list<int> &xs, const int t) {
     const auto it = find(cbegin(xs), cend(xs), t);
     list<int> ans;
@@ -54,8 +44,6 @@ list<int> make_move(const list<int> &xs) {
     auto ys = erase_stash(xs);
     const int dest = destination(xs.front(), stash);
 
-    cout << "dest:" << dest << '\n';
-
     const auto dest_it = find(cbegin(ys), cend(ys), dest);
     ys.insert(next(dest_it), cbegin(stash), cend(stash));
     return rotate_to(ys, *next(cbegin(ys)));
@@ -75,6 +63,14 @@ string join(const list<int> &xs) {
                       });
 }
 
+string solve(list<int> xs) {
+    for (int i = 0; i < 100; ++i) {
+        xs = make_move(xs);
+    }
+
+    return join(poke_one(xs));
+}
+
 int main() {
     string s;
     cin >> s;
@@ -83,6 +79,6 @@ int main() {
     transform(cbegin(s), cend(s), begin(xs),
               [](const char d) { return d - '0'; });
 
-    cout << make_move(xs) << '\n';
+    cout << solve(xs) << '\n';
     return 0;
 }
