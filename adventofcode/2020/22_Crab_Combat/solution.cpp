@@ -36,8 +36,7 @@ int score(const deque<int> &xs) {
 }
 
 pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
-    set<deque<int>> x_states{xs};
-    set<deque<int>> y_states{ys};
+    set<pair<deque<int>, deque<int>>> states{{xs, ys}};
 
     while (!xs.empty() && !ys.empty()) {
         const int x = xs.front();
@@ -63,12 +62,11 @@ pair<Winner, deque<int>> play(deque<int> xs, deque<int> ys) {
             ys.push_back(x);
         }
 
-        if (x_states.count(xs) || y_states.count(ys)) {
+        if (states.count(pair{xs, ys})) {
             return {Winner::X, xs};
         }
 
-        x_states.insert(xs);
-        y_states.insert(ys);
+        states.emplace(xs, ys);
     }
 
     return xs.empty() ? pair{Winner::Y, ys} : pair{Winner::X, xs};
