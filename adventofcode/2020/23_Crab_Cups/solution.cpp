@@ -1,5 +1,59 @@
 #include <bits/stdc++.h>
 using namespace std;
+using iter = forward_list<int>::const_iterator;
+
+constexpr int N_MAX = 20;
+
+template <typename T>
+ostream &operator<<(ostream &os, const forward_list<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+struct State final {
+    State(const array<int, 9> &xs) : cups(N_MAX), idx(N_MAX + 1) {
+        const auto last = copy(cbegin(xs), cend(xs), begin(cups));
+        iota(last, end(cups), 10);
+
+        idx[cups.front()] = cups.cbefore_begin();
+        for (auto it = cbegin(cups); next(it) != cend(cups); ++it) {
+            const auto jt = next(it);
+            idx[*jt] = it;
+            tail = jt;
+        }
+    }
+
+    void rotate_to(const int t) {
+        if (t == cups.front()) return;
+        const int p = *(idx[t]);
+
+        const auto new_tail = idx[t];
+        cups.splice_after(cups.cbefore_begin(), cups, idx[t]);
+
+        idx[t] = cups.cbefore_begin();
+        idx[p] = tail;
+        tail = new_tail;
+    }
+
+    forward_list<int> cups;
+    iter tail;
+    vector<iter> idx;
+};
 
 list<int> rotate_to(const list<int> &xs, const int t) {
     const auto it = find(cbegin(xs), cend(xs), t);
@@ -75,10 +129,18 @@ int main() {
     string s;
     cin >> s;
 
-    list<int> xs(s.size(), 0);
+    array<int, 9> xs;
     transform(cbegin(s), cend(s), begin(xs),
               [](const char d) { return d - '0'; });
 
-    cout << solve(xs) << '\n';
+    State st(xs);
+    cout << st.cups << '\n';
+
+    st.rotate_to(20);
+    cout << st.cups << '\n';
+
+    st.rotate_to(10);
+    cout << st.cups << '\n';
+
     return 0;
 }
