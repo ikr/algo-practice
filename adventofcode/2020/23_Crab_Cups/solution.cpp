@@ -47,11 +47,44 @@ struct State final {
         tail = n;
     }
 
+    void new_second_element(const int x) {
+        auto pre_a = idx[x];
+        auto a = pre_a->next;
+        auto post_a = a->next;
+
+        if (post_a) {
+            idx[post_a->value] = pre_a;
+        } else {
+            tail = pre_a;
+        }
+
+        pre_a->next = post_a;
+
+        idx[x] = head;
+        a->next = head->next;
+        head->next = a;
+        idx[a->next->value] = a;
+    }
+
     void make_move() {
-        auto a = head->next;
-        auto b = a->next->next;
-        rotate_to(
-            destination(head->value, {a->value, a->next->value, b->value}));
+        const auto current = head->value;
+
+        const auto a = head->next;
+        const auto b = a->next;
+        const auto c = b->next;
+        const auto d = destination(head->value, {a->value, b->value, c->value});
+        rotate_to(d);
+
+        cout << "a:" << a->value << " b:" << b->value << " c:" << c->value
+             << " dest:" << d << '\n';
+
+        for (const auto x : {a, b, c}) {
+            new_second_element(x->value);
+            if (x != c) rotate_to(x->value);
+        }
+
+        rotate_to(current);
+        rotate_to(head->next->value);
     }
 
     void rotate_to(const int t) {
@@ -94,16 +127,6 @@ list<int> rotate_to(const list<int> &xs, const int t) {
     return ans;
 }
 
-vector<int> copy_to_stash(const list<int> &xs) {
-    const auto first = next(cbegin(xs));
-    auto last = first;
-    advance(last, 3U);
-
-    vector<int> ans(first, last);
-    assert(ans.size() == 3U);
-    return ans;
-}
-
 list<int> erase_stash(list<int> xs) {
     const auto first = next(cbegin(xs));
     auto last = first;
@@ -112,16 +135,6 @@ list<int> erase_stash(list<int> xs) {
 
     xs.erase(first, last);
     return xs;
-}
-
-list<int> make_move(const list<int> &xs) {
-    const auto stash = copy_to_stash(xs);
-    auto ys = erase_stash(xs);
-    const int dest = destination(xs.front(), stash);
-
-    const auto dest_it = find(cbegin(ys), cend(ys), dest);
-    ys.insert(next(dest_it), cbegin(stash), cend(stash));
-    return rotate_to(ys, *next(cbegin(ys)));
 }
 
 list<int> poke_one(const list<int> &xs) {
@@ -138,14 +151,6 @@ string join(const list<int> &xs) {
                       });
 }
 
-string solve(list<int> xs) {
-    for (int i = 0; i < 100; ++i) {
-        xs = make_move(xs);
-    }
-
-    return join(poke_one(xs));
-}
-
 int main() {
     string s;
     cin >> s;
@@ -155,6 +160,10 @@ int main() {
               [](const char d) { return d - '0'; });
 
     State st(xs);
+    debug(st);
+
+    for (int i = 0; i < 10; ++i) st.make_move();
+    debug(st);
 
     return 0;
 }
