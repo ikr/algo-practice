@@ -76,10 +76,25 @@ vector<Coord> map_to_deltas(const string &s) {
     return ans;
 }
 
+Coord follow_path(const Coord &origin, const vector<Coord> &deltas) {
+    auto ans = origin;
+    for (const auto &d : deltas) {
+        ans = ans + d;
+    }
+    return ans;
+}
+
 int solve(const vector<string> &lines) {
     set<Coord> black;
 
-    for (const auto &line : lines) cout << map_to_deltas(line) << '\n';
+    for (const auto &line : lines) {
+        const auto p = follow_path({0, 0, 0}, map_to_deltas(line));
+        if (black.count(p)) {
+            black.erase(p);
+        } else {
+            black.insert(p);
+        }
+    }
 
     return black.size();
 }
