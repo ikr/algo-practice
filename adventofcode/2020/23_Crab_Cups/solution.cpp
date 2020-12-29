@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
-constexpr int N_MAX = 9;
+using ll = long long;
+constexpr int N_MAX = 1e6;
+constexpr int MOVES = 1e7;
+
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
 
 constexpr int cyc_dec(const int x) { return x - 1 ? x - 1 : N_MAX; }
 
@@ -47,6 +53,11 @@ struct State final {
         tail = n;
     }
 
+    ll answer() {
+        rotate_to(1);
+        return llof(head->next->value) * llof(head->next->next->value);
+    }
+
     void new_second_element(const int x) {
         auto pre_a = idx[x];
         auto a = pre_a->next;
@@ -74,9 +85,6 @@ struct State final {
         const auto c = b->next;
         const auto d = destination(head->value, {a->value, b->value, c->value});
         rotate_to(d);
-
-        cout << "a:" << a->value << " b:" << b->value << " c:" << c->value
-             << " dest:" << d << '\n';
 
         for (const auto x : {a, b, c}) {
             new_second_element(x->value);
@@ -106,51 +114,6 @@ struct State final {
     vector<Node *> idx;
 };
 
-void debug(const State &st) {
-    cout << "(";
-
-    auto p = st.head;
-    while (p) {
-        if (p != st.head) cout << " ";
-        cout << p->value;
-        p = p->next;
-    }
-
-    cout << ")\n";
-}
-
-list<int> rotate_to(const list<int> &xs, const int t) {
-    const auto it = find(cbegin(xs), cend(xs), t);
-    list<int> ans;
-    ans.insert(cend(ans), it, cend(xs));
-    ans.insert(cend(ans), cbegin(xs), it);
-    return ans;
-}
-
-list<int> erase_stash(list<int> xs) {
-    const auto first = next(cbegin(xs));
-    auto last = first;
-    advance(last, 3U);
-    assert(distance(first, last) == 3U);
-
-    xs.erase(first, last);
-    return xs;
-}
-
-list<int> poke_one(const list<int> &xs) {
-    auto ans = rotate_to(xs, 1);
-    ans.pop_front();
-    return ans;
-}
-
-string join(const list<int> &xs) {
-    return accumulate(cbegin(xs), cend(xs), string{},
-                      [](string agg, const int x) {
-                          agg += to_string(x);
-                          return agg;
-                      });
-}
-
 int main() {
     string s;
     cin >> s;
@@ -160,10 +123,7 @@ int main() {
               [](const char d) { return d - '0'; });
 
     State st(xs);
-    debug(st);
-
-    for (int i = 0; i < 10; ++i) st.make_move();
-    debug(st);
-
+    for (int i = 0; i < MOVES; ++i) st.make_move();
+    cout << st.answer() << '\n';
     return 0;
 }
