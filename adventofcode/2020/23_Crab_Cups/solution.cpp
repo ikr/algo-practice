@@ -1,75 +1,96 @@
 #include <bits/stdc++.h>
 using namespace std;
-using iter = forward_list<int>::const_iterator;
+constexpr int N_MAX = 9;
 
-constexpr int N_MAX = 20;
+constexpr int cyc_dec(const int x) { return x - 1 ? x - 1 : N_MAX; }
 
-template <typename T>
-ostream &operator<<(ostream &os, const forward_list<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
+int destination(const int current, const array<int, 3> &stash) {
+    set<int> abc(cbegin(stash), cend(stash));
+
+    int ans = cyc_dec(current);
+    while (abc.count(ans)) ans = cyc_dec(ans);
+    return ans;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
+struct Node final {
+    Node(const int x) : value{x}, next{nullptr} {}
+    const int value;
+    Node *next;
+};
 
 struct State final {
-    State(const array<int, 9> &xs) : cups(N_MAX), idx(N_MAX + 1) {
-        const auto last = copy(cbegin(xs), cend(xs), begin(cups));
-        iota(last, end(cups), 10);
+    State(const array<int, 9> &xs)
+        : head{nullptr}, tail{nullptr}, idx(N_MAX + 1, nullptr) {
+        for (const int x : xs) append(x);
+        for (int i = 10; i <= N_MAX; ++i) append(i);
+    }
 
-        idx[cups.front()] = cups.cbefore_begin();
-        for (auto it = cbegin(cups); next(it) != cend(cups); ++it) {
-            const auto jt = next(it);
-            idx[*jt] = it;
-            tail = jt;
+    ~State() {
+        auto p = head;
+        while (p) {
+            auto q = p->next;
+            delete p;
+            p = q;
         }
     }
 
+    void append(const int x) {
+        if (!head) {
+            head = new Node(x);
+            tail = head;
+            return;
+        }
+
+        const auto n = new Node(x);
+        tail->next = n;
+        idx[x] = tail;
+        tail = n;
+    }
+
+    void make_move() {
+        auto a = head->next;
+        auto b = a->next->next;
+        rotate_to(
+            destination(head->value, {a->value, a->next->value, b->value}));
+    }
+
     void rotate_to(const int t) {
-        if (t == cups.front()) return;
-        const int p = *(idx[t]);
+        if (t == head->value) return;
 
-        const auto new_tail = idx[t];
-        cups.splice_after(cups.cbefore_begin(), cups, idx[t]);
+        auto new_tail = idx[t];
+        auto new_head = idx[t]->next;
+        new_tail->next = nullptr;
+        tail->next = head;
 
-        idx[t] = cups.cbefore_begin();
-        idx[p] = tail;
+        idx[t] = nullptr;
+        idx[head->value] = tail;
+        head = new_head;
         tail = new_tail;
     }
 
-    forward_list<int> cups;
-    iter tail;
-    vector<iter> idx;
+    Node *head;
+    Node *tail;
+    vector<Node *> idx;
 };
+
+void debug(const State &st) {
+    cout << "(";
+
+    auto p = st.head;
+    while (p) {
+        if (p != st.head) cout << " ";
+        cout << p->value;
+        p = p->next;
+    }
+
+    cout << ")\n";
+}
 
 list<int> rotate_to(const list<int> &xs, const int t) {
     const auto it = find(cbegin(xs), cend(xs), t);
     list<int> ans;
     ans.insert(cend(ans), it, cend(xs));
     ans.insert(cend(ans), cbegin(xs), it);
-    return ans;
-}
-
-constexpr int cyc_dec(const int x) { return x - 1 ? x - 1 : 9; }
-
-int destination(const int current, const vector<int> &stash) {
-    set<int> abc(cbegin(stash), cend(stash));
-
-    int ans = cyc_dec(current);
-    while (abc.count(ans)) ans = cyc_dec(ans);
     return ans;
 }
 
@@ -134,13 +155,6 @@ int main() {
               [](const char d) { return d - '0'; });
 
     State st(xs);
-    cout << st.cups << '\n';
-
-    st.rotate_to(20);
-    cout << st.cups << '\n';
-
-    st.rotate_to(10);
-    cout << st.cups << '\n';
 
     return 0;
 }
