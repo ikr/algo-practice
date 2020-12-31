@@ -76,8 +76,60 @@ set<Coord> initial_generation(const vector<string> &lines) {
     return black;
 }
 
+vector<Coord> neigh_deltas() {
+    return {{0, -1, 1}, {-1, 0, 1}, {1, 0, -1},
+            {0, 1, -1}, {1, -1, 0}, {-1, 1, 0}};
+}
+
+vector<Coord> neighs(const Coord &x) {
+    const auto ds = neigh_deltas();
+    vector<Coord> ans(ds.size());
+    transform(cbegin(ds), cend(ds), begin(ans),
+              [&x](const auto &d) { return x + d; });
+    return ans;
+}
+
+int count_neighs(const set<Coord> &black, const Coord &x) {
+    const auto ns = neighs(x);
+    return count_if(cbegin(ns), cend(ns),
+                    [&black](const auto &n) { return black.count(n); });
+}
+
+set<Coord> next_generation(const set<Coord> &black) {
+    set<Coord> ans = black;
+
+    for (const auto &b : black) {
+        const auto ns = neighs(b);
+        ans.insert(cbegin(ns), cend(ns));
+    }
+
+    for (auto it = cbegin(ans); it != cend(ans);) {
+        const auto nc = count_neighs(black, *it);
+
+        if (black.count(*it)) {
+            if (nc == 0 || nc > 2) {
+                it = ans.erase(it);
+            } else {
+                ++it;
+            }
+        } else {
+            if (nc == 2) {
+                ++it;
+            } else {
+                it = ans.erase(it);
+            }
+        }
+    }
+
+    return ans;
+}
+
 int solve(const vector<string> &lines) {
-    return initial_generation(lines).size();
+    auto g = initial_generation(lines);
+    for (int i = 0; i < 100; ++i) {
+        g = next_generation(g);
+    }
+    return g.size();
 }
 
 int main() {
