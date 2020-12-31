@@ -61,7 +61,7 @@ Coord follow_path(const Coord &origin, const vector<Coord> &deltas) {
     return ans;
 }
 
-int solve(const vector<string> &lines) {
+set<Coord> initial_generation(const vector<string> &lines) {
     set<Coord> black;
 
     for (const auto &line : lines) {
@@ -73,7 +73,11 @@ int solve(const vector<string> &lines) {
         }
     }
 
-    return black.size();
+    return black;
+}
+
+int solve(const vector<string> &lines) {
+    return initial_generation(lines).size();
 }
 
 int main() {
