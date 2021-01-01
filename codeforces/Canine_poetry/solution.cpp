@@ -1,81 +1,21 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-char next_char(const char x) {
-    const int m = 'z' - 'a' + 1;
-    return (((x - 'a') + 1) % m) + 'a';
-}
-
-char suggest(const set<char> &neighs) {
-    const char x = *max_element(cbegin(neighs), cend(neighs));
-    return next_char(x);
-}
-
-int pre_replace(string &s) {
-    const int n = s.size();
-    int ans = 0;
-
-    for (int i = 1; i < n; ++i) {
-        const char l2 = i >= 2 ? s[i - 2] : s[i];
-        const char l1 = s[i];
-
-        const char r1 = i < n - 1 ? s[i + 1] : s[i];
-        const char r2 = i < n - 2 ? s[i + 2] : s[i];
-
-        if (i >= 2 && i < n - 2 && s[i - 2] == s[i] && s[i] == s[i + 2]) {
-            s[i] = suggest({l2, l1, s[i], r1, r2});
-            ++ans;
-            continue;
-        }
-
-        if (i >= 1 && i < n - 2 && s[i - 1] == s[i] && s[i] == s[i + 2]) {
-            s[i] = suggest({l2, l1, s[i], r1, r2});
-            ++ans;
-            continue;
-        }
-
-        if (i >= 2 && i < n - 1 && s[i - 2] == s[i] && s[i] == s[i + 1]) {
-            s[i] = suggest({l2, l1, s[i], r1, r2});
-            ++ans;
-            continue;
-        }
-    }
-
-    return ans;
-}
-
 int replacements(string s) {
     const int n = s.size();
-    int ans = pre_replace(s);
+    vector<bool> intact(n, true);
 
     for (int i = 1; i < n; ++i) {
-        const char l3 = i >= 3 ? s[i - 3] : s[i];
-        const char l2 = i >= 2 ? s[i - 2] : s[i];
-        const char l1 = s[i];
-
-        const char r1 = i < n - 1 ? s[i + 1] : s[i];
-        const char r2 = i < n - 2 ? s[i + 2] : s[i];
-
-        if (i < n - 1) {
-            if (s[i - 1] == s[i] && s[i] == s[i + 1]) { // a a a
-                s[i - 1] = suggest({l3, l2, l1});
-                s[i] = suggest({l2, l1, s[i - 1], r2});
-                ++ans;
-                continue;
-            } else if (s[i - 1] == s[i + 1]) { // a b a
-                s[i - 1] = suggest({l3, l2, l1, s[i]});
-                ++ans;
-                continue;
-            }
+        if (s[i] == s[i - 1] && intact[i - 1]) {
+            intact[i] = false;
         }
 
-        if (s[i - 1] == s[i]) {
-            s[i - 1] = suggest({l3, l2, l1, r1});
-            ++ans;
+        if (i > 1 && s[i] == s[i - 2] && intact[i - 2]) {
+            intact[i] = false;
         }
     }
 
-    return ans;
+    return count(cbegin(intact), cend(intact), false);
 }
 
 int main() {
