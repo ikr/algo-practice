@@ -1,3 +1,4 @@
+#include <atcoder/fenwicktree>
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -8,16 +9,27 @@ ll reachable_squares_count(const int h, const int w,
 
     vector<int> obstacle_row_by_col(w, h);
     vector<int> obstacle_col_by_row(h, w);
+    vector<vector<int>> obstacle_cols_by_row(h, vector<int>{w});
 
     for (const auto &[ro, co] : obstacles) {
         obstacle_row_by_col[co] = min(obstacle_row_by_col[co], ro);
         obstacle_col_by_row[ro] = min(obstacle_col_by_row[ro], co);
+        obstacle_cols_by_row[ro].push_back(co);
     }
 
     ll ans = 0;
-
     for (int co = 0; co < obstacle_col_by_row[0]; ++co) {
         ans += obstacle_row_by_col[co];
+    }
+
+    atcoder::fenwick_tree<int> tops(w);
+    for (int ro = 0; ro < obstacle_row_by_col[0]; ++ro) {
+        ans += tops.sum(0, obstacle_col_by_row[ro]);
+
+        for (const int co : obstacle_cols_by_row[ro]) {
+            if (tops.sum(co, co + 1)) continue;
+            tops.add(co, 1);
+        }
     }
 
     return ans;
