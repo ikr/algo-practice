@@ -7,7 +7,7 @@ ll reachable_squares_count(const int h, const int w,
                            vector<pair<int, int>> obstacles) {
     vector<int> obstacle_row_by_col(w, h);
     vector<int> obstacle_col_by_row(h, w);
-    vector<vector<int>> obstacle_cols_by_row(h, vector<int>{w});
+    vector<vector<int>> obstacle_cols_by_row(h);
 
     for (const auto &[ro, co] : obstacles) {
         obstacle_row_by_col[co] = min(obstacle_row_by_col[co], ro);
@@ -25,7 +25,7 @@ ll reachable_squares_count(const int h, const int w,
         ans += tops.sum(0, obstacle_col_by_row[ro]);
 
         for (const int co : obstacle_cols_by_row[ro]) {
-            if (co >= w || tops.sum(co, co + 1)) continue;
+            if (tops.sum(co, co + 1)) continue;
             tops.add(co, 1);
         }
     }
