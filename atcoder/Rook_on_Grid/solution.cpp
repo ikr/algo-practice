@@ -5,8 +5,6 @@ using ll = long long;
 
 ll reachable_squares_count(const int h, const int w,
                            vector<pair<int, int>> obstacles) {
-    sort(begin(obstacles), end(obstacles));
-
     vector<int> obstacle_row_by_col(w, h);
     vector<int> obstacle_col_by_row(h, w);
     vector<vector<int>> obstacle_cols_by_row(h, vector<int>{w});
