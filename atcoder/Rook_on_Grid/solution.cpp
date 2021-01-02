@@ -1,18 +1,24 @@
-#include <atcoder/fenwicktree>
+#include <atcoder/lazysegtree>
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+
+constexpr int e() { return 0; }
+constexpr bool id() { return false; }
+constexpr int mplus(const int x, const int y) { return x + y; }
+constexpr int mapping(const bool b, const int x) {
+    return b ? (x > 0 ? 1 : 0) : 0;
+}
+constexpr bool composition(const bool a, const bool b) { return a || b; }
 
 ll reachable_squares_count(const int h, const int w,
                            vector<pair<int, int>> obstacles) {
     vector<int> obstacle_row_by_col(w, h);
     vector<int> obstacle_col_by_row(h, w);
-    vector<vector<int>> obstacle_cols_by_row(h);
 
     for (const auto &[ro, co] : obstacles) {
         obstacle_row_by_col[co] = min(obstacle_row_by_col[co], ro);
         obstacle_col_by_row[ro] = min(obstacle_col_by_row[ro], co);
-        obstacle_cols_by_row[ro].push_back(co);
     }
 
     ll ans = 0;
@@ -20,14 +26,11 @@ ll reachable_squares_count(const int h, const int w,
         ans += obstacle_row_by_col[co];
     }
 
-    atcoder::fenwick_tree<int> tops(w);
+    atcoder::lazy_segtree<int, mplus, e, bool, mapping, composition, id> tops(
+        w);
     for (int ro = 0; ro < obstacle_row_by_col[0]; ++ro) {
-        ans += tops.sum(0, obstacle_col_by_row[ro]);
-
-        for (const int co : obstacle_cols_by_row[ro]) {
-            if (tops.sum(co, co + 1)) continue;
-            tops.add(co, 1);
-        }
+        ans += tops.prod(0, obstacle_col_by_row[ro]);
+        tops.apply(obstacle_col_by_row[ro], w, true);
     }
 
     return ans;
