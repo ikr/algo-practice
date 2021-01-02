@@ -6,9 +6,7 @@ using ll = long long;
 constexpr int e() { return 0; }
 constexpr bool id() { return false; }
 constexpr int mplus(const int x, const int y) { return x + y; }
-constexpr int mapping(const bool b, const int x) {
-    return b ? (x > 0 ? 1 : 0) : 0;
-}
+constexpr int mapping(const bool b, const int x) { return b ? 1 : x; }
 constexpr bool composition(const bool a, const bool b) { return a || b; }
 
 ll reachable_squares_count(const int h, const int w,
@@ -36,6 +34,27 @@ ll reachable_squares_count(const int h, const int w,
     return ans;
 }
 
+void verify_assumptions() {
+    atcoder::lazy_segtree<int, mplus, e, bool, mapping, composition, id> tops(
+        10);
+
+    tops.apply(8, 10, true);
+    cout << "prod:" << tops.prod(0, 10) << endl;
+    assert(tops.prod(0, 10) == 2);
+
+    tops.apply(7, 9, true);
+    assert(tops.prod(0, 10) == 3);
+
+    tops.apply(7, 10, true);
+    assert(tops.prod(0, 10) == 3);
+
+    tops.apply(0, 2, true);
+    assert(tops.prod(0, 10) == 5);
+
+    tops.apply(0, 1, true);
+    assert(tops.prod(0, 10) == 5);
+}
+
 int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
@@ -51,6 +70,8 @@ int main() {
         --co;
         obstacles.emplace_back(ro, co);
     }
+
+    verify_assumptions();
 
     cout << reachable_squares_count(h, w, move(obstacles)) << '\n';
     return 0;
