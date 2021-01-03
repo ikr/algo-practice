@@ -22,7 +22,12 @@ ll reachable_squares_count(const int h, const int w,
 
     atcoder::fenwick_tree<int> tops(w);
     for (int ro = 0; ro < obstacle_row_by_col[0]; ++ro) {
-        ans += tops.sum(0, obstacle_col_by_row[ro]);
+        if (obstacle_col_by_row[ro] > obstacle_col_by_row[0]) {
+            ans += obstacle_col_by_row[ro] - obstacle_col_by_row[0];
+        }
+
+        ans +=
+            tops.sum(0, min(obstacle_col_by_row[ro], obstacle_col_by_row[0]));
 
         for (const int co : obstacle_cols_by_row[ro]) {
             if (tops.sum(co, co + 1)) continue;
