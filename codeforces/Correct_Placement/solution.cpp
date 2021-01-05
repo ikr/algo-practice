@@ -9,17 +9,24 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+vector<int> gather_index(const vector<int> &xs) {
+    const int n = xs.size();
+    vector<int> ans(n, -1);
+    for (int i = 0; i < n; ++i) ans[xs[i]] = i;
+    return ans;
+}
+
 vector<int> in_fronts(vector<pair<int, int>> fs) {
     const int n = fs.size();
 
-    vector<int> idx_a(n);
-    iota(begin(idx_a), end(idx_a), 0);
-    sort(begin(idx_a), end(idx_a),
+    vector<int> by_a(n);
+    iota(begin(by_a), end(by_a), 0);
+    sort(begin(by_a), end(by_a),
          [&](const auto lhs, const auto rhs) { return fs[lhs] > fs[rhs]; });
 
-    vector<int> idx_b(n);
-    iota(begin(idx_b), end(idx_b), 0);
-    sort(begin(idx_b), end(idx_b), [&](const auto lhs, const auto rhs) {
+    vector<int> by_b(n);
+    iota(begin(by_b), end(by_b), 0);
+    sort(begin(by_b), end(by_b), [&](const auto lhs, const auto rhs) {
         const auto [a, b] = fs[lhs];
         const auto [x, y] = fs[rhs];
         return pair{b, a} > pair{y, x};
@@ -28,18 +35,18 @@ vector<int> in_fronts(vector<pair<int, int>> fs) {
     vector<int> ans(n, -1);
 
     for (int i = 0; i < n; ++i) {
-        if (fs[i].first == fs[idx_a.back()].first) continue;
+        if (fs[i].first == fs[by_a.back()].first) continue;
 
         const auto it =
-            partition_point(cbegin(idx_a), cend(idx_a), [&](const auto j) {
+            partition_point(cbegin(by_a), cend(by_a), [&](const auto j) {
                 return fs[j].first == fs[i].first;
             });
 
-        if (it == cend(idx_a)) continue;
+        if (it == cend(by_a)) continue;
 
-        if (fs[*it].second == fs[idx_b.back()].second) continue;
+        if (fs[*it].second == fs[by_b.back()].second) continue;
         const auto jt =
-            partition_point(cbegin(idx_b), cend(idx_b), [&](const auto j) {
+            partition_point(cbegin(by_b), cend(by_b), [&](const auto j) {
                 return fs[j].second == fs[j].second;
             });
     }
