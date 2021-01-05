@@ -29,23 +29,25 @@ vector<int> gather_index(const vector<int> &xs) {
     return ans;
 }
 
-vector<int> gather_suff_max_b(const vector<pair<int, int>> &fs,
-                              const vector<int> &by_a) {
+vector<pair<int, int>> gather_suff_min_b(const vector<pair<int, int>> &fs,
+                                         const vector<int> &by_a) {
     const int n = fs.size();
-    vector<int> suff_max_b(n, fs[by_a.back()].second);
+    vector<pair<int, int>> suff_min_b(n, {fs[by_a.back()].second, n - 1});
 
     for (int i = n - 2; i >= 0; --i) {
-        suff_max_b[i] = max(suff_max_b[i + 1], fs[by_a[i]].second);
+        suff_min_b[i] = suff_min_b[i + 1].first <= fs[by_a[i]].second
+                            ? suff_min_b[i + 1]
+                            : pair{fs[by_a[i]].second, i};
     }
 
-    return suff_max_b;
+    return suff_min_b;
 }
 
 vector<int> in_fronts(vector<pair<int, int>> fs) {
     const int n = fs.size();
     const auto by_a = gather_by_a(fs);
     const auto by_a_idx = gather_index(by_a);
-    const auto suff_max_b = gather_suff_max_b(fs, by_a);
+    const auto suff_min_b = gather_suff_min_b(fs, by_a);
 
     vector<int> ans(n, -1);
 
@@ -58,7 +60,11 @@ vector<int> in_fronts(vector<pair<int, int>> fs) {
 
         if (it == cend(by_a)) continue;
 
-        // TODO
+        const int j = distance(cbegin(by_a), it);
+        const auto [min_b, k] = suff_min_b[j];
+        if (min_b >= fs[i].second) continue;
+
+        ans[i] = by_a[k] + 1;
     }
 
     return ans;
