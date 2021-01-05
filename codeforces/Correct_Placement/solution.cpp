@@ -9,6 +9,19 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+vector<int> gather_by_a(const vector<pair<int, int>> &fs) {
+    const int n = fs.size();
+
+    vector<int> by_a(n);
+    iota(begin(by_a), end(by_a), 0);
+
+    sort(begin(by_a), end(by_a), [&](const auto lhs, const auto rhs) {
+        return fs[lhs].first > fs[rhs].first;
+    });
+
+    return by_a;
+}
+
 vector<int> gather_index(const vector<int> &xs) {
     const int n = xs.size();
     vector<int> ans(n, -1);
@@ -16,39 +29,36 @@ vector<int> gather_index(const vector<int> &xs) {
     return ans;
 }
 
+vector<int> gather_suff_max_b(const vector<pair<int, int>> &fs,
+                              const vector<int> &by_a) {
+    const int n = fs.size();
+    vector<int> suff_max_b(n, fs[by_a.back()].second);
+
+    for (int i = n - 2; i >= 0; --i) {
+        suff_max_b[i] = max(suff_max_b[i + 1], fs[by_a[i]].second);
+    }
+
+    return suff_max_b;
+}
+
 vector<int> in_fronts(vector<pair<int, int>> fs) {
     const int n = fs.size();
-
-    vector<int> by_a(n);
-    iota(begin(by_a), end(by_a), 0);
-    sort(begin(by_a), end(by_a),
-         [&](const auto lhs, const auto rhs) { return fs[lhs] > fs[rhs]; });
-
-    vector<int> by_b(n);
-    iota(begin(by_b), end(by_b), 0);
-    sort(begin(by_b), end(by_b), [&](const auto lhs, const auto rhs) {
-        const auto [a, b] = fs[lhs];
-        const auto [x, y] = fs[rhs];
-        return pair{b, a} > pair{y, x};
-    });
+    const auto by_a = gather_by_a(fs);
+    const auto by_a_idx = gather_index(by_a);
+    const auto suff_max_b = gather_suff_max_b(fs, by_a);
 
     vector<int> ans(n, -1);
 
     for (int i = 0; i < n; ++i) {
         if (fs[i].first == fs[by_a.back()].first) continue;
 
-        const auto it =
-            partition_point(cbegin(by_a), cend(by_a), [&](const auto j) {
-                return fs[j].first == fs[i].first;
-            });
+        const auto it = partition_point(
+            cbegin(by_a) + by_a_idx[i], cend(by_a),
+            [&](const auto j) { return fs[by_a[j]].first == fs[i].first; });
 
         if (it == cend(by_a)) continue;
 
-        if (fs[*it].second == fs[by_b.back()].second) continue;
-        const auto jt =
-            partition_point(cbegin(by_b), cend(by_b), [&](const auto j) {
-                return fs[j].second == fs[j].second;
-            });
+        // TODO
     }
 
     return ans;
