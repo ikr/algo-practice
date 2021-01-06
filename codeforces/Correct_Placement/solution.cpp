@@ -22,13 +22,6 @@ vector<int> gather_by_a(const vector<pair<int, int>> &fs) {
     return by_a;
 }
 
-vector<int> gather_index(const vector<int> &xs) {
-    const int n = xs.size();
-    vector<int> ans(n, -1);
-    for (int i = 0; i < n; ++i) ans[xs[i]] = i;
-    return ans;
-}
-
 vector<pair<int, int>> gather_suff_min_b(const vector<pair<int, int>> &fs,
                                          const vector<int> &by_a) {
     const int n = fs.size();
@@ -50,7 +43,6 @@ template <typename T> constexpr pair<T, T> flip_pair(const pair<T, T> &ab) {
 vector<int> in_fronts(vector<pair<int, int>> fs) {
     const int n = fs.size();
     const auto by_a = gather_by_a(fs);
-    const auto by_a_idx = gather_index(by_a);
     const auto suff_min_b = gather_suff_min_b(fs, by_a);
 
     const auto suggest_in_front = [&](const int i,
@@ -58,7 +50,7 @@ vector<int> in_fronts(vector<pair<int, int>> fs) {
         if (ab.first == fs[by_a.back()].first) return -1;
 
         const auto it = partition_point(
-            cbegin(by_a) + by_a_idx[i], cend(by_a),
+            cbegin(by_a) + i, cend(by_a),
             [&](const auto j) { return fs[by_a[j]].first == ab.first; });
 
         if (it == cend(by_a)) return -1;
@@ -72,11 +64,14 @@ vector<int> in_fronts(vector<pair<int, int>> fs) {
     vector<int> ans(n, -1);
 
     for (int i = 0; i < n; ++i) {
-        const int o1 = suggest_in_front(i, fs[i]);
-        if (o1 >= 0) ans[i] = o1 + 1;
+        const int o1 = suggest_in_front(i, fs[by_a[i]]);
+        if (o1 >= 0) {
+            ans[by_a[i]] = o1 + 1;
+            continue;
+        }
 
-        const int o2 = suggest_in_front(i, flip_pair(fs[i]));
-        if (o2 >= 0) ans[i] = o2 + 1;
+        const int o2 = suggest_in_front(i, flip_pair(fs[by_a[i]]));
+        if (o2 >= 0) ans[by_a[i]] = o2 + 1;
     }
 
     return ans;
