@@ -43,28 +43,40 @@ vector<pair<int, int>> gather_suff_min_b(const vector<pair<int, int>> &fs,
     return suff_min_b;
 }
 
+template <typename T> constexpr pair<T, T> flip_pair(const pair<T, T> &ab) {
+    return {ab.second, ab.first};
+}
+
 vector<int> in_fronts(vector<pair<int, int>> fs) {
     const int n = fs.size();
     const auto by_a = gather_by_a(fs);
     const auto by_a_idx = gather_index(by_a);
     const auto suff_min_b = gather_suff_min_b(fs, by_a);
 
-    vector<int> ans(n, -1);
-
-    for (int i = 0; i < n; ++i) {
-        if (fs[i].first == fs[by_a.back()].first) continue;
+    const auto suggest_in_front = [&](const int i,
+                                      const pair<int, int> ab) -> int {
+        if (ab.first == fs[by_a.back()].first) return -1;
 
         const auto it = partition_point(
             cbegin(by_a) + by_a_idx[i], cend(by_a),
-            [&](const auto j) { return fs[by_a[j]].first == fs[i].first; });
+            [&](const auto j) { return fs[by_a[j]].first == ab.first; });
 
-        if (it == cend(by_a)) continue;
+        if (it == cend(by_a)) return -1;
 
         const int j = distance(cbegin(by_a), it);
         const auto [min_b, k] = suff_min_b[j];
-        if (min_b >= fs[i].second) continue;
+        if (min_b >= ab.second) return -1;
+        return by_a[k];
+    };
 
-        ans[i] = by_a[k] + 1;
+    vector<int> ans(n, -1);
+
+    for (int i = 0; i < n; ++i) {
+        const int o1 = suggest_in_front(i, fs[i]);
+        if (o1 >= 0) ans[i] = o1 + 1;
+
+        const int o2 = suggest_in_front(i, flip_pair(fs[i]));
+        if (o2 >= 0) ans[i] = o2 + 1;
     }
 
     return ans;
@@ -80,15 +92,7 @@ int main() {
         int n;
         cin >> n;
         vector<pair<int, int>> fs(n);
-
-        for (auto &[a, b] : fs) {
-            int h, w;
-            cin >> h >> w;
-
-            a = max(h, w);
-            b = min(h, w);
-        }
-
+        for (auto &[a, b] : fs) cin >> a >> b;
         cout << in_fronts(move(fs)) << '\n';
     }
 
