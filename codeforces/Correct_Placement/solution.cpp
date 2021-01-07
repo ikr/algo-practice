@@ -1,77 +1,75 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    return os;
-}
+struct Ori final {
+    pair<int, int> dim;
+    int index;
+};
 
-vector<int> gather_by_a(const vector<pair<int, int>> &fs) {
-    const int n = fs.size();
+using Iter = vector<Ori>::const_iterator;
 
-    vector<int> by_a(n);
-    iota(begin(by_a), end(by_a), 0);
-
-    sort(begin(by_a), end(by_a), [&](const auto lhs, const auto rhs) {
-        return fs[lhs].first > fs[rhs].first;
+void sort_by_a(vector<Ori> &oris) {
+    sort(begin(oris), end(oris), [&](const auto lhs, const auto rhs) {
+        return lhs.dim.first > rhs.dim.first;
     });
-
-    return by_a;
 }
 
-vector<pair<int, int>> gather_suff_min_b(const vector<pair<int, int>> &fs,
-                                         const vector<int> &by_a) {
-    const int n = fs.size();
-    vector<pair<int, int>> suff_min_b(n, {fs[by_a.back()].second, n - 1});
+vector<int> gather_suff_min_b_indices(const vector<Ori> &oris) {
+    const int n = oris.size();
+    vector<int> ans(n, n - 1);
 
     for (int i = n - 2; i >= 0; --i) {
-        suff_min_b[i] = suff_min_b[i + 1].first <= fs[by_a[i]].second
-                            ? suff_min_b[i + 1]
-                            : pair{fs[by_a[i]].second, i};
+        ans[i] =
+            oris[ans[i + 1]].dim.second <= oris[i].dim.second ? ans[i + 1] : i;
     }
 
-    return suff_min_b;
+    return ans;
 }
 
 template <typename T> constexpr pair<T, T> flip_pair(const pair<T, T> &ab) {
     return {ab.second, ab.first};
 }
 
-vector<int> in_fronts(vector<pair<int, int>> fs) {
-    const int n = fs.size();
-    const auto by_a = gather_by_a(fs);
-    const auto suff_min_b = gather_suff_min_b(fs, by_a);
-
-    const auto suggest_in_front = [&](const int i,
-                                      const pair<int, int> ab) -> int {
-        if (ab.first == fs[by_a.back()].first) return -1;
-
-        const auto it = partition_point(
-            cbegin(by_a) + i, cend(by_a),
-            [&](const auto j) { return fs[by_a[j]].first == ab.first; });
-
-        if (it == cend(by_a)) return -1;
-
-        const int j = distance(cbegin(by_a), it);
-        const auto [min_b, k] = suff_min_b[j];
-        if (min_b >= ab.second) return -1;
-        return by_a[k];
-    };
-
-    vector<int> ans(n, -1);
+vector<Ori> gather_orientations_sorted_by_a(const vector<pair<int, int>> &ab) {
+    const int n = ab.size();
+    vector<Ori> ans(2 * n);
 
     for (int i = 0; i < n; ++i) {
-        const int o1 = suggest_in_front(i, fs[by_a[i]]);
-        if (o1 >= 0) {
-            ans[by_a[i]] = o1 + 1;
-            continue;
-        }
+        ans[i * 2] = {ab[i], i};
+        ans[i * 2 + 1] = {flip_pair(ab[i]), i};
+    }
 
-        const int o2 = suggest_in_front(i, flip_pair(fs[by_a[i]]));
-        if (o2 >= 0) ans[by_a[i]] = o2 + 1;
+    sort_by_a(ans);
+    return ans;
+}
+
+int suggest_in_front(const Iter first, const Iter last, const Iter it,
+                     const vector<int> &suff_min_b) {
+    if (it->dim.first == prev(last)->dim.first) return -1;
+
+    const auto lo = partition_point(it, last, [&](const Ori &ori) {
+        return ori.dim.first == it->dim.first;
+    });
+
+    if (lo == last) return -1;
+
+    const int j = distance(first, lo);
+    const auto lolo = *(first + suff_min_b[j]);
+    if (lolo.dim.second >= it->dim.second) return -1;
+    return lolo.index;
+}
+
+vector<int> in_fronts(const vector<pair<int, int>> &ab) {
+    const auto oris = gather_orientations_sorted_by_a(ab);
+    const auto suff_min_b = gather_suff_min_b_indices(oris);
+
+    vector<int> ans(ab.size(), -1);
+
+    for (auto it = cbegin(oris); it != cend(oris); ++it) {
+        if (ans[it->index] >= 0) continue;
+
+        ans[it->index] =
+            suggest_in_front(cbegin(oris), cend(oris), it, suff_min_b);
     }
 
     return ans;
@@ -86,9 +84,15 @@ int main() {
     while (t--) {
         int n;
         cin >> n;
-        vector<pair<int, int>> fs(n);
-        for (auto &[a, b] : fs) cin >> a >> b;
-        cout << in_fronts(move(fs)) << '\n';
+        vector<pair<int, int>> ab(n);
+        for (auto &[a, b] : ab) cin >> a >> b;
+
+        const auto ans = in_fronts(ab);
+        for (auto it = cbegin(ans); it != cend(ans); ++it) {
+            if (it != ans.cbegin()) cout << ' ';
+            cout << (*it == -1 ? -1 : (*it + 1));
+        }
+        cout << '\n';
     }
 
     return 0;
