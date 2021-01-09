@@ -58,6 +58,21 @@ const lest::test tests[] = {
         const auto expected = 480;
         EXPECT(actual == expected);
     },
+    CASE("Example 2") {
+        const auto actual = FlightPlan{}.fly(5, 5, { 100, 1000, 100, 100, 100, 97, 9999, 9999, 9999, 100, 93, 9999, 0, 9999, 100, 99, 9999, 83, 65, 100, 98, 93, 90, 9999, 95}, 1000, 1000, 1);
+        const auto expected = 5010;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 3") {
+        const auto actual = FlightPlan{}.fly(5, 5, { 100, 1000, 100, 100, 100, 97, 9999, 9999, 9999, 100, 93, 9999, 0, 9999, 100, 99, 9999, 83, 65, 100, 98, 93, 90, 9999, 95}, 1, 1, 1000);
+        const auto expected = 9805;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 4") {
+        const auto actual = FlightPlan{}.fly(1, 1, {47}, 123, 234, 345);
+        const auto expected = 0;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
