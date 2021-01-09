@@ -70,7 +70,7 @@ int main() {
         for (auto &row : rows) cin >> row;
 
         const auto rows_ = reveal(rows);
-        cout << "Field #" << i << '\n';
+        cout << "Field #" << i << ":\n";
 
         for (const auto &row : rows_) cout << row << '\n';
     }
