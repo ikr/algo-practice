@@ -64,6 +64,8 @@ int main() {
         cin >> h >> w;
 
         if (!h && !w) break;
+        if (i != 1) cout << '\n';
+
         vector<string> rows(h, string(w, ' '));
         for (auto &row : rows) cin >> row;
 
@@ -71,7 +73,6 @@ int main() {
         cout << "Field #" << i << '\n';
 
         for (const auto &row : rows_) cout << row << '\n';
-        cout << '\n';
     }
 
     return 0;
