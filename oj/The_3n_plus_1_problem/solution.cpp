@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 using namespace std;
-static constexpr int LIM = 2 * 1e9;
 
 int chain_size(const int x) {
     if (x <= 1) return x;
