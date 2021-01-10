@@ -26,7 +26,7 @@ struct FlightPlan final {
            const int cdn, const int clr) const {
         const ll max_h = *max_element(H.cbegin(), H.cend());
 
-        const auto h_at = [&H, C](const int r, const int c) {
+        const auto h_at = [&H, C](const int r, const int c) -> ll {
             return H[r * C + c];
         };
 
