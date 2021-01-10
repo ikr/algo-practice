@@ -2,47 +2,78 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
-static constexpr ll INF = 2LL * 1e18;
+using Coord = tuple<int, int, int>;
+
+struct UnitCosts final {
+    int cup;
+    int cdn;
+    int clr;
+};
+
+constexpr ll r_of(const Coord &coord) { return get<0>(coord); }
+constexpr ll c_of(const Coord &coord) { return get<1>(coord); }
+constexpr ll h_of(const Coord &coord) { return get<2>(coord); }
+
+ll direct_flight_cost(const UnitCosts &unit_costs, const Coord &a,
+                      const Coord &b) {
+    return (h_of(a) < h_of(b) ? (h_of(b) - h_of(a)) * unit_costs.cup
+                              : (h_of(a) - h_of(b)) * unit_costs.cdn) +
+           abs(r_of(a) - r_of(b)) + abs(c_of(a) - c_of(b));
+}
 
 struct FlightPlan final {
     ll fly(const int R, const int C, const vector<int> &H, const int cup,
            const int cdn, const int clr) const {
         const ll max_h = *max_element(H.cbegin(), H.cend());
+        const UnitCosts unit_costs{cup, cdn, clr};
 
         const auto h_at = [&H, C](const int r, const int c) {
             return H[r * C + c];
         };
 
-        vector<vector<vector<ll>>> dp(
-            R, vector<vector<ll>>(C, vector<ll>(max_h + 1, INF)));
+        const Coord dest{R - 1, C - 1, h_at(R - 1, C - 1)};
 
-        for (int r = 0; r < R; ++r) {
-            for (int c = 0; c < C; ++c) {
-                for (int i = h_at(r, c); i <= max_h; ++i) {
-                    if (!r && !c && i == h_at(0, 0)) {
-                        dp[r][c][i] = 0;
-                        continue;
-                    }
+        vector<vector<vector<ll>>> costs(
+            R, vector<vector<ll>>(C, vector<ll>(max_h + 1, -1)));
+        costs[0][0][h_at(0, 0)] = 0;
 
-                    if (i > 0) {
-                        dp[r][c][i] = min(dp[r][c][i], dp[r][c][i - 1] + cup);
-                    }
-                    if (r > 0) {
-                        dp[r][c][i] = min(dp[r][c][i], dp[r - 1][c][i] + clr);
-                    }
-                    if (c > 0) {
-                        dp[r][c][i] = min(dp[r][c][i], dp[r][c - 1][i] + clr);
-                    }
-                }
+        priority_queue<pair<ll, Coord>> frontier;
+        frontier.emplace(0, Coord{0, 0, h_at(0, 0)});
 
-                if (!r && !c) continue;
-                for (int i = max_h - 1; i >= h_at(r, c); --i) {
-                    dp[r][c][i] = min(dp[r][c][i], dp[r][c][i + 1] + cdn);
-                }
+        while (!frontier.empty()) {
+            const auto current = frontier.top();
+            frontier.pop();
+
+            if (current.second == dest) {
+                return costs[r_of(dest)][c_of(dest)][h_of(dest)];
+            }
+
+            const int r = r_of(current.second);
+            const int c = c_of(current.second);
+            const int h = h_of(current.second);
+
+            vector<pair<Coord, ll>> neighs;
+            if (h < max_h) {
+                neighs.emplace_back(Coord{r, c, h + 1}, costs[r][c][h] + cup);
+            }
+            if (h > h_at(r, c)) {
+                neighs.emplace_back(Coord{r, c, h - 1}, costs[r][c][h] + cdn);
+            }
+            if (r > 0) {
+                neighs.emplace_back(Coord{r - 1, c, h}, costs[r][c][h] + clr);
+            }
+            if (c > 0) {
+                neighs.emplace_back(Coord{r, c - 1, h}, costs[r][c][h] + clr);
+            }
+            if (r < R - 1) {
+                neighs.emplace_back(Coord{r + 1, c, h}, costs[r][c][h] + clr);
+            }
+            if (c < C - 1) {
+                neighs.emplace_back(Coord{r, c + 1, h}, costs[r][c][h] + clr);
             }
         }
 
-        return dp[R - 1][C - 1][h_at(R - 1, C - 1)];
+        return 2LL * 1e18;
     }
 };
 
