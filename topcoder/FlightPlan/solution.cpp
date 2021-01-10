@@ -25,7 +25,6 @@ struct FlightPlan final {
     ll fly(const int R, const int C, const vector<int> &H, const int cup,
            const int cdn, const int clr) const {
         const ll max_h = *max_element(H.cbegin(), H.cend());
-        const UnitCosts unit_costs{cup, cdn, clr};
 
         const auto h_at = [&H, C](const int r, const int c) {
             return H[r * C + c];
@@ -59,17 +58,33 @@ struct FlightPlan final {
             if (h > h_at(r, c)) {
                 neighs.emplace_back(Coord{r, c, h - 1}, costs[r][c][h] + cdn);
             }
-            if (r > 0) {
+            if (r > 0 && h_at(r - 1, c) <= h) {
                 neighs.emplace_back(Coord{r - 1, c, h}, costs[r][c][h] + clr);
             }
-            if (c > 0) {
+            if (c > 0 && h_at(r, c - 1) <= h) {
                 neighs.emplace_back(Coord{r, c - 1, h}, costs[r][c][h] + clr);
             }
-            if (r < R - 1) {
+            if (r < R - 1 && h_at(r + 1, c) <= h) {
                 neighs.emplace_back(Coord{r + 1, c, h}, costs[r][c][h] + clr);
             }
-            if (c < C - 1) {
+            if (c < C - 1 && h_at(r, c + 1) <= h) {
                 neighs.emplace_back(Coord{r, c + 1, h}, costs[r][c][h] + clr);
+            }
+
+            for (const auto &neigh : neighs) {
+                const auto coord = neigh.first;
+                const auto new_cost = neigh.second;
+
+                if (costs[r_of(coord)][c_of(coord)][h_of(coord)] == -1 ||
+                    new_cost < costs[r_of(coord)][c_of(coord)][h_of(coord)]) {
+                    costs[r_of(coord)][c_of(coord)][h_of(coord)] = new_cost;
+
+                    const auto priority =
+                        -(new_cost +
+                          direct_flight_cost({cup, cdn, clr}, coord, dest));
+
+                    frontier.emplace(priority, coord);
+                }
             }
         }
 
