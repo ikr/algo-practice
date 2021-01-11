@@ -92,6 +92,55 @@ struct FlightPlan final {
     }
 };
 
+static const vector<pair<int, int>> DELTAS{{0, -1}, {0, 1}, {1, 0}, {-1, 0}};
+class Oracle {
+  public:
+    int BFS(int R, int C, const vector<int> &H, int h) {
+        vector<vector<int>> dist(R, vector<int>(C, -1));
+        vector<pair<int, int>> q = {{0, 0}};
+        dist[0][0] = 0;
+
+        for (auto i = 0U; i < q.size(); ++i) {
+            int r = q[i].first;
+            int c = q[i].second;
+
+            for (pair<int, int> delta : DELTAS) {
+                int r2 = r + delta.first;
+                int c2 = c + delta.second;
+                if (r2 >= 0 && c2 >= 0 && r2 < R && c2 < C &&
+                    H[C * r2 + c2] <= h && dist[r2][c2] == -1) {
+                    dist[r2][c2] = dist[r][c] + 1;
+                    q.push_back({r2, c2});
+                }
+            }
+        }
+
+        return dist[R - 1][C - 1];
+    }
+
+    long long fly(int R, int C, vector<int> H, int cup, int cdn, int clr) {
+        long long min_cost = -1;
+
+        for (int h : H) {
+            if (h < H[0] || h < H.back()) continue;
+
+            int bfs_cost = BFS(R, C, H, h);
+
+            if (bfs_cost < 0) continue;
+
+            long long cost = bfs_cost * (long long)clr +
+                             (h - H[0]) * (long long)cup +
+                             (h - H.back()) * (long long)cdn;
+            if (min_cost < 0)
+                min_cost = cost;
+            else
+                min_cost = min(min_cost, cost);
+        }
+
+        return min_cost;
+    }
+};
+
 // clang-format off
 const lest::test tests[] = {
     CASE("Example 0") {
@@ -113,6 +162,9 @@ const lest::test tests[] = {
         const auto actual = FlightPlan{}.fly(5, 5, { 100, 1000, 100, 100, 100, 97, 9999, 9999, 9999, 100, 93, 9999, 0, 9999, 100, 99, 9999, 83, 65, 100, 98, 93, 90, 9999, 95}, 1, 1, 1000);
         const auto expected = 9805;
         EXPECT(actual == expected);
+
+        const auto control = Oracle{}.fly(5, 5, { 100, 1000, 100, 100, 100, 97, 9999, 9999, 9999, 100, 93, 9999, 0, 9999, 100, 99, 9999, 83, 65, 100, 98, 93, 90, 9999, 95}, 1, 1, 1000);
+        EXPECT(control == expected);
     },
     CASE("Example 4") {
         const auto actual = FlightPlan{}.fly(1, 1, {47}, 123, 234, 345);
