@@ -92,9 +92,64 @@ struct FlightPlan final {
     }
 };
 
+template <typename T> struct RndInt final {
+    RndInt(const T lo, const T hi) : m_gen{random_device{}()}, m_dist{lo, hi} {}
+    T next() { return m_dist(m_gen); }
+
+  private:
+    mt19937 m_gen;
+    uniform_int_distribution<T> m_dist;
+};
+
+struct Model final {
+    vector<vector<int>> histo;
+    UnitCosts unit_costs;
+
+    vector<int> linerize_histo() const {
+        const int H = histo.size();
+        const int W = histo[0].size();
+
+        vector<int> ans(H * W, -1);
+        for (int ro = 0; ro < H; ++ro) {
+            for (int co = 0; co < W; ++co) {
+                ans[ro * W + co] = histo[ro][co];
+            }
+        }
+        return ans;
+    }
+};
+
+Model random_model() {
+    RndInt<int> r_1_50(1, 50);
+
+    const int H = r_1_50.next();
+    const int W = r_1_50.next();
+
+    RndInt<int> r_0_10e6(0, 50);
+    vector<vector<int>> histo(H, vector<int>(W));
+
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            histo[ro][co] = r_0_10e6.next();
+        }
+    }
+
+    RndInt<int> r_1_10e6(1, 50);
+    return {histo, {r_1_10e6.next(), r_1_10e6.next(), r_1_10e6.next()}};
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 static const vector<pair<int, int>> DELTAS{{0, -1}, {0, 1}, {1, 0}, {-1, 0}};
-class Oracle {
-  public:
+struct Oracle final {
     int BFS(int R, int C, const vector<int> &H, int h) {
         vector<vector<int>> dist(R, vector<int>(C, -1));
         vector<pair<int, int>> q = {{0, 0}};
@@ -169,6 +224,44 @@ const lest::test tests[] = {
     CASE("Example 4") {
         const auto actual = FlightPlan{}.fly(1, 1, {47}, 123, 234, 345);
         const auto expected = 0;
+        EXPECT(actual == expected);
+    },
+    CASE("20 random models") {
+        for (int i = 0; i < 20; ++i) {
+            const auto m = random_model();
+            const auto actual = FlightPlan{}.fly(m.histo.size(),
+                                                 m.histo[0].size(),
+                                                 m.linerize_histo(),
+                                                 m.unit_costs.cup, m.unit_costs.cdn, m.unit_costs.clr);
+            const auto expected = Oracle{}.fly(m.histo.size(),
+                                               m.histo[0].size(),
+                                               m.linerize_histo(),
+                                               m.unit_costs.cup, m.unit_costs.cdn, m.unit_costs.clr);
+            if (actual != expected) {
+                cout << "R:" << m.histo.size() << " C:" << m.histo[0].size() << " " << m.linerize_histo() << ' ';
+                cout << "cup:" << m.unit_costs.cup << " cdn:" << m.unit_costs.cdn <<  " clr:" << m.unit_costs.clr << '\n';
+            }
+            EXPECT(actual == expected);
+        }
+    },
+    CASE("Pyramid with blocks") {
+        Model m{{
+                {0, 0, 0, 0, 0, 0, 9},
+                {0, 1, 1, 1, 1, 1, 0},
+                {0, 1, 2, 2, 2, 1, 0},
+                {0, 1, 2, 3, 2, 1, 0},
+                {0, 1, 2, 2, 2, 1, 0},
+                {0, 1, 1, 1, 1, 2, 9},
+                {9, 0, 0, 0, 0, 9, 0},
+            }, UnitCosts{1, 1, 3}};
+        const auto actual = FlightPlan{}.fly(m.histo.size(),
+                                             m.histo[0].size(),
+                                             m.linerize_histo(),
+                                             m.unit_costs.cup, m.unit_costs.cdn, m.unit_costs.clr);
+        const auto expected = Oracle{}.fly(m.histo.size(),
+                                           m.histo[0].size(),
+                                           m.linerize_histo(),
+                                           m.unit_costs.cup, m.unit_costs.cdn, m.unit_costs.clr);
         EXPECT(actual == expected);
     },
 };
