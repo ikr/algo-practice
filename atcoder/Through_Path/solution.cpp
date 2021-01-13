@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+using Graph = multimap<int, int>;
 
 enum class Dir { UP, DOWN };
 
@@ -10,7 +11,42 @@ struct Command final {
     ll increment;
 };
 
-vector<ll> execute_commands(const int n) {
+Graph build_graph(const vector<pair<int, int>> &edges) {
+    Graph ans;
+    for (const auto [a, b] : edges) {
+        ans.emplace(a, b);
+        ans.emplace(b, a);
+    }
+    return ans;
+}
+
+Graph as_zero_rooted_tree(const int n, const Graph &g) {
+    vector<bool> visited(n, false);
+    Graph ans;
+
+    function<void(int)> dfs;
+    dfs = [&](const int u) {
+        visited[u] = true;
+        const auto [first, last] = g.equal_range(u);
+
+        for (auto it = first; it != last; ++it) {
+            const auto v = it->second;
+            if (visited[v]) continue;
+
+            ans.emplace(u, v);
+            dfs(v);
+        }
+    };
+
+    dfs(0);
+    return ans;
+}
+
+vector<ll> execute_commands(const vector<pair<int, int>> &edges,
+                            const vector<Command> &commands) {
+    const int n = edges.size() + 1;
+    const auto tree = as_zero_rooted_tree(n, build_graph(edges));
+
     vector<ll> ans(n, 0);
     return ans;
 }
@@ -44,6 +80,6 @@ int main() {
         cin >> increment;
     }
 
-    for (const auto c : execute_commands(n)) cout << c << '\n';
+    for (const auto c : execute_commands(edges, commands)) cout << c << '\n';
     return 0;
 }
