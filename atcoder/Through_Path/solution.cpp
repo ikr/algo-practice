@@ -1,16 +1,19 @@
-#include <atcoder/lazysegtree>
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
 
-struct Query final {
-    int reachable_from;
-    int without_visiting;
-    ll value;
+enum class Dir { UP, DOWN };
+
+struct Command final {
+    Dir dir;
+    int edge_index;
+    ll increment;
 };
 
-vector<ll> final_vertex_values(vector<pair<int, int>> edges,
-                               vector<Query> queries) {}
+vector<ll> execute_commands(const int n) {
+    vector<ll> ans(n, 0);
+    return ans;
+}
 
 int main() {
     ios_base::sync_with_stdio(0);
@@ -19,7 +22,7 @@ int main() {
     int n;
     cin >> n;
 
-    vector<pair<int, int>> edges(n);
+    vector<pair<int, int>> edges(n - 1);
     for (auto &[a, b] : edges) {
         cin >> a >> b;
         --a;
@@ -29,16 +32,18 @@ int main() {
     int q;
     cin >> q;
 
-    vector<Query> queries(q);
-    for (auto &[reachable_from, without_visiting, value] : queries) {
-        int t, e;
-        cin >> t >> e >> value;
+    vector<Command> commands(q);
+    for (auto &[dir, edge_index, increment] : commands) {
+        int t;
+        cin >> t;
+        dir = (t == 1) ? Dir::UP : Dir::DOWN;
 
-        reachable_from = t == 1 ? edges[e].first : edges[e].second;
-        without_visiting = t == 1 ? edges[e].second : edges[e].first;
+        cin >> edge_index;
+        --edge_index;
+
+        cin >> increment;
     }
 
-    const auto ans = final_vertex_values(move(edges), move(queries));
-    for (const ll v : ans) cout << v << '\n';
+    for (const auto c : execute_commands(n)) cout << c << '\n';
     return 0;
 }
