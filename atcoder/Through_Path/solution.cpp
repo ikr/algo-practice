@@ -26,7 +26,7 @@ Graph build_graph(const vector<pair<int, int>> &edges) {
 
 vector<set<int>> as_zero_rooted_tree(const int n, const Graph &g) {
     vector<bool> visited(n, false);
-    vector<set<int>> ans;
+    vector<set<int>> ans(n);
 
     function<void(int)> dfs;
     dfs = [&](const int u) {
@@ -58,8 +58,16 @@ vector<ll> execute_commands(const int n, const vector<set<int>> &tree,
         }
     }
 
-    vector<ll> ans(n, 0);
-    return ans;
+    function<void(int)> dfs;
+    dfs = [&](const int u) {
+        for (const auto v : tree[u]) {
+            pro[v] += pro[u];
+            dfs(v);
+        }
+    };
+
+    dfs(0);
+    return pro;
 }
 
 int main() {
