@@ -15,7 +15,17 @@ string cents_to_literal(const int x) {
     return s.substr(0, sz - 2) + "." + s.substr(sz - 2);
 }
 
-int min_movement(const vector<int> &xs) { return 0; }
+int min_movement(const vector<int> &xs) {
+    const int n = xs.size();
+    const int avg = accumulate(xs.cbegin(), xs.cend(), 0) / n;
+
+    int ans = 0;
+    for (const auto x : xs) {
+        if (x >= avg) break;
+        ans += (avg - x);
+    }
+    return ans;
+}
 
 int main() {
     for (;;) {
@@ -30,6 +40,7 @@ int main() {
         transform(literals.cbegin(), literals.cend(), begin(xs),
                   literal_to_cents);
 
+        sort(begin(xs), end(xs));
         cout << ("$" + cents_to_literal(min_movement(xs))) << '\n';
     }
 
