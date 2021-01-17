@@ -1,6 +1,24 @@
 #include "lest.hpp"
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+
+ll factorial(const ll x) {
+    assert(x >= 0);
+    if (x <= 1) return 1;
+
+    ll ans = 2;
+    for (ll i = 3; i <= x; ++i) {
+        ans *= i;
+    }
+
+    return ans;
+}
+
+ll combinations(const ll n, const ll k) {
+    assert(k <= n);
+    const ll r = n - k;
+}
 
 template <typename T> constexpr double doof(const T x) {
     return static_cast<double>(x);
