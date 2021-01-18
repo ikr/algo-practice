@@ -2,9 +2,8 @@
 using namespace std;
 
 int min_sides(int n) {
-    if (n == 1) return 3;
-    if (n == 2) return 4;
-    return n % 2 ? 4 : 3;
+    const set<int> ex{2, 3, 5};
+    return ex.count(n) ? 4 : 3;
 }
 
 int main() {
