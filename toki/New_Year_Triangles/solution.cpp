@@ -2,11 +2,9 @@
 using namespace std;
 
 int min_sides(int n) {
-    while (n >= 4) n = n / 4 + n % 4;
-    assert(n > 0);
-    assert(n < 4);
-
-    return n == 1 ? 3 : 4;
+    if (n == 1) return 3;
+    if (n == 2) return 4;
+    return n % 2 ? 4 : 3;
 }
 
 int main() {
