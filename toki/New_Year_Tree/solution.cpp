@@ -49,6 +49,8 @@ map<int, int> gather_parents(const Tree &t) {
     return ans;
 }
 
+constexpr int mxor(const int a, const int b) { return a ^ b; }
+
 int xor_up_to_root(const map<int, int> &ps, const vector<int> states,
                    const int u) {
     int v = u;
@@ -59,11 +61,16 @@ int xor_up_to_root(const map<int, int> &ps, const vector<int> states,
     }
 
     reverse(begin(path), end(path));
-    int ans = 0;
-    for (const int w : path) {
-        ans ^= states[w];
+    assert(path[0] == 0);
+
+    const int sz = path.size();
+    vector<int> cs(sz, states[0]);
+
+    for (int i = 1; i < sz; ++i) {
+        cs[i] = cs[i - 1] ^ states[path[i]];
     }
-    return ans;
+
+    return accumulate(cbegin(cs), cend(cs), 0, mxor);
 }
 
 int main() {
