@@ -34,6 +34,7 @@ mint transition_addition(const char l_cell, const mint l_ways,
 
     if (x == "DX" || x == "DD") return u_ways;
     if (x == "XR" || x == "RR") return l_ways;
+    assert(x == "DR");
     return 0;
 }
 
