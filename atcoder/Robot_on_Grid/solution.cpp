@@ -3,7 +3,7 @@
 using namespace std;
 using mint = atcoder::modint998244353;
 
-ostream &operator<<(ostream &os, const mint &x) {
+ostream &operator<<(ostream &os, const mint x) {
     os << x.val();
     return os;
 }
@@ -24,16 +24,58 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     return os;
 }
 
-int count_ways(const vector<string> &rows) {
+mint transition_addition(const char l_cell, const mint l_ways,
+                         const char u_cell, const mint u_ways) {
+    const string x{l_cell, u_cell};
+
+    if (x == "XX" || x == "XD" || x == "RX" || x == "RD") {
+        return l_ways + u_ways;
+    }
+
+    if (x == "DX" || x == "DD") return u_ways;
+    if (x == "XR" || x == "RR") return l_ways;
+    return 0;
+}
+
+mint transition_combo(const char l_cell, const mint l_ways, const char u_cell,
+                      const mint u_ways) {
+    const string ls = l_cell == ' ' ? "XDR" : string{l_cell};
+    const string us = u_cell == ' ' ? "XDR" : string{u_cell};
+
+    mint ans = 0;
+    for (const auto l : ls) {
+        for (const auto u : us) {
+            ans += transition_addition(l, l_ways, u, u_ways);
+        }
+    }
+    return ans;
+}
+
+mint count_ways(const vector<string> &rows) {
     const int H = rows.size();
     const int W = rows[0].size();
 
     vector<vector<mint>> dp(H, vector<mint>(W, 0));
     dp[0][0] = 1;
 
-    cout << dp << '\n';
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            if (!ro && !co) continue;
 
-    return dp.back().back().val();
+            const char l = co > 0 ? rows[ro][co - 1] : 'D';
+            const mint lw = co > 0 ? dp[ro][co - 1] : 0;
+
+            const char u = ro > 0 ? rows[ro - 1][co] : 'R';
+            const mint uw = ro > 0 ? dp[ro - 1][co] : 0;
+
+            dp[ro][co] = transition_combo(l, lw, u, uw);
+        }
+    }
+
+    // cout << dp << '\n';
+
+    return rows.back().back() == ' ' ? dp.back().back() * mint{3}
+                                     : dp.back().back();
 }
 
 int main() {
@@ -52,6 +94,6 @@ int main() {
         rows[ro - 1][co - 1] = c;
     }
 
-    cout << count_ways(rows) << '\n';
+    cout << count_ways(rows).val() << '\n';
     return 0;
 }
