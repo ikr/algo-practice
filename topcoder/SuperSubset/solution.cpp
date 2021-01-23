@@ -4,14 +4,18 @@ using namespace std;
 using ll = long long;
 static constexpr ll M = 1e9 + 7;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
+ll factorial_mod(const ll x, const ll m) {
+    assert(x >= 0);
+    if (x <= 1) return 1;
+
+    ll ans = 2;
+    for (ll i = 3; i <= x; ++i) {
+        ans *= i;
+        ans %= m;
     }
-    os << ']';
-    return os;
+
+    assert(ans > 0LL);
+    return ans;
 }
 
 constexpr ll pow_mod(const ll base, const ll exp, const ll m) {
@@ -22,23 +26,34 @@ constexpr ll pow_mod(const ll base, const ll exp, const ll m) {
 }
 
 struct SuperSubset final {
-    int solve(const vector<int> &xs, const int y) const {
+    int solve(vector<int> xs, const int y) const {
+        sort(begin(xs), end(xs));
         const int n = xs.size();
+
         vector<int> ss(n + 1, 0);
         partial_sum(xs.cbegin(), xs.cend(), next(begin(ss)));
-        cout << ss << '\n';
 
+        int lo = 0;
+        int hi = 0;
         ll ans = 0;
 
-        for (int i = 0; i < n; ++i) {
-            for (int j = i; j < n; ++j) {
-                const int s = ss[j + 1] - ss[i];
-                if (s == y) {
-                    const int d = j - i + 1;
-                    const int r = n - d;
-                    ans += pow_mod(2LL, r, M);
-                    ans %= M;
-                }
+        while (lo < n && hi < n) {
+            const int s = ss[hi + 1] - ss[lo];
+
+            if (s == y) {
+                const int d = hi - lo + 1;
+                const int r = n - d;
+                ans += factorial_mod(d, M) * pow_mod(2LL, r, M);
+                ans %= M;
+
+                ++lo;
+                if (hi < lo) hi = lo;
+            } else if (s < y) {
+                ++hi;
+            } else {
+                assert(s > y);
+                ++lo;
+                if (hi < lo) hi = lo;
             }
         }
 
