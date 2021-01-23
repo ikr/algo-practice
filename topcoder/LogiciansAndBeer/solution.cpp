@@ -7,6 +7,7 @@ struct LogiciansAndBeer final {
         const int n = xs.size();
         const int plus_index = xs.find('+');
         if (plus_index != string::npos && plus_index != n - 1) return -1;
+        if (xs.back() == '?') return -1;
 
         const int first_minus_index = xs.find('-');
         if (first_minus_index != string::npos) {
