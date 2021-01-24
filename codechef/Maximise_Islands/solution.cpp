@@ -1,30 +1,27 @@
 #include <bits/stdc++.h>
 using namespace std;
+using CB = pair<vector<string>, int>;
 
-vector<string> chess_board(const int h, const int w) {
+pair<CB, CB> chess_boards(const int h, const int w) {
     vector<string> rows_a(h, string(w, '.'));
     int land_a = 0;
-    for (int ro = 0; ro < h; ++ro) {
-        for (int co = 0; co < w; ++co) {
-            if ((ro + co) % 2 == 0) {
-                rows_a[ro][co] = '*';
-                ++land_a;
-            }
-        }
-    }
 
     vector<string> rows_b(h, string(w, '.'));
     int land_b = 0;
+
     for (int ro = 0; ro < h; ++ro) {
         for (int co = 0; co < w; ++co) {
             if ((ro + co) % 2) {
+                rows_a[ro][co] = '*';
+                ++land_a;
+            } else {
                 rows_b[ro][co] = '*';
                 ++land_b;
             }
         }
     }
 
-    return land_a > land_b ? rows_a : rows_b;
+    return {{rows_a, land_a}, {rows_b, land_b}};
 }
 
 int count_diffs(const vector<string> &rows_a, const vector<string> &rows_b) {
@@ -45,7 +42,15 @@ int min_ops(const vector<string> &rows) {
     const int h = rows.size();
     const int w = rows[0].size();
 
-    return count_diffs(rows, chess_board(h, w));
+    const auto [cb_a, cb_b] = chess_boards(h, w);
+
+    if (cb_a.second == cb_b.second) {
+        return min(count_diffs(rows, cb_a.first),
+                   count_diffs(rows, cb_b.first));
+    }
+
+    const auto &cb = cb_a.second > cb_b.second ? cb_a.first : cb_b.first;
+    return count_diffs(rows, cb);
 }
 
 int main() {
