@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 static constexpr int N_MAX = 1000000;
 
 vector<bool> sieve(const int n) {
@@ -17,23 +16,35 @@ vector<bool> sieve(const int n) {
     return ans;
 }
 
-vector<int> primes_upto(const vector<bool> &prime) {
-    const int n = prime.size();
-    vector<int> ans(n, 0);
-    for (int i = 1; i < n; ++i) {
-        ans[i] = ans[i - 1] + (prime[i] ? 1 : 0);
+vector<int> gather_ps(const vector<bool> &prime) {
+    const int sz = prime.size();
+    vector<int> ans;
+    ans.reserve(sz / 10);
+
+    for (int i = 2; i < sz; ++i) {
+        if (prime[i]) ans.push_back(i);
     }
+
     return ans;
 }
 
-vector<ll> one_to_n_triplets_num(const int n) {
-    vector<ll> ans(n + 1, 0);
-    ans[3] = 1;
-    for (int i = 4; i <= n; ++i) {
-        const ll k = i - 1;
-        ans[i] = ans[i - 1] + k * (k - 1LL) / 2LL;
+vector<int> prime_sums_of_two_primes(const vector<bool> &prime,
+                                     const vector<int> &ps) {
+    const int k = ps.size();
+    vector<int> ans;
+    ans.reserve(k / 8);
+
+    for (int i = 1; i < k - 2; ++i) {
+        const int c = 2 + ps[i];
+        if (prime[c]) ans.push_back(c);
     }
+
     return ans;
+}
+
+int triples_num(const vector<int> &pss, const int n) {
+    const auto it = upper_bound(cbegin(pss), cend(pss), n);
+    return distance(cbegin(pss), it);
 }
 
 int main() {
@@ -41,15 +52,15 @@ int main() {
     cin.tie(0);
 
     const auto prime = sieve(N_MAX);
-    const auto pu = primes_upto(prime);
-    const auto memo = one_to_n_triplets_num(N_MAX / 10);
+    const auto ps = gather_ps(prime);
+    const auto pss = prime_sums_of_two_primes(prime, ps);
 
     int t;
     cin >> t;
     while (t--) {
         int n;
         cin >> n;
-        cout << memo[pu[n]] << '\n';
+        cout << triples_num(pss, n) << '\n';
     }
 
     return 0;
