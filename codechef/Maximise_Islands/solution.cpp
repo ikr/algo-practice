@@ -1,37 +1,30 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 vector<string> chess_board(const int h, const int w) {
-    vector<string> rows(h, string(w, '.'));
+    vector<string> rows_a(h, string(w, '.'));
+    int land_a = 0;
     for (int ro = 0; ro < h; ++ro) {
         for (int co = 0; co < w; ++co) {
-            if ((ro + co) % 2) rows[ro][co] = '*';
+            if ((ro + co) % 2 == 0) {
+                rows_a[ro][co] = '*';
+                ++land_a;
+            }
         }
     }
-    return rows;
-}
 
-vector<string> flip_chess_board(const vector<string> &rows) {
-    const int h = rows.size();
-    const int w = rows[0].size();
-    vector<string> ans(h, string(w, ' '));
-
+    vector<string> rows_b(h, string(w, '.'));
+    int land_b = 0;
     for (int ro = 0; ro < h; ++ro) {
         for (int co = 0; co < w; ++co) {
-            ans[ro][co] = rows[ro][co] == '*' ? '.' : '*';
+            if ((ro + co) % 2) {
+                rows_b[ro][co] = '*';
+                ++land_b;
+            }
         }
     }
-    return ans;
+
+    return land_a > land_b ? rows_a : rows_b;
 }
 
 int count_diffs(const vector<string> &rows_a, const vector<string> &rows_b) {
@@ -52,10 +45,7 @@ int min_ops(const vector<string> &rows) {
     const int h = rows.size();
     const int w = rows[0].size();
 
-    const auto cb_a = chess_board(h, w);
-    const auto cb_b = flip_chess_board(cb_a);
-
-    return min(count_diffs(rows, cb_a), count_diffs(rows, cb_b));
+    return count_diffs(rows, chess_board(h, w));
 }
 
 int main() {
