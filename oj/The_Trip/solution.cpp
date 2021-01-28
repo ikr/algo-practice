@@ -15,16 +15,29 @@ string cents_to_literal(const int x) {
     return s.substr(0, sz - 2) + "." + s.substr(sz - 2);
 }
 
+int div_ceil(const int x, const int y) {
+    const int q = x / y;
+    return x % y ? (q + 1) : q;
+}
+
 int min_movement(const vector<int> &xs) {
     const int n = xs.size();
-    const int avg = accumulate(xs.cbegin(), xs.cend(), 0) / n;
+    const int s = accumulate(xs.cbegin(), xs.cend(), 0);
+    const int avg_floor = s / n;
+    const int avg_ceil = s % n ? (s / n + 1) : s / n;
 
-    int ans = 0;
-    for (const auto x : xs) {
-        if (x >= avg) break;
-        ans += (avg - x);
+    int pay_ups = 0;
+    int pay_downs = 0;
+
+    for (const int x : xs) {
+        if (x < avg_floor) {
+            pay_ups += avg_floor - x;
+        } else if (x > avg_ceil) {
+            pay_downs += x - avg_ceil;
+        }
     }
-    return ans;
+
+    return pay_ups + pay_downs - pay_ups;
 }
 
 int main() {
