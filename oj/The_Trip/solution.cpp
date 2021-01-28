@@ -37,7 +37,7 @@ int min_movement(const vector<int> &xs) {
         }
     }
 
-    return pay_ups + pay_downs - pay_ups;
+    return pay_ups + (pay_downs >= pay_ups ? pay_downs - pay_ups : 0);
 }
 
 int main() {
