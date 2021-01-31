@@ -80,8 +80,6 @@ mint count_ways(const vector<string> &rows) {
 }
 
 namespace oracle {
-#define rep(i, n) for (int i = 0; i < (n); ++i)
-
 int solve(const vector<string> &s, const int K) {
     const int H = s.size();
     const int W = s[0].size();
@@ -90,8 +88,8 @@ int solve(const vector<string> &s, const int K) {
     mint p = 2;
     p *= mint(3).inv();
     dp[0][0] = 1;
-    rep(i, H) {
-        rep(j, W) {
+    for (int i = 0; i < H; ++i) {
+        for (int j = 0; j < W; ++j) {
             mint res = 1;
             if (s[i][j] == ' ') {
                 res = p;
