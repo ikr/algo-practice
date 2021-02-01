@@ -7,7 +7,7 @@ enum class VertSeg { LT, LB, RT, RB };
 
 constexpr RoCo glyph_dimensions(const int s) { return {2 * s + 3, s + 2}; }
 
-RoCo display_dimentions(const int s, const int num_glyphs) {
+RoCo screen_dimentions(const int s, const int num_glyphs) {
     assert(num_glyphs > 0);
     const auto gd = glyph_dimensions(s);
     return {gd.first, gd.second * num_glyphs + num_glyphs - 1};
@@ -119,22 +119,28 @@ void render_digit(vector<string> &glyph, const char digit) {
 }
 
 vector<string> display_n(const int s, const string n) {
-    auto g = empty_glyph(s);
-    render_digit(g, '7');
-    return g;
+    const auto screen_dim = screen_dimentions(s, n.size());
+    vector<string> screen(screen_dim.first, string(screen_dim.second, ' '));
+
+    for (auto i = 0U; i < n.size(); ++i) {
+        auto g = empty_glyph(s);
+        render_digit(g, n[i]);
+        bitblt(screen, g, (g[0].size() + 1) * i);
+    }
+
+    return screen;
 }
 
 int main() {
-    for (int i = 0;; ++i) {
+    for (;;) {
         int s;
         string n;
         cin >> s >> n;
         if (!s) break;
 
-        if (i) cout << '\n';
-
         const auto rows = display_n(s, n);
         for (const auto &row : rows) cout << row << '\n';
+        cout << '\n';
     }
     return 0;
 }
