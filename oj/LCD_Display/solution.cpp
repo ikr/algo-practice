@@ -13,11 +13,6 @@ RoCo screen_dimentions(const int s, const int num_glyphs) {
     return {gd.first, gd.second * num_glyphs + num_glyphs - 1};
 }
 
-int co_of_glyph(const int s, const int glyph_index) {
-    const auto gd = glyph_dimensions(s);
-    return (gd.second + 1) * glyph_index;
-}
-
 void render_horz_seg(vector<string> &glyph, const HorzSeg kind) {
     const int h = glyph.size();
     assert(h > 0);
