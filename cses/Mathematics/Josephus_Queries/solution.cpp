@@ -6,36 +6,37 @@ int div_ceil(const int numerator, const int denominator) {
     return (numerator % denominator) ? (q + 1) : q;
 }
 
-enum class Start { ZERO, ONE };
-
 struct Circle final {
-    int round_index;
-    int lo;
-    int hi;
-    int num;
-    Start start_index;
+    int front;
+    int delta;
+    int size;
 
-    int delta() const { return round_index * 2; }
-    int child_at(const int index) const { return lo + delta() * index; }
+    int back() const { return front + delta * (size - 1); }
+    int kth_removed(const int k) const { return front + (2 * k + 1) * delta; }
+    int third() const { return front + 2 * delta; }
 
-    bool is_reached_this_round(const int index) const {
-        return child_at(index) <= hi;
+    int removed_this_round() const {
+        return (size % 2) ? size / 2 + 1 : size / 2;
     }
 
-    int num_removed_this_round() const {
-        return start_index == Start::ZERO ? div_ceil(num, 2) : num / 2;
+    Circle next_round() const {
+        const bool odd = size % 2;
+        return {odd ? third() : front, 2 * delta, size - removed_this_round()};
     }
 };
 
 int kth_child_removed(const int n, int k) {
-    Circle ci{0, 1, n, n, Start::ONE};
+    Circle ci{1, 1, n};
 
-    while (!ci.is_reached_this_round(k)) {
-        const int d = ci.num_removed_this_round();
-        ci = Circle{ci.round_index + 1, };
+    while (ci.kth_removed(k) > ci.back()) {
+        const bool odd = ci.size % 2;
+        if (odd && ci.size / 2 + 1 == k) return ci.front;
+
+        k -= ci.removed_this_round();
+        ci = ci.next_round();
     }
 
-    return ci.child_at(ci.start_index == Start::ZERO ? k : k + 1);
+    return ci.kth_removed(k);
 }
 
 int main() {
