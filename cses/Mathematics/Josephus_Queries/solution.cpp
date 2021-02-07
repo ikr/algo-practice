@@ -30,7 +30,7 @@ int kth_child_removed(const int n, int k) {
 
     while (ci.kth_removed(k) > ci.back()) {
         const bool odd = ci.size % 2;
-        if (odd && ci.size / 2 + 1 == k) return ci.front;
+        if (odd && ci.size / 2 == k) return ci.front;
 
         k -= ci.removed_this_round();
         ci = ci.next_round();
