@@ -51,7 +51,8 @@ struct CmdDot final : public Cmd {
 
 struct CmdVLine final : public Cmd {
     CmdVLine(const int x_, const int y1_, const int y2_, const Color color_)
-        : Cmd(Code::VLINE), x(x_), y1(y1_), y2(y2_), color(color_) {}
+        : Cmd(Code::VLINE), x(x_), y1(min(y1_, y2)), y2(max(y1_, y2_)),
+          color(color_) {}
     CmdVLine() = delete;
 
     int x;
@@ -62,7 +63,8 @@ struct CmdVLine final : public Cmd {
 
 struct CmdHLine final : public Cmd {
     CmdHLine(const int x1_, const int x2_, const int y_, const Color color_)
-        : Cmd(Code::HLINE), x1(x1_), x2(x2_), y(y_), color(color_) {}
+        : Cmd(Code::HLINE), x1(min(x1_, x2_)), x2(max(x1_, x2_)), y(y_),
+          color(color_) {}
     CmdHLine() = delete;
 
     int x1;
@@ -74,7 +76,10 @@ struct CmdHLine final : public Cmd {
 struct CmdRect final : public Cmd {
     CmdRect(const int x1_, const int y1_, const int x2_, const int y2_,
             const Color color_)
-        : Cmd(Code::RECT), x1(x1_), y1(y1_), x2(x2_), y2(y2_), color(color_) {}
+        : Cmd(Code::RECT), x1(x1_), y1(y1_), x2(x2_), y2(y2_), color(color_) {
+        assert(x1 <= x2);
+        assert(y1 <= y2);
+    }
     CmdRect() = delete;
 
     int x1;
@@ -155,6 +160,10 @@ void handle_clear(vector<string> &raster) {
 
 void handle_dot(vector<string> &raster, const CmdDot &dot) {
     raster[dot.y][dot.x] = dot.color;
+}
+
+void handle_vline(vector<string> &raster, const CmdVLine &vline) {
+    // TODO
 }
 
 int main() {
