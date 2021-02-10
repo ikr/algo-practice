@@ -149,6 +149,14 @@ void handle_create(vector<string> &raster, const CmdCreate &create) {
     raster = vector<string>(create.y_sz, string(create.x_sz, WHITE));
 }
 
+void handle_clear(vector<string> &raster) {
+    for (auto &row : raster) fill(begin(row), end(row), WHITE);
+}
+
+void handle_dot(vector<string> &raster, const CmdDot &dot) {
+    raster[dot.y][dot.x] = dot.color;
+}
+
 int main() {
     vector<string> raster;
     for (string line; getline(cin, line);) {
@@ -160,9 +168,11 @@ int main() {
             break;
 
         case Code::CLEAR:
+            handle_clear(raster);
             break;
 
         case Code::DOT:
+            handle_dot(raster, dynamic_cast<const CmdDot &>(*cmd));
             break;
 
         case Code::VLINE:
