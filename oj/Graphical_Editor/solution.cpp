@@ -163,7 +163,15 @@ void handle_dot(vector<string> &raster, const CmdDot &dot) {
 }
 
 void handle_vline(vector<string> &raster, const CmdVLine &vline) {
-    // TODO
+    for (auto i = vline.y1; i <= vline.y2; ++i) {
+        raster[i][vline.x] = vline.color;
+    }
+}
+
+void handle_hline(vector<string> &raster, const CmdHLine &hline) {
+    for (auto i = hline.x1; i <= hline.x2; ++i) {
+        raster[hline.y][i] = hline.color;
+    }
 }
 
 int main() {
@@ -185,9 +193,11 @@ int main() {
             break;
 
         case Code::VLINE:
+            handle_vline(raster, dynamic_cast<const CmdVLine &>(*cmd));
             break;
 
         case Code::HLINE:
+            handle_hline(raster, dynamic_cast<const CmdHLine &>(*cmd));
             break;
 
         case Code::RECT:
