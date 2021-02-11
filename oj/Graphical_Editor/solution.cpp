@@ -174,6 +174,14 @@ void handle_hline(vector<string> &raster, const CmdHLine &hline) {
     }
 }
 
+void handle_rect(vector<string> &raster, const CmdRect &rect) {
+    for (auto i = rect.x1; i <= rect.x2; ++i) {
+        for (auto j = rect.y1; j <= rect.y2; ++j) {
+            raster[j][i] = rect.color;
+        }
+    }
+}
+
 int main() {
     vector<string> raster;
     for (string line; getline(cin, line);) {
@@ -201,6 +209,7 @@ int main() {
             break;
 
         case Code::RECT:
+            handle_rect(raster, dynamic_cast<const CmdRect &>(*cmd));
             break;
 
         case Code::FILL:
