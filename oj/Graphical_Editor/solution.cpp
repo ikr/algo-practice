@@ -51,7 +51,7 @@ struct CmdDot final : public Cmd {
 
 struct CmdVLine final : public Cmd {
     CmdVLine(const int x_, const int y1_, const int y2_, const Color color_)
-        : Cmd(Code::VLINE), x(x_), y1(min(y1_, y2)), y2(max(y1_, y2_)),
+        : Cmd(Code::VLINE), x(x_), y1(min(y1_, y2_)), y2(max(y1_, y2_)),
           color(color_) {}
     CmdVLine() = delete;
 
@@ -182,6 +182,30 @@ void handle_rect(vector<string> &raster, const CmdRect &rect) {
     }
 }
 
+void handle_fill(vector<string> &raster, const CmdFill &fill) {
+    const int h = raster.size();
+    const int w = raster[0].size();
+    const auto s = raster[fill.y][fill.x];
+    const auto t = fill.color;
+    if (s == t) return;
+
+    function<void(int, int)> dfs;
+    dfs = [&](const int x, const int y) {
+        raster[y][x] = t;
+        if (y > 0 && raster[y - 1][x] == s) dfs(x, y - 1);
+        if (y < h - 1 && raster[y + 1][x] == s) dfs(x, y + 1);
+        if (x > 0 && raster[y][x - 1] == s) dfs(x - 1, y);
+        if (x < w - 1 && raster[y][x + 1] == s) dfs(x + 1, y);
+    };
+
+    dfs(fill.x, fill.y);
+}
+
+void handle_save(const vector<string> &raster, const CmdSave &save) {
+    cout << save.name << '\n';
+    for (const auto &row : raster) cout << row << '\n';
+}
+
 int main() {
     vector<string> raster;
     for (string line; getline(cin, line);) {
@@ -213,9 +237,11 @@ int main() {
             break;
 
         case Code::FILL:
+            handle_fill(raster, dynamic_cast<const CmdFill &>(*cmd));
             break;
 
         case Code::SAVE:
+            handle_save(raster, dynamic_cast<const CmdSave &>(*cmd));
             break;
 
         case Code::NOOP:
