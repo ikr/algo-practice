@@ -9,14 +9,41 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-map<int, int> gather_counts(const vector<int> &xs) {
-    map<int, int> ans;
-    for (const int x : xs) ++ans[x];
+vector<int> range(const int n) {
+    vector<int> ans(n);
+    iota(begin(ans), end(ans), 0);
     return ans;
 }
 
 vector<int> possible_winner_positions(const vector<int> &xs) {
-    const int hi = *max_element(cbegin(xs), cend(xs));
+    const int n = xs.size();
+    auto idx = range(n);
+    sort(begin(idx), end(idx),
+         [&xs](const int i, const int j) { return xs[i] > xs[j]; });
+
+    vector<long long> suff(n, xs[idx.back()]);
+    for (int i = n - 2; i >= 0; --i) {
+        suff[i] = suff[i + 1] + xs[idx[i]];
+    }
+
+    vector<int> ans{idx[0] + 1};
+    ans.reserve(n / 2);
+
+    for (int th = xs[idx[0]], i = 1; i < n; ++i) {
+        if (xs[idx[i]] == th) {
+            ans.push_back(idx[i] + 1);
+            continue;
+        }
+
+        const auto rest = suff[i];
+        if (rest < th) break;
+
+        ans.push_back(idx[i] + 1);
+        th = xs[idx[i]];
+    }
+
+    sort(begin(ans), end(ans));
+    return ans;
 }
 
 int main() {
@@ -31,7 +58,9 @@ int main() {
 
         vector<int> xs(n);
         for (auto &x : xs) cin >> x;
-        cout << possible_winner_positions() << '\n';
+
+        const auto ans = possible_winner_positions(xs);
+        cout << ans.size() << '\n' << ans << '\n';
     }
 
     return 0;
