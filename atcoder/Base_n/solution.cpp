@@ -27,7 +27,7 @@ long long suitable_interpretations_count(const string &x, const long long m) {
     const long long b0 = min_base(x);
     const auto lo_v = interpret(x, b0, m);
     if (!lo_v || *lo_v > m) return 0;
-    if (lo_v == m) return 1;
+    if (*lo_v == m) return 1;
 
     long long lo = b0;
     long long hi = 1'000'000'000'000'000'000LL + 1LL;
@@ -36,7 +36,7 @@ long long suitable_interpretations_count(const string &x, const long long m) {
         const auto mid = lo + (hi - lo) / 2LL;
         const auto mid_v = interpret(x, mid, m);
 
-        if (!mid_v || mid_v > m) {
+        if (!mid_v || *mid_v > m) {
             hi = mid - 1;
         } else {
             lo = mid;
@@ -44,7 +44,7 @@ long long suitable_interpretations_count(const string &x, const long long m) {
 
         if (lo + 1 == hi) {
             const auto hi_v = interpret(x, hi, m);
-            if (!!hi_v && hi_v <= m) lo = hi;
+            if (!!hi_v && *hi_v <= m) lo = hi;
             break;
         }
     }
