@@ -3,12 +3,11 @@ using namespace std;
 
 optional<long long> interpret(const string &x, const long long base,
                               long long limit) {
-    long long ans = 0LL;
+    long long ans = 0;
     long long mul = 1LL;
     for (auto it = crbegin(x); it != crend(x); ++it) {
         const int d = (*it) - '0';
-        if (mul > limit || mul < 0 || d * mul > limit || d * mul < 0 ||
-            ans + d * mul < 0 || ans + d * mul > limit) {
+        if (mul > limit || d * mul > limit || ans + d * mul > limit) {
             return nullopt;
         }
 
@@ -16,7 +15,7 @@ optional<long long> interpret(const string &x, const long long base,
         mul *= base;
     }
 
-    return {ans};
+    return ans >= 0LL ? optional{ans} : nullopt;
 }
 
 int min_base(const string &x) {
