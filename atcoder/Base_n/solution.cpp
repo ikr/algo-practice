@@ -7,7 +7,7 @@ optional<long long> interpret(const string &x, const long long base,
 
     for (const char c : x) {
         const int d = c - '0';
-        if (ans > limit / base) return nullopt;
+        if (ans && log2(ans) + log2(base) > log2(limit)) return nullopt;
         ans *= base;
         ans += d;
         if (ans > limit) return nullopt;
