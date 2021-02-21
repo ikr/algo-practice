@@ -15,6 +15,7 @@ optional<long long> interpret(const string &x, const long long base,
         mul *= base;
     }
 
+    assert(ans >= 0LL);
     return {ans};
 }
 
