@@ -23,33 +23,41 @@ int min_base(const string &x) {
     return d + 1;
 }
 
-long long suitable_interpretations_count(const string &x, const long long m) {
+long long bin_search_interpretations(const string &x, const long long m) {
     const long long b0 = min_base(x);
     const auto lo_v = interpret(x, b0, m);
     if (!lo_v || *lo_v > m) return 0;
     if (*lo_v == m) return 1;
 
+    long long best = b0;
     long long lo = b0;
     long long hi = 1'000'000'000'000'000'000LL + 1LL;
+    const auto hi_v = interpret(x, hi, m);
+    assert(!hi_v || *hi_v > m);
 
-    while (lo < hi) {
+    while (lo <= hi) {
         const auto mid = lo + (hi - lo) / 2LL;
         const auto mid_v = interpret(x, mid, m);
 
         if (!mid_v || *mid_v > m) {
             hi = mid - 1;
         } else {
-            lo = mid;
-        }
-
-        if (lo + 1 == hi) {
-            const auto hi_v = interpret(x, hi, m);
-            if (!!hi_v && *hi_v <= m) lo = hi;
-            break;
+            assert(mid_v <= m);
+            best = mid;
+            lo = mid + 1;
         }
     }
 
-    return lo - b0 + 1;
+    return best - b0 + 1;
+}
+
+long long suitable_interpretations_count(const string &x, const long long m) {
+    if (x.size() == 1U) {
+        const long long d = x[0] - '0';
+        return d <= m ? 1 : 0;
+    }
+
+    return bin_search_interpretations(x, m);
 }
 
 int main() {
