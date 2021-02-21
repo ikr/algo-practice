@@ -27,7 +27,6 @@ long long bin_search_interpretations(const string &x, const long long m) {
     const long long b0 = min_base(x);
     const auto lo_v = interpret(x, b0, m);
     if (!lo_v || *lo_v > m) return 0;
-    if (*lo_v == m) return 1;
 
     long long best = b0;
     long long lo = b0;
@@ -42,7 +41,7 @@ long long bin_search_interpretations(const string &x, const long long m) {
         if (!mid_v || *mid_v > m) {
             hi = mid - 1;
         } else {
-            assert(mid_v <= m);
+            assert(*mid_v <= m);
             best = mid;
             lo = mid + 1;
         }
