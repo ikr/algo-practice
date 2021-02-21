@@ -4,18 +4,16 @@ using namespace std;
 optional<long long> interpret(const string &x, const long long base,
                               long long limit) {
     long long ans = 0;
-    long long mul = 1LL;
-    for (auto it = crbegin(x); it != crend(x); ++it) {
-        const int d = (*it) - '0';
-        if (mul > limit || d * mul > limit || ans + d * mul > limit) {
-            return nullopt;
-        }
 
-        ans += d * mul;
-        mul *= base;
+    for (const char c : x) {
+        const int d = c - '0';
+        if (ans > limit / base) return nullopt;
+        ans *= base;
+        ans += d;
+        if (ans > limit) return nullopt;
     }
 
-    return ans >= 0LL ? optional{ans} : nullopt;
+    return {ans};
 }
 
 int min_base(const string &x) {
