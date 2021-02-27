@@ -1,40 +1,45 @@
 #include <bits/stdc++.h>
 using namespace std;
-using pi = pair<int, int>;
+using pii = pair<int, int>;
 
-constexpr bool intersect(const pi ab, const pi cd) {
-    const auto [a, b] = ab;
-    const auto [c, d] = cd;
-    return !(b < c || d < a);
+enum class End { LEFT, RIGHT };
+
+set<pii>::iterator add_interval(set<pii> &is, int l, int r) {
+    if (l == r) return is.end();
+    auto it = is.lower_bound({l, r}), before = it;
+
+    while (it != is.end() && it->first <= r) {
+        r = max(r, it->second);
+        before = it = is.erase(it);
+    }
+
+    if (it != is.begin() && (--it)->second >= l) {
+        l = min(l, it->first);
+        r = max(r, it->second);
+        is.erase(it);
+    }
+
+    return is.insert(before, {l, r});
 }
 
-constexpr pi span(const pi ab, const pi cd) {
-    const auto [a, b] = ab;
-    const auto [c, d] = cd;
-    return {min({a, b, c, d}), max({a, b, c, d})};
-}
+vector<pair<int, End>> gather_endpoints(const set<pii> &xs) {
+    const int n = xs.size();
+    vector<pair<int, End>> ans(2 * n);
 
-vector<pi> unite_intersecting(vector<pi> xs) {
-    sort(begin(xs), end(xs));
-    vector<pi> ans;
-    ans.reserve(xs.size() / 16);
+    for (auto [xit, ait] = pair{cbegin(xs), begin(ans)}; xit != cend(xs);
+         ++xit) {
+        *ait = {xit->first, End::LEFT};
+        ++ait;
 
-    for (const auto cd : xs) {
-        if (ans.empty()) {
-            ans.push_back(cd);
-        } else {
-            const auto ab = ans.back();
-            if (intersect(ab, cd)) {
-                ans.back() = span(ab, cd);
-            }
-        }
+        *ait = {xit->second, End::RIGHT};
+        ++ait;
     }
 
     return ans;
 }
 
-int total_overlap(vector<pi> xs, vector<pi> ys) {
-    ys = unite_intersecting(ys);
+int total_overlap(set<pii> xs, set<pii> ys) {
+    const auto yses = gather_endpoints(ys);
     return -1;
 }
 
@@ -48,11 +53,19 @@ int main() {
         int n, m;
         cin >> n >> m;
 
-        vector<pi> xs(n);
-        for (auto &[a, b] : xs) cin >> a >> b;
+        set<pii> xs;
+        for (int i = 0; i < n; ++i) {
+            int l, r;
+            cin >> l >> r;
+            add_interval(xs, l, r);
+        }
 
-        vector<pi> ys(m);
-        for (auto &[a, b] : ys) cin >> a >> b;
+        set<pii> ys;
+        for (int i = 0; i < m; ++i) {
+            int l, r;
+            cin >> l >> r;
+            add_interval(ys, l, r);
+        }
 
         cout << total_overlap(move(xs), move(ys)) << '\n';
     }
