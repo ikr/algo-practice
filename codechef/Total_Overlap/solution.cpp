@@ -38,9 +38,36 @@ vector<pair<int, End>> gather_endpoints(const set<pii> &xs) {
     return ans;
 }
 
+constexpr bool intersect(const pii ab, const pii cd) {
+    const auto [a, b] = ab;
+    const auto [c, d] = cd;
+    return !(b < c || d < a);
+}
+
+int intersection_length(const pii ab, const pii cd) {
+    array<int, 4> xs{ab.first, ab.second, cd.first, cd.second};
+    sort(begin(xs), end(xs));
+    return xs[2] - xs[1];
+}
+
 int total_overlap(set<pii> xs, set<pii> ys) {
     const auto yses = gather_endpoints(ys);
-    return -1;
+    int ans = 0;
+    auto it = cbegin(yses);
+
+    for (const auto [a, b] : xs) {
+        it = lower_bound(it, cend(yses), pair{a, End::LEFT});
+        if (it == cend(yses)) break;
+        if (it->second == End::RIGHT) --it;
+
+        do {
+            ans += intersection_length({it->first, next(it)->first}, {a, b});
+            it += 2;
+        } while (it != cend(yses) &&
+                 intersect({it->first, next(it)->first}, {a, b}));
+    }
+
+    return ans;
 }
 
 int main() {
