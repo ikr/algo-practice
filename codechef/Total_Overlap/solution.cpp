@@ -2,15 +2,15 @@
 using namespace std;
 using pii = pair<int, int>;
 
-map<int, int> gather_indices_by_values(const vector<int> &es) {
+unordered_map<int, int> gather_indices_by_values(const vector<int> &es) {
     const int n = es.size();
-    map<int, int> ans;
+    unordered_map<int, int> ans;
     for (int i = 0; i < n; ++i) ans[es[i]] = i;
     return ans;
 }
 
 vector<int> build_difference_array(const vector<pii> &segs,
-                                   const map<int, int> &idx) {
+                                   const unordered_map<int, int> &idx) {
     const int n = idx.size();
     vector<int> ans(n + 1, 0);
 
@@ -29,8 +29,8 @@ long long total_overlap(const vector<pii> &a_segs, const vector<pii> &b_segs,
     const auto db = build_difference_array(b_segs, idx);
 
     const int n = es.size();
-    int x = da[0];
-    int y = db[0];
+    long long x = da[0];
+    long long y = db[0];
     long long ans = x * y * (es[1] - es[0]);
 
     for (int i = 1; i < n - 1; ++i) {
