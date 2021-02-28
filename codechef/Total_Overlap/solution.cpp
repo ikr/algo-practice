@@ -51,21 +51,21 @@ int main() {
         int n, m;
         cin >> n >> m;
 
-        vector<int> es;
-        es.reserve(n + m);
+        vector<int> es(2 * (n + m), 0);
+        int i = 0;
 
         vector<pii> a_segs(n);
         for (auto &[l, r] : a_segs) {
             cin >> l >> r;
-            es.push_back(l);
-            es.push_back(r);
+            es[i++] = l;
+            es[i++] = r;
         }
 
-        vector<pii> b_segs(n);
+        vector<pii> b_segs(m);
         for (auto &[l, r] : b_segs) {
             cin >> l >> r;
-            es.push_back(l);
-            es.push_back(r);
+            es[i++] = l;
+            es[i++] = r;
         }
 
         sort(begin(es), end(es));
