@@ -2,8 +2,7 @@
 using namespace std;
 using pii = pair<int, int>;
 
-static constexpr int R_INT = 1e8;
-static vector<int> idx(R_INT + 1, -1);
+static unordered_map<int, int> idx;
 
 void update_indices_by_values(const vector<int> &es) {
     const int n = es.size();
