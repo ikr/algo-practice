@@ -16,7 +16,7 @@ vector<int> build_difference_array(const vector<pii> &segs,
 
     for (const auto [l, r] : segs) {
         ++ans[idx.at(l)];
-        --ans[idx.at(r) + 1];
+        --ans[idx.at(r)];
     }
 
     return ans;
@@ -31,13 +31,13 @@ long long total_overlap(const vector<pii> &a_segs, const vector<pii> &b_segs,
     const int n = es.size();
     int x = da[0];
     int y = db[0];
-    long long ans = 0;
+    long long ans = x * y * (es[1] - es[0]);
 
-    for (int i = 1; i < n; ++i) {
-        x += da[i - 1];
-        y += db[i - 1];
+    for (int i = 1; i < n - 1; ++i) {
+        x += da[i];
+        y += db[i];
 
-        ans += x * y * (es[i] - es[i - 1]);
+        ans += x * y * (es[i + 1] - es[i]);
     }
 
     return ans;
