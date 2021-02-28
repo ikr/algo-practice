@@ -2,21 +2,20 @@
 using namespace std;
 using pii = pair<int, int>;
 
-unordered_map<int, int> gather_indices_by_values(const vector<int> &es) {
+static constexpr int R_INT = 1e8;
+static vector<int> idx(R_INT + 1, -1);
+
+void update_indices_by_values(const vector<int> &es) {
     const int n = es.size();
-    unordered_map<int, int> ans;
-    for (int i = 0; i < n; ++i) ans[es[i]] = i;
-    return ans;
+    for (int i = 0; i < n; ++i) idx[es[i]] = i;
 }
 
-vector<int> build_difference_array(const vector<pii> &segs,
-                                   const unordered_map<int, int> &idx) {
-    const int n = idx.size();
+vector<int> build_difference_array(const int n, const vector<pii> &segs) {
     vector<int> ans(n + 1, 0);
 
     for (const auto [l, r] : segs) {
-        ++ans[idx.at(l)];
-        --ans[idx.at(r)];
+        ++ans[idx[l]];
+        --ans[idx[r]];
     }
 
     return ans;
@@ -24,9 +23,9 @@ vector<int> build_difference_array(const vector<pii> &segs,
 
 long long total_overlap(const vector<pii> &a_segs, const vector<pii> &b_segs,
                         const vector<int> &es) {
-    const auto idx = gather_indices_by_values(es);
-    const auto da = build_difference_array(a_segs, idx);
-    const auto db = build_difference_array(b_segs, idx);
+    update_indices_by_values(es);
+    const auto da = build_difference_array(es.size(), a_segs);
+    const auto db = build_difference_array(es.size(), b_segs);
 
     const int n = es.size();
     long long x = da[0];
