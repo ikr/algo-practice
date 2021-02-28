@@ -2,18 +2,6 @@
 using namespace std;
 using pii = pair<int, int>;
 
-constexpr bool intersect(const pii ab, const pii cd) {
-    const auto [a, b] = ab;
-    const auto [c, d] = cd;
-    return !(b < c || d < a);
-}
-
-int intersection_length(const pii ab, const pii cd) {
-    array<int, 4> xs{ab.first, ab.second, cd.first, cd.second};
-    sort(begin(xs), end(xs));
-    return xs[2] - xs[1];
-}
-
 map<int, int> gather_indices_by_values(const vector<int> &es) {
     const int n = es.size();
     map<int, int> ans;
