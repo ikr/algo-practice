@@ -30,7 +30,6 @@ vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
         if (!i || ss[i] >= ss[i - 1]) ans.emplace_back(ss[i], i);
     }
 
-    sort(begin(ans), end(ans));
     return ans;
 }
 
