@@ -38,7 +38,7 @@ vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
 }
 
 ll run_time(const int n, const ll total, const ll top_s,
-            const vector<pair<ll, int>> idx, const ll x) {
+            const vector<pair<ll, int>> &idx, const ll x) {
     const auto it = lower_bound(cbegin(idx), cend(idx), pair{x, 0});
 
     if (it != cend(idx)) return it->second;
