@@ -27,7 +27,7 @@ vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
     ans.reserve(n / 2);
 
     for (int i = 0; i < n; ++i) {
-        if (!i || ss[i] >= ss[i - 1]) ans.emplace_back(ss[i], i);
+        if (!i || ss[i] >= ans.back().first) ans.emplace_back(ss[i], i);
     }
 
     return ans;
