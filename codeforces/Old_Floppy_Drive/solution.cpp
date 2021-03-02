@@ -21,10 +21,15 @@ vector<ll> gather_prefix_sums(const vector<ll> &xs) {
     return ans;
 }
 
-vector<pair<ll, int>> gather_indices_by_value(const vector<ll> &xs) {
-    const int n = xs.size();
-    vector<pair<ll, int>> ans(n);
-    for (int i = 0; i < n; ++i) ans[i] = pair{xs[i], i};
+vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
+    const int n = ss.size();
+    vector<pair<ll, int>> ans;
+    ans.reserve(n / 2);
+
+    for (int i = 0; i < n; ++i) {
+        if (!i || ss[i] >= ss[i - 1]) ans.emplace_back(ss[i], i);
+    }
+
     sort(begin(ans), end(ans));
     return ans;
 }
@@ -48,7 +53,7 @@ ll run_time(const vector<ll> &ss, const ll top_s,
 vector<ll> run_times(const vector<ll> &as, const vector<ll> &xs) {
     const auto ss = gather_prefix_sums(as);
     const ll top_s = *max_element(cbegin(ss), cend(ss));
-    const auto idx = gather_indices_by_value(ss);
+    const auto idx = gather_proper_indices_by_value(ss);
 
     const int m = xs.size();
     vector<ll> ans(m, -1);
