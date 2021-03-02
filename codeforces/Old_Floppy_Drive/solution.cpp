@@ -10,21 +10,23 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-constexpr ll div_ceil(const ll numerator, const ll denominaotor) {
-    return numerator % denominaotor ? numerator / denominaotor + 1
-                                    : numerator / denominaotor;
-}
+constexpr ll div_ceil(const ll x, const ll y) { return (x + y - 1) / y; }
 
-vector<ll> gather_prefix_sums(const vector<ll> &xs) {
-    vector<ll> ans(xs.size(), 0);
-    partial_sum(cbegin(xs), cend(xs), begin(ans));
+vector<ll> gather_prefix_sums(const vector<int> &xs) {
+    const int n = xs.size();
+    vector<ll> ans(n, xs[0]);
+
+    for (int i = 1; i < n; ++i) {
+        ans[i] = ans[i - 1] + xs[i];
+    }
+
     return ans;
 }
 
 vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
     const int n = ss.size();
     vector<pair<ll, int>> ans;
-    ans.reserve(n / 2);
+    ans.reserve(n);
 
     for (int i = 0; i < n; ++i) {
         if (!i || ss[i] >= ans.back().first) ans.emplace_back(ss[i], i);
@@ -33,10 +35,8 @@ vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
     return ans;
 }
 
-ll run_time(const vector<ll> &ss, const ll top_s,
+ll run_time(const int n, const ll total, const ll top_s,
             const vector<pair<ll, int>> idx, const ll x) {
-    const int n = ss.size();
-    const ll total = ss.back();
     const auto it = lower_bound(cbegin(idx), cend(idx), pair{x, 0});
 
     if (it != cend(idx)) return it->second;
@@ -49,8 +49,10 @@ ll run_time(const vector<ll> &ss, const ll top_s,
     return k * n + jt->second;
 }
 
-vector<ll> run_times(const vector<ll> &as, const vector<ll> &xs) {
+vector<ll> run_times(const vector<int> &as, const vector<int> &xs) {
     const auto ss = gather_prefix_sums(as);
+    const int n = ss.size();
+    const ll total = ss.back();
     const ll top_s = *max_element(cbegin(ss), cend(ss));
     const auto idx = gather_proper_indices_by_value(ss);
 
@@ -58,7 +60,7 @@ vector<ll> run_times(const vector<ll> &as, const vector<ll> &xs) {
     vector<ll> ans(m, -1);
 
     for (int i = 0; i < m; ++i) {
-        ans[i] = run_time(ss, top_s, idx, xs[i]);
+        ans[i] = run_time(n, total, top_s, idx, xs[i]);
     }
 
     return ans;
@@ -74,10 +76,10 @@ int main() {
         int n, m;
         cin >> n >> m;
 
-        vector<ll> as(n);
+        vector<int> as(n);
         for (auto &a : as) cin >> a;
 
-        vector<ll> xs(m);
+        vector<int> xs(m);
         for (auto &x : xs) cin >> x;
 
         cout << run_times(as, xs) << '\n';
