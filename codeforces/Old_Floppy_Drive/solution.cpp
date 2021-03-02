@@ -28,7 +28,7 @@ pair<vector<ll>, ll> gather_prefix_sums(const vector<int> &xs) {
 vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
     const int n = ss.size();
     vector<pair<ll, int>> ans;
-    ans.reserve(n);
+    ans.reserve(n / 2);
 
     for (int i = 0; i < n; ++i) {
         if (!i || ss[i] >= ans.back().first) ans.emplace_back(ss[i], i);
