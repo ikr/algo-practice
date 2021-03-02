@@ -12,15 +12,17 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 constexpr ll div_ceil(const ll x, const ll y) { return (x + y - 1) / y; }
 
-vector<ll> gather_prefix_sums(const vector<int> &xs) {
+pair<vector<ll>, ll> gather_prefix_sums(const vector<int> &xs) {
     const int n = xs.size();
     vector<ll> ans(n, xs[0]);
+    ll hi = xs[0];
 
     for (int i = 1; i < n; ++i) {
         ans[i] = ans[i - 1] + xs[i];
+        hi = max(hi, ans[i]);
     }
 
-    return ans;
+    return {ans, hi};
 }
 
 vector<pair<ll, int>> gather_proper_indices_by_value(const vector<ll> &ss) {
@@ -50,10 +52,9 @@ ll run_time(const int n, const ll total, const ll top_s,
 }
 
 vector<ll> run_times(const vector<int> &as, const vector<int> &xs) {
-    const auto ss = gather_prefix_sums(as);
+    const auto [ss, top_s] = gather_prefix_sums(as);
     const int n = ss.size();
     const ll total = ss.back();
-    const ll top_s = *max_element(cbegin(ss), cend(ss));
     const auto idx = gather_proper_indices_by_value(ss);
 
     const int m = xs.size();
