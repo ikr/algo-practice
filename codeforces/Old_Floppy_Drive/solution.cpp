@@ -21,24 +21,25 @@ vector<ll> gather_prefix_sums(const vector<ll> &xs) {
     return ans;
 }
 
-map<ll, int> gather_indices_by_value(const vector<ll> &xs) {
+vector<pair<ll, int>> gather_indices_by_value(const vector<ll> &xs) {
     const int n = xs.size();
-    map<ll, int> ans;
-    for (int i = 0; i < n; ++i) ans[xs[i]] = i;
+    vector<pair<ll, int>> ans(n);
+    for (int i = 0; i < n; ++i) ans[i] = pair{xs[i], i};
+    sort(begin(ans), end(ans));
     return ans;
 }
 
-ll run_time(const vector<ll> &ss, const ll top_s, const map<ll, int> idx,
-            const ll x) {
+ll run_time(const vector<ll> &ss, const ll top_s,
+            const vector<pair<ll, int>> idx, const ll x) {
     const int n = ss.size();
     const ll total = ss.back();
-    const auto it = idx.lower_bound(x);
+    const auto it = lower_bound(cbegin(idx), cend(idx), pair{x, 0});
 
     if (it != cend(idx)) return it->second;
     if (total <= 0) return -1;
 
     const ll k = div_ceil(x - top_s, total);
-    const auto jt = idx.lower_bound(x - k * total);
+    const auto jt = lower_bound(cbegin(idx), cend(idx), pair{x - k * total, 0});
     assert(jt != cend(idx));
 
     return k * n + jt->second;
