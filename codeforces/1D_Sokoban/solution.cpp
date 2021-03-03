@@ -24,9 +24,32 @@ pair<vi, vi> right_subproblem(const vi &ds, const vi &xs) {
     return {filter_out(ds, is_negative), filter_out(xs, is_negative)};
 }
 
+void drop_unreachable_lower_destinations(vi &ds, const int x_min) {
+    assert(!ds.empty());
+    if (x_min <= ds[0]) return;
+
+    auto it = cbegin(ds);
+    while (it != cend(ds) && *it < x_min) ++it;
+    ds.erase(cbegin(ds), it);
+}
+
+void drop_overrun_upper_boxes(const int d_max, vi &xs) {
+    assert(!xs.empty());
+    if (xs.back() <= d_max) return;
+    while (d_max < xs.back()) xs.pop_back();
+}
+
+int snap_up_to_closest_counting_arrivals(vi &ds, vi &xs) { return -1; }
+
 int max_arrivals_up(vi ds, vi xs) {
-    sort(begin(ds), end(ds));
-    sort(begin(xs), end(xs));
+    if (ds.empty() || xs.empty()) return 0;
+
+    drop_unreachable_lower_destinations(ds, xs[0]);
+    if (ds.empty()) return 0;
+
+    drop_overrun_upper_boxes(ds.back(), xs);
+    if (xs.empty()) return 0;
+
     return 0;
 }
 
