@@ -24,11 +24,18 @@ pair<vi, vi> right_subproblem(const vi &ds, const vi &xs) {
     return {filter_out(ds, is_negative), filter_out(xs, is_negative)};
 }
 
+int max_arrivals_up(vi ds, vi xs) {
+    sort(begin(ds), end(ds));
+    sort(begin(xs), end(xs));
+    return 0;
+}
+
 int max_arrivals(const vi &ds_, const vi &xs_) {
     int ans = 0;
 
-    for (const auto p :
-         vector{left_subproblem(ds_, xs_), right_subproblem(ds_, xs_)}) {
+    for (const auto [ds, xs] :
+         {left_subproblem(ds_, xs_), right_subproblem(ds_, xs_)}) {
+        ans += max_arrivals_up(move(ds), move(xs));
     }
 
     return ans;
