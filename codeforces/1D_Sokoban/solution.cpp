@@ -8,15 +8,16 @@ vi filter_out(vi xs, const UnaryPredicate p) {
     return xs;
 }
 
-vi negate_all(vi xs) {
+vi negate_and_reverse(vi xs) {
     transform(cbegin(xs), cend(xs), begin(xs), negate<int>{});
+    reverse(begin(xs), end(xs));
     return xs;
 }
 
 pair<vi, vi> left_subproblem(const vi &ds, const vi &xs) {
     const auto is_positive = [](const int x) { return x > 0; };
-    return {negate_all(filter_out(ds, is_positive)),
-            negate_all(filter_out(xs, is_positive))};
+    return {negate_and_reverse(filter_out(ds, is_positive)),
+            negate_and_reverse(filter_out(xs, is_positive))};
 }
 
 pair<vi, vi> right_subproblem(const vi &ds, const vi &xs) {
@@ -50,7 +51,7 @@ int max_arrivals_up(vi ds, vi xs) {
     drop_overrun_upper_boxes(ds.back(), xs);
     if (xs.empty()) return 0;
 
-    return 0;
+    return -1;
 }
 
 int max_arrivals(const vi &ds_, const vi &xs_) {
