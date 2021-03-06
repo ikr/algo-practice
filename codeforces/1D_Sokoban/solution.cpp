@@ -52,6 +52,17 @@ vector<int> prefix_sums_of_arrivals(const vi &ds, const vi &xs) {
     return ans;
 }
 
+int scan_measuring_shifts(const vi &ds, const vi &xs, const vi &ss) {
+    const int m = ds.size();
+    const int ans = ss.back();
+
+    for (int i = 0; i < m; ++i) {
+        const int initial_hits = ss[i];
+    }
+
+    return ans;
+}
+
 int max_arrivals_up(vi ds, vi xs) {
     if (ds.empty() || xs.empty()) return 0;
 
@@ -62,8 +73,7 @@ int max_arrivals_up(vi ds, vi xs) {
     if (xs.empty()) return 0;
 
     const auto ss = prefix_sums_of_arrivals(ds, xs);
-
-    return -1;
+    return scan_measuring_shifts(ds, xs, ss);
 }
 
 int max_arrivals(const vi &ds_, const vi &xs_) {
