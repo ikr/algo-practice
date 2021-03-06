@@ -40,7 +40,17 @@ void drop_overrun_upper_boxes(const int d_max, vi &xs) {
     while (d_max < xs.back()) xs.pop_back();
 }
 
-int snap_up_to_closest_counting_arrivals(vi &ds, vi &xs) { return -1; }
+vector<int> prefix_sums_of_arrivals(const vi &ds, const vi &xs) {
+    const int m = ds.size();
+    vector<bool> hit(m, false);
+    for (int i = 0; i < m; ++i) {
+        hit[i] = binary_search(cbegin(xs), cend(xs), ds[i]);
+    }
+
+    vector<int> ans(m);
+    partial_sum(cbegin(hit), cend(hit), begin(ans));
+    return ans;
+}
 
 int max_arrivals_up(vi ds, vi xs) {
     if (ds.empty() || xs.empty()) return 0;
@@ -50,6 +60,8 @@ int max_arrivals_up(vi ds, vi xs) {
 
     drop_overrun_upper_boxes(ds.back(), xs);
     if (xs.empty()) return 0;
+
+    const auto ss = prefix_sums_of_arrivals(ds, xs);
 
     return -1;
 }
