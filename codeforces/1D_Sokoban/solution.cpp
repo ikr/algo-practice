@@ -64,7 +64,7 @@ vector<int> prefix_sums_of_arrivals(const vi &ds, const vi &xs) {
 
 int count_in_span(const vi &xs, const int i, const int sz) {
     const auto hi = cbegin(xs) + i + 1;
-    const auto lo = lower_bound(cbegin(xs), cend(xs), xs[i] - sz - 1);
+    const auto lo = lower_bound(cbegin(xs), hi, xs[i] - sz + 1);
     return distance(lo, hi);
 }
 
@@ -78,10 +78,6 @@ int scan_measuring_shifts(const vi &ds, const vi &xs, const vi &ss) {
         const int tail_size =
             distance(cbegin(xs), upper_bound(cbegin(xs), cend(xs), d));
         const int tail_sweep = count_in_span(ds, i, tail_size);
-
-        cout << "i:" << i << " d:" << d << " initial_hits:" << initial_hits
-             << " tail_size:" << tail_size << " tail_sweep:" << tail_sweep
-             << '\n';
 
         ans = max(ans, ss.back() - initial_hits + tail_sweep);
     }
