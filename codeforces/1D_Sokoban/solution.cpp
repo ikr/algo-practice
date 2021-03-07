@@ -2,16 +2,6 @@
 using namespace std;
 using vi = vector<int>;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 template <typename UnaryPredicate>
 vi filter_out(vi xs, const UnaryPredicate p) {
     xs.erase(remove_if(begin(xs), end(xs), p), cend(xs));
@@ -57,8 +47,6 @@ vector<int> prefix_sums_of_arrivals(const vi &ds, const vi &xs) {
         hit[i] = binary_search(cbegin(xs), cend(xs), ds[i]) ? 1 : 0;
     }
 
-    cout << "hit: " << hit << '\n';
-
     vector<int> ans(m);
     partial_sum(cbegin(hit), cend(hit), begin(ans));
     return ans;
@@ -74,8 +62,6 @@ int scan_measuring_shifts(const vi &ds, const vi &xs, const vi &ss) {
     const int m = ds.size();
     int ans = ss.back();
 
-    cout << "ss: " << ss << '\n';
-
     for (int i = 0; i < m; ++i) {
         const int d = ds[i];
         const int initial_hits = ss[i];
@@ -83,12 +69,7 @@ int scan_measuring_shifts(const vi &ds, const vi &xs, const vi &ss) {
             distance(cbegin(xs), upper_bound(cbegin(xs), cend(xs), d));
         const int tail_sweep = count_in_span(ds, i, tail_size);
 
-        cout << "d:" << d << " initial_hits:" << initial_hits
-             << " tail_size:" << tail_size << " tail_sweep:" << tail_sweep
-             << '\n';
-
         const int candidate = ss.back() - initial_hits + tail_sweep;
-        cout << "curr ans:" << ans << " candidate:" << candidate << '\n';
         ans = max(ans, candidate);
     }
 
