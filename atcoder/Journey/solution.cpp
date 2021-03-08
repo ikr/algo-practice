@@ -6,13 +6,13 @@ template <typename T> constexpr double doof(const T x) {
 }
 
 double solve(const int n) {
-    vector<double> dp(n + 1, 2);
-    for (int i = 3; i <= n; ++i) {
-        const double q = 1.0 - doof(i - 1) / doof(i);
-        return (doof(i - 1) * dp[i - 1] / doof(i)) / q;
+    double ans = 0.0;
+
+    for (int i = 1; i < n; ++i) {
+        ans += doof(n) / doof(n - i);
     }
 
-    return dp.back();
+    return ans;
 }
 
 int main() {
