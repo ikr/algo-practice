@@ -40,7 +40,7 @@ ostream &operator<<(ostream &os, const Instr &instr) {
     return os;
 }
 
-using Progr = array<Instr, 16>;
+using Progr = array<Instr, 1000>;
 
 constexpr Instr decode_insrt(const int code) {
     return {code / 100, (code % 100) / 10, code % 10};
@@ -69,13 +69,6 @@ int main() {
 
     vector<Progr> ps;
     for (int i = 0; i < t; ++i) ps.push_back(read_program());
-
-    for (const auto &p : ps) {
-        for (const auto &instr : p) {
-            cout << instr << '\n';
-        }
-        cout << '\n';
-    }
 
     return 0;
 }
