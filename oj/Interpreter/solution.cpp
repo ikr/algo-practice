@@ -47,8 +47,7 @@ constexpr Instr decode_insrt(const int code) {
 }
 
 Progr read_program() {
-    Progr ans;
-    for (auto &instr : ans) instr = {0, 0, 0};
+    Progr ans{};
 
     for (auto &instr : ans) {
         string line;
