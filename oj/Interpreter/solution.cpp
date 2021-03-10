@@ -59,6 +59,19 @@ Progr read_program() {
     return ans;
 }
 
+int run_program_count_instructions(const Progr &p) { return 0; }
+
+template <typename T> string join(const string &glue, const vector<T> &tokens) {
+    string ans;
+
+    for (const auto &t : tokens) {
+        if (!ans.empty()) ans += glue;
+        ans += to_string(t);
+    }
+
+    return ans;
+}
+
 int main() {
     int t;
     cin >> t;
@@ -70,5 +83,10 @@ int main() {
     vector<Progr> ps;
     for (int i = 0; i < t; ++i) ps.push_back(read_program());
 
+    vector<int> ans(ps.size());
+    transform(ps.cbegin(), ps.cend(), begin(ans),
+              run_program_count_instructions);
+
+    cout << join("\n\n", ans) << '\n';
     return 0;
 }
