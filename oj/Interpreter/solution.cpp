@@ -5,40 +5,9 @@ struct Instr final {
     int op;
     int x;
     int y;
+
+    int encode() const { return op * 100 + x * 10 + y; }
 };
-
-string op_description(const int op) {
-    switch (op) {
-    case 1:
-        return "halt";
-    case 2:
-        return "reg x := y";
-    case 3:
-        return "reg x += y";
-    case 4:
-        return "reg x *= y";
-    case 5:
-        return "reg x := reg y";
-    case 6:
-        return "reg x += reg y";
-    case 7:
-        return "reg x *= reg y";
-    case 8:
-        return "reg x := ram[reg y]";
-    case 9:
-        return "ram[reg y] := reg x";
-    case 0:
-        return "goto (reg x) ⇔ ‼reg y";
-    default:
-        return "¯\\_(ツ)_/¯";
-    }
-}
-
-ostream &operator<<(ostream &os, const Instr &instr) {
-    os << '(' << op_description(instr.op) << " ∘ " << instr.x << " ∘ "
-       << instr.y << ')';
-    return os;
-}
 
 using Progr = array<Instr, 1000>;
 
@@ -58,7 +27,63 @@ Progr read_program() {
     return ans;
 }
 
-int run_program_count_instructions(const Progr &p) { return 0; }
+int run_program_count_instructions(Progr p) {
+    int steps{};
+    int i{};
+    array<int, 10> reg{};
+
+    for (;;) {
+        ++steps;
+
+        const int op = p[i].op;
+        const int x = p[i].x;
+        const int y = p[i].y;
+
+        switch (op) {
+        case 1:
+            assert(!x && !y);
+            return steps;
+        case 2:
+            reg[x] = y;
+            break;
+        case 3:
+            reg[x] += y;
+            reg[x] %= 1000;
+            break;
+        case 4:
+            reg[x] *= y;
+            reg[x] %= 1000;
+            break;
+        case 5:
+            reg[x] = reg[y];
+            break;
+        case 6:
+            reg[x] += reg[y];
+            reg[x] %= 1000;
+            break;
+        case 7:
+            reg[x] *= reg[y];
+            reg[x] %= 1000;
+            break;
+        case 8:
+            reg[x] = p[reg[y]].encode();
+            break;
+        case 9:
+            p[reg[y]] = decode_insrt(reg[x]);
+            break;
+        case 0:
+            if (!!reg[y]) i = reg[x];
+            break;
+        default:
+            assert(false && "⊙︿⊙");
+            return -1;
+        }
+
+        if (op || !reg[y]) ++i;
+    }
+
+    return steps;
+}
 
 template <typename T> string join(const string &glue, const vector<T> &tokens) {
     string ans;
