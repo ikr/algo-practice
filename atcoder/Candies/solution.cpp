@@ -34,21 +34,33 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
 
 mint ways_num(const int k, const vi &xs) {
     vector<vector<mint>> dp(k + 1, vector<mint>(sz(xs), 0));
-    for (int child = 0; child < sz(xs); ++child) dp[0][child] = 1;
+    vector<vector<mint>> ss(k + 1, vector<mint>(sz(xs), 0));
 
-    for (int candy = 1; candy <= min(k, xs[0]); ++candy) {
-        dp[candy][0] = 1;
+    for (int child = 0; child < sz(xs); ++child) {
+        dp[0][child] = 1;
+        ss[0][child] = 1;
+    }
+
+    for (int candy = 1; candy <= k; ++candy) {
+        dp[candy][0] = candy <= xs[0] ? 1 : 0;
+        ss[candy][0] = ss[candy - 1][0] + dp[candy][0];
     }
 
     for (int candy = 1; candy <= k; ++candy) {
         for (int child = 1; child < sz(xs); ++child) {
-            for (int mine = 0; mine <= min(candy, xs[child]); ++mine) {
-                dp[candy][child] += dp[candy - mine][child - 1];
+            dp[candy][child] = candy <= xs[child] ? ss[candy][child - 1] : 0;
+
+            if (candy > xs[child]) {
+                dp[candy][child] += dp[candy - xs[child]][child - 1];
             }
+
+            ss[candy][child] = ss[candy - 1][child] + dp[candy][child];
         }
     }
 
     cout << dp << '\n';
+    cout << ss << '\n';
+
     return dp.back().back();
 }
 
