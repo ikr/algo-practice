@@ -21,6 +21,8 @@ template <typename T> constexpr double doof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 bool can_win(const vi &xs) {
+    if (sz(xs) <= 4) return true;
+
     int spans = 1;
     int curr = xs[0];
 
@@ -32,7 +34,7 @@ bool can_win(const vi &xs) {
         curr = x;
     }
 
-    return spans <= 4;
+    return spans <= 3;
 }
 
 int main() {
