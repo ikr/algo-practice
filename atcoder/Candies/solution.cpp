@@ -16,22 +16,6 @@ ostream &operator<<(ostream &os, const mint &x) {
     return os;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 mint ways_num(const int k, const vi &xs) {
     vector<vector<mint>> dp(k + 1, vector<mint>(sz(xs), 0));
     vector<vector<mint>> ss(k + 1, vector<mint>(sz(xs), 0));
@@ -46,20 +30,18 @@ mint ways_num(const int k, const vi &xs) {
         ss[candy][0] = ss[candy - 1][0] + dp[candy][0];
     }
 
-    for (int candy = 1; candy <= k; ++candy) {
-        for (int child = 1; child < sz(xs); ++child) {
-            dp[candy][child] = candy <= xs[child] ? ss[candy][child - 1] : 0;
+    const auto dp_range_sum = [&](const int child, const int lo, const int hi) {
+        return ss[hi][child] - (lo ? ss[lo - 1][child] : 0);
+    };
 
-            if (candy > xs[child]) {
-                dp[candy][child] += dp[candy - xs[child]][child - 1];
-            }
+    for (int child = 1; child < sz(xs); ++child) {
+        for (int candy = 1; candy <= k; ++candy) {
+            dp[candy][child] =
+                dp_range_sum(child - 1, max(0, candy - xs[child]), candy);
 
             ss[candy][child] = ss[candy - 1][child] + dp[candy][child];
         }
     }
-
-    cout << dp << '\n';
-    cout << ss << '\n';
 
     return dp.back().back();
 }
