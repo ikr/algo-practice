@@ -1,24 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+enum class Answer { WHITE_IN_CHECK, BLACK_IN_CHECK, NONE_IN_CHECK };
 
 using Row = array<char, 8>;
 using Rows = array<Row, 8>;
@@ -65,6 +54,25 @@ bool is_empty_board(const Rows &board) {
     });
 }
 
+string format_answer(const int game, const Answer answer) {
+    const auto answer_key = [answer]() -> string {
+        switch (answer) {
+        case Answer::WHITE_IN_CHECK:
+            return "white";
+        case Answer::BLACK_IN_CHECK:
+            return "black";
+        default:
+            return "no";
+        }
+    };
+
+    stringstream ss;
+    ss << "Game #" << game << ": " << answer_key() << " king is in check.";
+    return ss.str();
+}
+
+Answer assess_position(const Rows &board) { return Answer::NONE_IN_CHECK; }
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -84,5 +92,9 @@ int main() {
         cout << board << '\n';
     }
 
+    for (int i = 0; i < sz(boards); ++i) {
+        if (i) cout << '\n';
+        cout << format_answer(i + 1, assess_position(boards[i]));
+    }
     return 0;
 }
