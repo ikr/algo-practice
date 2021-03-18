@@ -11,30 +11,10 @@ enum class Answer { WHITE_IN_CHECK, BLACK_IN_CHECK, NONE_IN_CHECK };
 
 using Row = array<char, 8>;
 using Rows = array<Row, 8>;
-using Coord = pair<int, int>;
 
-constexpr int c_ro(const Coord &coord) { return coord.first; }
-constexpr int c_co(const Coord &coord) { return coord.second; }
-
-template <typename T>
-constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
-    return {lhs.first + rhs.first, lhs.second + rhs.second};
-}
-
-ostream &operator<<(ostream &os, const Row &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const Rows &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
+using Coord = complex<int>;
+constexpr int c_ro(const Coord coord) { return coord.real(); }
+constexpr int c_co(const Coord coord) { return coord.imag(); }
 
 string next_line() {
     string ans;
@@ -80,55 +60,112 @@ string format_answer(const int game, const Answer answer) {
     return ss.str();
 }
 
-bool is_at(const Rows &board, const Coord &coord, const char piece) {
-    if (c_ro(coord) < 0 || c_ro(coord) >= 8 || c_co(coord) < 0 ||
-        c_co(coord) >= 8)
-        return false;
+constexpr bool in_bounds(const Coord coord) {
+    return c_ro(coord) >= 0 && c_ro(coord) < 8 && c_co(coord) >= 0 &&
+           c_co(coord) < 8;
+}
+
+bool is_at(const Rows &board, const Coord coord, const char piece) {
+    if (!in_bounds(coord)) return false;
     return board[c_ro(coord)][c_co(coord)] == piece;
 }
 
-bool check_by_white_pawn(const Rows &board, const Coord &coord) {
+bool check_by_white_pawn(const Rows &board, const Coord coord) {
     return is_at(board, coord + Coord{-1, -1}, 'k') ||
            is_at(board, coord + Coord{-1, 1}, 'k');
 }
 
-bool check_by_black_pawn(const Rows &board, const Coord &coord) {
+bool check_by_black_pawn(const Rows &board, const Coord coord) {
     return is_at(board, coord + Coord{1, -1}, 'K') ||
            is_at(board, coord + Coord{1, 1}, 'K');
 }
 
-bool check_by_knight(const Rows &board, const char king, const Coord &coord) {
+bool check_by_knight(const Rows &board, const char king, const Coord coord) {
     const vector<Coord> deltas{{-1, -2}, {-2, -1}, {-2, 1}, {-1, 2},
-                                 {1, -2}, {2, -1}, {2, 1}, {1, 2}};
+                               {1, -2},  {2, -1},  {2, 1},  {1, 2}};
     for (const auto &d : deltas) {
         if (is_at(board, coord + d, king)) return true;
     }
     return false;
 }
 
+bool check_by_long_ranger(const Rows &board, const char king, const Coord coord,
+                          const vector<Coord> &directoins) {
+    for (const auto dir : directoins) {
+        auto curr = coord + dir;
+        while (is_at(board, curr, '.')) curr += dir;
+        if (is_at(board, curr, king)) return true;
+    }
+
+    return false;
+}
+
+vector<Coord> straight_directions() {
+    return {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+}
+
+vector<Coord> diagonal_directions() {
+    return {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}};
+}
+
+template <typename T> vector<T> concatenate(vector<T> xs, const vector<T> &ys) {
+    xs.insert(end(xs), ys.cbegin(), ys.cend());
+    return xs;
+}
+
+vector<Coord> all_directions() {
+    return concatenate(straight_directions(), diagonal_directions());
+}
+
 Answer assess_board(const Rows &board) {
     for (int ro = 0; ro < 8; ++ro) {
         for (int co = 0; co < 8; ++co) {
+            const Coord coord{ro, co};
+
             switch (board[ro][co]) {
             case 'P':
-                if (check_by_white_pawn(board, {ro, co})) {
+                if (check_by_white_pawn(board, coord))
                     return Answer::BLACK_IN_CHECK;
-                }
                 break;
             case 'p':
-                if (check_by_black_pawn(board, {ro, co})) {
+                if (check_by_black_pawn(board, coord))
                     return Answer::WHITE_IN_CHECK;
-                }
                 break;
             case 'N':
-                if (check_by_knight(board, 'k', {ro, co})) {
+                if (check_by_knight(board, 'k', coord))
                     return Answer::BLACK_IN_CHECK;
-                }
                 break;
             case 'n':
-                if (check_by_knight(board, 'K', {ro, co})) {
+                if (check_by_knight(board, 'K', coord))
                     return Answer::WHITE_IN_CHECK;
-                }
+                break;
+            case 'R':
+                if (check_by_long_ranger(board, 'k', coord,
+                                         straight_directions()))
+                    return Answer::BLACK_IN_CHECK;
+                break;
+            case 'r':
+                if (check_by_long_ranger(board, 'K', coord,
+                                         straight_directions()))
+                    return Answer::WHITE_IN_CHECK;
+                break;
+            case 'B':
+                if (check_by_long_ranger(board, 'k', coord,
+                                         diagonal_directions()))
+                    return Answer::BLACK_IN_CHECK;
+                break;
+            case 'b':
+                if (check_by_long_ranger(board, 'K', coord,
+                                         diagonal_directions()))
+                    return Answer::WHITE_IN_CHECK;
+                break;
+            case 'Q':
+                if (check_by_long_ranger(board, 'k', coord, all_directions()))
+                    return Answer::BLACK_IN_CHECK;
+                break;
+            case 'q':
+                if (check_by_long_ranger(board, 'K', coord, all_directions()))
+                    return Answer::WHITE_IN_CHECK;
                 break;
             }
         }
@@ -152,13 +189,8 @@ int main() {
         }
     }
 
-    for (const auto &board : boards) {
-        cout << board << '\n';
-    }
-
     for (int i = 0; i < sz(boards); ++i) {
-        if (i) cout << '\n';
-        cout << format_answer(i + 1, assess_board(boards[i]));
+        cout << format_answer(i + 1, assess_board(boards[i])) << '\n';
     }
     return 0;
 }
