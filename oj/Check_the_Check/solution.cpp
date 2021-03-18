@@ -87,17 +87,22 @@ bool is_at(const Rows &board, const Coord &coord, const char piece) {
     return board[c_ro(coord)][c_co(coord)] == piece;
 }
 
-bool check_by_black_pawn(const Rows &board, const Coord &coord) {
-    return is_at(board, coord + Coord{1, -1}, 'K') ||
-           is_at(board, coord + Coord{1, 1}, 'K');
-}
-
 bool check_by_white_pawn(const Rows &board, const Coord &coord) {
     return is_at(board, coord + Coord{-1, -1}, 'k') ||
            is_at(board, coord + Coord{-1, 1}, 'k');
 }
 
+bool check_by_black_pawn(const Rows &board, const Coord &coord) {
+    return is_at(board, coord + Coord{1, -1}, 'K') ||
+           is_at(board, coord + Coord{1, 1}, 'K');
+}
+
 bool check_by_knight(const Rows &board, const char king, const Coord &coord) {
+    const vector<Coord> deltas{{-1, -2}, {-2, -1}, {-2, 1}, {-1, 2},
+                                 {1, -2}, {2, -1}, {2, 1}, {1, 2}};
+    for (const auto &d : deltas) {
+        if (is_at(board, coord + d, king)) return true;
+    }
     return false;
 }
 
@@ -105,14 +110,24 @@ Answer assess_board(const Rows &board) {
     for (int ro = 0; ro < 8; ++ro) {
         for (int co = 0; co < 8; ++co) {
             switch (board[ro][co]) {
+            case 'P':
+                if (check_by_white_pawn(board, {ro, co})) {
+                    return Answer::BLACK_IN_CHECK;
+                }
+                break;
             case 'p':
                 if (check_by_black_pawn(board, {ro, co})) {
                     return Answer::WHITE_IN_CHECK;
                 }
                 break;
-            case 'P':
-                if (check_by_white_pawn(board, {ro, co})) {
+            case 'N':
+                if (check_by_knight(board, 'k', {ro, co})) {
                     return Answer::BLACK_IN_CHECK;
+                }
+                break;
+            case 'n':
+                if (check_by_knight(board, 'K', {ro, co})) {
+                    return Answer::WHITE_IN_CHECK;
                 }
                 break;
             }
