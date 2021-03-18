@@ -11,6 +11,15 @@ enum class Answer { WHITE_IN_CHECK, BLACK_IN_CHECK, NONE_IN_CHECK };
 
 using Row = array<char, 8>;
 using Rows = array<Row, 8>;
+using Coord = pair<int, int>;
+
+constexpr int c_ro(const Coord &coord) { return coord.first; }
+constexpr int c_co(const Coord &coord) { return coord.second; }
+
+template <typename T>
+constexpr pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
+    return {lhs.first + rhs.first, lhs.second + rhs.second};
+}
 
 ostream &operator<<(ostream &os, const Row &xs) {
     os << '[';
@@ -71,7 +80,47 @@ string format_answer(const int game, const Answer answer) {
     return ss.str();
 }
 
-Answer assess_position(const Rows &board) { return Answer::NONE_IN_CHECK; }
+bool is_at(const Rows &board, const Coord &coord, const char piece) {
+    if (c_ro(coord) < 0 || c_ro(coord) >= 8 || c_co(coord) < 0 ||
+        c_co(coord) >= 8)
+        return false;
+    return board[c_ro(coord)][c_co(coord)] == piece;
+}
+
+bool check_by_black_pawn(const Rows &board, const Coord &coord) {
+    return is_at(board, coord + Coord{1, -1}, 'K') ||
+           is_at(board, coord + Coord{1, 1}, 'K');
+}
+
+bool check_by_white_pawn(const Rows &board, const Coord &coord) {
+    return is_at(board, coord + Coord{-1, -1}, 'k') ||
+           is_at(board, coord + Coord{-1, 1}, 'k');
+}
+
+bool check_by_knight(const Rows &board, const char king, const Coord &coord) {
+    return false;
+}
+
+Answer assess_board(const Rows &board) {
+    for (int ro = 0; ro < 8; ++ro) {
+        for (int co = 0; co < 8; ++co) {
+            switch (board[ro][co]) {
+            case 'p':
+                if (check_by_black_pawn(board, {ro, co})) {
+                    return Answer::WHITE_IN_CHECK;
+                }
+                break;
+            case 'P':
+                if (check_by_white_pawn(board, {ro, co})) {
+                    return Answer::BLACK_IN_CHECK;
+                }
+                break;
+            }
+        }
+    }
+
+    return Answer::NONE_IN_CHECK;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -94,7 +143,7 @@ int main() {
 
     for (int i = 0; i < sz(boards); ++i) {
         if (i) cout << '\n';
-        cout << format_answer(i + 1, assess_position(boards[i]));
+        cout << format_answer(i + 1, assess_board(boards[i]));
     }
     return 0;
 }
