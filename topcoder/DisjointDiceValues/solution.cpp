@@ -28,28 +28,24 @@ ll factorial(const ll x) {
     ll ans = 2;
     for (ll i = 3; i <= x; ++i) {
         ans *= i;
-        ans %= M;
     }
 
     return ans;
 }
 
 ll product_of_range(const ll a, const ll b) {
+    assert(a <= b);
     ll ans = 1;
-    for (ll x = a; x <= b; ++x) {
-        ans *= x;
-        ans %= M;
-    }
+    for (ll x = a; x <= b; ++x) ans *= x;
     return ans;
 }
 
 ll combinations(const ll n, const ll k) {
     assert(k <= n);
     const ll r = n - k;
-    const ll ans = r < k
-                       ? product_of_range(k + 1, n) * inv_mod(factorial(r), M)
-                       : product_of_range(r + 1, n) * inv_mod(factorial(k), M);
-    return ans % M;
+    const ll ans = r < k ? product_of_range(k + 1, n) / factorial(r)
+                         : product_of_range(r + 1, n) / factorial(k);
+    return ans;
 }
 
 struct DisjointDiceValues final {
