@@ -34,7 +34,6 @@ ll factorial(const ll x) {
 }
 
 ll product_of_range(const ll a, const ll b) {
-    assert(a <= b);
     ll ans = 1;
     for (ll x = a; x <= b; ++x) ans *= x;
     return ans;
@@ -48,8 +47,30 @@ ll combinations(const ll n, const ll k) {
     return ans;
 }
 
+ll mpow(const ll base, const ll exp) {
+    if (!exp) return 1;
+    if (exp % 2) return mpow(base, exp - 1);
+    const ll q = mpow(base, exp / 2);
+    return q * q;
+}
+
+double prob_at_least_one(const int dice_num) {
+    double ans = 0.0;
+
+    for (int n = 1; n <= dice_num; ++n) {
+        ans += doof(combinations(dice_num, n) * mpow(5, dice_num - n)) /
+               doof(mpow(6, dice_num));
+    }
+
+    return ans;
+}
+
 struct DisjointDiceValues final {
-    double getProbability(const int a, const int b) const { return 42; }
+    double getProbability(const int a, const int b) const {
+        cout << "a:" << a << " prob:" << prob_at_least_one(a) << '\n';
+        cout << "b:" << b << " prob:" << prob_at_least_one(b) << '\n';
+        return 6.0 * prob_at_least_one(a) * prob_at_least_one(b);
+    }
 };
 
 // clang-format off
