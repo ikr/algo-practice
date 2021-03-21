@@ -8,6 +8,22 @@ using pii = pair<int, int>;
 using vll = vector<ll>;
 using vvll = vector<vll>;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -21,6 +37,13 @@ template <typename T> constexpr double doof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 enum class Cov { NONE, X, H, V };
+
+ostream &operator<<(ostream &os, const Cov cov) {
+    const map<Cov, char> literals{
+        {Cov::NONE, '.'}, {Cov::X, 'X'}, {Cov::H, 'H'}, {Cov::V, 'V'}};
+    os << literals.at(cov);
+    return os;
+}
 
 using CovRowsConcat = vector<Cov>;
 using CovRows = vector<vector<Cov>>;
@@ -52,6 +75,7 @@ vector<CovRowsConcat> all_b_type_layouts(const int h, const int w,
 
 int backtrack_a_type_fills(const CovRows &rows, const int ro, const int co,
                            const int a) {
+    cout << rows << '\n';
     const int h = sz(rows);
     const int w = sz(rows[0]);
 
