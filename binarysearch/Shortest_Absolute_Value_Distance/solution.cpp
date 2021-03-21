@@ -6,7 +6,7 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 constexpr int INF = 1e9;
 
 using Coord = complex<int>;
-constexpr int row(const Coord coord) { return coord.real(); } 
+constexpr int row(const Coord coord) { return coord.real(); }
 constexpr int col(const Coord coord) { return coord.imag(); }
 
 struct q_less final {
@@ -20,6 +20,7 @@ struct q_less final {
 using Queue =
     priority_queue<pair<int, Coord>, vector<pair<int, Coord>>, q_less>;
 
+// Dijkstra's algorithm
 int solve(vvi &xss) {
     const int h = sz(xss);
     const int w = sz(xss[0]);
