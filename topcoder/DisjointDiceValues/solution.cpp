@@ -2,74 +2,56 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
+using Iter = vi::iterator;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll factorial(const ll x) {
-    assert(x >= 0);
-    if (x <= 1) return 1;
+bool next_tuple(const Iter first, const Iter last) {
+    if (first == last) return false;
 
-    ll ans = 2;
-    for (ll i = 3; i <= x; ++i) {
-        ans *= i;
+    if (*first < 6) {
+        ++(*first);
+        return true;
     }
 
-    return ans;
+    return next_tuple(next(first), last);
 }
 
-ll product_of_range(const ll a, const ll b) {
-    ll ans = 1;
-    for (ll x = a; x <= b; ++x) ans *= x;
-    return ans;
-}
+int distinct_num(const vi &xs) { return sz(set<int>(xs.cbegin(), xs.cend())); }
 
-ll combinations(const ll n, const ll k) {
-    assert(k <= n);
-    const ll r = n - k;
-    const ll ans = r < k ? product_of_range(k + 1, n) / factorial(r)
-                         : product_of_range(r + 1, n) / factorial(k);
-    return ans;
-}
-
-ll mpow(const ll base, const ll exp) {
+int mpow(const int base, const int exp) {
     if (!exp) return 1;
-    if (exp % 2) return mpow(base, exp - 1);
-    const ll q = mpow(base, exp / 2);
+    if (exp % 2) return base * mpow(base, exp - 1);
+    const int q = mpow(base, exp / 2);
     return q * q;
 }
 
-double prob_at_least_one(const int dice_num) {
-    double ans = 0.0;
-
-    for (int n = 1; n <= dice_num; ++n) {
-        ans += doof(combinations(dice_num, n) * mpow(5, dice_num - n)) /
-               doof(mpow(6, dice_num));
-    }
-
-    return ans;
+double prob_num_values_dont_occur(const int b, const int num) {
+    const double denom = mpow(6, b);
+    const double numer = mpow(6 - num, b);
+    return numer / denom;
 }
 
 struct DisjointDiceValues final {
     double getProbability(const int a, const int b) const {
-        cout << "a:" << a << " prob:" << prob_at_least_one(a) << '\n';
-        cout << "b:" << b << " prob:" << prob_at_least_one(b) << '\n';
-        return 6.0 * prob_at_least_one(a) * prob_at_least_one(b);
+        if (a > b) return getProbability(b, a);
+
+        double ans = 0.0;
+        const double denom = mpow(6, a);
+        vi xs(a, 1);
+
+        do {
+            ans +=
+                (1.0 - prob_num_values_dont_occur(b, distinct_num(xs))) / denom;
+        } while (next_tuple(begin(xs), end(xs)));
+
+        cout << "ans:" << ans << endl;
+        return ans;
     }
 };
 
@@ -78,22 +60,22 @@ const lest::test tests[] = {
     CASE("Example 0") {
         const auto actual = DisjointDiceValues{}.getProbability(1, 1);
         const auto expected =  0.16666666666666663;
-        EXPECT(abs(actual - expected) < 0.0000001);
+        EXPECT(abs(actual - expected) < 0.000001);
     },
     CASE("Example 1") {
         const auto actual = DisjointDiceValues{}.getProbability(4, 1);
         const auto expected = 0.5177469135802468;
-        EXPECT(abs(actual - expected) < 0.0000001);
+        EXPECT(abs(actual - expected) < 0.000001);
     },
     CASE("Example 2") {
         const auto actual = DisjointDiceValues{}.getProbability(1, 4);
         const auto expected = 0.5177469135802468;
-        EXPECT(abs(actual - expected) < 0.0000001);
+        EXPECT(abs(actual - expected) < 0.000001);
     },
     CASE("Example 3") {
         const auto actual = DisjointDiceValues{}.getProbability(3, 3);
         const auto expected = 0.7910236625514401;
-        EXPECT(abs(actual - expected) < 0.0000001);
+        EXPECT(abs(actual - expected) < 0.000001);
     },
 };
 // clang-format on
