@@ -81,6 +81,11 @@ const lest::test tests[] = {
         const auto expected = 0.7910236625514401;
         EXPECT(abs(actual - expected) < 0.000001);
     },
+    CASE("Example A") {
+        const auto actual = DisjointDiceValues{}.getProbability(8, 8);
+        const auto expected = 0.999585;
+        EXPECT(abs(actual - expected) < 0.000001);
+    },
 };
 // clang-format on
 
