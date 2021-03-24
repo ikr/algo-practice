@@ -19,7 +19,12 @@ bool next_tuple(const Iter first, const Iter last) {
         return true;
     }
 
-    return next_tuple(next(first), last);
+    if (next_tuple(next(first), last)) {
+        *first = 1;
+        return true;
+    }
+
+    return false;
 }
 
 int distinct_num(const vi &xs) { return sz(set<int>(xs.cbegin(), xs.cend())); }
@@ -37,16 +42,6 @@ double prob_num_values_dont_occur(const int b, const int num) {
     return numer / denom;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 struct DisjointDiceValues final {
     double getProbability(const int a, const int b) const {
         if (a > b) return getProbability(b, a);
@@ -56,12 +51,10 @@ struct DisjointDiceValues final {
         vi xs(a, 1);
 
         do {
-            cout << xs << endl;
             ans +=
                 (1.0 - prob_num_values_dont_occur(b, distinct_num(xs))) / denom;
         } while (next_tuple(begin(xs), end(xs)));
 
-        cout << "ans:" << ans << endl;
         return ans;
     }
 };
