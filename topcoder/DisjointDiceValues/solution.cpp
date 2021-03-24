@@ -42,25 +42,20 @@ int mpow(const int base, const int exp) {
     return q * q;
 }
 
-double prob_num_values_dont_occur(const int b, const int num) {
-    const double denom = mpow(6, b);
-    const double numer = mpow(6 - num, b);
-    return numer / denom;
-}
-
 struct DisjointDiceValues final {
     double getProbability(const int a, const int b) const {
         if (a > b) return getProbability(b, a);
 
         double ans = 0.0;
-        const double denom = mpow(6, a);
+        const double denom_a = mpow(6, a);
+        const double denom_b = mpow(6, b);
         vi xs(a, 1);
 
         do {
-            ans += (1.0 - prob_num_values_dont_occur(b, distinct_num(xs)));
+            ans += denom_b - mpow(6 - distinct_num(xs), b);
         } while (next_tuple(begin(xs), end(xs)));
 
-        return ans / denom;
+        return ans / (denom_b * denom_a);
     }
 };
 
