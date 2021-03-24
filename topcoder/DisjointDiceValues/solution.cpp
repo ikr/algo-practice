@@ -27,7 +27,13 @@ bool next_tuple(const Iter first, const Iter last) {
     return false;
 }
 
-int distinct_num(const vi &xs) { return sz(set<int>(xs.cbegin(), xs.cend())); }
+int distinct_num(const vi &xs) {
+    int bits = 0;
+    for (const int x : xs) {
+        bits |= (1 << x);
+    }
+    return __builtin_popcount(bits);
+}
 
 int mpow(const int base, const int exp) {
     if (!exp) return 1;
