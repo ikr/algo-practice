@@ -57,11 +57,10 @@ struct DisjointDiceValues final {
         vi xs(a, 1);
 
         do {
-            ans +=
-                (1.0 - prob_num_values_dont_occur(b, distinct_num(xs))) / denom;
+            ans += (1.0 - prob_num_values_dont_occur(b, distinct_num(xs)));
         } while (next_tuple(begin(xs), end(xs)));
 
-        return ans;
+        return ans / denom;
     }
 };
 
