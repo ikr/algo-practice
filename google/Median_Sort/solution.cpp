@@ -30,8 +30,13 @@ int query(const Tri ijk, int &Q, map<Tri, int> &memo) {
     int ans;
     cin >> ans;
     --Q;
-    memo[ijk] = ans;
-    memo[Tri{k, i, j}] = ans;
+
+    vi p{i, j, k};
+    sort(begin(p), end(p));
+    do {
+        memo[Tri{p[0], p[1], p[2]}] = ans;
+    } while (next_permutation(begin(p), end(p)));
+
     return ans;
 }
 
