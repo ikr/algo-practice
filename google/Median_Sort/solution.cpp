@@ -18,7 +18,11 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-int query(const tuple<int, int, int> ijk, int &Q) {
+using Tri = tuple<int, int, int>;
+
+int query(const Tri ijk, int &Q, map<Tri, int> &memo) {
+    if (memo.count(ijk)) return memo.at(ijk);
+
     assert(Q > 0);
     const auto [i, j, k] = ijk;
     cout << i << ' ' << j << ' ' << k << endl;
@@ -26,12 +30,15 @@ int query(const tuple<int, int, int> ijk, int &Q) {
     int ans;
     cin >> ans;
     --Q;
+    memo[ijk] = ans;
+    memo[Tri{k, i, j}] = ans;
     return ans;
 }
 
 using Iter = vi::const_iterator;
 
-bool is_first_edge(const Iter first, const Iter last, const Iter x, int &Q) {
+bool is_first_edge(const Iter first, const Iter last, const Iter x, int &Q,
+                   map<Tri, int> &memo) {
     assert(x != last);
     assert(distance(first, last) > 2);
 
@@ -39,7 +46,7 @@ bool is_first_edge(const Iter first, const Iter last, const Iter x, int &Q) {
         for (auto jt = next(it); jt != last; ++jt) {
             if (it == x || jt == x) continue;
 
-            const auto mid = query({*it, *x, *jt}, Q);
+            const auto mid = query({*it, *x, *jt}, Q, memo);
             if (mid == *x) return false;
         }
     }
@@ -48,21 +55,21 @@ bool is_first_edge(const Iter first, const Iter last, const Iter x, int &Q) {
 }
 
 bool is_second_edge(const Iter first, const Iter last, const Iter x0,
-                    const Iter x, int &Q) {
+                    const Iter x, int &Q, map<Tri, int> &memo) {
     assert(x != last);
     assert(x != x0);
     assert(distance(first, last) > 2);
 
     for (auto it = first; it != last; ++it) {
         if (it == x0 || it == x) continue;
-        const auto mid = query({*x0, *x, *it}, Q);
+        const auto mid = query({*x0, *x, *it}, Q, memo);
         if (mid == *x) return false;
     }
 
     return true;
 }
 
-vi extract_edge(vi &xs, int &Q) {
+vi extract_edge(vi &xs, int &Q, map<Tri, int> &memo) {
     if (sz(xs) < 3) {
         vi ans = xs;
         xs.clear();
@@ -72,11 +79,11 @@ vi extract_edge(vi &xs, int &Q) {
     vector<Iter> its;
     for (auto it = cbegin(xs); it != cend(xs); ++it) {
         if (its.empty()) {
-            if (is_first_edge(cbegin(xs), cend(xs), it, Q)) {
+            if (is_first_edge(cbegin(xs), cend(xs), it, Q, memo)) {
                 its.push_back(it);
             }
         } else {
-            if (is_second_edge(cbegin(xs), cend(xs), its[0], it, Q)) {
+            if (is_second_edge(cbegin(xs), cend(xs), its[0], it, Q, memo)) {
                 its.push_back(it);
                 break;
             }
@@ -103,21 +110,22 @@ vi join(vi head, vi tail) {
     return head;
 }
 
-pii orient(const pii curr_edge, const pii new_edge, int &Q) {
+pii orient(const pii curr_edge, const pii new_edge, int &Q,
+           map<Tri, int> &memo) {
     const auto [a, b] = curr_edge;
     const auto [c, d] = new_edge;
 
-    return (query({a, c, d}, Q) == c) ? pii{c, d} : pii{d, c};
+    return (query({a, c, d}, Q, memo) == c) ? pii{c, d} : pii{d, c};
 }
 
-vi derive_order(const int N, int &Q) {
+vi derive_order(const int N, int &Q, map<Tri, int> &memo) {
     vi head;
     vi tail;
 
     vi xs = one_to(N);
     while (!xs.empty()) {
         if (!Q) return one_to(N);
-        const auto e = extract_edge(xs, Q);
+        const auto e = extract_edge(xs, Q, memo);
 
         if (sz(e) == 1) {
             assert(!head.empty());
@@ -131,7 +139,7 @@ vi derive_order(const int N, int &Q) {
                 if (!Q) return one_to(N);
 
                 const auto [c, d] =
-                    orient({head.back(), tail.back()}, {e[0], e[1]}, Q);
+                    orient({head.back(), tail.back()}, {e[0], e[1]}, Q, memo);
                 head.push_back(c);
                 tail.push_back(d);
             }
@@ -150,7 +158,8 @@ int main() {
     cin >> T >> N >> Q;
 
     while (T--) {
-        cout << derive_order(N, Q) << endl;
+        map<Tri, int> memo;
+        cout << derive_order(N, Q, memo) << endl;
         int verdict;
         cin >> verdict;
     }
