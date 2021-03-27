@@ -29,6 +29,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int query(const tuple<int, int, int> ijk, int &Q) {
+    assert(Q > 0);
     const auto [i, j, k] = ijk;
     cout << i << ' ' << j << ' ' << k << endl;
 
@@ -40,7 +41,7 @@ int query(const tuple<int, int, int> ijk, int &Q) {
 
 using Iter = vi::const_iterator;
 
-bool is_edge(const Iter first, const Iter last, const Iter x, int &Q) {
+bool is_first_edge(const Iter first, const Iter last, const Iter x, int &Q) {
     assert(x != last);
     assert(distance(first, last) > 2);
 
@@ -56,6 +57,21 @@ bool is_edge(const Iter first, const Iter last, const Iter x, int &Q) {
     return true;
 }
 
+bool is_second_edge(const Iter first, const Iter last, const Iter x0,
+                    const Iter x, int &Q) {
+    assert(x != last);
+    assert(x != x0);
+    assert(distance(first, last) > 2);
+
+    for (auto it = first; it != last; ++it) {
+        if (it == x0 || it == x) continue;
+        const auto mid = query({*x0, *x, *it}, Q);
+        if (mid == *x) return false;
+    }
+
+    return true;
+}
+
 vi extract_edge(vi &xs, int &Q) {
     if (sz(xs) < 3) {
         vi ans = xs;
@@ -65,8 +81,14 @@ vi extract_edge(vi &xs, int &Q) {
 
     vector<Iter> its;
     for (auto it = cbegin(xs); it != cend(xs); ++it) {
-        if (is_edge(cbegin(xs), cend(xs), it, Q)) {
-            its.push_back(it);
+        if (its.empty()) {
+            if (is_first_edge(cbegin(xs), cend(xs), it, Q)) {
+                its.push_back(it);
+            }
+        } else {
+            if (is_second_edge(cbegin(xs), cend(xs), its[0], it, Q)) {
+                its.push_back(it);
+            }
         }
     }
 
