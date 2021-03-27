@@ -128,6 +128,11 @@ vi derive_order(const int N, int &Q, map<Tri, int> &memo) {
     vi tail;
 
     vi xs = one_to(N);
+
+    random_device rd;
+    mt19937 g(rd());
+    shuffle(begin(xs), end(xs), g);
+
     while (!xs.empty()) {
         if (!Q) return one_to(N);
         const auto e = extract_edge(xs, Q, memo);
