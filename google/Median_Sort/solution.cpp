@@ -96,13 +96,9 @@ vi extract_edge(vi &xs, int &Q) {
     assert(sz(its) == 2);
     sort(begin(its), end(its));
 
-    cerr << "xs: [" << xs << ']' << endl;
-    cerr << "will erase " << *its[0] << ' ' << *its[1] << endl;
-
     vi ans{*its[0], *its[1]};
     xs.erase(its[1]);
     xs.erase(its[0]);
-    cerr << "xs: [" << xs << ']' << endl;
     return ans;
 }
 
@@ -121,9 +117,6 @@ pii orient(const pii curr_edge, const pii new_edge, int &Q) {
     const auto [a, b] = curr_edge;
     const auto [c, d] = new_edge;
 
-    assert(query({a, c, b}, Q) == c);
-    assert(query({a, d, b}, Q) == d);
-
     return (query({a, c, d}, Q) == c) ? pii{c, d} : pii{d, c};
 }
 
@@ -135,7 +128,6 @@ vi derive_order(const int N, int &Q) {
     while (!xs.empty()) {
         if (!Q) return one_to(N);
         const auto e = extract_edge(xs, Q);
-        cerr << "e: [" << e << ']' << endl;
 
         if (sz(e) == 1) {
             assert(!head.empty());
@@ -156,7 +148,6 @@ vi derive_order(const int N, int &Q) {
         }
     }
 
-    cerr << "ans: [" << join(head, tail) << ']' << endl;
     return join(head, tail);
 }
 
@@ -170,6 +161,8 @@ int main() {
 
     while (T--) {
         cout << derive_order(N, Q) << endl;
+        int verdict;
+        cin >> verdict;
     }
 
     return 0;
