@@ -88,12 +88,16 @@ vi extract_edge(vi &xs, int &Q) {
         } else {
             if (is_second_edge(cbegin(xs), cend(xs), its[0], it, Q)) {
                 its.push_back(it);
+                break;
             }
         }
     }
 
     assert(sz(its) == 2);
     sort(begin(its), end(its));
+
+    cerr << "xs: [" << xs << ']' << endl;
+    cerr << "will erase " << *its[0] << ' ' << *its[1] << endl;
 
     vi ans{*its[0], *its[1]};
     xs.erase(its[1]);
