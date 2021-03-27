@@ -76,6 +76,7 @@ vi extract_edge(vi &xs, int &Q) {
     vi ans{*its[0], *its[1]};
     xs.erase(its[1]);
     xs.erase(its[0]);
+    cerr << "xs: [" << xs << ']' << endl;
     return ans;
 }
 
@@ -94,8 +95,10 @@ pii orient(const pii curr_edge, const pii new_edge, int &Q) {
     const auto [a, b] = curr_edge;
     const auto [c, d] = new_edge;
 
-    const auto mid = query({a, c, d}, Q);
-    return mid == c ? pii{c, d} : pii{d, c};
+    assert(query({a, c, b}, Q) == c);
+    assert(query({a, d, b}, Q) == d);
+
+    return (query({a, c, d}, Q) == c) ? pii{c, d} : pii{d, c};
 }
 
 vi derive_order(const int N, int &Q) {
@@ -106,8 +109,10 @@ vi derive_order(const int N, int &Q) {
     while (!xs.empty()) {
         if (!Q) return one_to(N);
         const auto e = extract_edge(xs, Q);
+        cerr << "e: [" << e << ']' << endl;
 
         if (sz(e) == 1) {
+            assert(!head.empty());
             head.push_back(e[0]);
         } else {
             if (head.empty()) {
@@ -125,7 +130,7 @@ vi derive_order(const int N, int &Q) {
         }
     }
 
-    cerr << join(head, tail) << endl;
+    cerr << "ans: [" << join(head, tail) << ']' << endl;
     return join(head, tail);
 }
 
