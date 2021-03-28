@@ -1,6 +1,4 @@
-#include <algorithm>
 #include <bits/stdc++.h>
-#include <iterator>
 using namespace std;
 
 using vi = vector<int>;
@@ -20,15 +18,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-using Tri = tuple<int, int, int>;
-
-ostream &operator<<(ostream &os, const Tri &x) {
-    const auto [i, j, k] = x;
-    os << '(' << i << ' ' << j << ' ' << k << ')';
-    return os;
-}
-
-int query(const Tri ijk, int &Q) {
+int query(const tuple<int, int, int> ijk, int &Q) {
     assert(Q > 0);
 
     const auto [i, j, k] = ijk;
@@ -42,69 +32,71 @@ int query(const Tri ijk, int &Q) {
     return ans;
 }
 
-using Iter = vi::const_iterator;
-
 vi one_to(const int N) {
     vi ans(N);
     iota(begin(ans), end(ans), 1);
     return ans;
 }
 
-pair<Iter, Iter> edges(const pii bounds, const pair<Iter, Iter> range, int &Q) {
-    const auto [first, last] = range;
-    assert(distance(first, last) > 1);
-    pair<Iter, Iter> ans{first, next(first)};
-
-    if (bounds.first) {
-        if (query({bounds.first, *ans.first, *ans.second}, Q) != *ans.first) {
-            swap(ans.first, ans.second);
+tuple<pii, vi, vi, vi> partition_around_first_two(const pii bounds,
+                                                  const vi &xs, int &Q) {
+    assert(sz(xs) > 1);
+    const auto [a, b] = [bounds, &xs, &Q]() -> pii {
+        if (bounds.first) {
+            if (query({bounds.first, xs[0], xs[1]}, Q) != xs[0]) {
+                return {xs[1], xs[0]};
+            }
+        } else if (bounds.second) {
+            if (query({xs[0], xs[1], bounds.second}, Q) != xs[1]) {
+                return {xs[1], xs[0]};
+            }
         }
-    } else if (bounds.second) {
-        if (query({*ans.first, *ans.second, bounds.second}, Q) != *ans.second) {
-            swap(ans.first, ans.second);
+
+        return {xs[0], xs[1]};
+    }();
+
+    vi prefix;
+    vi infix;
+    vi suffix;
+
+    for (const int x : xs) {
+        if (x == a || x == b) continue;
+
+        const auto mid = query({a, b, x}, Q);
+        if (mid == a) {
+            prefix.push_back(x);
+        } else if (mid == b) {
+            suffix.push_back(x);
+        } else {
+            assert(mid == x);
+            infix.push_back(x);
         }
     }
 
-    for (auto it = first; it != last; ++it) {
-        if (it == ans.first || it == ans.second) continue;
-
-        const auto mid = query({*ans.first, *ans.second, *it}, Q);
-        if (mid == *ans.first) {
-            ans.first = it;
-        } else if (mid == *ans.second) {
-            ans.second = it;
-        }
-    }
-
-    return ans;
+    return {{a, b}, prefix, infix, suffix};
 }
 
-vi concat(vi xs, const vi &ys, const vi &zs) {
+vi concat(vi xs, const int a, const vi &ys, const int b, const vi &zs) {
+    xs.push_back(a);
     xs.insert(cend(xs), cbegin(ys), cend(ys));
+    xs.push_back(b);
     xs.insert(cend(xs), cbegin(zs), cend(zs));
     return xs;
 }
 
-vi med_sort(const pii bounds, const pair<Iter, Iter> range, int &Q) {
-    const auto [first, last] = range;
-    if (distance(first, last) < 2) return vi(first, last);
+vi median_sort(const pii bounds, const vi &xs, int &Q) {
+    if (sz(xs) < 2) return xs;
 
-    const auto [it, jt] = edges(bounds, range, Q);
-    assert(it != last);
-    assert(jt != last);
-    assert(distance(it, jt) > 0);
+    const auto [ab, prefix, infix, suffix] =
+        partition_around_first_two(bounds, xs, Q);
 
-    const int a = *it;
-    const int b = *jt;
-
-    return concat(med_sort({bounds.first, a}, {first, it}, Q),
-                  med_sort({a, b}, {next(it), jt}, Q),
-                  med_sort({b, bounds.second}, {next(jt), last}, Q));
+    return concat(median_sort({bounds.first, ab.first}, prefix, Q), ab.first,
+                  median_sort({ab.first, ab.second}, infix, Q), ab.second,
+                  median_sort({ab.second, bounds.second}, suffix, Q));
 }
 
 vi derive_order(const int N, int &Q) {
-    vi xs = one_to(N);
-    return med_sort({0, 0}, {cbegin(xs), cend(xs)}, Q);
+    return median_sort({0, 0}, one_to(N), Q);
 }
 
 int main() {
