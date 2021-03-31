@@ -39,7 +39,7 @@ struct MarriageAndChargingChallenge final {
         int ans = 0;
 
         for (int i = 0; i < sz(ps); ++i) {
-            ans += can_tour_from(len, ps, ts, i);
+            ans += can_tour_from(len, ps, ts, i) ? 1 : 0;
         }
 
         return ans;
