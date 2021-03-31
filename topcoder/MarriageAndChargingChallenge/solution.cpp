@@ -16,7 +16,7 @@ bool can_tour_from(const int len, const vi &ps, const vi &ts, const int i0) {
     };
 
     const auto cyc_dist = [&](const int x, const int y) {
-        return x <= y ? y - x : (len - x) + y;
+        return x < y ? y - x : (len - x) + y;
     };
 
     int i = i0;
@@ -39,7 +39,7 @@ struct MarriageAndChargingChallenge final {
         int ans = 0;
 
         for (int i = 0; i < sz(ps); ++i) {
-            ans += can_tour_from(len, ps, ts, i) ? 1 : 0;
+            ans += can_tour_from(len, ps, ts, i);
         }
 
         return ans;
@@ -56,6 +56,11 @@ const lest::test tests[] = {
     CASE("Example 1") {
         const auto actual = MarriageAndChargingChallenge{}.solve(1000, {0, 42}, {1234567, 47});
         const auto expected = 1;
+        EXPECT(actual == expected);
+    },
+    CASE("Example A") {
+        const auto actual = MarriageAndChargingChallenge{}.solve(2, {1}, {1});
+        const auto expected = 0;
         EXPECT(actual == expected);
     },
 };
