@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pii = pair<int, int>;
@@ -100,6 +116,7 @@ int mst_weight(const int n, const vvi &costs, const vector<pii> &edges) {
     for (const auto [ro, co] : edges) {
         if (!ans || !cs.same(ro, n + co)) {
             cs.merge(ro, n + co);
+            cerr << "reveal " << pii{ro, co} << endl;
             ans += costs[ro][co];
         }
     }
@@ -117,6 +134,7 @@ int total_weight(const vvi &costs, const vector<pii> &edges) {
 int solve(const vvi &src, const vvi &costs) {
     auto edges = gather_edges(src);
     sort_edges(costs, edges);
+    cerr << edges << endl;
     return total_weight(costs, edges) - mst_weight(sz(src), costs, edges);
 }
 
