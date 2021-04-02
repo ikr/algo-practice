@@ -41,7 +41,8 @@ string max_str(const string &xs) {
         if (idx[i].empty()) continue;
 
         const auto it = idx[i].upper_bound(top);
-        placement[i] = it == cend(idx[i]) ? *crbegin(idx[i]) : *it;
+        placement[i] = it == cend(idx[i]) ? *cbegin(idx[i]) : *it;
+        top = placement[i];
     }
 
     string ans = unique_chars(xs);
