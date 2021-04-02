@@ -45,8 +45,7 @@ string max_str(const string &xs) {
             const auto it = idx[i].upper_bound(placement[j]);
 
             if (it != cend(idx[i])) {
-                placement[i] = *it;
-                break;
+                placement[i] = max(placement[i], *it);
             }
         }
 
@@ -58,6 +57,7 @@ string max_str(const string &xs) {
         return placement[x - 'a'] < placement[y - 'a'];
     });
 
+    cerr << ans << '\n';
     return ans;
 }
 
@@ -65,6 +65,15 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
     cout << setprecision(9) << fixed;
+
+    assert(max_str("codeforces") == "odfrces");
+    assert(max_str("aezakmi") == "ezakmi");
+    assert(max_str("abacaba") == "cba");
+    assert(max_str("convexhull") == "convexhul");
+    assert(max_str("swflldjgpaxs") == "wfldjgpaxs");
+    assert(max_str("myneeocktxpqjpz") == "myneocktxqjpz");
+    assert(max_str("jpimokmwii") == "jpokmwi");
+    assert(max_str("gqeojmgfpguxiu") == "qeojmgfpxiu");
 
     int t;
     cin >> t;
