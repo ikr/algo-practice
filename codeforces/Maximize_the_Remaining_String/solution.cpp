@@ -37,12 +37,20 @@ string max_str(const string &xs) {
     const auto idx = letter_indices(xs);
 
     vi placement(26, -1);
-    for (int top = sz(xs), i = sz(idx) - 1; i >= 0; --i) {
+    for (int i = sz(idx) - 1; i >= 0; --i) {
         if (idx[i].empty()) continue;
 
-        const auto it = idx[i].upper_bound(top);
-        placement[i] = it == cend(idx[i]) ? *cbegin(idx[i]) : *it;
-        top = placement[i];
+        for (int j = i + 1; j < sz(idx); ++j) {
+            if (idx[j].empty()) continue;
+            const auto it = idx[i].upper_bound(placement[j]);
+
+            if (it != cend(idx[i])) {
+                placement[i] = *it;
+                break;
+            }
+        }
+
+        if (placement[i] == -1) placement[i] = *cbegin(idx[i]);
     }
 
     string ans = unique_chars(xs);
