@@ -33,6 +33,12 @@ vector<set<int>> letter_indices(const string &xs) {
     return ans;
 }
 
+template <typename T>
+T immediately_under(const set<T> &xs, const T &x, const T &when_missing) {
+    auto it = xs.lower_bound(x);
+    return it == xs.cbegin() ? when_missing : *(--it);
+}
+
 string max_str(const string &xs) {
     const auto idx = letter_indices(xs);
 
@@ -46,6 +52,19 @@ string max_str(const string &xs) {
 
             if (it != cend(idx[i])) {
                 placement[i] = max(placement[i], *it);
+            }
+        }
+
+        if (placement[i] != -1) {
+            for (int j = i - 1; j >= 0; --j) {
+                if (idx[j].empty()) continue;
+                const int other_hi = *prev(cend(idx[j]));
+                const int my_lo = *cbegin(idx[i]);
+
+                if (my_lo < other_hi && placement[i] > other_hi) {
+                    placement[i] = immediately_under(idx[i], other_hi, -2);
+                    assert(placement[i] != -2);
+                }
             }
         }
 
