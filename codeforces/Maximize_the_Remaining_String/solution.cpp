@@ -1,83 +1,64 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-string unique_chars(const string &xs) {
-    set<char> xss(cbegin(xs), cend(xs));
-    string ans(sz(xss), ' ');
-    copy(cbegin(xss), cend(xss), begin(ans));
+vector<bool> present_chars(const string &xs) {
+    vector<bool> ans(26, false);
+    for (const char x : xs) ans[x - 'a'] = true;
     return ans;
 }
 
-vector<set<int>> letter_indices(const string &xs) {
-    vector<set<int>> ans(26);
-    for (int i = 0; i < sz(xs); ++i) ans[xs[i] - 'a'].insert(i);
-    return ans;
-}
+vector<pii> letter_index_ranges(const string &xs) {
+    vector<pii> ans(26, {INT_MAX, -1});
 
-template <typename T>
-T immediately_under(const set<T> &xs, const T &x, const T &when_missing) {
-    auto it = xs.lower_bound(x);
-    return it == xs.cbegin() ? when_missing : *(--it);
+    for (int i = 0; i < sz(xs); ++i) {
+        auto &[lo, hi] = ans[xs[i] - 'a'];
+        lo = min(lo, i);
+        hi = max(hi, i);
+    }
+
+    return ans;
 }
 
 string max_str(const string &xs) {
-    const auto idx = letter_indices(xs);
+    auto present = present_chars(xs);
+    auto ranges = letter_index_ranges(xs);
 
-    vi placement(26, -1);
-    for (int i = sz(idx) - 1; i >= 0; --i) {
-        if (idx[i].empty()) continue;
+    const auto count_present = [&]() -> int {
+        return inof(count(cbegin(present), cend(present), true));
+    };
 
-        for (int j = i + 1; j < sz(idx); ++j) {
-            if (idx[j].empty()) continue;
-            const auto it = idx[i].upper_bound(placement[j]);
+    const auto can_be_first = [&](const char x) -> bool {
+        if (!present[x - 'a']) return false;
+        if (count_present() == 1) return true;
 
-            if (it != cend(idx[i])) {
-                placement[i] = max(placement[i], *it);
-            }
+        const auto [my_lo, my_hi] = ranges[x];
+        for (int i = 0; i < sz(present); ++i) {
+            if (i == x) continue;
+
+            const auto [_, their_hi] = ranges[i];
+            if (my_lo > their_hi) return false;
         }
 
-        if (placement[i] != -1) {
-            for (int j = i - 1; j >= 0; --j) {
-                if (idx[j].empty()) continue;
-                const int other_hi = *prev(cend(idx[j]));
-                const int my_lo = *cbegin(idx[i]);
+        return true;
+    };
 
-                if (my_lo < other_hi && placement[i] > other_hi) {
-                    placement[i] = immediately_under(idx[i], other_hi, -2);
-                    assert(placement[i] != -2);
-                }
-            }
+    const auto best_first = [&]() -> char {
+        for (char x = 'z'; x >= 'a'; --x) {
+            if (can_be_first(x)) return x;
         }
 
-        if (placement[i] == -1) placement[i] = *cbegin(idx[i]);
-    }
-
-    string ans = unique_chars(xs);
-    sort(begin(ans), end(ans), [&placement](const char x, const char y) {
-        return placement[x - 'a'] < placement[y - 'a'];
-    });
-
-    cerr << ans << '\n';
-    return ans;
+        assert(false && "/o\\");
+        return ' ';
+    };
 }
 
 int main() {
