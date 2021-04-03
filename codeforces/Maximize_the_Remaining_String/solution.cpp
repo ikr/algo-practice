@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using vi = vector<int>;
 using pii = pair<int, int>;
 
@@ -32,24 +16,35 @@ vector<bool> present_chars(const string &xs) {
     return ans;
 }
 
-vector<pii> letter_index_ranges(const string &xs) {
-    vector<pii> ans(26, {INT_MAX, -1});
+vector<set<int>> letter_indices(const string &xs) {
+    vector<set<int>> ans(26);
+    for (int i = 0; i < sz(xs); ++i) ans[xs[i] - 'a'].insert(i);
+    return ans;
+}
 
-    for (int i = 0; i < sz(xs); ++i) {
-        auto &[lo, hi] = ans[xs[i] - 'a'];
-        lo = min(lo, i);
-        hi = max(hi, i);
-    }
+vector<pii> gather_ranges(const vector<set<int>> &idx) {
+    vector<pii> ans(sz(idx));
+
+    transform(cbegin(idx), cend(idx), begin(ans), [](const auto &xss) {
+        return xss.empty() ? pii{INT_MAX, -1}
+                           : pii{*cbegin(xss), *crbegin(xss)};
+    });
 
     return ans;
 }
 
 string max_str(const string &xs) {
+    const auto idx = letter_indices(xs);
     auto present = present_chars(xs);
-    auto ranges = letter_index_ranges(xs);
+    auto ranges = gather_ranges(idx);
 
     const auto count_present = [&]() -> int {
         return inof(count(cbegin(present), cend(present), true));
+    };
+
+    const auto next_index = [&](const char x, const int i) -> int {
+        const auto it = idx[x - 'a'].upper_bound(i);
+        return it == cend(idx[x - 'a']) ? -1 : *it;
     };
 
     const auto can_be_first = [&](const char x) -> bool {
@@ -80,8 +75,14 @@ string max_str(const string &xs) {
 
     while (count_present() > 0) {
         const char x = best_first();
+        const int cut = ranges[x - 'a'].first;
         ans += x;
         present[x - 'a'] = false;
+
+        for (char y = 'a'; y <= 'z'; ++y) {
+            if (!present[y - 'a']) continue;
+            ranges[y - 'a'].first = next_index(y, cut);
+        }
     }
 
     return ans;
@@ -92,14 +93,14 @@ int main() {
     cin.exceptions(cin.failbit);
     cout << setprecision(9) << fixed;
 
-    assert(max_str("codeforces") == "odfrces");
-    assert(max_str("aezakmi") == "ezakmi");
-    assert(max_str("abacaba") == "cba");
-    assert(max_str("convexhull") == "convexhul");
-    assert(max_str("swflldjgpaxs") == "wfldjgpaxs");
-    assert(max_str("myneeocktxpqjpz") == "myneocktxqjpz");
-    assert(max_str("jpimokmwii") == "jpokmwi");
-    assert(max_str("gqeojmgfpguxiu") == "qeojmgfpxiu");
+    // assert(max_str("codeforces") == "odfrces");
+    // assert(max_str("aezakmi") == "ezakmi");
+    // assert(max_str("abacaba") == "cba");
+    // assert(max_str("convexhull") == "convexhul");
+    // assert(max_str("swflldjgpaxs") == "wfldjgpaxs");
+    // assert(max_str("myneeocktxpqjpz") == "myneocktxqjpz");
+    // assert(max_str("jpimokmwii") == "jpokmwi");
+    // assert(max_str("gqeojmgfpguxiu") == "qeojmgfpxiu");
 
     int t;
     cin >> t;
