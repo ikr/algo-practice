@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using vi = vector<int>;
 using pii = pair<int, int>;
 
@@ -40,9 +56,9 @@ string max_str(const string &xs) {
         if (!present[x - 'a']) return false;
         if (count_present() == 1) return true;
 
-        const auto [my_lo, my_hi] = ranges[x];
+        const auto [my_lo, my_hi] = ranges[x - 'a'];
         for (int i = 0; i < sz(present); ++i) {
-            if (i == x) continue;
+            if ('a' + i == x || !present[i]) continue;
 
             const auto [_, their_hi] = ranges[i];
             if (my_lo > their_hi) return false;
@@ -59,6 +75,16 @@ string max_str(const string &xs) {
         assert(false && "/o\\");
         return ' ';
     };
+
+    string ans;
+
+    while (count_present() > 0) {
+        const char x = best_first();
+        ans += x;
+        present[x - 'a'] = false;
+    }
+
+    return ans;
 }
 
 int main() {
