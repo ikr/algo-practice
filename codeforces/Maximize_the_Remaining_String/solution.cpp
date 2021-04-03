@@ -93,15 +93,6 @@ int main() {
     cin.exceptions(cin.failbit);
     cout << setprecision(9) << fixed;
 
-    // assert(max_str("codeforces") == "odfrces");
-    // assert(max_str("aezakmi") == "ezakmi");
-    // assert(max_str("abacaba") == "cba");
-    // assert(max_str("convexhull") == "convexhul");
-    // assert(max_str("swflldjgpaxs") == "wfldjgpaxs");
-    // assert(max_str("myneeocktxpqjpz") == "myneocktxqjpz");
-    // assert(max_str("jpimokmwii") == "jpokmwi");
-    // assert(max_str("gqeojmgfpguxiu") == "qeojmgfpxiu");
-
     int t;
     cin >> t;
     while (t--) {
