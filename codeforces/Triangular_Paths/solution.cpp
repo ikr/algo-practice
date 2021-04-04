@@ -24,23 +24,24 @@ int path_cost_of(const pii coord) {
     return (ro - co) / 2;
 }
 
-template <typename T> struct mmax final {
-    constexpr T operator()(const T &a, const T &b) const {
-        return std::max(a, b);
-    }
-};
-
-template <typename Iter, typename R, typename Binop, typename Unaop>
-R ttransform_reduce(Iter first, Iter last, R init, Binop binop, Unaop unaop) {
-    return inner_product(first, last, first, init, binop,
-                         [&unaop](const auto &x,
-                                  __attribute__((unused))
-                                  const auto &x_) { return unaop(x); });
-}
-
 int path_cost(const vector<pii> &coords) {
-    return ttransform_reduce(cbegin(coords), cend(coords), 0, mmax<int>{},
-                             path_cost_of);
+    int ans = 0;
+
+    for (auto it = cbegin(coords); it != cend(coords); ++it) {
+        const auto [ro, co] = *it;
+
+        const auto [dro, dco] = [&]() -> pii {
+            if (it == cbegin(coords)) return {0, 0};
+
+            const auto [src_ro, src_co] = *prev(it);
+            if ((src_ro + src_co) % 2 == 0) return {src_ro - 1, src_co - 1};
+            return {src_ro - 2, src_co - 1};
+        }();
+
+        ans += path_cost_of({ro - dro, co - dco});
+    }
+
+    return ans;
 }
 
 int main() {
