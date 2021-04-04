@@ -21,17 +21,27 @@ int path_min_cost(const pii coord) {
     const auto [ro, co] = coord;
     if (ro == co) return ro - 1;
 
-    const int hi = (ro - 1) / 2;
-    return hi - (co - 1) / 2;
+    return (ro - co) / 2;
 }
 
-int path_min_cost(const vector<pii> &coords) { return -1; }
+int path_min_cost(const vector<pii> &coords) {
+    int ans = 0;
+
+    for (auto it = cbegin(coords); it != cend(coords); ++it) {
+        const pii last = it == cbegin(coords) ? pii{1, 1} : *prev(it);
+        ans += path_min_cost(*it) - path_min_cost(last);
+    }
+
+    return ans;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
     cout << setprecision(9) << fixed;
 
+    exp_eq(path_min_cost(pii{2, 2}), 1);
+    exp_eq(path_min_cost(pii{1, 1}), 0);
     exp_eq(path_min_cost(pii{6, 5}), 0);
     exp_eq(path_min_cost(pii{7, 2}), 2);
     exp_eq(path_min_cost(pii{8, 1}), 3);
