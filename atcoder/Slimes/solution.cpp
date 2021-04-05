@@ -2,35 +2,47 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
 using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-static constexpr ll INF = 1e18;
+using Iter = vll::iterator;
 
-ll min_combo(const vi &xs) {
-    // Answer for [combo length] [starting from index]
-    vvll dp(sz(xs) + 1, vll(sz(xs), INF));
+ll min_combo(vll &xs) {
+    function<ll(Iter, Iter)> recur;
 
-    for (int i = 0; i < sz(xs); ++i) {
-        dp[1][i] = xs[i];
-    }
+    recur = [&](const Iter first, const Iter last) -> ll {
+        assert(first < last);
+        if (distance(first, last) == 1) return *first;
+        if (distance(first, last) == 2) return *first + *next(first);
 
-    for (int l = 2; l <= sz(xs); ++l) {
-        for (int i = 0; i + l <= sz(xs); ++i) {
+        ll ans = 1e18;
+
+        for (auto pivot = next(first); pivot != prev(last); ++pivot) {
+            const auto before = prev(pivot);
+            const auto after = next(pivot);
+
+            *before += *pivot;
+            const auto o1 =
+                *before + recur(first, pivot) + recur(next(pivot), last);
+            *before -= *pivot;
+
+            *after += *pivot;
+            const auto o2 =
+                *after + recur(first, pivot) + recur(next(pivot), last);
+            *after -= *pivot;
+
+            ans = min({ans, o1, o2});
         }
-    }
 
-    return dp.back()[0];
+        return ans;
+    };
+
+    return recur(begin(xs), end(xs));
 }
 
 int main() {
@@ -40,7 +52,7 @@ int main() {
 
     int n;
     cin >> n;
-    vi xs(n);
+    vll xs(n);
     for (auto &x : xs) cin >> x;
 
     cout << min_combo(xs) << '\n';
