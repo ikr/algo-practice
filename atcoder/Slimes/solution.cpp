@@ -3,6 +3,7 @@ using namespace std;
 
 using ll = long long;
 using vll = vector<ll>;
+using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -10,39 +11,30 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-using Iter = vll::const_iterator;
+static constexpr ll INF = 1e18;
 
 ll min_cost(const vll &xs) {
     vll ss(sz(xs));
     partial_sum(cbegin(xs), cend(xs), begin(ss));
 
-    const auto sum_up = [&](const Iter first, const Iter last) {
-        return ss[distance(cbegin(xs), last) - 1] -
-               (first == cbegin(xs) ? 0 : ss[distance(cbegin(xs), first) - 1]);
+    const auto sigma = [&ss](const int a, const int b) {
+        return ss[b] - (a ? ss[a - 1] : 0);
     };
 
-    map<pair<Iter, Iter>, ll> memo;
+    vvll dp(sz(xs), vll(sz(xs), INF));
+    for (int i = 0; i < sz(xs); ++i) dp[i][i] = 0;
 
-    function<ll(Iter, Iter)> recur;
+    for (int l = 2; l <= sz(xs); ++l) {
+        for (int a = 0; a + l <= sz(xs); ++a) {
+            const int b = a + l - 1;
 
-    recur = [&](const Iter first, const Iter last) -> ll {
-        if (memo.count({first, last})) return memo.at({first, last});
-
-        assert(first < last);
-        if (distance(first, last) < 2) return 0;
-
-        ll ans = 1e18;
-        const ll s = sum_up(first, last);
-
-        for (auto cut = next(first); cut != last; ++cut) {
-            ans = min(ans, recur(first, cut) + recur(cut, last) + s);
+            for (int i = a; i < b; ++i) {
+                dp[a][b] = min(dp[a][b], dp[a][i] + dp[i + 1][b] + sigma(a, b));
+            }
         }
+    }
 
-        memo[{first, last}] = ans;
-        return ans;
-    };
-
-    return recur(cbegin(xs), cend(xs));
+    return dp[0].back();
 }
 
 int main() {
