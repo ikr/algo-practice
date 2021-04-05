@@ -10,39 +10,31 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-using Iter = vll::iterator;
+using Iter = vll::const_iterator;
 
-ll min_combo(vll &xs) {
+ll min_cost(vll &xs) {
+    map<pair<Iter, Iter>, ll> memo;
+
     function<ll(Iter, Iter)> recur;
 
     recur = [&](const Iter first, const Iter last) -> ll {
+        if (memo.count({first, last})) return memo.at({first, last});
+
         assert(first < last);
-        if (distance(first, last) == 1) return *first;
-        if (distance(first, last) == 2) return *first + *next(first);
+        if (distance(first, last) < 2) return 0;
 
         ll ans = 1e18;
 
-        for (auto pivot = next(first); pivot != prev(last); ++pivot) {
-            const auto before = prev(pivot);
-            const auto after = next(pivot);
-
-            *before += *pivot;
-            const auto o1 =
-                *before + recur(first, pivot) + recur(next(pivot), last);
-            *before -= *pivot;
-
-            *after += *pivot;
-            const auto o2 =
-                *after + recur(first, pivot) + recur(next(pivot), last);
-            *after -= *pivot;
-
-            ans = min({ans, o1, o2});
+        for (auto cut = next(first); cut != last; ++cut) {
+            ans = min(ans, recur(first, cut) + recur(cut, last) +
+                               accumulate(first, last, 0LL, plus<ll>{}));
         }
 
+        memo[{first, last}] = ans;
         return ans;
     };
 
-    return recur(begin(xs), end(xs));
+    return recur(cbegin(xs), cend(xs));
 }
 
 int main() {
@@ -55,6 +47,6 @@ int main() {
     vll xs(n);
     for (auto &x : xs) cin >> x;
 
-    cout << min_combo(xs) << '\n';
+    cout << min_cost(xs) << '\n';
     return 0;
 }
