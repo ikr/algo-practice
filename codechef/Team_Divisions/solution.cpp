@@ -17,7 +17,27 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 static constexpr ll M = 998244353LL;
 
-int divisions_num(const vector<pii> &xys) { return -1; }
+int last_index_of_x_dividing_right_neigh(const vector<pii> &xys) {
+    for (int i = 0; i < sz(xys) - 1; ++i) {
+        const int x0 = xys[i].first;
+        const int x1 = xys[i + 1].first;
+        if (x1 % x0 != 0) return i - 1;
+    }
+
+    return sz(xys) - 2;
+}
+
+int divisions_num(const vector<pii> &xys) {
+    const int hi = last_index_of_x_dividing_right_neigh(xys);
+    if (hi < 0) return 0;
+
+    if (!all_of(cbegin(xys) + hi + 2, cend(xys),
+                [hi](const pii xy) { return xy.first % hi == 0; })) {
+        return 0;
+    }
+
+    return -1;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
