@@ -15,6 +15,7 @@ template <typename T> constexpr ll llof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 static constexpr ll M = 998244353LL;
+static constexpr ll LIM = 1e9;
 
 constexpr ll pow_mod(const ll base, const ll exp) {
     if (!exp) return 1;
@@ -23,7 +24,47 @@ constexpr ll pow_mod(const ll base, const ll exp) {
     return (q * q) % M;
 }
 
-int divisions_num(const vector<pii> &xys) { return -1; }
+vll prefix_lcms(const vector<pii> &xys) {
+    vll ans(sz(xys), xys[0].first);
+
+    for (int i = 1; i < sz(xys); ++i) {
+        ans[i] = (ans[i - 1] > LIM || xys[i].first > LIM)
+                     ? 0
+                     : lcm(ans[i - 1], llof(xys[i].first));
+    }
+
+    return ans;
+}
+
+vll suffix_gcds(const vector<pii> &xys) {
+    vll ans(sz(xys), xys.back().first);
+
+    for (int i = sz(xys) - 2; i >= 0; --i) {
+        ans[i] = gcd(llof(xys[i].first), ans[i + 1]);
+    }
+
+    return ans;
+}
+
+int divisions_num(const vector<pii> &xys) {
+    const auto pref = prefix_lcms(xys);
+    const auto suff = suffix_gcds(xys);
+
+    ll ans{};
+
+    for (int i = 0; i < sz(xys) - 1; ++i) {
+        const ll left = pref[i];
+        if (!left) break;
+        const ll right = suff[i + 1];
+
+        if (right % left == 0) {
+            ans += pow_mod(2, xys[i].second) - 1;
+            ans %= M;
+        }
+    }
+
+    return inof(ans);
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
