@@ -52,13 +52,16 @@ int divisions_num(const vector<pii> &xys) {
 
     ll ans{};
 
-    for (int i = 0; i < sz(xys) - 1; ++i) {
-        const ll left = pref[i];
-        if (!left) break;
-        const ll right = suff[i + 1];
+    for (int i = 0; i < sz(xys); ++i) {
+        if (!pref[i]) break;
 
-        if (right % left == 0) {
-            ans += pow_mod(2, xys[i].second) - 1;
+        if (i < sz(xys) - 1 && suff[i + 1] % pref[i] == 0LL) {
+            ++ans;
+            ans %= M;
+        }
+
+        if (suff[i] % pref[i] == 0LL) {
+            ans += pow_mod(2, xys[i].second) - 2;
             ans %= M;
         }
     }
