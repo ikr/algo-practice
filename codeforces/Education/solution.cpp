@@ -22,8 +22,28 @@ struct Promotion final {
     ll balance;
 };
 
+template <typename T> constexpr T div_ceil(const T x, const T y) {
+    return x ? (1 + (x - 1) / y) : 0;
+}
+
 vector<Promotion> promotions(const vi &wage, const vi &invest) {
-    vector<Promotion> ans(sz(wage));
+    vector<Promotion> ans(sz(wage), {0, 0});
+
+    for (int i = 1; i < sz(wage); ++i) {
+        const ll gap = invest[i - 1] - ans[i - 1].balance;
+
+        if (gap <= 0) {
+            ans[i] = Promotion{ans[i - 1].days + 1, -gap};
+            continue;
+        }
+
+        const ll work_days = div_ceil(gap, llof(wage[i - 1]));
+
+        ans[i] = Promotion{ans[i - 1].days + work_days + 1,
+                           ans[i - 1].balance + work_days * wage[i - 1] -
+                               invest[i - 1]};
+    }
+
     return ans;
 }
 
