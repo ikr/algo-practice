@@ -34,7 +34,7 @@ pii lower_bound_pos(const int n, const int d, const int s) {
         if (curr >= s) return {i, curr};
     }
 
-    assert(false);
+    assert(false && "lower_bound_pos");
     return {-1, -1};
 }
 
@@ -63,7 +63,23 @@ vi solution(const int n, const int l, const int r, const int s) {
         }
     }
 
-    return ans;
+    if (s == s0) return ans;
+    assert(s0 > s);
+
+    for (int i = l; i <= r; ++i) {
+        for (int p = 1; p <= n; ++p) {
+            if (l <= p && p <= r) continue;
+
+            int s_prime = s0 - ans[i - 1] + ans[p - 1];
+            if (s_prime == s) {
+                swap(ans[i - 1], ans[p - 1]);
+                return ans;
+            }
+        }
+    }
+
+    assert(false && "solution()");
+    return {};
 }
 
 int main() {
