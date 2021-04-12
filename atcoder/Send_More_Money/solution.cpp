@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -42,7 +41,7 @@ map<char, int> to_table(const string &pad) {
 }
 
 ll interpret(const map<char, int> &tbl, const string &code) {
-    ll ans{};
+    ll ans = 0;
 
     for (int i = 0; i < sz(code); ++i) {
         ans *= 10LL;
@@ -54,19 +53,23 @@ ll interpret(const map<char, int> &tbl, const string &code) {
 
 Tri suggest_interpretation(const string &code1, const string &code2,
                            const string &code3) {
-    auto ls = all_letters({code1, code2, code3});
-    if (sz(ls) > 10) return NOPE;
-    complete_to_10(ls);
-    sort(begin(ls), end(ls));
+    auto pad = all_letters({code1, code2, code3});
+    if (sz(pad) > 10) return NOPE;
+    complete_to_10(pad);
+    sort(begin(pad), end(pad));
 
     do {
-        const auto tbl = to_table(ls);
+        if (code1[0] == pad[0] || code2[0] == pad[0] || code3[0] == pad[0]) {
+            continue;
+        }
+
+        const auto tbl = to_table(pad);
         const ll x = interpret(tbl, code1);
         const ll y = interpret(tbl, code2);
         const ll z = interpret(tbl, code3);
 
         if (x > 0 && y > 0 && x + y == z) return {x, y, z};
-    } while (next_permutation(begin(ls), end(ls)));
+    } while (next_permutation(begin(pad), end(pad)));
 
     return NOPE;
 }
