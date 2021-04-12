@@ -49,7 +49,17 @@ vector<Promotion> promotions(const vi &wage, const vi &invest) {
 
 ll min_days(const int goal, const vi &wage, const vi &invest) {
     const auto ps = promotions(wage, invest);
-    return -1;
+    ll ans = LONG_LONG_MAX;
+
+    for (int i = 0; i < sz(ps); ++i) {
+        const ll candidate =
+            ps[i].balance >= goal
+                ? ps[i].days
+                : (ps[i].days + div_ceil(goal - ps[i].balance, llof(wage[i])));
+        ans = min(ans, candidate);
+    }
+
+    return ans;
 }
 
 int main() {
