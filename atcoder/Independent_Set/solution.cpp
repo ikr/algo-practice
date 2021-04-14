@@ -1,22 +1,31 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using vi = vector<int>;
-using pii = pair<int, int>;
-
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
 }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+using vi = vector<int>;
+using pii = pair<int, int>;
 
 static constexpr int M = 1e9 + 7;
 using Graph = multimap<int, int>;
 
 int num_ways(const int n, const Graph &g) {
     vector<bool> discovered(n, false);
-    vector<pii> dp(n, {0, 0});
-    dp[0] = {1, 1}; // black, white
+    vector<pii> dp(n, {1, 1}); // black, white
 
     function<void(int)> dfs;
     dfs = [&](const int u) {
@@ -35,6 +44,7 @@ int num_ways(const int n, const Graph &g) {
     };
 
     dfs(0);
+    cerr << dp << '\n';
     return (dp.back().first + dp.back().second) % M;
 }
 
