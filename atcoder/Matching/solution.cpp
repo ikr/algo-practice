@@ -1,10 +1,9 @@
-#include <atcoder/modint>
 #include <bits/stdc++.h>
 using namespace std;
 
 using vi = vector<int>;
 using vvi = vector<vi>;
-using Mint = atcoder::modint1000000007;
+static constexpr int M = 1e9 + 7;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -14,19 +13,21 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int num_ways(const vvi &grid) {
     const int n = sz(grid);
+    vi dp(1 << n, 0);
+    dp[0] = 1;
 
-    vvi dp(n, vi(1 << n, 0));
+    for (int bits = 1; bits < (1 << n); ++bits) {
+        const int paired = __builtin_popcount(bits);
 
-    for (int co = 0; co < n; ++co) {
-        if (grid[0][co] == 1) dp[0][1 << co] = 1;
-    }
-
-    for (int ro = 1; ro < n; ++ro) {
-        for (int bits = 1; bits < (1 << n); ++bits) {
+        for (int i = 0; i < n; ++i) {
+            if (grid[paired - 1][i] == 1 && ((1 << i) & bits)) {
+                dp[bits] += dp[~(1 << i) & bits];
+                dp[bits] %= M;
+            }
         }
     }
 
-    return dp.back().back();
+    return dp.back();
 }
 
 int main() {
