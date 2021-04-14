@@ -1,31 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using vi = vector<int>;
-using pii = pair<int, int>;
-
-static constexpr int M = 1e9 + 7;
+using ll = long long;
+static constexpr ll M = 1e9 + 7;
 using Graph = multimap<int, int>;
 
-int num_ways(const int n, const Graph &g) {
+ll num_ways(const int n, const Graph &g) {
     vector<bool> discovered(n, false);
-    vector<pii> dp(n, {1, 1}); // black, white
+    vector<pair<ll, ll>> dp(n, {1, 1}); // black, white
 
     function<void(int)> dfs;
     dfs = [&](const int u) {
@@ -36,16 +18,18 @@ int num_ways(const int n, const Graph &g) {
             const int v = it->second;
             if (discovered[v]) continue;
 
-            const auto [ub, uw] = dp[u];
-            dp[v] = {uw, (ub + uw) % M};
-
             dfs(v);
+
+            dp[u].first *= dp[v].second;
+            dp[u].first %= M;
+
+            dp[u].second *= dp[v].first + dp[v].second;
+            dp[u].second %= M;
         }
     };
 
     dfs(0);
-    cerr << dp << '\n';
-    return (dp.back().first + dp.back().second) % M;
+    return (dp[0].first + dp[0].second) % M;
 }
 
 int main() {
