@@ -1,42 +1,54 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-pair<int, vector<pii>> solution(const int x, const int y) {
-    if (x < y || y % 2) return {0, {}};
+optional<int> isqrt(const int x) {
+    const int q = inof(sqrt(x));
+    return q * q == x ? optional{q} : nullopt;
+}
 
-    vector<pii> es;
-    es.reserve(y / 2);
+optional<int> odd_levels_occupancy(const int y, const int n) {
+    assert(y > 0);
 
-    for (int i = 1; i < y; i += 2) {
-        es.emplace_back(i, i + 1);
+    for (int i = 1; i < n; i++) {
+        if (2 * i * (n - i) == y) return i;
     }
 
-    return {x, es};
+    return nullopt;
+}
+
+pair<int, vector<pii>> construct_tree(const int n, const int olo) {
+    vector<pii> es;
+    es.reserve(n - 1);
+
+    for (int i = 1; i <= olo; ++i) es.emplace_back(1, 1 + i);
+
+    const int elo = n - olo;
+    for (int i = 1; i <= elo - 1; ++i) es.emplace_back(olo + 1, olo + 1 + i);
+
+    return {n, es};
+}
+
+pair<int, vector<pii>> solution(const int x, const int y) {
+    const auto n = isqrt(x + y);
+    if (!n) return {0, {}};
+
+    const auto olo = odd_levels_occupancy(y, *n);
+    if (!olo) return {0, {}};
+
+    return construct_tree(*n, *olo);
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 
     int t;
     cin >> t;
