@@ -5,46 +5,66 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-using Iter = string::const_iterator;
+using Iter = string::iterator;
 
-int diff_num(const Iter first, const Iter last) {
-    if (distance(first, last) < 2) return 0;
+array<int, 26> freqs(const Iter first, const Iter last) {
+    array<int, 26> ans{};
+    for (auto it = first; it != last; ++it) ++ans[*it - 'a'];
+    return ans;
+}
 
-    int ans = 0;
+bool is_palindrome(const Iter first, const Iter last) {
+    const string xs(first, last);
+    string ys(first, last);
+    reverse(begin(ys), end(ys));
+    return xs == ys;
+}
+
+void bump(char &c) {
+    const int x = (c - 'a' + 1) % 26;
+    c = static_cast<char>('a' + x);
+}
+
+int min_ops_recur(const int level, const int multiplier, const Iter z,
+                  const pair<Iter, Iter> range) {
+    const auto [first, last] = range;
+    const int d = inof(distance(first, last));
+    if (d == 0) return level == 0 ? 0 : -1;
+
+    if (level == 0) {
+        if (d == 1) return -1;
+
+        if (is_palindrome(first, last)) {
+            bump(*first);
+            return multiplier;
+        }
+
+        return 0;
+    }
+
     Iter l = first;
     Iter r = prev(last);
 
+    int ops = 0;
     while (l < r) {
-        if (*l != *r) ++ans;
+        if (*l != *r) {
+            *l = *r;
+            ops += multiplier;
+        }
+
         ++l;
         --r;
     }
 
-    return ans;
+    const auto mid = first + d / 2;
+    const auto sub = min_ops_recur(level - 1, multiplier * 2, z, {first, mid});
+    if (sub == -1) return -1;
+
+    return ops + sub;
 }
 
-int recur(const int togo, const Iter z, const Iter first, const Iter last) {
-    cerr << "togo:" << togo << " first:" << distance(z, first)
-         << " last:" << distance(z, last) << '\n';
-
-    if (first == last) return togo == 0 ? 0 : -1;
-    if (distance(first, last) == 1) return togo == 1 ? 0 : -1;
-
-    const int d = inof(distance(first, last));
-    const Iter mid = first + d / 2;
-
-    const int sub_left = recur(togo - 1, z, first, mid);
-    if (sub_left == -1) return -1;
-
-    const int sub_right = recur(togo - 1, z, mid + 1, last);
-    if (sub_right == -1) return -1;
-
-    return togo == 0 ? diff_num(first, last)
-                     : diff_num(first, last) + sub_left + sub_right;
-}
-
-int min_ops(const int k, const string &xs) {
-    return recur(k, cbegin(xs), cbegin(xs), cend(xs));
+int min_ops(const int k, string xs) {
+    return min_ops_recur(k, 1, begin(xs), {begin(xs), end(xs)});
 }
 
 int main() {
@@ -57,7 +77,7 @@ int main() {
     string xs;
     cin >> xs;
 
-    const int ans = min_ops(k, xs);
+    const int ans = min_ops(k, move(xs));
     cout << (ans >= 0 ? to_string(ans) : "impossible") << '\n';
     return 0;
 }
