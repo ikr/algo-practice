@@ -7,16 +7,12 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 optional<int> isqrt(const int x) {
     const int q = inof(sqrt(x));
     return q * q == x ? optional{q} : nullopt;
 }
 
 optional<int> odd_levels_occupancy(const int y, const int n) {
-    assert(y > 0);
-
     for (int i = 1; i < n; i++) {
         if (2 * i * (n - i) == y) return i;
     }
