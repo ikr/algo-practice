@@ -25,6 +25,18 @@ void bump(char &c) {
     c = static_cast<char>('a' + x);
 }
 
+void unpalindrome(const Iter first, const Iter last) {
+    const auto fs = freqs(first, last);
+    vector<int> idx(26, 0);
+    iota(begin(idx), end(idx), 0);
+
+    partial_sort(
+        begin(idx), begin(idx) + 2, end(idx),
+        [&fs](const int lhs, const int rhs) { return fs[lhs] > fs[rhs]; });
+
+    bump(*(first + idx[1]));
+}
+
 int min_ops_recur(const int level, const int multiplier, const Iter z,
                   const pair<Iter, Iter> range) {
     const auto [first, last] = range;
@@ -35,20 +47,26 @@ int min_ops_recur(const int level, const int multiplier, const Iter z,
         if (d == 1) return -1;
 
         if (is_palindrome(first, last)) {
-            bump(*first);
+            unpalindrome(first, last);
             return multiplier;
         }
 
         return 0;
     }
 
+    const auto fs = freqs(first, last);
     Iter l = first;
     Iter r = prev(last);
 
     int ops = 0;
     while (l < r) {
         if (*l != *r) {
-            *l = *r;
+            if (fs[*l - 'a'] > fs[*r - 'a']) {
+                *r = *l;
+            } else {
+                *l = *r;
+            }
+
             ops += multiplier;
         }
 
@@ -60,7 +78,7 @@ int min_ops_recur(const int level, const int multiplier, const Iter z,
     const auto sub = min_ops_recur(level - 1, multiplier * 2, z, {first, mid});
     if (sub == -1) return -1;
 
-    return ops + sub;
+    return (ops + sub);
 }
 
 int min_ops(const int k, string xs) {
