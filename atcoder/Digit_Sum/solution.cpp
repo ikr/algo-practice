@@ -28,7 +28,8 @@ int count_ints_with_proper_digits_sum(const string &xs, const int d) {
 
         for (int x = 0; x <= 9; ++x) {
             for (int j = 0; j < d; ++j) {
-                if (x <= x0) dp[i][(j + x) % d].capped += dp[i - 1][j].capped;
+                if (x < x0) dp[i][(j + x) % d].uncapped += dp[i - 1][j].capped;
+                if (x == x0) dp[i][(j + x) % d].capped += dp[i - 1][j].capped;
                 dp[i][(j + x) % d].uncapped += dp[i - 1][j].uncapped;
             }
         }
