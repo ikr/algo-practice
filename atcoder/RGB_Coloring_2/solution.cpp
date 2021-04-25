@@ -2,6 +2,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -18,6 +28,8 @@ ll component_rgb_paintings_num(const int start, const int comp_size,
 
     function<ll(int, int, int)> dfs;
     dfs = [&](const int colored_num, const int u, const int color) -> ll {
+        cerr << coloring << '\n';
+        cerr << colored_num << ' ' << u << ' ' << color << endl;
         for (const int v : g[u]) {
             if (coloring[v] == color) return 0;
         }
