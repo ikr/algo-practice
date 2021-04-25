@@ -54,8 +54,8 @@ ll fingerprints_distance(const Tri &fp1, const Tri &fp2) {
     return abs(a - x) + abs(b - y) + abs(c - z);
 }
 
-pair<int, ll> closest_seconds_index_with_distance(const vector<Tri> &ps,
-                                                  const Tri &ts) {
+pair<int, ll> closest_second_with_distance(const vector<Tri> &ps,
+                                           const Tri &ts) {
     int index = -1;
     ll dist = LONG_LONG_MAX;
 
@@ -78,7 +78,7 @@ Quad solve(const vector<Tri> &ps, vll ts) {
     sort(begin(ts), end(ts));
     do {
         const auto [index, dist] =
-            closest_seconds_index_with_distance(ps, {ts[0], ts[1], ts[2]});
+            closest_second_with_distance(ps, {ts[0], ts[1], ts[2]});
 
         probes.emplace(-dist, pair{ts, index});
     } while (next_permutation(begin(ts), end(ts)));
