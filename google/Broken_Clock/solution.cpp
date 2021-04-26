@@ -84,7 +84,7 @@ Quad solve(vll ts) {
         const ll x = mul_mod((t_m - t_h + M) % M, inv_11);
         const ll y = mul_mod((t_s - t_h + M) % M, inv_719);
 
-        if (x == y && x / GIG / 60LL / 60LL < 11) {
+        if (x == y && x / GIG / 60LL / 60LL < 12) {
             return nanoseconds_to_time(x);
         }
     } while (next_permutation(begin(ts), end(ts)));
