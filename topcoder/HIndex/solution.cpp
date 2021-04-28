@@ -34,31 +34,32 @@ struct HIndex final {
                 continue;
             }
 
-            int missing = i - cs[i];
+            int missing_articles = i - cs[i];
 
-            const int greaters = accumulate(cs.cbegin() + i + 1, cs.cend(), 0);
-            if (greaters >= missing) {
+            const int better_articles =
+                accumulate(cs.cbegin() + i + 1, cs.cend(), 0);
+
+            if (better_articles >= missing_articles) {
                 ans = i;
                 continue;
             }
 
-            missing -= greaters;
+            missing_articles -= better_articles;
 
-            int items_cap = budget / price;
-            if (!items_cap) continue;
+            int citations_cap = budget / price;
+            if (!citations_cap) continue;
 
             for (int j = i - 1; j >= 0; --j) {
-                const int step = i - j;
+                const int citations_step = i - j;
+                const int inflated_articles = min(
+                    {missing_articles, cs[j], citations_cap / citations_step});
 
-                const int bought =
-                    min({items_cap / step, cs[j] * step, missing});
-
-                missing -= bought;
-                items_cap -= bought;
-                if (!missing) break;
+                citations_cap -= inflated_articles * citations_step;
+                missing_articles -= inflated_articles;
+                if (!missing_articles) break;
             }
 
-            if (!missing) ans = i;
+            if (!missing_articles) ans = i;
         }
 
         return ans;
