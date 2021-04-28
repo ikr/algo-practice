@@ -19,37 +19,46 @@ template <typename T> constexpr double doof(const T x) {
     return static_cast<double>(x);
 }
 
-int sz(const vi &xs) { return inof(xs.size()); }
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 struct HIndex final {
     int cheat(vi xs, const int budget, const int price) const {
-        sort(begin(xs), end(xs));
         vi cs(sz(xs) + 1, 0);
-
-        for (const int x : xs) {
-            for (int i = 0; i <= min(x, sz(xs)); ++i) ++cs[i];
-        }
+        for (const int x : xs) ++cs[min(x, sz(xs))];
 
         int ans = 0;
 
         for (int i = 1; i < sz(cs); ++i) {
-            if (cs[i] >= i) ans = max(ans, i);
-
-            int missing = i - cs[i];
-            int budget_items = budget / price;
-            if (!budget_items) continue;
-
-            for (int j = i - 1; j >= 1; --j) {
-                if (cs[j] == 0) continue;
-                const int step = i - j;
-                const int available = cs[j];
-
-                const auto buying = min({available, missing, budget_items});
-                missing -= buying;
-                budget_items -= buying;
+            if (cs[i] >= i) {
+                ans = i;
+                continue;
             }
 
-            if (!missing) ans = max(ans, i);
+            int missing = i - cs[i];
+
+            const int greaters = accumulate(cs.cbegin() + i + 1, cs.cend(), 0);
+            if (greaters >= missing) {
+                ans = i;
+                continue;
+            }
+
+            missing -= greaters;
+
+            int items_cap = budget / price;
+            if (!items_cap) continue;
+
+            for (int j = i - 1; j >= 0; --j) {
+                const int step = i - j;
+
+                const int bought =
+                    min({items_cap / step, cs[j] * step, missing});
+
+                missing -= bought;
+                items_cap -= bought;
+                if (!missing) break;
+            }
+
+            if (!missing) ans = i;
         }
 
         return ans;
