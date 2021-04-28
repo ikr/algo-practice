@@ -24,12 +24,11 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll component_rgb_paintings_num(const int start, const int comp_size,
                                const vvi &g) {
-    vi coloring(sz(g), 0);
+    ll ans = 0;
 
-    function<ll(int, int, int)> dfs;
-    dfs = [&](const int colored_num, const int u, const int color) -> ll {
-        cerr << coloring << '\n';
-        cerr << colored_num << ' ' << u << ' ' << color << endl;
+    function<void(vi, int, int, int)> dfs;
+    dfs = [&](vi coloring, const int colored_num, const int u,
+              const int color) -> void {
         for (const int v : g[u]) {
             if (coloring[v] == color) return 0;
         }
@@ -49,12 +48,9 @@ ll component_rgb_paintings_num(const int start, const int comp_size,
         return ans;
     };
 
-    ll ans = 0;
-    ans += dfs(0, start, 1);
-    fill(begin(coloring), end(coloring), 0);
-    ans += dfs(0, start, 2);
-    fill(begin(coloring), end(coloring), 0);
-    ans += dfs(0, start, 3);
+    dfs(vi(sz(g)), 0, start, 1);
+    dfs(vi(sz(g)), 0, start, 2);
+    dfs(vi(sz(g)), 0, start, 3);
     return ans;
 }
 
