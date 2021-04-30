@@ -63,25 +63,23 @@ int component_rgb_colorings_num(const set<pii> &es, const vi &vs) {
             for (int i = 1; i < sz(vs); ++i) {
                 const int i_bit = i - 1;
 
-                const vi possible_colors = [&]() -> vi {
-                    for (int j = 0; j < i; ++j) {
-                        if (es.count(pii{vs[i], vs[j]})) {
-                            assert(coloring[j] != -1);
+                vi possible_colors;
 
-                            vi colors;
-                            for (int color = 0; color < 3; ++color) {
-                                if (color != coloring[j])
-                                    colors.push_back(color);
+                for (int j = 0; j < i; ++j) {
+                    if (es.count(pii{vs[i], vs[j]})) {
+                        assert(coloring[j] != -1);
+
+                        for (int color = 0; color < 3; ++color) {
+                            if (color != coloring[j]) {
+                                possible_colors.push_back(color);
                             }
-
-                            assert(sz(colors) == 2);
-                            return colors;
                         }
-                    }
 
-                    assert(false);
-                    return {};
-                }();
+                        break;
+                    }
+                }
+
+                assert(sz(possible_colors) == 2);
 
                 coloring[i] =
                     possible_colors[(tail_bits & (1 << i_bit)) ? 1 : 0];
