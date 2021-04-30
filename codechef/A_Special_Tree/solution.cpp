@@ -83,6 +83,29 @@ vi distances_from(const vvi &g, const int f0) {
     return ans;
 }
 
+vi closest_specials(const vvi &g, const vi &fs) {
+    vi ans(sz(g), -1);
+    queue<pii> q;
+
+    for (const auto f : fs) {
+        q.emplace(f, f);
+    }
+
+    while (!q.empty()) {
+        const auto [origin, u] = q.front();
+        q.pop();
+
+        ans[u] = origin;
+
+        for (const int v : g[u]) {
+            if (ans[v] != -1) continue;
+            q.emplace(origin, v);
+        }
+    }
+
+    return ans;
+}
+
 pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     const int n = sz(g);
     const set<int> fss(cbegin(fs), cend(fs));
@@ -104,10 +127,10 @@ pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
 
     dfs(0, -1, a);
 
-    cerr << increment_all_second(dsp) << endl;
-
     const int f0 = closest_special(fs, dsp);
     const auto df0 = distances_from(g, f0);
+    const auto css = closest_specials(g, fs);
+    cerr << "css: " << css << endl;
 
     vi diffs(n);
     vi specials(n);
@@ -115,12 +138,21 @@ pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     for (int i = 0; i < n; ++i) {
         const auto [da, f] = dsp[i];
 
-        const int special = f >= 0 ? f : f0;
+        if (f >= 0) {
+            diffs[i] = da - dsp[f].first;
+            specials[i] = f;
+        } else {
+            const int homes = -da;
+            const int own = da;
 
-        diffs[i] =
-            dsp[special].first - (f == -1 ? (df0[i]) : (da - dsp[f].first));
-
-        specials[i] = special;
+            if (homes >= own) {
+                diffs[i] = homes;
+                specials[i] = f0;
+            } else {
+                diffs[i] = own;
+                specials[i] = css[i];
+            }
+        }
     }
 
     return {diffs, specials};
