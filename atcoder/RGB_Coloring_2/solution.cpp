@@ -15,6 +15,9 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
+using pii = pair<int, int>;
+
+static constexpr int N_MAX = 20;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -22,35 +25,71 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll component_rgb_paintings_num(const int start, const int comp_size,
-                               const vvi &g) {
-    ll ans = 0;
+vi toposort(const vvi &g, const vi &vs) {
+    assert(!empty(vs));
+    vi ans;
+    vector<bool> discovered(N_MAX, false);
 
-    function<void(vi, int, int, int)> dfs;
-    dfs = [&](vi coloring, const int colored_num, const int u,
-              const int color) -> void {
+    function<void(int)> dfs;
+    dfs = [&](const int u) {
+        ans.push_back(u);
+        discovered[u] = true;
+
         for (const int v : g[u]) {
-            if (coloring[v] == color) return 0;
+            if (discovered[v]) continue;
+            dfs(v);
         }
-
-        if (colored_num + 1 == comp_size) return 1;
-
-        ll ans = 0;
-        coloring[u] = color;
-        for (const int v : g[u]) {
-            if (coloring[v]) continue;
-
-            for (int color_ = 1; color_ <= 3; ++color_) {
-                if (color_ == color) continue;
-                ans += dfs(colored_num + 1, v, color_);
-            }
-        }
-        return ans;
     };
 
-    dfs(vi(sz(g)), 0, start, 1);
-    dfs(vi(sz(g)), 0, start, 2);
-    dfs(vi(sz(g)), 0, start, 3);
+    dfs(vs[0]);
+    assert(sz(ans) == sz(vs));
+    return ans;
+}
+
+bool is_valid(const vvi &g, const vi &vs, const vi &coloring) {
+    assert(sz(coloring) == sz(vs));
+    return false;
+}
+
+int component_rgb_colorings_num(const vvi &g, const set<pii> &es,
+                                const vi &vs) {
+    int ans = 0;
+
+    for (int head = 0; head < 3; ++head) {
+        vi coloring(sz(vs), -1);
+        coloring[0] = head;
+
+        for (int tail_bits = 0; tail_bits < (1 << (sz(vs) - 1)); ++tail_bits) {
+            for (int i = 1; i < sz(vs); ++i) {
+                const int i_bit = i - 1;
+
+                const vi possible_colors = [&]() -> vi {
+                    for (int j = 0; j < i; ++j) {
+                        if (es.count(pii{vs[i], vs[j]})) {
+                            assert(coloring[j] != -1);
+
+                            vi colors;
+                            for (int color = 0; color < 3; ++color) {
+                                if (color != coloring[j])
+                                    colors.push_back(color);
+                            }
+
+                            assert(sz(colors) == 2);
+                            return colors;
+                        }
+                    }
+
+                    assert(false);
+                    return {};
+                }();
+
+                coloring[i] = possible_colors[tail_bits & (1 << i_bit) ? 1 : 0];
+            }
+
+            cerr << coloring << endl;
+        }
+    }
+
     return ans;
 }
 
@@ -62,6 +101,7 @@ int main() {
     cin >> n >> m;
 
     vvi g(n);
+    set<pii> es;
     atcoder::dsu comps(n);
 
     while (m--) {
@@ -72,15 +112,17 @@ int main() {
 
         g[a].push_back(b);
         g[b].push_back(a);
+
+        es.emplace(a, b);
+        es.emplace(b, a);
+
         comps.merge(a, b);
     }
 
-    set<int> leaders;
-    for (int i = 0; i < n; ++i) leaders.insert(comps.leader(i));
-
     ll ans = 1;
-    for (const auto u : leaders) {
-        ans *= component_rgb_paintings_num(u, comps.size(u), g);
+
+    for (const auto vs : comps.groups()) {
+        ans *= component_rgb_colorings_num(g, es, toposort(g, vs));
     }
 
     cout << ans << '\n';
