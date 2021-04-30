@@ -2,16 +2,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -46,13 +36,23 @@ vi toposort(const vvi &g, const vi &vs) {
     return ans;
 }
 
-bool is_valid(const vvi &g, const vi &vs, const vi &coloring) {
+bool is_valid(const set<pii> &es, const vi &vs, const vi &coloring) {
     assert(sz(coloring) == sz(vs));
-    return false;
+
+    for (int i = 0; i < sz(vs); ++i) {
+        for (int j = 0; j < sz(vs); ++j) {
+            if (i == j) continue;
+
+            if (coloring[i] == coloring[j] && es.count(pii{vs[i], vs[j]})) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
-int component_rgb_colorings_num(const vvi &g, const set<pii> &es,
-                                const vi &vs) {
+int component_rgb_colorings_num(const set<pii> &es, const vi &vs) {
     int ans = 0;
 
     for (int head = 0; head < 3; ++head) {
@@ -83,10 +83,11 @@ int component_rgb_colorings_num(const vvi &g, const set<pii> &es,
                     return {};
                 }();
 
-                coloring[i] = possible_colors[tail_bits & (1 << i_bit) ? 1 : 0];
+                coloring[i] =
+                    possible_colors[(tail_bits & (1 << i_bit)) ? 1 : 0];
             }
 
-            cerr << coloring << endl;
+            if (is_valid(es, vs, coloring)) ++ans;
         }
     }
 
@@ -122,7 +123,7 @@ int main() {
     ll ans = 1;
 
     for (const auto vs : comps.groups()) {
-        ans *= component_rgb_colorings_num(g, es, toposort(g, vs));
+        ans *= component_rgb_colorings_num(es, toposort(g, vs));
     }
 
     cout << ans << '\n';
