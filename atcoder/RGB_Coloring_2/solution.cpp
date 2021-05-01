@@ -36,14 +36,13 @@ vi toposort(const vvi &g, const vi &vs) {
     return ans;
 }
 
-bool is_valid(const set<pii> &es, const vi &vs, const vi &coloring) {
+bool is_valid(const vector<vector<bool>> &es, const vi &vs,
+              const vi &coloring) {
     assert(sz(coloring) == sz(vs));
 
-    for (int i = 0; i < sz(vs); ++i) {
-        for (int j = 0; j < sz(vs); ++j) {
-            if (i == j) continue;
-
-            if (coloring[i] == coloring[j] && es.count(pii{vs[i], vs[j]})) {
+    for (int i = 0; i < sz(vs) - 1; ++i) {
+        for (int j = i + 1; j < sz(vs); ++j) {
+            if (coloring[i] == coloring[j] && es[vs[i]][vs[j]]) {
                 return false;
             }
         }
@@ -52,7 +51,7 @@ bool is_valid(const set<pii> &es, const vi &vs, const vi &coloring) {
     return true;
 }
 
-int component_rgb_colorings_num(const set<pii> &es, const vi &vs) {
+int component_rgb_colorings_num(const vector<vector<bool>> &es, const vi &vs) {
     int ans = 0;
 
     for (int head = 0; head < 3; ++head) {
@@ -66,7 +65,7 @@ int component_rgb_colorings_num(const set<pii> &es, const vi &vs) {
                 vi possible_colors;
 
                 for (int j = 0; j < i; ++j) {
-                    if (es.count(pii{vs[i], vs[j]})) {
+                    if (es[vs[i]][vs[j]]) {
                         assert(coloring[j] != -1);
 
                         for (int color = 0; color < 3; ++color) {
@@ -100,7 +99,7 @@ int main() {
     cin >> n >> m;
 
     vvi g(n);
-    set<pii> es;
+    vector<vector<bool>> es(n, vector(n, false));
     atcoder::dsu comps(n);
 
     while (m--) {
@@ -112,8 +111,8 @@ int main() {
         g[a].push_back(b);
         g[b].push_back(a);
 
-        es.emplace(a, b);
-        es.emplace(b, a);
+        es[a][b] = true;
+        es[b][a] = true;
 
         comps.merge(a, b);
     }
