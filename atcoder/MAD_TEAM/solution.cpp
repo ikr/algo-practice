@@ -39,9 +39,11 @@ int top_team_strength(const vector<Quint> &xss) {
         }
     }
 
+    best = maximin(xss[0], xss[1], xss[2]);
+
     for (int i = 0; i < sz(xss); ++i) {
         if (i == i0 || i == j0) continue;
-        best = maximin(xss[i0], xss[j0], xss[i]);
+        best = max(best, maximin(xss[i0], xss[j0], xss[i]));
     }
 
     return best;
