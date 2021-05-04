@@ -10,6 +10,10 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+constexpr unsigned int mlog2(const unsigned int x) {
+    return 8U * sizeof(unsigned int) - __builtin_clz(x) - 1U;
+}
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
         if (i != xs.cbegin()) os << ' ';
@@ -23,22 +27,26 @@ vi increment_all(vi xs) {
     return xs;
 }
 
-vvi rooted_tree(const vvi &g, const int a) {
+pair<vvi, vi> rooted_tree(const vvi &g, const int a) {
     vvi ans(sz(g));
+    vi ps(sz(g), -1);
     vector<bool> discovered(sz(g), false);
 
     function<void(int)> dfs;
     dfs = [&](const int u) {
         discovered[u] = true;
+
         for (const int v : g[u]) {
             if (discovered[v]) continue;
+
             ans[u].push_back(v);
+            ps[v] = u;
             dfs(v);
         }
     };
 
     dfs(a);
-    return ans;
+    return {ans, ps};
 }
 
 vector<bool> subtree_specialness_indicators(const vvi &t, const set<int> &fs,
@@ -69,13 +77,27 @@ vector<bool> subtree_specialness_indicators(const vvi &t, const set<int> &fs,
     return ans;
 }
 
+vvi lifts(const vi &ps) {
+    const int n = sz(ps);
+    vvi up(n, vi(mlog2(n) + 1, -1));
+
+    for (int j = 0; j < mlog2(n) + 1; ++j) {
+        for (int i = 0; i < n; ++i) {
+            up[i][j] =
+                j == 0 ? ps[i]
+                       : (up[i][j - 1] == -1 ? -1 : up[up[i][j - 1]][j - 1]);
+        }
+    }
+
+    return up;
+}
+
 pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     const int n = sz(g);
-    const auto t = rooted_tree(g, a);
-
-    cerr << "ind: "
-         << subtree_specialness_indicators(t, set<int>(cbegin(fs), cend(fs)), a)
-         << endl;
+    const auto [t, ps] = rooted_tree(g, a);
+    const auto ind =
+        subtree_specialness_indicators(t, set<int>(cbegin(fs), cend(fs)), a);
+    const auto up = lifts(ps);
 
     vi diffs(n);
     vi specials(n);
