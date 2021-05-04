@@ -106,6 +106,11 @@ vvi lifts(const vi &ps) {
     return up;
 }
 
+int x_point_for(const vvi &up, const vi &sts, const int b) {
+    if (sts[b] >= 0) return sts[b];
+    return b;
+}
+
 pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     const int n = sz(g);
     const auto [t, ps] = rooted_tree(g, a);
@@ -113,10 +118,14 @@ pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     const auto ls = levels(t, a);
     const auto sts = subtree_specials(t, ls, set<int>(cbegin(fs), cend(fs)), a);
 
-    cerr << "sts: " << increment_all(sts) << '\n';
-
     vi diffs(n);
     vi specials(n);
+
+    for (int b = 0; b < n; ++b) {
+        const auto x = x_point_for(up, sts, b);
+        diffs[b] = ls[x] - ls[a] - (ls[b] - ls[x]);
+        specials[b] = sts[x];
+    }
 
     return {diffs, specials};
 }
