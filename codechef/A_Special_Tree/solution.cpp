@@ -23,8 +23,60 @@ vi increment_all(vi xs) {
     return xs;
 }
 
+vvi rooted_tree(const vvi &g, const int a) {
+    vvi ans(sz(g));
+    vector<bool> discovered(sz(g), false);
+
+    function<void(int)> dfs;
+    dfs = [&](const int u) {
+        discovered[u] = true;
+        for (const int v : g[u]) {
+            if (discovered[v]) continue;
+            ans[u].push_back(v);
+            dfs(v);
+        }
+    };
+
+    dfs(a);
+    return ans;
+}
+
+vector<bool> subtree_specialness_indicators(const vvi &t, const set<int> &fs,
+                                            const int a) {
+    const int n = sz(t);
+    vi memo(n, -1);
+
+    function<int(int)> recur;
+    recur = [&](const int u) -> int {
+        if (memo[u] != -1) return memo[u];
+
+        int ans = fs.count(u) ? 1 : 0;
+
+        for (const int v : t[u]) {
+            const int sub = recur(v);
+            if (!ans && sub == 1) ans = 1;
+        }
+
+        memo[u] = ans;
+        return ans;
+    };
+
+    recur(a);
+
+    vector<bool> ans(n);
+    transform(cbegin(memo), cend(memo), begin(ans),
+              [](const int x) { return x == 1; });
+    return ans;
+}
+
 pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     const int n = sz(g);
+    const auto t = rooted_tree(g, a);
+
+    cerr << "ind: "
+         << subtree_specialness_indicators(t, set<int>(cbegin(fs), cend(fs)), a)
+         << endl;
+
     vi diffs(n);
     vi specials(n);
 
