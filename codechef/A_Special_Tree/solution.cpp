@@ -3,6 +3,7 @@ using namespace std;
 
 using vi = vector<int>;
 using vvi = vector<vi>;
+using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -62,31 +63,31 @@ vi levels(const vvi &t, const int a) {
     return ans;
 }
 
-vector<bool> subtree_specialness_indicators(const vvi &t, const set<int> &fs,
-                                            const int a) {
-    const int n = sz(t);
-    vi memo(n, -1);
+vi subtree_specials(const vvi &t, const vi &ls, const set<int> &fs,
+                    const int a) {
+    vi ans(sz(t), -1);
 
-    function<int(int)> recur;
-    recur = [&](const int u) -> int {
-        if (memo[u] != -1) return memo[u];
+    function<void(int)> recur;
+    recur = [&](const int u) {
+        for (const int v : t[u]) recur(v);
 
-        int ans = fs.count(u) ? 1 : 0;
+        if (fs.count(u)) {
+            ans[u] = u;
+        } else {
+            priority_queue<pii> pq;
 
-        for (const int v : t[u]) {
-            const int sub = recur(v);
-            if (!ans && sub == 1) ans = 1;
+            for (const int v : t[u]) {
+                if (ans[v] == -1) continue;
+                pq.emplace(-ls[ans[v]], ans[v]);
+            }
+
+            if (!pq.empty()) {
+                ans[u] = pq.top().second;
+            }
         }
-
-        memo[u] = ans;
-        return ans;
     };
 
     recur(a);
-
-    vector<bool> ans(n);
-    transform(cbegin(memo), cend(memo), begin(ans),
-              [](const int x) { return x == 1; });
     return ans;
 }
 
@@ -108,10 +109,11 @@ vvi lifts(const vi &ps) {
 pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     const int n = sz(g);
     const auto [t, ps] = rooted_tree(g, a);
-    const auto ind =
-        subtree_specialness_indicators(t, set<int>(cbegin(fs), cend(fs)), a);
     const auto up = lifts(ps);
     const auto ls = levels(t, a);
+    const auto sts = subtree_specials(t, ls, set<int>(cbegin(fs), cend(fs)), a);
+
+    cerr << "sts: " << increment_all(sts) << '\n';
 
     vi diffs(n);
     vi specials(n);
