@@ -10,8 +10,8 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-constexpr unsigned int mlog2(const unsigned int x) {
-    return 8U * sizeof(unsigned int) - __builtin_clz(x) - 1U;
+constexpr int mlog2(const unsigned int x) {
+    return inof(8U * sizeof(unsigned int) - __builtin_clz(x) - 1U);
 }
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
@@ -47,6 +47,19 @@ pair<vvi, vi> rooted_tree(const vvi &g, const int a) {
 
     dfs(a);
     return {ans, ps};
+}
+
+vi levels(const vvi &t, const int a) {
+    vi ans(sz(t), -1);
+
+    function<void(int, int)> recur;
+    recur = [&](const int l, const int u) {
+        ans[u] = l;
+        for (const int v : t[u]) recur(l + 1, v);
+    };
+
+    recur(0, a);
+    return ans;
 }
 
 vector<bool> subtree_specialness_indicators(const vvi &t, const set<int> &fs,
@@ -98,6 +111,7 @@ pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
     const auto ind =
         subtree_specialness_indicators(t, set<int>(cbegin(fs), cend(fs)), a);
     const auto up = lifts(ps);
+    const auto ls = levels(t, a);
 
     vi diffs(n);
     vi specials(n);
