@@ -107,8 +107,20 @@ vvi lifts(const vi &ps) {
 }
 
 int x_point_for(const vvi &up, const vi &sts, const int b) {
-    if (sts[b] >= 0) return sts[b];
-    return b;
+    if (sts[b] >= 0) return b;
+
+    assert(!up.empty());
+    int last_lift_tried = sz(up[0]);
+    int curr = b;
+
+    do {
+        --last_lift_tried;
+        const int anc = up[curr][last_lift_tried];
+        if (anc != -1 && sts[anc] == -1) curr = anc;
+    } while (last_lift_tried > 0);
+
+    assert(up[curr][0] >= 0);
+    return up[curr][0];
 }
 
 pair<vi, vi> diffs_and_specials(const vvi &g, const vi &fs, const int a) {
