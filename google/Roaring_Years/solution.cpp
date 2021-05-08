@@ -3,24 +3,14 @@ using namespace std;
 
 using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<int> digits_reversed(long long n) {
+vi digits_reversed(ll n) {
     vector<int> ans;
 
     while (n) {
@@ -31,20 +21,13 @@ vector<int> digits_reversed(long long n) {
     return ans;
 }
 
-vector<int> digits(long long n) {
+vi digits(ll n) {
     vi ans = digits_reversed(n);
     reverse(begin(ans), end(ans));
     return ans;
 }
 
-void remove_leading_zeros(vector<int> &ds) {
-    for (auto it = ds.begin(); it != ds.end();) {
-        if (*it != 0) break;
-        it = ds.erase(it);
-    }
-}
-
-long long number(const vector<int> &ds) {
+ll number(const vi &ds) {
     if (ds.empty()) return 0;
 
     long long ans = 0;
@@ -61,31 +44,35 @@ vi subvector(const vi &xs, const int i, const int l) {
     return ans;
 }
 
-bool is_roaring(const int step, const int x) {
-    const auto ds = digits(x);
-    const auto head = subvector(ds, 0, step);
+bool is_roaring(const int step, const vi &ds) {
+    if (sz(ds) < 2 * step || sz(ds) % step != 0) return false;
 
-    const auto ns = digits(number(head) + 1);
-    if (step + sz(ns) < sz(ds) && subvector(ds, step, sz(ns)) == ns) {
+    auto pre = number(subvector(ds, 0, step));
+    for (int i = step; i + step <= sz(ds); i += step) {
+        auto curr = number(subvector(ds, i, step));
+        if (curr != pre + 1) return false;
+        pre = curr;
     }
 
+    return true;
+}
+
+bool is_roaring(const int x) {
+    const auto ds = digits(x);
+    for (int step = 1; step <= max(1, sz(ds) / 2); ++step) {
+        if (is_roaring(step, ds)) return true;
+    }
     return false;
 }
 
-int solve(const int x) {
-    const auto ds = digits(x);
+int solve(int x) {
+    assert(!is_roaring(100000));
 
-    for (int step = 1; step <= sz(ds); ++step) {
-        const vi tops(step, 9);
-        vi os = subvector(ds, 0, step);
-        auto pre = os;
+    do {
+        ++x;
+    } while (!is_roaring(x));
 
-        for (int i = step; i + step <= sz(ds); i += step) {
-            const auto curr = subvector(ds, i, step);
-        }
-    }
-
-    return -1;
+    return x;
 }
 
 int main() {
