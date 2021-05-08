@@ -40,17 +40,23 @@ ll number(const vi &ds) {
 }
 
 vi subvector(const vi &xs, const int i, const int l) {
-    vi ans(cbegin(xs) + i, cbegin(xs) + i + l);
+    vi ans(cbegin(xs) + i, i + l >= sz(xs) ? cend(xs) : cbegin(xs) + i + l);
     return ans;
 }
 
-bool is_roaring(const int step, const vi &ds) {
-    if (sz(ds) < 2 * step || sz(ds) % step != 0) return false;
+bool all_nines(const vi &ds) {
+    return all_of(cbegin(ds), cend(ds), [](const int d) { return d == 9; });
+}
 
-    auto pre = number(subvector(ds, 0, step));
-    for (int i = step; i + step <= sz(ds); i += step) {
-        auto curr = number(subvector(ds, i, step));
-        if (curr != pre + 1) return false;
+bool is_roaring(const vi &ds, int step) {
+    if (sz(ds) < 2 * step) return false;
+
+    auto pre = subvector(ds, 0, step);
+    for (int i = step; i < sz(ds); i += step) {
+        if (all_nines(pre)) ++step;
+        const auto curr = subvector(ds, i, step);
+
+        if (number(curr) != number(pre) + 1) return false;
         pre = curr;
     }
 
@@ -60,7 +66,7 @@ bool is_roaring(const int step, const vi &ds) {
 bool is_roaring(const int x) {
     const auto ds = digits(x);
     for (int step = 1; step <= max(1, sz(ds) / 2); ++step) {
-        if (is_roaring(step, ds)) return true;
+        if (is_roaring(ds, step)) return true;
     }
     return false;
 }
