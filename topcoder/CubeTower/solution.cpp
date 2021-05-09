@@ -9,28 +9,18 @@ ll volume_hi(const ll H, const ll N) {
     return N - 1 + D * D * D;
 }
 
+constexpr ll cube(const ll x) { return x * x * x; }
+
 ll volume_lo(const ll H, const ll N) {
-    if (H % N == 0) {
+    const ll r = H % N;
+
+    if (r == 0) {
         const ll d = H / N;
-        return N * (d * d * d);
+        return N * cube(d);
     }
 
-    const auto fair = [=](const ll h, const ll n) -> ll {
-        const ll d = h / n;
-        const ll dd = h - (n - 1) * d;
-        return (n - 1) * d * d * d + dd * dd * dd;
-    };
-
-    const ll o1 = fair(H, N);
-
-    const ll o2 = [=]() -> ll {
-        const ll d = H / N + 1;
-        const ll k = H / d;
-
-        return k * (d * d * d) + ((N - k) ? volume_lo(H - k * d, N - k) : 0);
-    }();
-
-    return min(o1, o2);
+    const ll d = H / N;
+    return (N - r) * cube(d) + r * cube(d + 1);
 }
 
 struct CubeTower final {
