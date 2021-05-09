@@ -3,51 +3,39 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
+ll volume_hi(const ll H, const ll N) {
+    const ll D = H - (N - 1);
+    return N - 1 + D * D * D;
 }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+ll volume_lo(const ll H, const ll N) {
+    if (H % N == 0) {
+        const ll d = H / N;
+        return N * (d * d * d);
+    }
 
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
+    const auto fair = [=](const ll h, const ll n) -> ll {
+        const ll d = h / n;
+        const ll dd = h - (n - 1) * d;
+        return (n - 1) * d * d * d + dd * dd * dd;
+    };
+
+    const ll o1 = fair(H, N);
+
+    const ll o2 = [=]() -> ll {
+        const ll d = H / N + 1;
+        const ll k = H / d;
+
+        return k * (d * d * d) + ((N - k) ? volume_lo(H - k * d, N - k) : 0);
+    }();
+
+    return min(o1, o2);
 }
 
 struct CubeTower final {
     ll difference(const ll H, const ll N) const {
-        const ll v_lo = [=]() -> ll {
-            if (H % N == 0) {
-                const ll d = H / N;
-                return N * (d * d * d);
-            }
-
-            {
-                const ll d = div_ceil(H, N);
-                const ll dd = H - (N - 1) * d;
-                if (dd > 0) return (N - 1) * (d * d * d) + dd * dd * dd;
-            }
-
-            const ll d = H / N;
-            const ll dd = H - (N - 1) * d;
-            return (N - 1) * (d * d * d) + dd * dd * dd;
-        }();
-
-        const ll D = H - (N - 1);
-        const ll v_hi = N - 1 + D * D * D;
-
-        return v_hi - v_lo;
+        return volume_hi(H, N) - volume_lo(H, N);
     }
 };
 
@@ -71,6 +59,16 @@ const lest::test tests[] = {
     CASE("Example 3") {
         const auto actual = CubeTower{}.difference(9, 3);
         const auto expected = 264;
+        EXPECT(actual == expected);
+    },
+    CASE("Case 1 1") {
+        const auto actual = CubeTower{}.difference(1, 1);
+        const auto expected = 0;
+        EXPECT(actual == expected);
+    },
+    CASE("Case 5 2") {
+        const auto actual = CubeTower{}.difference(5, 2);
+        const auto expected = 4 * 4 * 4 + 1 - 2 * 2 * 2 - 3 * 3 * 3;
         EXPECT(actual == expected);
     },
 };
