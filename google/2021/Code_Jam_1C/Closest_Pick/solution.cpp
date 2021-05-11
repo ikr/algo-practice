@@ -1,74 +1,57 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
+
 template <typename T> constexpr double doof(const T x) {
     return static_cast<double>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vi min_distances(const int k, const vi &xs) {
-    vi ans(k + 1, INT_MAX);
+enum class Snap { L, R };
 
-    for (int w = 1; w <= k; ++w) {
-        for (const auto x : xs) {
-            ans[w] = min(ans[w], abs(x - w));
-        }
+struct Placement final {
+    pii interval;
+    Snap snap;
+};
+
+int winning_places_num(const Placement &p) {
+    const auto [a, b] = p.interval;
+    return (b - a) / 2;
+}
+
+int winning_places_num(const Placement &p1, const Placement &p2) {
+    if (p1.interval != p2.interval) {
+        return winning_places_num(p1) + winning_places_num(p2);
     }
 
-    return ans;
+    if (p1.snap == p2.snap) return winning_places_num(p1);
+
+    const auto [a, b] = p1.interval;
+    return b - a + 1 - 2;
 }
 
 double solve(const int k, const vi &xs) {
-    set<int> xss(cbegin(xs), cend(xs));
-
-    vi ys;
-    for (int i = 1; i <= k; ++i) {
-        if (xss.count(i)) continue;
-        ys.push_back(i);
-    }
-
-    if (ys.empty()) return 0;
-
-    const auto md = min_distances(k, xs);
-
     double ans = 0;
 
-    for (int i = 0; i < sz(ys); ++i) {
-        for (int j = 0; j < sz(ys); ++j) {
-            double curr = 0;
+    for (int i = 0; i < sz(xs) - 1; ++i) {
+        for (int j = 0; j < sz(xs) - 1; ++j) {
+            const pii interval1{xs[i], xs[i + 1]};
+            const pii interval2{xs[j], xs[j + 1]};
 
-            for (int w = 1; w <= k; ++w) {
-                if (abs(w - ys[i]) < md[w] || abs(w - ys[j]) < md[w]) {
-                    curr += 1.0 / doof(k);
+            for (const auto snap1 : {Snap::L, Snap::R}) {
+                for (const auto snap2 : {Snap::L, Snap::R}) {
+                    const auto wins = winning_places_num({interval1, snap1},
+                                                         {interval2, snap2});
+                    ans = max(ans, doof(wins) / doof(k));
                 }
             }
-
-            ans = max(ans, curr);
         }
     }
 
@@ -88,6 +71,8 @@ int main() {
 
         vi xs(n);
         for (auto &x : xs) cin >> x;
+        xs.push_back(0);
+        xs.push_back(k + 1);
 
         sort(begin(xs), end(xs));
         xs.erase(unique(begin(xs), end(xs)), end(xs));
