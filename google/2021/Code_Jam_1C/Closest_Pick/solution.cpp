@@ -37,17 +37,17 @@ ostream &operator<<(ostream &os, const Placement &p) {
     return os;
 }
 
-int winning_places_num(const Placement &p) {
+int winning_places_num(const int k, const Placement &p) {
     const auto [a, b] = p.interval;
-    return (b - a) / 2;
+    return (a == 0 || b > k) ? (b - a - 1) : ((b - a) / 2);
 }
 
-int winning_places_num(const Placement &p1, const Placement &p2) {
+int winning_places_num(const int k, const Placement &p1, const Placement &p2) {
     if (p1.interval != p2.interval) {
-        return winning_places_num(p1) + winning_places_num(p2);
+        return winning_places_num(k, p1) + winning_places_num(k, p2);
     }
 
-    if (p1.snap == p2.snap) return winning_places_num(p1);
+    if (p1.snap == p2.snap) return winning_places_num(k, p1);
 
     const auto [a, b] = p1.interval;
     return b - a + 1 - 2;
@@ -63,12 +63,12 @@ double solve(const int k, const vi &xs) {
 
             for (const auto snap1 : {Snap::L, Snap::R}) {
                 for (const auto snap2 : {Snap::L, Snap::R}) {
-                    const auto wins = winning_places_num({interval1, snap1},
+                    const auto wins = winning_places_num(k, {interval1, snap1},
                                                          {interval2, snap2});
 
-                    cout << "p1: " << Placement{interval1, snap1}
-                         << " p2: " << Placement{interval2, snap2}
-                         << " wins: " << wins << endl;
+                    // cerr << "p1: " << Placement{interval1, snap1}
+                    //      << " p2: " << Placement{interval2, snap2}
+                    //      << " wins: " << wins << endl;
 
                     best_wins = max(best_wins, wins);
                 }
