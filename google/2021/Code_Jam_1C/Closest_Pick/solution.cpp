@@ -21,6 +21,22 @@ struct Placement final {
     Snap snap;
 };
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+ostream &operator<<(ostream &os, const Placement &p) {
+    if (p.snap == Snap::L) {
+        os << '*' << p.interval;
+    } else {
+        os << p.interval << '*';
+    }
+
+    return os;
+}
+
 int winning_places_num(const Placement &p) {
     const auto [a, b] = p.interval;
     return (b - a) / 2;
@@ -38,10 +54,10 @@ int winning_places_num(const Placement &p1, const Placement &p2) {
 }
 
 double solve(const int k, const vi &xs) {
-    double ans = 0;
+    int best_wins = 0;
 
     for (int i = 0; i < sz(xs) - 1; ++i) {
-        for (int j = 0; j < sz(xs) - 1; ++j) {
+        for (int j = i; j < sz(xs) - 1; ++j) {
             const pii interval1{xs[i], xs[i + 1]};
             const pii interval2{xs[j], xs[j + 1]};
 
@@ -49,13 +65,18 @@ double solve(const int k, const vi &xs) {
                 for (const auto snap2 : {Snap::L, Snap::R}) {
                     const auto wins = winning_places_num({interval1, snap1},
                                                          {interval2, snap2});
-                    ans = max(ans, doof(wins) / doof(k));
+
+                    cout << "p1: " << Placement{interval1, snap1}
+                         << " p2: " << Placement{interval2, snap2}
+                         << " wins: " << wins << endl;
+
+                    best_wins = max(best_wins, wins);
                 }
             }
         }
     }
 
-    return ans;
+    return doof(best_wins) / doof(k);
 }
 
 int main() {
