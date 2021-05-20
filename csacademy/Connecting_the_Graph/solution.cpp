@@ -1,13 +1,9 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
 using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 namespace atcoder {
 // Implement (union by size) + (path compression)
@@ -85,26 +81,47 @@ template <typename T> constexpr ll llof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vi largest_group(atcoder::dsu &cs) {
-    const auto gs = cs.groups();
-    return *max_element(cbegin(gs), cend(gs), [](const vi &lhs, const vi &rhs) {
-        return sz(lhs) < sz(rhs);
-    });
-}
+vector<pii> closest_value_indices(const vi &xs) {
+    vi idx(sz(xs));
+    iota(begin(idx), end(idx), 0);
+    sort(begin(idx), end(idx),
+         [&xs](const int i, const int j) { return xs[i] < xs[j]; });
 
-set<int> xs_excluding_ys(const vi &xs, const vi &ys) {
-    set<int> ans(cbegin(xs), cbegin(xs));
-    for (const auto y : ys) ans.erase(y);
+    vector<pii> ans;
+    ans.reserve(sz(xs) - 1);
+
+    for (int i = 1; i < sz(idx); ++i) {
+        ans.emplace_back(idx[i - 1], idx[i]);
+    }
+
+    sort(begin(ans), end(ans), [&xs](const pii uv, const pii pq) {
+        const auto [u, v] = uv;
+        const auto [p, q] = pq;
+        return abs(u - v) < abs(p - q);
+    });
+
     return ans;
 }
 
-ll min_cost_to_connect_all(const vi &vs, const vector<pii> &es) {
-    atcoder::dsu cs;
-    for (const auto [u, v] : es) cs.merge(u, v);
+constexpr ll square(const ll x) { return x * x; }
 
-    auto internals = largest_group(cs);
-    auto externals = xs_excluding_ys(vs, internals);
+ll min_cost_to_connect_all(const vi &vs, const vector<pii> &es) {
+    atcoder::dsu cs(sz(vs));
+    for (const auto [u, v] : es) {
+        cs.merge(u, v);
+    }
+
+    const auto roads = closest_value_indices(vs);
     ll ans = 0;
+
+    for (const auto [i, j] : roads) {
+        if (!cs.same(i, j)) {
+            cs.merge(i, j);
+            ans += square(vs[i] - vs[j]);
+        }
+
+        if (cs.size(i) == sz(vs)) break;
+    }
 
     return ans;
 }
