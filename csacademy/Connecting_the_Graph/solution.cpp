@@ -75,11 +75,10 @@ struct dsu {
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+constexpr ll square(const ll x) { return x * x; }
 
 vector<pii> closest_value_indices(const vi &xs) {
     vi idx(sz(xs));
@@ -97,19 +96,15 @@ vector<pii> closest_value_indices(const vi &xs) {
     sort(begin(ans), end(ans), [&xs](const pii uv, const pii pq) {
         const auto [u, v] = uv;
         const auto [p, q] = pq;
-        return abs(u - v) < abs(p - q);
+        return abs(xs[u] - xs[v]) < abs(xs[p] - xs[q]);
     });
 
     return ans;
 }
 
-constexpr ll square(const ll x) { return x * x; }
-
 ll min_cost_to_connect_all(const vi &vs, const vector<pii> &es) {
     atcoder::dsu cs(sz(vs));
-    for (const auto [u, v] : es) {
-        cs.merge(u, v);
-    }
+    for (const auto [u, v] : es) cs.merge(u, v);
 
     const auto roads = closest_value_indices(vs);
     ll ans = 0;
