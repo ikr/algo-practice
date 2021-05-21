@@ -11,11 +11,9 @@ using vvll = vector<vll>;
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
+
 template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -32,24 +30,13 @@ ll combos_num(const vi &xs) {
     ll ans = 0;
 
     for (const auto x : xs) {
-        // if (fs[1]) {
-        //     if (x == 1) {
-        //         const ll n = fs[1] - 1LL;
-        //         ans += n * (n - 1LL) / 2LL;
-        //     } else if (fs[x] > 1) {
-        //         ans += fs[1] * (fs[x] - 1);
-        //     }
-        // }
-
-        for (int i = 2; i <= inof(sqrt(x)); ++i) {
-            if (x % i || !fs[i]) continue;
+        for (int i = 2; i * i <= x; ++i) {
+            if (!fs[i] || x % i) continue;
 
             const int q = x / i;
             if (!fs[q]) continue;
 
-            if (q == i) {
-                // ans += llof(fs[i]) * (fs[i] - 1LL) / 2LL;
-            } else {
+            if (q != i) {
                 ans += llof(fs[i]) * fs[q];
             }
         }
