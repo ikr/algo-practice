@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pii = pair<int, int>;
@@ -68,8 +52,22 @@ vvi jumps(const vi &ss) {
     return ans;
 }
 
-int groups_num(const vvi &js, const int l, const int r) {
+int groups_num(const vvi &js, int l, const int r) {
+    assert(l <= r);
     const int n = sz(js);
+
+    int ans = 1;
+
+    while (l != r) {
+        int e = 0;
+        assert(l < n);
+        while (js[l][e + 1] <= r) ++e;
+
+        l = min(r, js[l][e]);
+        ans += (1 << e);
+    }
+
+    return ans;
 }
 
 vi query_results(const vi &xs, const vector<pii> &queries) {
