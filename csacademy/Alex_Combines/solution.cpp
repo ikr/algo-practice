@@ -58,12 +58,12 @@ int groups_num(const vvi &js, int l, const int r) {
 
     int ans = 1;
 
-    while (l != r) {
+    while (js[l][0] <= r) {
         int e = 0;
         assert(l < n);
-        while (js[l][e + 1] <= r) ++e;
+        while (js[l][e + 1] < r) ++e;
 
-        l = min(r, js[l][e]);
+        l = js[l][e];
         ans += (1 << e);
     }
 
