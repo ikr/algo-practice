@@ -11,7 +11,14 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 using vi = vector<int>;
+using vvi = vector<vi>;
 using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -42,12 +49,40 @@ vi spans(const vi &xs, const map<int, vi> &ibv) {
     return ans;
 }
 
+constexpr int mlog2(const unsigned int x) {
+    return inof(8U * sizeof(unsigned int) - __builtin_clz(x) - 1U);
+}
+
+vvi jumps(const vi &ss) {
+    const int n = sz(ss);
+    vvi ans(n, vi(mlog2(n) + 1, -1));
+
+    for (int i = 0; i < n; ++i) ans[i][0] = ss[i] + 1;
+
+    for (int j = 1; j <= mlog2(n); ++j) {
+        for (int i = 0; i < n; ++i) {
+            ans[i][j] = ans[i][j - 1] == n ? n : ans[ans[i][j - 1]][j - 1];
+        }
+    }
+
+    return ans;
+}
+
+int groups_num(const vvi &js, const int l, const int r) {
+    const int n = sz(js);
+}
+
 vi query_results(const vi &xs, const vector<pii> &queries) {
     const auto ss = spans(xs, indices_by_value(xs));
-    cerr << ss << endl;
+    const auto js = jumps(ss);
 
     vi ans;
     ans.reserve(sz(queries));
+
+    for (const auto [l, r] : queries) {
+        ans.push_back(groups_num(js, l, r));
+    }
+
     return ans;
 }
 
