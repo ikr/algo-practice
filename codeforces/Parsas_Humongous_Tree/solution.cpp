@@ -66,8 +66,22 @@ vi leaves(const Tree &t) {
 }
 
 ll max_beauty(const vector<pii> &ranges, const vvi &g) {
+    const auto t = zero_rooted_tree(g);
     vector<pair<ll, ll>> dp(sz(g), {0, 0});
-    return -1;
+
+    function<void(int)> recur;
+    recur = [&](const int u) {
+        for (const auto v : t[u]) {
+            dp[v] = {0, 0};
+        }
+    };
+
+    ll ans = 0;
+    for (const auto u : leaves(t)) {
+        const auto [o1, o2] = dp[u];
+        ans += max(o1, o2);
+    }
+    return ans;
 }
 
 int main() {
