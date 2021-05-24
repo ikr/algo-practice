@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -65,16 +71,31 @@ vi leaves(const Tree &t) {
     return ans;
 }
 
+template <typename T> T max_in(const pair<T, T> &xy) {
+    const auto [x, y] = xy;
+    return max(x, y);
+}
+
 ll max_beauty(const vector<pii> &ranges, const vvi &g) {
     const auto t = zero_rooted_tree(g);
     vector<pair<ll, ll>> dp(sz(g), {0, 0});
 
     function<void(int)> recur;
     recur = [&](const int u) {
+        const auto [u_lo, u_hi] = ranges[u];
+
         for (const auto v : t[u]) {
-            dp[v] = {0, 0};
+            const auto [v_lo, v_hi] = ranges[v];
+
+            dp[v] = {max_in(dp[u]) + max(abs(v_lo - u_lo), abs(v_lo - u_hi)),
+                     max_in(dp[u]) + max(abs(v_hi - u_lo), abs(v_hi - u_hi))};
+
+            recur(v);
         }
     };
+
+    recur(0);
+    cerr << dp << endl;
 
     ll ans = 0;
     for (const auto u : leaves(t)) {
