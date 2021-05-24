@@ -20,46 +20,46 @@ template <typename T> constexpr double doof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+static constexpr ll INF = 1e11;
+
 int non_positive_num(const vi &xs) {
-    return count_if(cbegin(xs), cend(xs), [](const int x) { return x <= 0; });
+    return inof(
+        count_if(cbegin(xs), cend(xs), [](const int x) { return x <= 0; }));
 }
 
-vi set_of_positives(const vi &xs) {
-    set<int> ans;
+bool contains_a_positive(const vi &xs) {
+    return any_of(cbegin(xs), cend(xs), [](const int x) { return x > 0; });
+}
+
+int min_positive(const vi &xs) {
     for (const auto x : xs) {
-        if (x > 0) ans.insert(x);
+        if (x > 0) return x;
     }
-    return vi(cbegin(ans), cend(ans));
+
+    assert(false);
+    return -1;
 }
 
-vi sorted_gaps(const vi &xs) {
-    vi ans(sz(xs));
-    adjacent_difference(cbegin(xs), cend(xs), begin(ans));
-    ans.erase(cbegin(ans));
-    sort(begin(ans), end(ans));
-    return ans;
-}
+ll min_delta_of_non_positves(const vi &xs) {
+    ll ans = INF;
 
-int best_hi(const vi &gs, const vi &his) {
-    auto it = lower_bound(cbegin(gs), cend(gs), his[0]);
-    if (it == cend(gs)) return 0;
-
-    auto record = *it;
-    int ans = his[0];
-
-    for (int i = 1; i < sz(his); ++i) {
-
+    for (int i = 1; i < sz(xs); ++i) {
+        if (xs[i] > 0) break;
+        ans = min(ans, abs(llof(xs[i - 1] - xs[i])));
     }
 
     return ans;
 }
 
 int max_strange_subseq_length(const vi &xs) {
-    const auto gs = sorted_gaps(xs);
-    const auto his = set_of_positives(xs);
+    const auto npn = non_positive_num(xs);
+    if (contains_a_positive(xs)) {
+        const auto delta = min_delta_of_non_positves(xs);
+        const auto po = min_positive(xs);
+        return (po <= delta) ? npn + 1 : npn;
+    }
 
-    int ans = non_positive_num(xs);
-    if (his.empty()) return ans;
+    return npn;
 }
 
 int main() {
