@@ -42,67 +42,44 @@ template <typename T> constexpr ll llof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-using Tree = vector<set<int>>;
-
-Tree zero_rooted_tree(const vvi &g) {
-    Tree ans(sz(g));
-    vector<bool> discovered(sz(g), false);
-
-    function<void(int)> dfs;
-    dfs = [&](const int u) {
-        for (const auto v : g[u]) {
-            if (discovered[v]) continue;
-            discovered[v] = true;
-            ans[u].insert(v);
-            dfs(v);
-        }
-    };
-
-    discovered[0] = true;
-    dfs(0);
-    return ans;
-}
-
-vi leaves(const Tree &t) {
-    vi ans;
-    for (int i = 0; i < sz(t); ++i) {
-        if (t[i].empty()) ans.push_back(i);
-    }
-    return ans;
-}
-
 template <typename T> T max_in(const pair<T, T> &xy) {
     const auto [x, y] = xy;
     return max(x, y);
 }
 
 ll max_beauty(const vector<pii> &ranges, const vvi &g) {
-    const auto t = zero_rooted_tree(g);
-    vector<pair<ll, ll>> dp(sz(g), {0, 0});
+    vector<bool> discovered(sz(g), false);
 
-    function<void(int)> recur;
-    recur = [&](const int u) {
+    function<pair<ll, ll>(int)> beauty;
+    beauty = [&](const int u) -> pair<ll, ll> {
+        vector<pair<int, pair<ll, ll>>> bs;
+
+        for (const auto v : g[u]) {
+            if (discovered[v]) continue;
+            discovered[v] = true;
+
+            bs.emplace_back(v, beauty(v));
+        }
+
         const auto [u_lo, u_hi] = ranges[u];
+        pair<ll, ll> ans = {0, 0};
 
-        for (const auto v : t[u]) {
+        for (const auto [v, b] : bs) {
+            const auto [b_lo, b_hi] = b;
             const auto [v_lo, v_hi] = ranges[v];
 
-            dp[v] = {max_in(dp[u]) + max(abs(v_lo - u_lo), abs(v_lo - u_hi)),
-                     max_in(dp[u]) + max(abs(v_hi - u_lo), abs(v_hi - u_hi))};
+            ans.first = max(ans.first, max(abs(u_lo - v_lo) + b_lo,
+                                           abs(u_lo - v_hi) + b_hi));
 
-            recur(v);
+            ans.second = max(ans.first, max(abs(u_hi - v_lo) + b_lo,
+                                            abs(u_hi - v_hi) + b_hi));
         }
+
+        return ans;
     };
 
-    recur(0);
-    cerr << dp << endl;
-
-    ll ans = 0;
-    for (const auto u : leaves(t)) {
-        const auto [o1, o2] = dp[u];
-        ans += max(o1, o2);
-    }
-    return ans;
+    discovered[0] = true;
+    return max_in(beauty(0));
 }
 
 int main() {
