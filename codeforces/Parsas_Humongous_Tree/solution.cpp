@@ -1,32 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -57,7 +31,6 @@ ll max_beauty(const vector<pii> &ranges, const vvi &g) {
         for (const auto v : g[u]) {
             if (discovered[v]) continue;
             discovered[v] = true;
-
             bs.emplace_back(v, beauty(v));
         }
 
@@ -68,11 +41,8 @@ ll max_beauty(const vector<pii> &ranges, const vvi &g) {
             const auto [b_lo, b_hi] = b;
             const auto [v_lo, v_hi] = ranges[v];
 
-            ans.first = max(ans.first, max(abs(u_lo - v_lo) + b_lo,
-                                           abs(u_lo - v_hi) + b_hi));
-
-            ans.second = max(ans.first, max(abs(u_hi - v_lo) + b_lo,
-                                            abs(u_hi - v_hi) + b_hi));
+            ans.first += max(abs(u_lo - v_lo) + b_lo, abs(u_lo - v_hi) + b_hi);
+            ans.second += max(abs(u_hi - v_lo) + b_lo, abs(u_hi - v_hi) + b_hi);
         }
 
         return ans;
