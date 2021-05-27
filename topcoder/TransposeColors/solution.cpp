@@ -28,14 +28,17 @@ struct TransposeColors final {
         };
 
         vi ans;
+
         for (int d = 0; d < n; ++d) {
             for (int i = d + 1; i < n; ++i) {
                 ans.push_back(idx(i, d));
                 ans.push_back(idx(d, i));
+                ans.push_back(n * n);
             }
+
+            if (!ans.empty() && ans.back() != n * n) ans.push_back(n * n);
         }
 
-        if (!ans.empty()) ans.push_back(n * n);
         return ans;
     }
 };
