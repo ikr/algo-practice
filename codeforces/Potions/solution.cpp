@@ -30,12 +30,13 @@ vll prefix_sums_with_zero(const vll &xs) {
 int max_drinks(const vll &xs) {
     vector<map<ll, int>> dp(sz(xs));
 
-    dp[0][xs[0]] = 1;
+    if (xs[0] >= 0) dp[0][xs[0]] = 1;
 
     for (int i = 1; i < sz(xs); ++i) {
         for (const auto [k, v] : dp[i - 1]) {
             dp[i][k] = max(dp[i][k], v);
-            if (k  + xs[i] >= 0) {
+
+            if (k + xs[i] >= 0) {
                 dp[i][k + xs[i]] = max(dp[i][k + xs[i]], v + 1);
             }
         }
