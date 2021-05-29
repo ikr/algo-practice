@@ -8,10 +8,6 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int max_drinks(const vll &xs) {
