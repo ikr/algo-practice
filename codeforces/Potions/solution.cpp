@@ -29,46 +29,49 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int max_drinks(const vll &xs) {
-    // Max potions drunk — the answer — [from index i] [to index j] inclusive
-    vvi potions(sz(xs), vi(sz(xs), 0));
+vvll reverse_sorted_prefixes_by_length(const vll &xs) {
+    vvll ans(sz(xs) + 1);
+    vll curr;
+    curr.reserve(sz(xs));
 
-    // Remaining health [from index i] [to index j] inclusive
-    vvll health(sz(xs), vll(sz(xs), 0));
+    for (int length = 1; length <= sz(xs); ++length) {
+        curr.insert(upper_bound(cbegin(curr), cend(curr), xs[length - 1]),
+                    xs[length - 1]);
+
+        ans[length] = vll(crbegin(curr), crend(curr));
+    }
+
+    return ans;
+}
+
+vvll reverse_sorted_prefix_sums_by_length(const vvll &rsp) {
+    vvll ans = rsp;
+    for (auto &prefix : ans) {
+        partial_sum(cbegin(prefix), cend(prefix), begin(prefix));
+    }
+    return ans;
+}
+
+int max_drinks(const vll &xs) {
+    const auto rsps = reverse_sorted_prefix_sums_by_length(
+        reverse_sorted_prefixes_by_length(xs));
+
+    const auto health = [&rsps](const int at_index,
+                                const int potions_drunk) -> ll {
+        return potions_drunk ? rsps[at_index + 1][potions_drunk - 1] : 0;
+    };
+
+    int ans = 0;
 
     for (int i = 0; i < sz(xs); ++i) {
-        if (xs[i] >= 0) {
-            potions[i][i] = 1;
-            health[i][i] = xs[i];
+        for (int p = 0; p <= i + 1; ++p) {
+            cerr << "i:" << i << " p:" << p << " h:" << health(i, p) << endl;
+
+            if (health(i, p) >= 0) ans = max(ans, p);
         }
     }
 
-    for (int span = 2; span <= sz(xs); ++span) {
-        for (int i = 0; i + span <= sz(xs); ++i) {
-            const int j = i + span - 1;
-
-            if (health[i][j - 1] + xs[j] >= 0 &&
-                potions[i][j - 1] + 1 > potions[i + 1][j]) {
-                potions[i][j] = potions[i][j - 1] + 1;
-                health[i][j] = health[i][j - 1] + xs[j];
-            }
-
-            if (potions[i][j - 1] > potions[i][j]) {
-                potions[i][j] = potions[i][j - 1];
-                health[i][j] = health[i][j - 1];
-            }
-
-            if (potions[i + 1][j] > potions[i][j]) {
-                potions[i][j] = potions[i + 1][j];
-                health[i][j] = health[i + 1][j];
-            }
-        }
-    }
-
-    cerr << potions << endl;
-    cerr << health << endl;
-
-    return potions[0].back();
+    return ans;
 }
 
 int main() {
