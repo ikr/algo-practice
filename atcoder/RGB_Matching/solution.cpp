@@ -52,8 +52,8 @@ ll min_total_dissatisfaction(const vll &xs, const vll &ys) {
 
     for (const auto x : xs) {
         const auto o1 = lower_bound(cbegin(ys), cend(ys), x);
-        const auto v1 = (o1 == cend(ys)) ? llof(1e19) : *o1;
-        const auto v2 = immediately_under(ys, x, llof(1e18));
+        const auto v1 = (o1 == cend(ys)) ? llof(1e17) : *o1;
+        const auto v2 = immediately_under(ys, x, llof(1e17));
 
         ans = min(ans, min(abs(x - v1), abs(x - v2)));
     }
