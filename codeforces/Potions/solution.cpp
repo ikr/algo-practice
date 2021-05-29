@@ -29,45 +29,31 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vvll reverse_sorted_prefixes_by_length(const vll &xs) {
-    vvll ans(sz(xs) + 1);
-    vll curr;
-    curr.reserve(sz(xs));
-
-    for (int length = 1; length <= sz(xs); ++length) {
-        curr.insert(upper_bound(cbegin(curr), cend(curr), xs[length - 1]),
-                    xs[length - 1]);
-
-        ans[length] = vll(crbegin(curr), crend(curr));
-    }
-
-    return ans;
-}
-
-vvll reverse_sorted_prefix_sums_by_length(const vvll &rsp) {
-    vvll ans = rsp;
-    for (auto &prefix : ans) {
-        partial_sum(cbegin(prefix), cend(prefix), begin(prefix));
-    }
-    return ans;
-}
+static constexpr ll INF = 1e15;
 
 int max_drinks(const vll &xs) {
-    const auto rsps = reverse_sorted_prefix_sums_by_length(
-        reverse_sorted_prefixes_by_length(xs));
+    // health [at index i] [after j potions drunk]
+    vvll dp(sz(xs), vll(sz(xs) + 1, -INF));
 
-    const auto health = [&rsps](const int at_index,
-                                const int potions_drunk) -> ll {
-        return potions_drunk ? rsps[at_index + 1][potions_drunk - 1] : 0;
-    };
+    dp[0][0] = 0;
+    if (xs[0] >= 0) dp[0][1] = xs[0];
+
+    for (int i = 1; i < sz(xs); ++i) {
+        dp[i][0] = 0;
+
+        for (int j = 1; j <= i + 1; ++j) {
+            dp[i][j] = dp[i - 1][j];
+            if (dp[i][j - 1] + xs[i] >= 0) dp[i][j] = dp[i][j - 1] + xs[i];
+        }
+    }
+
+    cerr << dp << endl;
 
     int ans = 0;
 
     for (int i = 0; i < sz(xs); ++i) {
-        for (int p = 0; p <= i + 1; ++p) {
-            cerr << "i:" << i << " p:" << p << " h:" << health(i, p) << endl;
-
-            if (health(i, p) >= 0) ans = max(ans, p);
+        for (int j = 1; j <= i + 1; ++j) {
+            if (dp[i][j] >= 0) ans = max(ans, j);
         }
     }
 
