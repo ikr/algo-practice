@@ -59,48 +59,36 @@ int cheb(const pii ab, const pii cd) {
 int sub_diameter(const vector<pii> &xys) {
     const int n = sz(xys);
 
-    map<pii, int> fs;
-    for (const auto xy : xys) ++fs[xy];
+    vector<int> by_x(n);
+    iota(begin(by_x), end(by_x), 0);
+    sort(begin(by_x), end(by_x),
+         [&xys](const int i, const int j) { return xys[i] < xys[j]; });
 
-    vector<pii> by_x = xys;
-    sort(begin(by_x), end(by_x));
-
-    vector<pii> by_y = xys;
-    sort(begin(by_y), end(by_y), [](const pii lhs, const pii rhs) {
-        return flip_pair(lhs) < flip_pair(rhs);
+    vector<int> by_y(n);
+    iota(begin(by_y), end(by_y), 0);
+    sort(begin(by_y), end(by_y), [&xys](const int i, const int j) {
+        return flip_pair(xys[i]) < flip_pair(xys[j]);
     });
 
-    vector<pii> xx{by_x[0], by_x[1], n > 3 ? by_x[2] : by_x[1], by_x[n - 1]};
-    vector<pii> yy{by_y[0], by_y[1], n > 3 ? by_y[2] : by_y[1], by_y[n - 1]};
+    set<int> interesting;
 
-    cerr << xx << endl;
-    cerr << yy << endl;
+    for (const auto i : vi{by_x[0], by_x[1], by_x[n - 2], by_x[n - 1], by_y[0],
+                           by_y[1], by_y[n - 2], by_y[n - 1]}) {
+        interesting.insert(i);
+    }
 
-    if (cheb(xx[0], xx[3]) > cheb(yy[0], yy[3])) {
-        if (cheb(xx[0], xx[2]) > cheb(xx[1], xx[3])) { // dropped xx[3]
-            if (fs[xx[3]] == 1) drop_one(yy, xx[3]);
-            cerr << "one" << endl;
-            cerr << xx << endl;
-            cerr << yy << endl;
-            return max(cheb(xx[0], xx[2]), cheb(yy[0], yy.back()));
-        } else { // dropped xx[0]
-            if (fs[xx[0]] == 1) drop_one(yy, xx[0]);
-            cerr << "two" << endl;
-            cerr << xx << endl;
-            cerr << yy << endl;
-            return max(cheb(xx[1], xx[3]), cheb(yy[0], yy.back()));
-        }
-    } else {
-        if (cheb(yy[0], yy[2]) > cheb(yy[1], yy[3])) { // dropped yy[3]
-            if (fs[yy[3]] == 1) drop_one(xx, yy[3]);
-            cerr << "three" << endl;
-            return max(cheb(yy[0], yy[2]), cheb(xx[0], xx.back()));
-        } else { // dropped yy[0]
-            if (fs[yy[0]] == 1) drop_one(xx, yy[0]);
-            cerr << "four" << endl;
-            return max(cheb(yy[1], yy[3]), cheb(xx[0], xx.back()));
+    vector<int> zz(cbegin(interesting), cend(interesting));
+
+    priority_queue<int> pq;
+    for (int i = 0; i < sz(zz) - 1; ++i) {
+        for (int j = i; j < sz(zz); ++j) {
+            if (zz[i] == zz[j]) continue;
+            pq.push(cheb(xys[zz[i]], xys[zz[j]]));
         }
     }
+
+    pq.pop();
+    return pq.top();
 }
 
 int main() {
