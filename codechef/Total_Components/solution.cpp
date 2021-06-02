@@ -46,9 +46,7 @@ vi prime_pair_products(const vi &ps, const int n) {
     vi ans;
     ans.reserve(sz(ps) / 4);
 
-    for (int i = 0; i < sz(ps) - 1; ++i) {
-        if (llof(ps[i]) * ps[i + 1] > llof(n)) break;
-
+    for (int i = 0; llof(ps[i]) * ps[i + 1] <= llof(n); ++i) {
         for (int j = i + 1; j < sz(ps); ++j) {
             if (llof(ps[i]) * ps[j] > llof(n)) break;
             ans.push_back(ps[i] * ps[j]);
@@ -59,9 +57,7 @@ vi prime_pair_products(const vi &ps, const int n) {
     return ans;
 }
 
-int components_num(const vi &ps, const vi &pps, const int n) {
-    return -1;
-}
+int components_num(const vi &ps, const vi &pps, const int n) { return -1; }
 
 static constexpr int N_MAX = 10'000'000;
 
