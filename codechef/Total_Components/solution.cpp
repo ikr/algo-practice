@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -44,7 +45,7 @@ vi primes(const vector<bool> &s) {
 
 vi prime_pair_products(const vi &ps, const int n) {
     vi ans;
-    ans.reserve(sz(ps) / 4);
+    ans.reserve(sz(ps));
 
     for (int i = 0; llof(ps[i]) * ps[i + 1] <= llof(n); ++i) {
         for (int j = i + 1; j < sz(ps); ++j) {
@@ -57,16 +58,26 @@ vi prime_pair_products(const vi &ps, const int n) {
     return ans;
 }
 
-int components_num(const vi &ps, const vi &pps, const int n) { return -1; }
+static constexpr int LIM = 100;
 
-static constexpr int N_MAX = 10'000'000;
+int components_num(const vi &ps, const vi &pps, const int n) {
+    if (n > LIM) return 1;
+
+    const auto it = upper_bound(cbegin(ps), cend(ps), n);
+    const int a = inof(distance(cbegin(ps), it));
+
+    const auto jt = upper_bound(cbegin(pps), cend(pps), n);
+    const int b = inof(distance(cbegin(pps), jt));
+
+    return max(1, a - b);
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    const auto ps = primes(sieve(N_MAX));
-    const auto pps = prime_pair_products(ps, N_MAX);
+    const auto ps = primes(sieve(LIM));
+    const auto pps = prime_pair_products(ps, LIM);
 
     int t;
     cin >> t;
