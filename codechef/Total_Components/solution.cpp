@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -23,10 +22,7 @@ vector<bool> sieve(const int n) {
     for (int i = 2; i <= n; ++i) {
         if (!ans[i]) continue;
         if (llof(i) * i > llof(n)) continue;
-
-        for (int j = i * i; j <= n; j += i) {
-            ans[j] = false;
-        }
+        for (int j = i * i; j <= n; j += i) ans[j] = false;
     }
 
     return ans;
@@ -43,48 +39,30 @@ vi primes(const vector<bool> &s) {
     return ans;
 }
 
-vi prime_pair_products(const vi &ps, const int n) {
-    vi ans;
-    ans.reserve(sz(ps));
+static constexpr int N_MAX = 10'000'000;
 
-    for (int i = 0; llof(ps[i]) * ps[i + 1] <= llof(n); ++i) {
-        for (int j = i + 1; j < sz(ps); ++j) {
-            if (llof(ps[i]) * ps[j] > llof(n)) break;
-            ans.push_back(ps[i] * ps[j]);
-        }
-    }
+int components_num(const vi &ps, const int n) {
+    const auto ps_num_up_to = [&ps](const int x) -> int {
+        return inof(distance(cbegin(ps), upper_bound(cbegin(ps), cend(ps), x)));
+    };
 
-    sort(begin(ans), end(ans));
-    return ans;
-}
-
-static constexpr int LIM = 100;
-
-int components_num(const vi &ps, const vi &pps, const int n) {
-    if (n > LIM) return 1;
-
-    const auto it = upper_bound(cbegin(ps), cend(ps), n);
-    const int a = inof(distance(cbegin(ps), it));
-
-    const auto jt = upper_bound(cbegin(pps), cend(pps), n);
-    const int b = inof(distance(cbegin(pps), jt));
-
-    return max(1, a - b);
+    const int all = ps_num_up_to(n);
+    const int lo = ps_num_up_to(n / 2);
+    return all - lo + (lo ? 1 : 0);
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    const auto ps = primes(sieve(LIM));
-    const auto pps = prime_pair_products(ps, LIM);
+    const auto ps = primes(sieve(N_MAX));
 
     int t;
     cin >> t;
     while (t--) {
         int n;
         cin >> n;
-        cout << components_num(ps, pps, n) << '\n';
+        cout << components_num(ps, n) << '\n';
     }
 
     return 0;
