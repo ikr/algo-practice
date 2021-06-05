@@ -1,37 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
+using ll = long long;
 using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
-}
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -41,55 +16,79 @@ constexpr int color_index(const char c) {
     return c == 'G' ? 1 : 2;
 }
 
-template <typename T>
-T immediately_under(const vector<T> &xs, const T &x, const T &when_missing) {
-    auto it = lower_bound(cbegin(xs), cend(xs), x);
-    return it == xs.cbegin() ? when_missing : *(--it);
-}
+using iter = vll::const_iterator;
+static constexpr ll INF = 1e17;
 
-ll min_total_dissatisfaction(const vll &xs, const vll &ys) {
-    ll ans = 1e17;
+pair<iter, iter> closest_pair(const vll &xs, const vll &zs) {
+    pair<iter, iter> ans{cend(xs), cend(zs)};
+    ll best = INF;
 
-    for (const auto x : xs) {
-        const auto o1 = lower_bound(cbegin(ys), cend(ys), x);
-        const auto v1 = (o1 == cend(ys)) ? llof(1e17) : *o1;
-        const auto v2 = immediately_under(ys, x, llof(1e17));
+    for (auto it = cbegin(xs); it != cend(xs); ++it) {
+        const auto jt = lower_bound(cbegin(zs), cend(zs), *it);
+        if (jt != cend(zs) && abs(*jt - *it) < best) {
+            best = abs(*jt - *it);
+            ans = pair{it, jt};
+        }
 
-        ans = min(ans, min(abs(x - v1), abs(x - v2)));
-    }
-
-    return ans;
-}
-
-ll min_total_dissatisfaction(const vector<pair<ll, char>> &acs) {
-    vvll xs(3);
-
-    for (const auto [a, c] : acs) {
-        xs[color_index(c)].push_back(a);
-    }
-
-    for (auto &row : xs) {
-        sort(begin(row), end(row));
-    }
-
-    for (auto it = cbegin(xs); it != cend(xs);) {
-        if (it->size() % 2 == 0) {
-            it = xs.erase(it);
-        } else {
-            ++it;
+        if (jt != cbegin(zs) && abs(*prev(jt) - *it) < best) {
+            best = abs(*prev(jt) - *it);
+            ans = pair{it, prev(jt)};
         }
     }
 
-    if (xs.empty()) return 0;
-    assert(xs.size() == 2);
+    assert((ans != pair{cend(xs), cend(zs)}));
+    return ans;
+}
 
-    return min_total_dissatisfaction(xs[0], xs[1]);
+ll min_delta(const vll &xs, const vll &zs) {
+    const auto [it, jt] = closest_pair(xs, zs);
+    return abs(*it - *jt);
+}
+
+ll min_delta(const vll &xs, const vll &ys, vll zs) {
+    if (zs.empty()) return INF;
+
+    const auto [it1, jt1] = closest_pair(xs, zs);
+    const auto d1 = abs(*it1 - *jt1);
+
+    zs.erase(jt1);
+    if (zs.empty()) return INF;
+
+    const auto [it2, jt2] = closest_pair(ys, zs);
+    const auto d2 = abs(*it2 - *jt2);
+
+    return d1 + d2;
+}
+
+ll min_total_dissatisfaction(const vector<pair<ll, char>> &acs) {
+    array<vll, 3> xs{};
+    for (const auto [a, c] : acs) xs[color_index(c)].push_back(a);
+
+    if (all_of(cbegin(xs), cend(xs),
+               [](const auto &row) { return sz(row) % 2 == 0; })) {
+        return 0;
+    }
+
+    for (auto &row : xs) sort(begin(row), end(row));
+    const auto e = [&xs]() -> int {
+        if (sz(xs[0]) % 2 == 0) return 0;
+        if (sz(xs[1]) % 2 == 0) return 1;
+        return 2;
+    }();
+
+    const auto o1 = (e + 1) % 3;
+    const auto o2 = (e + 2) % 3;
+
+    assert(sz(xs[o1]) % 2 == 1);
+    assert(sz(xs[o2]) % 2 == 1);
+
+    return min({min_delta(xs[o1], xs[o2]), min_delta(xs[o1], xs[o2], xs[e]),
+                min_delta(xs[o2], xs[o1], xs[e])});
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 
     int n;
     cin >> n;
