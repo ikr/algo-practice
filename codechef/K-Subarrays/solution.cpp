@@ -51,7 +51,7 @@ ll max_score(const vll &xs, const int k) {
     for (int i = 2; i <= k; ++i) {
         for (int j = i - 1; j < sz(xs); ++j) {
             // 1-element sub-array #i right where we stand
-            const auto o1 = max(hi[i - 1][j - 1] + i * xs[j], i * xs[j]);
+            const auto o1 = hi[i - 1][j - 1] + i * xs[j];
 
             // Append current element to last sub-array
             const auto o2 = dp[i][j - 1] + i * xs[j];
