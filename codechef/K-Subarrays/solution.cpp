@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 using ll = long long;
 using vll = vector<ll>;
 using vvll = vector<vll>;
@@ -26,10 +10,6 @@ template <typename T> constexpr int inof(const T x) {
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
 
 static constexpr ll INF = 1e17;
 
