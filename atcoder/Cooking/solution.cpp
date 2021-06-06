@@ -1,95 +1,55 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-using iter = deque<int>::const_iterator;
+int min_cooking_time(const vi &xs) {
+    const int s = accumulate(cbegin(xs), cend(xs), 0);
 
-static constexpr int INF = 1e9;
+    // True iff there's a subset [of the first i + 1 elements] having the sum
+    // [of exactly to j]
+    vector<vector<bool>> dp(sz(xs), vector<bool>(s + 1, false));
+    dp[0][0] = true;
+    dp[0][xs[0]] = true;
 
-iter closest(const iter first, const iter last, const int x) {
-    iter ans = last;
-    int best = INF;
+    for (int i = 1; i < sz(xs); ++i) {
+        for (int j = 0; j <= s; ++j) {
+            dp[i][j] = dp[i - 1][j];
 
-    for (iter it = first; it != last; ++it) {
-        if (abs(x - *it) < best) {
-            best = abs(x - *it);
-            ans = it;
-        }
-    }
-
-    assert(ans != last);
-    return ans;
-}
-
-int min_cooking_time(deque<int> xs) {
-    int ans = 0;
-    int b = 0;
-
-    while (!xs.empty()) {
-        if (b == 0) {
-            b = *crbegin(xs);
-            xs.erase(prev(cend(xs)));
-        }
-
-        int a = 0;
-        if (!xs.empty()) {
-            if (b > *cbegin(xs)) {
-                a += *cbegin(xs);
-                xs.erase(cbegin(xs));
-            } else {
-                a += *crbegin(xs);
-                xs.erase(prev(cend(xs)));
+            const int gap = j - xs[i];
+            if (gap >= 0 && dp[i - 1][gap]) {
+                dp[i][j] = true;
             }
         }
+    }
 
-        if (a <= b) {
-            b -= a;
-            ans += a;
-        } else {
-            a -= b;
-            ans += b;
-            b = a;
+    int ans = INT_MAX;
+
+    for (int j = 0; j <= s / 2; ++j) {
+        if (dp.back()[j]) {
+            ans = min(ans, max(j, s - j));
         }
     }
 
-    ans += b;
     return ans;
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 
     int n;
     cin >> n;
 
-    deque<int> xs;
-    for (int i = 0; i < n; ++i) {
-        int x;
-        cin >> x;
-        xs.push_back(x);
-    }
-    sort(begin(xs), end(xs));
+    vi xs(n);
+    for (auto &x : xs) cin >> x;
 
-    cout << min_cooking_time(move(xs)) << '\n';
+    cout << min_cooking_time(xs) << '\n';
     return 0;
 }
