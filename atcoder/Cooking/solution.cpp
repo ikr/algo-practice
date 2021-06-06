@@ -51,9 +51,13 @@ int min_cooking_time(deque<int> xs) {
 
         int a = 0;
         if (!xs.empty()) {
-            const auto it = closest(cbegin(xs), cend(xs), b);
-            a += *it;
-            xs.erase(it);
+            if (b > *cbegin(xs)) {
+                a += *cbegin(xs);
+                xs.erase(cbegin(xs));
+            } else {
+                a += *crbegin(xs);
+                xs.erase(prev(cend(xs)));
+            }
         }
 
         if (a <= b) {
