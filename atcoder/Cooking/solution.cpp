@@ -13,7 +13,7 @@ int min_cooking_time(const vi &xs) {
     const int s = accumulate(cbegin(xs), cend(xs), 0);
 
     // True iff there's a subset [of the first i + 1 elements] having the sum
-    // [of exactly to j]
+    // [of exactly j]
     vector<vector<bool>> dp(sz(xs), vector<bool>(s + 1, false));
     dp[0][0] = true;
     dp[0][xs[0]] = true;
