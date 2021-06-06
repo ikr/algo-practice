@@ -20,7 +20,26 @@ template <typename T> constexpr double doof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int min_cooking_time(multiset<int> xs) {
+using iter = deque<int>::const_iterator;
+
+static constexpr int INF = 1e9;
+
+iter closest(const iter first, const iter last, const int x) {
+    iter ans = last;
+    int best = INF;
+
+    for (iter it = first; it != last; ++it) {
+        if (abs(x - *it) < best) {
+            best = abs(x - *it);
+            ans = it;
+        }
+    }
+
+    assert(ans != last);
+    return ans;
+}
+
+int min_cooking_time(deque<int> xs) {
     int ans = 0;
     int b = 0;
 
@@ -32,13 +51,9 @@ int min_cooking_time(multiset<int> xs) {
 
         int a = 0;
         if (!xs.empty()) {
-            if (b > *cbegin(xs)) {
-                a += *cbegin(xs);
-                xs.erase(cbegin(xs));
-            } else {
-                a += *crbegin(xs);
-                xs.erase(prev(cend(xs)));
-            }
+            const auto it = closest(cbegin(xs), cend(xs), b);
+            a += *it;
+            xs.erase(it);
         }
 
         if (a <= b) {
@@ -63,12 +78,13 @@ int main() {
     int n;
     cin >> n;
 
-    multiset<int> xs;
+    deque<int> xs;
     for (int i = 0; i < n; ++i) {
         int x;
         cin >> x;
-        xs.insert(x);
+        xs.push_back(x);
     }
+    sort(begin(xs), end(xs));
 
     cout << min_cooking_time(move(xs)) << '\n';
     return 0;
