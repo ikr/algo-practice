@@ -56,8 +56,29 @@ vvi prefix_sums(vvi grid) {
     return grid;
 }
 
-int lowest_median(const int k, const vvi &grid) {
-    cerr << prefix_sums(grid) << endl;
+bool is_median_up_to_level_possible(const vvi &grid, const int k,
+                                    const int level) {
+    const int n = sz(grid);
+    const auto ps = prefix_sums(gte_indicators(grid, level));
+
+    const auto kxk_sum_from = [&](const int ro, const int co) -> int {
+        assert(ro + k <= n);
+        assert(co + k <= n);
+
+        auto ans = ps[ro + k - 1][co + k - 1];
+        if (ro > 0) ans -= ps[ro - 1][co + k - 1];
+        if (co > 0) ans -= ps[ro + k - 1][co - 1];
+        if (ro > 0 && co > 0) ans += ps[ro - 1][co - 1];
+        return ans;
+    };
+
+    cerr << "s:" << kxk_sum_from(0, 1) << endl;
+
+    return false;
+}
+
+int lowest_median(const vvi &grid, const int k) {
+    is_median_up_to_level_possible(grid, k, 11);
     return -1;
 }
 
@@ -73,6 +94,6 @@ int main() {
         for (auto &x : row) cin >> x;
     }
 
-    cout << lowest_median(k, grid) << '\n';
+    cout << lowest_median(grid, k) << '\n';
     return 0;
 }
