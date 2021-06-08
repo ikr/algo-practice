@@ -43,11 +43,12 @@ int max_drinks(const vll &xs) {
 
         for (int j = 1; j <= i + 1; ++j) {
             dp[i][j] = dp[i - 1][j];
-            if (dp[i][j - 1] + xs[i] >= 0) dp[i][j] = dp[i - 1][j - 1] + xs[i];
+
+            if (dp[i][j - 1] + xs[i] >= 0) {
+                dp[i][j] = max(dp[i][j], dp[i - 1][j - 1] + xs[i]);
+            }
         }
     }
-
-    cerr << dp << endl;
 
     int ans = 0;
 
