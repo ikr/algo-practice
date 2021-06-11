@@ -56,29 +56,18 @@ vector<ull> factor(ull n) {
 }
 
 bool is_possible(const int a, const int b, const int k) {
-    if (a == 1 && b == 1) return false;
+    const auto hi = sz(factor(a)) + sz(factor(b));
 
-    const auto pa = sz(factor(a));
-    const auto pb = sz(factor(b));
+    const auto lo = [&]() -> int {
+        if (a == b) return 2;
 
-    if (a == 1) return pb >= k;
-    if (b == 1) return pa >= k;
-    if (a == b) return k > 1 && k <= 2 * pa;
+        const auto g = gcd(a, b);
+        if (g == a || g == b) return 1;
 
-    const auto pg = sz(factor(gcd(a, b)));
+        return 2;
+    }();
 
-    for (int q = 0; q <= pg; ++q) {
-        const int hia = pa - q;
-        const int hib = pb - q;
-
-        for (int i = 0; i <= hia; ++i) {
-            for (int j = 0; j <= hib; ++j) {
-                if (i + j == k) return true;
-            }
-        }
-    }
-
-    return false;
+    return lo <= k && k <= hi;
 }
 
 int main() {
