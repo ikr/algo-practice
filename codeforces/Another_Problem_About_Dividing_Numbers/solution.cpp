@@ -61,17 +61,13 @@ bool is_possible(const int a, const int b, const int k) {
     const auto pa = sz(factor(a));
     const auto pb = sz(factor(b));
 
-    if (a == 1) {
-        return pb >= k;
-    }
-
-    if (b == 1) {
-        return pa >= k;
-    }
+    if (a == 1) return pb >= k;
+    if (b == 1) return pa >= k;
+    if (a == b) return k > 1 && k <= 2 * pa;
 
     const auto pg = sz(factor(gcd(a, b)));
 
-    for (int q = 1; q <= pg; ++q) {
+    for (int q = 0; q <= pg; ++q) {
         const int hia = pa - q;
         const int hib = pb - q;
 
