@@ -49,6 +49,23 @@ Tree *build_tree(const vi &xs) {
     return ans;
 }
 
+void print_tree(const string &prefix, const int i, const Node *p) {
+    if (!p) return;
+
+    stringstream ss;
+    ss << prefix;
+    if (i) {
+        if (!prefix.empty()) ss << '.';
+        ss << i;
+    }
+
+    if (!ss.str().empty()) cout << ss.str() << '\n';
+
+    for (int j = 0; j < sz(p->ch); ++j) {
+        print_tree(ss.str(), j, p->ch[j]);
+    }
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -64,6 +81,7 @@ int main() {
         for (auto &x : xs) cin >> x;
 
         auto tr = build_tree(xs);
+        print_tree("", 0, tr->root);
         delete tr;
     }
 
