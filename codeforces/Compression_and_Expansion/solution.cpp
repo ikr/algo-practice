@@ -21,10 +21,10 @@ struct Node final {
 
 struct Tree final {
     Node *root;
-    vector<set<Node *>> idx;
+    vector<stack<Node *>> idx;
 
     Tree(const int x_max) : root(new Node()), idx(x_max + 2) {
-        idx[1].insert(root);
+        idx[1].push(root);
     }
 
     ~Tree() { delete root; }
@@ -33,13 +33,13 @@ struct Tree final {
         if (idx[x].empty()) cerr << "No container for " << x << endl;
         assert(!idx[x].empty());
 
-        auto p = *cbegin(idx[x]);
+        auto p = idx[x].top();
         auto c = new Node();
         p->ch.push_back(c);
 
-        idx[x].erase(cbegin(idx[x]));
-        idx[x + 1].insert(p);
-        idx[1].insert(c);
+        idx[x].pop();
+        idx[x + 1].push(p);
+        idx[1].push(c);
     }
 };
 
