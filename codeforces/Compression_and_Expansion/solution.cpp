@@ -1,68 +1,43 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using vi = vector<int>;
+template <typename T> string join(const string &glue, const vector<T> &tokens) {
+    string ans;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-struct Node final {
-    vector<Node *> ch;
-
-    Node() : ch{nullptr} { assert(sz(ch) == 1); }
-
-    ~Node() {
-        for (auto p : ch) delete p;
-    }
-};
-
-struct Tree final {
-    Node *root;
-    vector<stack<Node *>> idx;
-
-    Tree(const int x_max) : root(new Node()), idx(x_max + 2) {
-        idx[1].push(root);
+    for (const auto &t : tokens) {
+        if (!ans.empty()) ans += glue;
+        ans += to_string(t);
     }
 
-    ~Tree() { delete root; }
-
-    void insert(const int x) {
-        if (idx[x].empty()) cerr << "No container for " << x << endl;
-        assert(!idx[x].empty());
-
-        auto p = idx[x].top();
-        auto c = new Node();
-        p->ch.push_back(c);
-
-        idx[x].pop();
-        idx[x + 1].push(p);
-        idx[1].push(c);
-    }
-};
-
-Tree *build_tree(const vi &xs) {
-    auto ans = new Tree(*max_element(cbegin(xs), cend(xs)));
-    for (const auto x : xs) ans->insert(x);
     return ans;
 }
 
-void print_tree(const string &prefix, const int i, const Node *p) {
-    if (!p) return;
+using vi = vector<int>;
 
-    stringstream ss;
-    ss << prefix;
-    if (i) {
-        if (!prefix.empty()) ss << '.';
-        ss << i;
-    }
+void print_tree(const vi &xs) {
+    stack<vi> st;
+    const auto print_top = [&st]() { cout << join(".", st.top()) << '\n'; };
 
-    if (!ss.str().empty()) cout << ss.str() << '\n';
+    for (const auto x : xs) {
+        if (st.empty()) {
+            cout << "1\n";
+            st.push(vi{1});
+            continue;
+        }
 
-    for (int j = 0; j < sz(p->ch); ++j) {
-        print_tree(ss.str(), j, p->ch[j]);
+        if (x == 1) {
+            vi path = st.top();
+            path.push_back(1);
+            st.push(path);
+
+            print_top();
+            continue;
+        }
+
+        while (st.top().back() != x - 1) st.pop();
+
+        st.top().back() = x;
+        print_top();
     }
 }
 
@@ -79,10 +54,7 @@ int main() {
 
         vi xs(n);
         for (auto &x : xs) cin >> x;
-
-        auto tr = build_tree(xs);
-        print_tree("", 0, tr->root);
-        delete tr;
+        print_tree(xs);
     }
 
     return 0;
