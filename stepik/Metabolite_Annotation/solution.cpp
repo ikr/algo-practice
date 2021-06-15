@@ -11,25 +11,33 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using pii = pair<int, int>;
 
+map<double, pii> indices_by_sum(const vector<double> &m,
+                                const vector<double> &a) {
+    map<double, pii> ans;
+
+    for (int j = 0; j < sz(m); ++j) {
+        for (int k = 0; k < sz(a); ++k) {
+            if (m[j] + a[k] <= 0) continue;
+            ans[m[j] + a[k]] = pii{j, k};
+        }
+    }
+
+    return ans;
+}
+
 vector<pii> corresponding_indices(const vector<double> &m,
                                   const vector<double> &a,
                                   const vector<double> &s) {
+    const auto idx = indices_by_sum(m, a);
     vector<pii> ans(sz(s), {-1, -1});
 
     for (int i = 0; i < sz(s); ++i) {
-        double best_err = 1e6;
+        auto it = idx.lower_bound(s[i]);
+        if (it == cend(idx)) it = prev(cend(idx));
 
-        for (int j = 0; j < sz(m); ++j) {
-            for (int k = 0; k < sz(a); ++k) {
-                if (m[j] + a[k] <= 0) continue;
-
-                const auto err = abs(m[j] + a[k] - s[i]);
-                if (err < best_err) {
-                    best_err = err;
-                    ans[i] = pii{j, k};
-                }
-            }
-        }
+        const auto jt = it == cbegin(idx) ? it : prev(it);
+        ans[i] = abs(it->first - s[i]) < abs(jt->first - s[i]) ? it->second
+                                                               : jt->second;
     }
 
     return ans;
