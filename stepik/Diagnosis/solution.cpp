@@ -9,6 +9,10 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+vi diagnoze(const vi &phab_parent, const vvi &diseases, const vvi &patients) {
+    return vi(sz(patients), 0);
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -40,6 +44,10 @@ int main() {
         cin >> cq;
         vs.resize(cq);
         for (auto &v : vs) cin >> v;
+    }
+
+    for (const auto x : diagnoze(phab_parent, diseases, patients)) {
+        cout << x + 1 << '\n';
     }
 
     return 0;
