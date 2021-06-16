@@ -4,40 +4,42 @@ using namespace std;
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using pii = pair<int, int>;
 
-map<double, pii> indices_by_sum(const vector<double> &m,
-                                const vector<double> &a) {
-    map<double, pii> ans;
-
-    for (int j = 0; j < sz(m); ++j) {
-        for (int k = 0; k < sz(a); ++k) {
-            if (m[j] + a[k] <= 0) continue;
-            ans[m[j] + a[k]] = pii{j, k};
-        }
-    }
-
+map<double, int> indices_by_value(const vector<double> &xs) {
+    map<double, int> ans;
+    for (int i = 0; i < sz(xs); ++i) ans[xs[i]] = i;
     return ans;
 }
 
 vector<pii> corresponding_indices(const vector<double> &m,
                                   const vector<double> &a,
                                   const vector<double> &s) {
-    const auto idx = indices_by_sum(m, a);
+    const auto idx = indices_by_value(m);
     vector<pii> ans(sz(s), {-1, -1});
 
     for (int i = 0; i < sz(s); ++i) {
-        auto it = idx.lower_bound(s[i]);
-        if (it == cend(idx)) it = prev(cend(idx));
+        for (int k = 0; k < sz(a); ++k) {
+            const auto it = [&]() {
+                const auto lb = idx.lower_bound(max(s[i] - a[k], -a[k]));
+                return lb == cend(idx) ? prev(lb) : lb;
+            }();
 
-        const auto jt = it == cbegin(idx) ? it : prev(it);
-        ans[i] = abs(it->first - s[i]) < abs(jt->first - s[i]) ? it->second
-                                                               : jt->second;
+            const auto jt = it == cbegin(idx) ? it : prev(it);
+
+            const auto candidate =
+                abs(it->first - s[i] + a[k]) < abs(jt->first - s[i] + a[k])
+                    ? pii{it->second, k}
+                    : pii{jt->second, k};
+
+            if (ans[i] == pii{-1, -1} ||
+                abs(m[candidate.first] + a[candidate.second] - s[i]) <
+                    abs(m[ans[i].first] + a[ans[i].second] - s[i])) {
+                ans[i] = candidate;
+            }
+        }
     }
 
     return ans;
