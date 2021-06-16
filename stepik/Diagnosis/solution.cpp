@@ -30,9 +30,29 @@ vi gather_levels(const vvi &children) {
     return ans;
 }
 
+constexpr int mlog2(const int x) {
+    return 8 * inof(sizeof(int)) - __builtin_clz(x) - 1;
+}
+
+vvi gather_lifts(const vi &parent) {
+    const int n = sz(parent) - 1;
+    const int m = mlog2(n) + 1;
+    vvi ans(n + 1, vi(m + 1, 0));
+    for (int i = 1; i <= n; ++i) ans[i][0] = parent[i];
+
+    for (int j = 1; j <= m; ++j) {
+        for (int i = 1; i <= n; ++i) {
+            ans[i][j] = ans[ans[i][j - 1]][j - 1];
+        }
+    }
+
+    return ans;
+}
+
 vi diagnose(const vi &phab_parent, const vvi &diseases, const vvi &patients) {
     const auto ch = gather_children(phab_parent);
     const auto lvl = gather_levels(ch);
+    const auto up = gather_lifts(phab_parent);
     return vi(sz(patients), 0);
 }
 
