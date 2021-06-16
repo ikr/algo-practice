@@ -9,7 +9,30 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vi diagnoze(const vi &phab_parent, const vvi &diseases, const vvi &patients) {
+vvi gather_children(const vi &parent) {
+    vvi ans(sz(parent));
+    for (int u = 1; u < sz(parent); ++u) {
+        ans[parent[u]].push_back(u);
+    }
+    return ans;
+}
+
+vi gather_levels(const vvi &children) {
+    vi ans(sz(children), 0);
+    function<void(int, int)> recur;
+    recur = [&](const int level, const int u) {
+        ans[u] = level;
+        for (const auto v : children[u]) {
+            recur(level + 1, v);
+        }
+    };
+    recur(1, 1);
+    return ans;
+}
+
+vi diagnose(const vi &phab_parent, const vvi &diseases, const vvi &patients) {
+    const auto ch = gather_children(phab_parent);
+    const auto lvl = gather_levels(ch);
     return vi(sz(patients), 0);
 }
 
@@ -46,7 +69,7 @@ int main() {
         for (auto &v : vs) cin >> v;
     }
 
-    for (const auto x : diagnoze(phab_parent, diseases, patients)) {
+    for (const auto x : diagnose(phab_parent, diseases, patients)) {
         cout << x + 1 << '\n';
     }
 
