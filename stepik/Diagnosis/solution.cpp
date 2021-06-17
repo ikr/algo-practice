@@ -78,12 +78,69 @@ int k_levels_up(const vvi &up, const int u, const int k) {
     return ans;
 }
 
-vi diagnose(const vi &phab_parent, const vvi &diseases, const vvi &patients) {
+int lca_from_same_level(const vvi &up, int a, int b) {
+    if (a == b) return a;
+    const int m = sz(up[0]) - 1;
+
+    int j = m;
+    while (up[a][0] != up[b][0]) {
+        while (j && up[a][j] == up[b][j]) j--;
+
+        a = up[a][j];
+        b = up[b][j];
+    }
+
+    return up[a][0];
+}
+
+int lca(const vi &lvl, const vvi &up, int a, int b) {
+    if (lvl[a] != lvl[b]) {
+        if (lvl[a] > lvl[b]) swap(a, b);
+        assert(lvl[b] - lvl[a] > 0);
+        b = k_levels_up(up, b, lvl[b] - lvl[a]);
+    }
+
+    return lca_from_same_level(up, a, b);
+}
+
+vi diagnose(const vi &phab_parent, const vi &ic, const vvi &diseases,
+            const vvi &patients) {
     const auto ch = gather_children(phab_parent);
     const auto lvl = gather_levels(ch);
     const auto up = gather_lifts(phab_parent);
 
-    return vi(sz(patients), 0);
+    const auto score_term = [&](const int pv, const vi &d) {
+        int ans = 0;
+        for (const auto dv : d) {
+            ans = max(ans, ic[lca(lvl, up, pv, dv)]);
+        }
+        return ans;
+    };
+
+    const auto score = [&](const vi &p, const vi &d) {
+        int ans = 0;
+        for (const auto &pv : p) ans += score_term(pv, d);
+        return ans;
+    };
+
+    vi ans(sz(patients), 0);
+
+    for (int i = 0; i < sz(patients); ++i) {
+        int best_ic = 0;
+        int best_j = -1;
+
+        for (int j = 0; j < sz(diseases); ++j) {
+            const auto curr_ic = score(patients[i], diseases[j]);
+            if (curr_ic > best_ic) {
+                best_ic = curr_ic;
+                best_j = j;
+            }
+        }
+
+        ans[i] = best_j;
+    }
+
+    return ans;
 }
 
 int main() {
@@ -119,7 +176,7 @@ int main() {
         for (auto &v : vs) cin >> v;
     }
 
-    for (const auto x : diagnose(phab_parent, diseases, patients)) {
+    for (const auto x : diagnose(phab_parent, ic, diseases, patients)) {
         cout << x + 1 << '\n';
     }
 
