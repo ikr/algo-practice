@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 using vi = vector<int>;
 using vvi = vector<vi>;
 
@@ -36,7 +52,7 @@ constexpr int mlog2(const int x) {
 
 vvi gather_lifts(const vi &parent) {
     const int n = sz(parent) - 1;
-    const int m = mlog2(n) + 1;
+    const int m = mlog2(n);
     vvi ans(n + 1, vi(m + 1, 0));
     for (int i = 1; i <= n; ++i) ans[i][0] = parent[i];
 
@@ -49,10 +65,24 @@ vvi gather_lifts(const vi &parent) {
     return ans;
 }
 
+int k_levels_up(const vvi &up, const int u, const int k) {
+    int r = k;
+    int ans = u;
+
+    while (r) {
+        const auto j = mlog2(r);
+        r &= ~(1 << j);
+        ans = up[ans][j];
+    }
+
+    return ans;
+}
+
 vi diagnose(const vi &phab_parent, const vvi &diseases, const vvi &patients) {
     const auto ch = gather_children(phab_parent);
     const auto lvl = gather_levels(ch);
     const auto up = gather_lifts(phab_parent);
+
     return vi(sz(patients), 0);
 }
 
