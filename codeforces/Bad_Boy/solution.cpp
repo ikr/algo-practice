@@ -35,7 +35,7 @@ pair<pii, pii> place_yoyos(const int H, const int W, const pii p0) {
     if (H == 1) return {{1, 1}, {1, W}};
     if (W == 1) return {{1, 1}, {H, 1}};
 
-    priority_queue<pair<int, pii>> pq;
+    priority_queue<pair<int, pii>> pq1;
 
     const pii lt{1, 1};
     const pii rt{1, W};
@@ -43,12 +43,18 @@ pair<pii, pii> place_yoyos(const int H, const int W, const pii p0) {
     const pii lb{H, 1};
 
     for (const auto e : {lt, rt, rb, lb}) {
-        pq.emplace(manhattan(p0, e), e);
+        pq1.emplace(manhattan(p0, e), e);
     }
 
-    const auto a = pq.top().second;
-    pq.pop();
-    return {a, pq.top().second};
+    const auto a = pq1.top().second;
+
+    priority_queue<pair<int, pii>> pq2;
+    for (const auto e : {lt, rt, rb, lb}) {
+        pq2.emplace(manhattan(a, e) + manhattan(e, p0), e);
+    }
+
+    const auto b = pq2.top().second;
+    return {a, b};
 }
 
 int main() {
