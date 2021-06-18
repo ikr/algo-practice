@@ -32,9 +32,6 @@ int manhattan(const pii p1, const pii p2) {
 }
 
 pair<pii, pii> place_yoyos(const int H, const int W, const pii p0) {
-    if (H == 1) return {{1, 1}, {1, W}};
-    if (W == 1) return {{1, 1}, {H, 1}};
-
     priority_queue<pair<int, pii>> pq1;
 
     const pii lt{1, 1};
