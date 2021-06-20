@@ -13,18 +13,22 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 using Tri = tuple<int, int, int>;
 
 optional<pii> driving_indices(const vi &a) {
-    map<int, array<int, 2>> f;
+    map<int, array<array<int, 2>, 30>> f;
 
     int hi = -1;
     for (int i = 0; i < sz(a); ++i) {
-        if (!f.count(a[i])) {
-            f[a[i]] = {0, 0};
-        }
+        for (int sh = 0; sh < 30; ++sh) {
+            if (a[i] & (1 << sh)) {
+                if (!f.count(a[i])) {
+                    f[a[i]] = array<array<int, 2>, 30>{};
+                }
 
-        ++f[a[i]][i % 2];
-        if (f[a[i]][i % 2] > 1) {
-            hi = i;
-            break;
+                ++f[a[i]][sh][i % 2];
+                if (f[a[i]][sh][i % 2] > 1) {
+                    hi = i;
+                    break;
+                }
+            }
         }
     }
 
