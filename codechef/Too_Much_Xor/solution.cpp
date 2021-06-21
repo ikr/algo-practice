@@ -12,17 +12,16 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using Tri = tuple<int, int, int>;
 
-pii driving_indices(const vi &a) {
+optional<pii> driving_indices(const vi &a) {
     for (int i = 2; i < sz(a); i += 2) {
-        if (a[i] != a[0]) return {0, i};
+        if (a[i] != a[0]) return pii{0, i};
     }
 
     for (int i = 3; i < sz(a); i += 2) {
-        if (a[i] != a[1]) return {1, i};
+        if (a[i] != a[1]) return pii{1, i};
     }
 
-    assert(false && "driving_indices");
-    return {-1, -1};
+    return nullopt;
 }
 
 pii opposing_indices(const int n, const int p, const int q) {
@@ -52,6 +51,16 @@ optional<int> single_repeated(const vi &a) {
     return nullopt;
 }
 
+vector<Tri> grid_ops(const int n) {
+    vector<Tri> ans;
+
+    for (int i = 1; i < n; i += 2) {
+        ans.emplace_back(0, 2, i);
+    }
+
+    return ans;
+}
+
 optional<vector<Tri>> solve(const vi &a) {
     if (sz(a) == 1) return vector<Tri>{};
 
@@ -77,17 +86,12 @@ optional<vector<Tri>> solve(const vi &a) {
         return nullopt;
     }
 
-    if (s) {
-        vector<Tri> ans;
+    if (s) return grid_ops(sz(a));
 
-        for (int i = 1; i < sz(a); i += 2) {
-            ans.emplace_back(0, 2, i);
-        }
+    const auto pq = driving_indices(a);
+    if (!pq) return grid_ops(sz(a));
 
-        return ans;
-    }
-
-    const auto [p, q] = driving_indices(a);
+    const auto [p, q] = *pq;
     assert(p % 2 == q % 2);
 
     vector<Tri> ans;
