@@ -55,26 +55,36 @@ optional<int> single_repeated(const vi &a) {
 optional<vector<Tri>> solve(const vi &a) {
     if (sz(a) == 1) return vector<Tri>{};
 
+    const auto s = single_repeated(a);
+    if (s && *s == 0) return nullopt;
+
     if (sz(a) == 2) {
         if (a[0] == a[1]) return nullopt;
         return vector<Tri>{};
     }
 
     if (sz(a) == 3) {
-        const auto s = single_repeated(a);
-        if (s && *s == 0) return nullopt;
-
         if (a[1] == 0) {
-            if (a[0] != 0) return vector<Tri>{{1, 2, 3}};
-            if (a[2] != 0) return vector<Tri>{{2, 3, 1}};
+            if (a[0] != 0) return vector<Tri>{{0, 1, 2}};
+            if (a[2] != 0) return vector<Tri>{{1, 2, 0}};
 
             assert(false && "Ether 0th or 2nd must be non-zero");
             return nullopt;
         }
 
-        if (a[0] == a[2] && a[0] != 0) return vector<Tri>{{1, 3, 2}};
+        if (a[0] == a[2] && a[0] != 0) return vector<Tri>{{0, 2, 1}};
 
         return nullopt;
+    }
+
+    if (s) {
+        vector<Tri> ans;
+
+        for (int i = 1; i < sz(a); i += 2) {
+            ans.emplace_back(0, 1, i);
+        }
+
+        return ans;
     }
 
     const auto [p, q] = driving_indices(a);
