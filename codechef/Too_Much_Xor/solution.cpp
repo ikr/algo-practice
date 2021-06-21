@@ -12,75 +12,88 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using Tri = tuple<int, int, int>;
 
-optional<pii> driving_indices(const vi &a) {
-    map<int, array<array<int, 2>, 30>> f;
-
-    int hi = -1;
-    for (int i = 0; i < sz(a); ++i) {
-        for (int sh = 0; sh < 30; ++sh) {
-            if (a[i] & (1 << sh)) {
-                if (!f.count(a[i])) {
-                    f[a[i]] = array<array<int, 2>, 30>{};
-                }
-
-                ++f[a[i]][sh][i % 2];
-                if (f[a[i]][sh][i % 2] > 1) {
-                    hi = i;
-                    break;
-                }
-            }
-        }
+pii driving_indices(const vi &a) {
+    for (int i = 2; i < sz(a); i += 2) {
+        if (a[i] != a[0]) return {0, i};
     }
 
-    if (hi == -1) return nullopt;
-
-    for (int i = 0; i < hi; ++i) {
-        if ((i % 2) != (hi % 2)) continue;
-        if (a[i] == a[hi]) return pii{i, hi};
+    for (int i = 3; i < sz(a); i += 2) {
+        if (a[i] != a[1]) return {1, i};
     }
 
     assert(false);
-    return nullopt;
+    return {-1, -1};
 }
 
-int other_index(const int n, const int p, const int q) {
-    assert(n > 2);
+pii opposing_indices(const int n, const int p, const int q) {
+    assert(n > 3);
+
+    vi ans;
+
     for (int i = 0; i < n; ++i) {
         if (i == p || i == q || (i % 2) == (p % 2)) continue;
-        return i;
+
+        ans.push_back(i);
+        if (sz(ans) == 2) break;
     }
 
-    assert(false);
-    return -1;
+    assert(sz(ans) == 2);
+    return {ans[0], ans[1]};
+}
+
+optional<int> single_repeated(const vi &a) {
+    assert(sz(a) > 2);
+
+    const auto x = a[0];
+
+    if (all_of(next(cbegin(a)), cend(a), [x](const int y) { return y == x; })) {
+        return x;
+    }
+
+    return nullopt;
 }
 
 optional<vector<Tri>> solve(const vi &a) {
     if (sz(a) == 1) return vector<Tri>{};
 
     if (sz(a) == 2) {
-        if ((a[0] ^ a[1]) > 0) return vector<Tri>{};
+        if (a[0] != a[1]) return vector<Tri>{};
         return nullopt;
     }
 
-    const auto pq = driving_indices(a);
-    if (!pq) return nullopt;
+    if (sz(a) == 3) {
+        const auto s = single_repeated(a);
+        if (s && *s == 0) return nullopt;
 
-    const auto [p, q] = *pq;
-    assert((p % 2) == (q % 2));
+        if (a[1] == 0) {
+            if (a[0] != 0) return vector<Tri>{{1, 2, 3}};
+            if (a[2] != 0) return vector<Tri>{{2, 3, 1}};
 
-    const auto z = other_index(sz(a), p, q);
+            assert(false && "Ether 0th or 2nd must be non-zero");
+            return nullopt;
+        }
+
+        if (a[0] == a[2] && a[0] != 0) return vector<Tri>{{1, 3, 2}};
+
+        return nullopt;
+    }
+
+    const auto [p, q] = driving_indices(a);
+    assert(p % 2 == q % 2);
+
     vector<Tri> ans;
-    ans.emplace_back(p, q, z);
 
     for (int i = 0; i < sz(a); ++i) {
-        if (i == p || i == q || i == z) continue;
+        if (i % 2 == p % 2) continue;
+        ans.emplace_back(p, q, i);
+    }
 
-        if ((i % 2) == (z % 2)) {
-            ans.emplace_back(p, q, i);
-        } else {
-            assert((i % 2) == (p % 2));
-            ans.emplace_back(p, z, i);
-        }
+    const auto [y, z] = opposing_indices(sz(a), p, q);
+    assert(y % 2 == z % 2);
+
+    for (int i = 0; i < sz(a); ++i) {
+        if (i % 2 == y % 2) continue;
+        ans.emplace_back(p, q, i);
     }
 
     return ans;
