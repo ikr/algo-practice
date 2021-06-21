@@ -81,7 +81,9 @@ optional<vector<Tri>> solve(const vi &a) {
             return nullopt;
         }
 
-        if (a[0] == a[2] && a[0] != 0) return vector<Tri>{{0, 2, 1}};
+        if (a[0] == a[2]) {
+            return a[0] == 0 ? vector<Tri>{} : vector<Tri>{{0, 2, 1}};
+        }
 
         return nullopt;
     }
