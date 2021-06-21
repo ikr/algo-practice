@@ -21,7 +21,7 @@ pii driving_indices(const vi &a) {
         if (a[i] != a[1]) return {1, i};
     }
 
-    assert(false);
+    assert(false && "driving_indices");
     return {-1, -1};
 }
 
@@ -31,7 +31,7 @@ pii opposing_indices(const int n, const int p, const int q) {
     vi ans;
 
     for (int i = 0; i < n; ++i) {
-        if (i == p || i == q || (i % 2) == (p % 2)) continue;
+        if (i == p || i == q || i % 2 == p % 2) continue;
 
         ans.push_back(i);
         if (sz(ans) == 2) break;
@@ -42,12 +42,11 @@ pii opposing_indices(const int n, const int p, const int q) {
 }
 
 optional<int> single_repeated(const vi &a) {
-    assert(sz(a) > 2);
+    assert(!a.empty());
 
-    const auto x = a[0];
-
-    if (all_of(next(cbegin(a)), cend(a), [x](const int y) { return y == x; })) {
-        return x;
+    if (all_of(next(cbegin(a)), cend(a),
+               [&a](const int y) { return y == a[0]; })) {
+        return a[0];
     }
 
     return nullopt;
@@ -57,8 +56,8 @@ optional<vector<Tri>> solve(const vi &a) {
     if (sz(a) == 1) return vector<Tri>{};
 
     if (sz(a) == 2) {
-        if (a[0] != a[1]) return vector<Tri>{};
-        return nullopt;
+        if (a[0] == a[1]) return nullopt;
+        return vector<Tri>{};
     }
 
     if (sz(a) == 3) {
@@ -93,7 +92,7 @@ optional<vector<Tri>> solve(const vi &a) {
 
     for (int i = 0; i < sz(a); ++i) {
         if (i % 2 == y % 2) continue;
-        ans.emplace_back(p, q, i);
+        ans.emplace_back(y, z, i);
     }
 
     return ans;
