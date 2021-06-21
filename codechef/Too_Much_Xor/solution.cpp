@@ -51,11 +51,21 @@ optional<int> single_repeated(const vi &a) {
     return nullopt;
 }
 
-vector<Tri> grid_ops(const int n) {
+vector<Tri> grid_ops(const vi &a) {
+    const int n = sz(a);
     vector<Tri> ans;
 
-    for (int i = 1; i < n; i += 2) {
-        ans.emplace_back(0, 2, i);
+    if (a[0]) {
+        for (int i = 1; i < n; i += 2) {
+            ans.emplace_back(0, 2, i);
+        }
+    } else {
+        assert(sz(a) > 3);
+        assert(a[1]);
+
+        for (int i = 0; i < n; i += 2) {
+            ans.emplace_back(1, 3, i);
+        }
     }
 
     return ans;
@@ -88,10 +98,10 @@ optional<vector<Tri>> solve(const vi &a) {
         return nullopt;
     }
 
-    if (s) return grid_ops(sz(a));
+    if (s) return grid_ops(a);
 
     const auto pq = driving_indices(a);
-    if (!pq) return grid_ops(sz(a));
+    if (!pq) return grid_ops(a);
 
     const auto [p, q] = *pq;
     assert(p % 2 == q % 2);
