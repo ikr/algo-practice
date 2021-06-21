@@ -81,7 +81,7 @@ optional<vector<Tri>> solve(const vi &a) {
         vector<Tri> ans;
 
         for (int i = 1; i < sz(a); i += 2) {
-            ans.emplace_back(0, 1, i);
+            ans.emplace_back(0, 2, i);
         }
 
         return ans;
@@ -111,7 +111,6 @@ optional<vector<Tri>> solve(const vi &a) {
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 
     int t;
     cin >> t;
