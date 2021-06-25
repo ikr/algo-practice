@@ -71,7 +71,6 @@ ll proper_pairs_num(const int l, const int r) {
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 
     int l, r;
     cin >> l >> r;
