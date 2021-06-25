@@ -1,0 +1,57 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: ./add 'Problem Title With Spaces'"
+    exit 1
+fi
+
+name=$(echo -n "$1" | sed 's/ /_/g')
+
+code=$(cat <<EOF
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+using vi = vector<int>;
+using vvi = vector<vi>;
+using pii = pair<int, int>;
+using vll = vector<ll>;
+using vvll = vector<vll>;
+
+template <typename T> constexpr int inof(const T x) { return static_cast<int>(x); }
+template <typename T> constexpr ll llof(const T x) { return static_cast<ll>(x); }
+template <typename T> constexpr double doof(const T x) { return static_cast<double>(x); }
+
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    cin.exceptions(cin.failbit);
+    cout << setprecision(9) << fixed;
+
+    int t;
+    cin >> t;
+    while (t--) {
+    }
+
+    return 0;
+}
+EOF
+)
+
+makefile=$(cat <<EOF
+build:
+	g++ -std=gnu++14 -Wall -Wextra -Wshadow -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -pedantic -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2 -O2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector -o ./solution ./solution.cpp
+
+run: build
+	./solution
+EOF
+)
+
+mkdir "./$name"
+cd "./$name"
+echo "$code" > ./solution.cpp
+echo "$makefile" > ./Makefile
+echo '-std=c++14' > ./compile_flags.txt
+emacsclient -n ./solution.cpp
+echo "cd ./$name && make run" | xclip -selection clipboard
