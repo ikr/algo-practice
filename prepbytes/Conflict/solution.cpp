@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 namespace atcoder {
 namespace internal {
 
@@ -164,10 +180,8 @@ ll optimal_total_conflict(const vi &xs) {
 
     for (int l = 2; l <= n; ++l) {
         for (int i = 0; i + l <= n; ++i) {
-            dp[i][i + l - 1] =
-                hi.prod(i, i + l) - lo.prod(i, i + l) +
-                min(hi.prod(i, i + l - 1) - lo.prod(i, i + l - 1),
-                    hi.prod(i + 1, i + l) - lo.prod(i + 1, i + l));
+            dp[i][i + l - 1] = hi.prod(i, i + l) - lo.prod(i, i + l) +
+                               min(dp[i][i + l - 2], dp[i + 1][i + l - 1]);
         }
     }
 
