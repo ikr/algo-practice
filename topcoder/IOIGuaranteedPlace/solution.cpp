@@ -2,12 +2,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
-using pii = pair<int, int>;
 
-bool intersect(const pii x, const pii y) {
-    return !(x.second < y.first || x.first > y.second);
+template <typename T>
+constexpr typename vector<T>::const_iterator cbegin(const vector<T> &xs) {
+    return xs.cbegin();
+}
+
+template <typename T>
+constexpr typename vector<T>::const_iterator cend(const vector<T> &xs) {
+    return xs.cend();
 }
 
 template <typename T> constexpr int inof(const T x) {
@@ -16,37 +20,30 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+vi omit(vi xs, const int i) {
+    xs.erase(next(begin(xs), i));
+    return xs;
+}
+
+vi plus_300(vi xs) {
+    transform(cbegin(xs), cend(xs), begin(xs),
+              [](const int x) { return x + 300; });
+    return xs;
+}
+
 struct IOIGuaranteedPlace final {
     vi solve(const int n, const vi &xs, const vi &ys) const {
-        vi idx(n);
-        iota(begin(idx), end(idx), 0);
-        sort(begin(idx), end(idx), [&](const int i, const int j) {
-            return xs[i] + ys[i] > xs[j] + ys[j];
-        });
+        const auto bests = plus_300(xs);
 
         vi ans(n, 0);
-        set<int> pool{0};
 
-        for (int i = 1; i < n; ++i) {
-            const pii a{xs[idx[i - 1]] + ys[idx[i - 1]], xs[idx[i - 1]] + 300};
-            const pii b{xs[idx[i]] + ys[idx[i]], xs[idx[i]] + 300};
+        for (int i = 0; i < n; ++i) {
+            vi zs = omit(bests, i);
+            sort(begin(zs), end(zs), greater<int>{});
 
-            if (intersect(a, b)) {
-                pool.insert(i);
-            } else {
-                for (const auto j : pool) {
-                    ans[idx[j]] = i;
-                }
-
-                pool.clear();
-                pool.insert(i);
-            }
-        }
-
-        if (!pool.empty()) {
-            for (const auto j : pool) {
-                ans[idx[j]] = n;
-            }
+            const auto it = lower_bound(cbegin(zs), cend(zs), xs[i] + ys[i],
+                                        greater<int>{});
+            ans[i] = inof(distance(cbegin(zs), it)) + 1;
         }
 
         return ans;
