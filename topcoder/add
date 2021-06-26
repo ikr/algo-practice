@@ -19,6 +19,16 @@ using pii = pair<int, int>;
 using vll = vector<ll>;
 using vvll = vector<vll>;
 
+template <typename T>
+constexpr typename vector<T>::const_iterator cbegin(const vector<T> &xs) {
+    return xs.cbegin();
+}
+
+template <typename T>
+constexpr typename vector<T>::const_iterator cend(const vector<T> &xs) {
+    return xs.cend();
+}
+
 template <typename T> constexpr int inof(const T x) { return static_cast<int>(x); }
 template <typename T> constexpr ll llof(const T x) { return static_cast<ll>(x); }
 template <typename T> constexpr double doof(const T x) { return static_cast<double>(x); }
