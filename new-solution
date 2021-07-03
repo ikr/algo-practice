@@ -90,8 +90,8 @@ makefile = """build:
 	g++ -I/home/ikr/code/ac-library -std=gnu++{0} -Wall -Wextra -Wshadow -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -pedantic -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_CONCEPT_CHECKS -D_GLIBCXX_ASSERTIONS -D_GLIBCXX_SANITIZE_VECTOR -D_FORTIFY_SOURCE=2 -O2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector -o ./solution ./solution.cpp
 
 run: build
-	./solution
-""".format(args.cpp_standard)
+	./solution{1}
+""".format(args.cpp_standard, ' -p' if args.tests else '')
 
 compile_flags = """-I/home/ikr/code/ac-library
 -std=c++{0}
@@ -116,6 +116,9 @@ with open("Makefile", "w+") as file:
 
 with open("compile_flags.txt", "w+") as file:
     file.write(compile_flags)
+
+if args.tests:
+    os.system('ln -s /home/ikr/code/lest/include/lest/lest.hpp ./lest.hpp')
 
 clipboard_command = """echo 'cd ./{0} && make run' | xclip -selection clipboard""".format(normalize(args.name))
 os.system(clipboard_command)
