@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import re
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--tests",
+                    help="The main function will run the tests instead of reading the STDIN",
+                    action="store_true")
+parser.add_argument("-s", "--cpp-standard",
+                    type=int,
+                    default=17,
+                    help="The C++ standard to use: 17, 14, or 11")
+parser.add_argument("name", help="The name of the problem")
+args = parser.parse_args()
+
+code = '#include "lest.hpp"\n' if args.tests else ""
+
+code += """#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+using vi = vector<int>;
+using vvi = vector<vi>;
+using pii = pair<int, int>;
+using vll = vector<ll>;
+using vvll = vector<vll>;
+
+template <typename T> constexpr int inof(const T x) { return static_cast<int>(x); }
+template <typename T> constexpr ll llof(const T x) { return static_cast<ll>(x); }
+template <typename T> constexpr double doof(const T x) { return static_cast<double>(x); }
+
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+"""
+
+if args.cpp_standard < 17:
+    code = code + """
+template <typename T>
+constexpr typename vector<T>::const_iterator cbegin(const vector<T> &xs) {
+    return xs.cbegin();
+}
+
+template <typename T>
+constexpr typename vector<T>::const_iterator cend(const vector<T> &xs) {
+    return xs.cend();
+}
+"""
+
+if args.tests:
+    code = code + """
+struct Solution final {
+    int solve_it() const { return 42; }
+};
+
+// clang-format off
+const lest::test tests[] = {
+    CASE("Example 0") {
+        const auto actual = Solution{}.solve_it();
+        const auto expected = 42;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 1") {
+        const auto actual = Solution{}.solve_it();
+        const auto expected = 42;
+        EXPECT(actual == expected);
+    },
+};
+// clang-format on
+
+int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
+"""
+else:
+    code = code + """
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    cin.exceptions(cin.failbit);
+    cout << setprecision(9) << fixed;
+
+    int t;
+    cin >> t;
+    while (t--) {
+    }
+
+    return 0;
+}
+"""
+
+makefile = """build:
+	g++ -I/home/ikr/code/ac-library -std=gnu++{0} -Wall -Wextra -Wshadow -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -pedantic -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_CONCEPT_CHECKS -D_GLIBCXX_ASSERTIONS -D_GLIBCXX_SANITIZE_VECTOR -D_FORTIFY_SOURCE=2 -O2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector -o ./solution ./solution.cpp
+
+run: build
+	./solution
+""".format(args.cpp_standard)
+
+compile_flags = """-I/home/ikr/code/ac-library
+-std=c++{0}
+""".format(args.cpp_standard)
+
+def normalize(name):
+    ans = name
+    muted = "!#$%^*()'!?"
+    for x in muted:
+        ans = ans.replace(x, '')
+    return re.sub(r'[ &,]+', '_', ans)
+
+print("The name is", normalize(args.name), ":)")
+print("The code is", code)
+print ("The makefile is", makefile)
+print("pwd is", os.getcwd())
+
+
+path = os.path.join(os.getcwd(), normalize(args.name))
+os.mkdir(path)
+os.chdir(path)
