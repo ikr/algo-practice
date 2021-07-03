@@ -104,12 +104,18 @@ def normalize(name):
         ans = ans.replace(x, '')
     return re.sub(r'[ &,]+', '_', ans)
 
-print("The name is", normalize(args.name), ":)")
-print("The code is", code)
-print ("The makefile is", makefile)
-print("pwd is", os.getcwd())
-
-
 path = os.path.join(os.getcwd(), normalize(args.name))
 os.mkdir(path)
 os.chdir(path)
+
+with open("solution.cpp", "w+") as file:
+    file.write(code)
+
+with open("Makefile", "w+") as file:
+    file.write(makefile)
+
+with open("compile_flags.txt", "w+") as file:
+    file.write(compile_flags)
+
+clipboard_command = """echo 'cd ./{0} && make run' | xclip -selection clipboard""".format(normalize(args.name))
+os.system(clipboard_command)
