@@ -20,18 +20,20 @@ template <typename T> constexpr double doof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll total_fs(const vvi &adj) {
+static constexpr ll INF = 1e16;
+
+ll total_fs(const vvll &adj) {
     const int n = sz(adj);
-    vector<vvll> dp(n, vvll(n, vll(n, 0)));
+    vector<vvll> dp(n, vvll(n, vll(n, INF)));
 
     for (int s = 0; s < n; ++s) {
         for (int t = 0; t < n; ++t) {
-            if (adj[s][t]) dp[s][t][0] = adj[s][t];
+            for (int k = 0; k < n; ++k) {
+                dp[s][t][k] = adj[s][t];
+            }
 
             if (adj[s][0] && adj[0][t]) {
-                dp[s][t][0] =
-                    dp[s][t][0] ? min(dp[s][t][0], llof(adj[s][0]) + adj[0][t])
-                                : (llof(adj[s][0]) + adj[0][t]);
+                dp[s][t][0] = min(dp[s][t][0], adj[s][0] + adj[0][t]);
             }
         }
     }
@@ -39,16 +41,8 @@ ll total_fs(const vvi &adj) {
     for (int k = 1; k < n; ++k) {
         for (int u = 0; u < n; ++u) {
             for (int v = 0; v < n; ++v) {
-                dp[u][v][k] = dp[u][v][k - 1];
-
-                if (dp[u][k][k - 1] && dp[k][v][k - 1]) {
-                    if (!dp[u][v][k]) {
-                        dp[u][v][k] = dp[u][k][k - 1] + dp[k][v][k - 1];
-                    } else {
-                        dp[u][v][k] =
-                            min(dp[u][v][k], dp[u][k][k - 1] + dp[k][v][k - 1]);
-                    }
-                }
+                dp[u][v][k] =
+                    min(dp[u][v][k - 1], dp[u][k][k - 1] + dp[k][v][k - 1]);
             }
         }
     }
@@ -57,7 +51,9 @@ ll total_fs(const vvi &adj) {
     for (int s = 0; s < n; ++s) {
         for (int t = 0; t < n; ++t) {
             for (int k = 0; k < n; ++k) {
-                ans += dp[s][t][k];
+                if (dp[s][t][k] < INF) {
+                    ans += dp[s][t][k];
+                }
             }
         }
     }
@@ -72,7 +68,11 @@ int main() {
     int n, m;
     cin >> n >> m;
 
-    vvi adj(n, vi(n, 0));
+    vvll adj(n, vll(n, INF));
+
+    for (int i = 0; i < n; ++i) {
+        adj[i][i] = 0;
+    }
 
     for (int i = 0; i < m; ++i) {
         int a, b, c;
