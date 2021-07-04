@@ -28,10 +28,27 @@ constexpr int multiples_of_x(const int x, const int l, const int r) {
     return r / x - (l - 1) / x;
 }
 
+template <typename T> constexpr T sqr(const T x) { return x * x; }
+
 ll proper_pairs_num(const int l, const int r) {
     // dp[i] is the number of pairs x y in [l, r]: gcd(x, y) = i
-    vll dp(r + 1, 0);
-    return -1;
+    vll dp(r + 1, 1);
+
+    for (int i = r - 1; i >= 1; --i) {
+        dp[i] = sqr(llof(multiples_of_x(i, l, r)));
+
+        for (int k = 2; llof(k) * i <= llof(r); ++k) {
+            dp[i] -= dp[k * i];
+        }
+    }
+
+    ll muls = 0;
+
+    for (int i = l; i <= r; ++i) {
+        muls += multiples_of_x(i, l, r);
+    }
+
+    return sqr(llof(r - l + 1)) - dp[1] - muls;
 }
 
 int main() {
