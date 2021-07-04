@@ -120,5 +120,7 @@ with open("compile_flags.txt", "w+") as file:
 if args.tests:
     os.system('ln -s /home/ikr/code/lest/include/lest/lest.hpp ./lest.hpp')
 
+os.system('emacsclient -n ./solution.cpp')
+
 clipboard_command = """echo 'cd ./{0} && make run' | xclip -selection clipboard""".format(normalize(args.name))
 os.system(clipboard_command)
