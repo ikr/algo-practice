@@ -32,31 +32,22 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 unsigned int permutations_num(const string &s) {
-    const int n = sz(s);
-    // dp[i][j] is the answer for the first i places so that the number at the
-    // last place is j
+    const int n = sz(s) + 1;
+    // dp[i][j] is the answer for the i different numbers in the first i places,
+    // so that the number at the last place is j
     vector<vector<mint>> dp(n + 1, vector<mint>(n + 1, 0));
-    for (int j = 1; j <= n; ++j) {
-        dp[1][j] = 1;
-    }
+    dp[1][1] = 1;
 
     for (int i = 2; i <= n; ++i) {
-        for (int j = 1; j <= n; ++j) {
-            const bool asc = s[i - 2] == '<';
+        const bool asc = (s[i - 2] == '<');
 
-            if (asc) {
-                for (int k = 1; k < j; ++k) {
-                    dp[i][j] += dp[i - 1][k];
-                }
-            } else {
-                for (int k = j + 1; k <= n; ++k) {
-                    dp[i][j] += dp[i - 1][k];
-                }
+        for (int j = 1; j <= i; ++j) {
+            for (int k = 1; k < i; ++k) {
+                const int k_ = k >= j ? k + 1 : k;
+                if (asc == (k_ < j)) dp[i][j] += dp[i - 1][k];
             }
         }
     }
-
-    // cerr << dp << endl;
 
     return accumulate(cbegin(dp.back()), cend(dp.back()), mint{0},
                       [](const mint agg, const mint x) { return agg + x; })
