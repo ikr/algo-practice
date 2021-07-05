@@ -2,28 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 using mint = atcoder::modint1000000007;
-
-ostream &operator<<(ostream &os, const mint &x) {
-    os << x.val();
-    return os;
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
