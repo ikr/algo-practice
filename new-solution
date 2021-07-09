@@ -6,7 +6,10 @@ import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--tests",
-                    help="The main function will run the tests instead of reading the STDIN",
+                    help="Main function runs unit tests instead of reading STDIN",
+                    action="store_true")
+parser.add_argument("-p", "--prefix-output",
+                    help="Read STDIN & prefix K-th test case's output with `Case #K: `",
                     action="store_true")
 parser.add_argument("-s", "--cpp-standard",
                     type=int,
@@ -14,6 +17,11 @@ parser.add_argument("-s", "--cpp-standard",
                     help="The C++ standard to use: 17, 14, or 11")
 parser.add_argument("name", help="The name of the problem")
 args = parser.parse_args()
+
+streams_snippet = """cin.tie(0)->sync_with_stdio(0);
+    cin.exceptions(cin.failbit);
+    cout << setprecision(9) << fixed;
+"""
 
 code = '#include "lest.hpp"\n' if args.tests else ""
 
@@ -70,21 +78,35 @@ const lest::test tests[] = {
 
 int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
 """
-else:
+elif args.prefix_output:
     code = code + """
-int main() {
-    cin.tie(0)->sync_with_stdio(0);
-    cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
+int solve() {{
+    return -1;
+}}
 
+int main() {{
+    {0}
     int t;
     cin >> t;
-    while (t--) {
-    }
+    for (int i = 1; i <= t; ++i) {{
+        cout << "Case #" << i << ": " << solve() << '\\n';
+    }}
 
     return 0;
-}
-"""
+}}
+""".format(streams_snippet)
+else:
+    code = code + """
+int main() {{
+    {0}
+    int t;
+    cin >> t;
+    while (t--) {{
+    }}
+
+    return 0;
+}}
+""".format(streams_snippet)
 
 makefile = """build:
 	g++ -I/home/ikr/code/ac-library -std=gnu++{0} -Wall -Wextra -Wshadow -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -pedantic -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_CONCEPT_CHECKS -D_GLIBCXX_ASSERTIONS -D_GLIBCXX_SANITIZE_VECTOR -D_FORTIFY_SOURCE=2 -O2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector -o ./solution ./solution.cpp
