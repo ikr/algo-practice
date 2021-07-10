@@ -42,22 +42,15 @@ vll group_scores(const vvi &compat) {
     return ans;
 }
 
-ll max_total_score(const vvi &compat) {
-    const auto n = sz(compat);
-    const auto score = group_scores(compat);
-
-    function<ll(int, int)> recur;
-    recur = [&](const int bits_taken, const int bits_taking) -> ll {
-        assert(!(bits_taken & bits_taking));
-
+vvi gather_free_bits(const int n) {
+    vvi ans((1 << n));
+    for (int taken = 0; taken < (1 << n); ++taken) {
         vi free_bits;
         for (int i = 0; i < n; ++i) {
-            if ((1 << i) & (bits_taken | bits_taking)) continue;
+            if ((1 << i) & taken) continue;
             free_bits.push_back(i);
         }
-        if (free_bits.empty()) return score[bits_taking];
 
-        ll ans = score[bits_taking];
         for (int i = 1; i < (1 << sz(free_bits)); ++i) {
             int bits = 0;
             for (int j = 0; j < sz(free_bits); ++j) {
@@ -66,6 +59,23 @@ ll max_total_score(const vvi &compat) {
                 }
             }
 
+            ans[taken].push_back(bits);
+        }
+    }
+    return ans;
+}
+
+ll max_total_score(const vvi &compat) {
+    const auto n = sz(compat);
+    const auto score = group_scores(compat);
+    const auto fb = gather_free_bits(n);
+
+    function<ll(int, int)> recur;
+    recur = [&](const int bits_taken, const int bits_taking) -> ll {
+        assert(!(bits_taken & bits_taking));
+
+        ll ans = score[bits_taking];
+        for (const auto bits : fb[bits_taken | bits_taking]) {
             ans = max(ans, score[bits_taking] +
                                recur(bits_taken | bits_taking, bits));
         }
