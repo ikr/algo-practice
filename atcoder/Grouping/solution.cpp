@@ -50,9 +50,22 @@ ll max_total_score(const vvi &compat) {
     recur = [&](const int bits_taken, const int bits_taking) -> ll {
         assert(!(bits_taken & bits_taking));
 
+        vi free_bits;
+        for (int i = 0; i < n; ++i) {
+            if ((1 << i) & (bits_taken | bits_taking)) continue;
+            free_bits.push_back(i);
+        }
+        if (free_bits.empty()) return score[bits_taking];
+
         ll ans = score[bits_taking];
-        for (int bits = 1; bits < (1 << n); ++bits) {
-            if (bits & (bits_taken | bits_taking)) continue;
+        for (int i = 1; i < (1 << sz(free_bits)); ++i) {
+            int bits = 0;
+            for (int j = 0; j < sz(free_bits); ++j) {
+                if ((1 << j) & i) {
+                    bits |= (1 << free_bits[j]);
+                }
+            }
+
             ans = max(ans, score[bits_taking] +
                                recur(bits_taken | bits_taking, bits));
         }
