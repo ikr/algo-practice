@@ -58,7 +58,7 @@ vi temperatures(const int n, const vi &xs, vi ts) {
     vi ans(n, 0);
 
     for (int x = 0; x < n; ++x) {
-        const auto jt = upper_bound(cbegin(xs), cend(xs), x);
+        const auto jt = lower_bound(cbegin(xs), cend(xs), x);
         const auto it = (jt == cbegin(xs)) ? cbegin(xs) : prev(jt);
 
         const int i = min(k - 1, inof(distance(cbegin(xs), it)));
