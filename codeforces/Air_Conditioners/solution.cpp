@@ -26,8 +26,9 @@ void combine_temperatures(const vi &xs, vi &ts) {
         for (int i = 1; i < k; ++i) {
             if (ts[i] >= ts[lo] + xs[i] - xs[lo]) {
                 ts[i] = ts[lo] + xs[i] - xs[lo];
-                lo = i;
             }
+
+            lo = i;
         }
     }
 
@@ -36,8 +37,9 @@ void combine_temperatures(const vi &xs, vi &ts) {
         for (int i = k - 2; i >= 0; --i) {
             if (ts[i] >= ts[lo] + xs[lo] - xs[i]) {
                 ts[i] = ts[lo] + xs[lo] - xs[i];
-                lo = i;
             }
+
+            lo = i;
         }
     }
 }
