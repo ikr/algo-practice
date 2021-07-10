@@ -4,9 +4,7 @@ using namespace std;
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
-using pii = pair<int, int>;
 using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -18,7 +16,55 @@ template <typename T> constexpr ll llof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll max_total_score(const vvi &compat) { return -1; }
+ll group_score(const vvi &compat, const int bits_group) {
+    const int n = sz(compat);
+    ll ans = 0;
+
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            const bool one = (1 << i) & bits_group;
+            const bool two = (1 << j) & bits_group;
+            if (one && two) ans += compat[i][j];
+        }
+    }
+
+    return ans;
+}
+
+vll group_scores(const vvi &compat) {
+    const int n = sz(compat);
+    vll ans(1 << n, 0);
+
+    for (int bits = 1; bits < (1 << n); ++bits) {
+        ans[bits] = group_score(compat, bits);
+    }
+
+    return ans;
+}
+
+ll max_total_score(const vvi &compat) {
+    const auto n = sz(compat);
+    const auto score = group_scores(compat);
+
+    function<ll(int, int)> recur;
+    recur = [&](const int bits_taken, const int bits_taking) -> ll {
+        assert(!(bits_taken & bits_taking));
+
+        ll ans = score[bits_taking];
+        for (int bits = 1; bits < (1 << n); ++bits) {
+            if (bits & (bits_taken | bits_taking)) continue;
+            ans = max(ans, score[bits_taking] +
+                               recur(bits_taken | bits_taking, bits));
+        }
+        return ans;
+    };
+
+    ll ans = 0;
+    for (int bits = 1; bits < (1 << n); ++bits) {
+        ans = max(ans, recur(0, bits));
+    }
+    return ans;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
