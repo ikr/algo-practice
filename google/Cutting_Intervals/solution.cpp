@@ -58,12 +58,26 @@ ll solve(const vector<invl> &lrs, ll budget) {
             ans += (inner_cuts + 1) * num - num;
             budget -= inner_cuts;
         }
+    }
 
-        const ll inside = num - openings.at(x);
-        if (budget > 0 && inside > 0) {
-            ans += (inside * 2) - inside;
-            --budget;
-        }
+    if (budget == 0LL) return ans;
+    assert(pq.empty());
+
+    for (const auto [x, num] : bal) {
+        if (x == leftmost || x == rightmost) continue;
+
+        const auto inside = num - openings.at(x);
+        if (inside <= 0) continue;
+
+        pq.emplace(inside, x);
+    }
+
+    while (!pq.empty() && budget > 0LL) {
+        const auto [inside, x] = pq.top();
+        pq.pop();
+
+        ans += (inside * 2) - inside;
+        --budget;
     }
 
     return ans;
