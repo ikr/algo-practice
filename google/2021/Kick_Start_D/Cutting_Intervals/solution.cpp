@@ -92,7 +92,7 @@ ll solve(const vector<invl> &lrs, ll budget) {
         const ll inner_cuts = min(y - x - 1LL, budget);
 
         if (inner_cuts > 0LL) {
-            ans += (inner_cuts + 1) * num - num;
+            ans += inner_cuts * num;
             budget -= inner_cuts;
         }
     }
@@ -113,7 +113,7 @@ ll solve(const vector<invl> &lrs, ll budget) {
         const auto [inside, x] = pq.top();
         pq.pop();
 
-        ans += (inside * 2) - inside;
+        ans += inside;
         --budget;
     }
 
