@@ -68,6 +68,7 @@ gather_balance_and_openings(const vector<invl> &lrs) {
         bal[*it] = bal.at(*prev(it)) + openings[*it] - closings[*it];
     }
 
+    assert(crbegin(bal)->second == 0);
     return {bal, openings};
 }
 
@@ -78,7 +79,7 @@ ll solve(const vector<invl> &lrs, ll budget) {
 
     priority_queue<pair<int, ll>> pq;
     for (const auto [x, num] : bal) {
-        if (x == leftmost || x == rightmost) continue;
+        if (x == rightmost) continue;
         pq.emplace(num, x);
     }
 
@@ -101,7 +102,7 @@ ll solve(const vector<invl> &lrs, ll budget) {
     assert(pq.empty());
 
     for (const auto [x, num] : bal) {
-        if (x == leftmost || x == rightmost) continue;
+        if (x == rightmost) continue;
 
         const auto inside = num - openings.at(x);
         if (inside <= 0) continue;
