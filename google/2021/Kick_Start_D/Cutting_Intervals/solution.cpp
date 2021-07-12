@@ -11,6 +11,43 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using invl = pair<ll, ll>;
 
+ll solve_quadratic(const vector<invl> &lrs, ll budget) {
+    const auto [leftmost, rightmost] = [&]() -> pair<ll, ll> {
+        ll lo = LONG_LONG_MAX;
+        ll hi = LONG_LONG_MIN;
+
+        for (const auto [l, r] : lrs) {
+            lo = min(lo, l);
+            hi = max(hi, r);
+        }
+
+        return {lo, hi};
+    }();
+
+    const auto properly_containing_ingtervals = [&](const ll x) -> int {
+        int ans = 0;
+        for (const auto [l, r] : lrs) {
+            if (l < x && x < r) ++ans;
+        }
+        return ans;
+    };
+
+    priority_queue<int> pq;
+    for (auto x = leftmost; x <= rightmost; ++x) {
+        const int cuts = properly_containing_ingtervals(x);
+        if (cuts) pq.push(cuts);
+    }
+
+    ll ans = sz(lrs);
+    ;
+    while (!pq.empty() && budget > 0) {
+        ans += pq.top();
+        pq.pop();
+        --budget;
+    }
+    return ans;
+}
+
 pair<map<ll, int>, map<ll, int>>
 gather_balance_and_openings(const vector<invl> &lrs) {
     map<ll, int> openings;
@@ -100,7 +137,8 @@ int main() {
         vector<invl> lrs(n);
         for (auto &[l, r] : lrs) cin >> l >> r;
 
-        cout << "Case #" << i << ": " << solve(lrs, c) << '\n';
+        cout << "Case #" << i << ": " //<< solve(lrs, c) << ", "
+             << solve_quadratic(lrs, c) << '\n';
     }
 
     return 0;
