@@ -137,7 +137,7 @@ int main() {
         vector<invl> lrs(n);
         for (auto &[l, r] : lrs) cin >> l >> r;
 
-        cout << "Case #" << i << ": " //<< solve(lrs, c) << ", "
+        cout << "Case #" << i << ": " << solve(lrs, c) << ", "
              << solve_quadratic(lrs, c) << '\n';
     }
 
