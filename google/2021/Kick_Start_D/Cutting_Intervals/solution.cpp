@@ -74,48 +74,39 @@ gather_balance_and_openings(const vector<invl> &lrs) {
 
 ll solve(const vector<invl> &lrs, ll budget) {
     const auto [bal, openings] = gather_balance_and_openings(lrs);
-    const ll leftmost = cbegin(bal)->first;
     const ll rightmost = crbegin(bal)->first;
 
-    priority_queue<pair<int, ll>> pq;
+    // additional intervals cut off, max number of cuts
+    priority_queue<pair<ll, ll>> pq;
     for (const auto [x, num] : bal) {
         if (x == rightmost) continue;
-        pq.emplace(num, x);
+
+        const auto y = bal.upper_bound(x)->first;
+        const ll inner_cuts = y - x - 1LL;
+        assert(inner_cuts >= 0);
+
+        if (inner_cuts > 0) {
+            pq.emplace(inner_cuts * num, inner_cuts);
+        }
+
+        const auto inside = num - openings.at(x);
+        if (inside > 0) {
+            pq.emplace(inside, 1);
+        }
     }
 
     ll ans = sz(lrs);
 
     while (!pq.empty() && budget > 0LL) {
-        const auto [num, x] = pq.top();
+        const auto [addition, cuts] = pq.top();
         pq.pop();
 
-        const auto y = bal.upper_bound(x)->first;
-        const ll inner_cuts = min(y - x - 1LL, budget);
+        assert(addition % cuts == 0);
+        const auto additions_per_cut = addition / cuts;
+        const auto cutting = min(cuts, budget);
 
-        if (inner_cuts > 0LL) {
-            ans += inner_cuts * num;
-            budget -= inner_cuts;
-        }
-    }
-
-    if (budget == 0LL) return ans;
-    assert(pq.empty());
-
-    for (const auto [x, num] : bal) {
-        if (x == rightmost) continue;
-
-        const auto inside = num - openings.at(x);
-        if (inside <= 0) continue;
-
-        pq.emplace(inside, x);
-    }
-
-    while (!pq.empty() && budget > 0LL) {
-        const auto [inside, x] = pq.top();
-        pq.pop();
-
-        ans += inside;
-        --budget;
+        ans += cutting * additions_per_cut;
+        budget -= cutting;
     }
 
     return ans;
