@@ -76,7 +76,7 @@ ll solve(const vector<invl> &lrs, ll budget) {
     const auto [bal, openings] = gather_balance_and_openings(lrs);
     const ll rightmost = crbegin(bal)->first;
 
-    // additional intervals cut off, max number of cuts
+    // additional intervals per cut, max number of cuts
     priority_queue<pair<ll, ll>> pq;
     for (const auto [x, num] : bal) {
         if (x == rightmost) continue;
@@ -86,7 +86,7 @@ ll solve(const vector<invl> &lrs, ll budget) {
         assert(inner_cuts >= 0);
 
         if (inner_cuts > 0) {
-            pq.emplace(inner_cuts * num, inner_cuts);
+            pq.emplace(num, inner_cuts);
         }
 
         const auto inside = num - openings.at(x);
@@ -98,13 +98,10 @@ ll solve(const vector<invl> &lrs, ll budget) {
     ll ans = sz(lrs);
 
     while (!pq.empty() && budget > 0LL) {
-        const auto [addition, cuts] = pq.top();
+        const auto [additions_per_cut, cuts] = pq.top();
         pq.pop();
 
-        assert(addition % cuts == 0);
-        const auto additions_per_cut = addition / cuts;
         const auto cutting = min(cuts, budget);
-
         ans += cutting * additions_per_cut;
         budget -= cutting;
     }
@@ -129,8 +126,8 @@ int main() {
         vector<invl> lrs(n);
         for (auto &[l, r] : lrs) cin >> l >> r;
 
-        cout << "Case #" << i << ": " << solve(lrs, c) << ", "
-             << solve_quadratic(lrs, c) << '\n';
+        cout << "Case #" << i << ": " << solve(lrs, c)
+             << '\n'; //<< ", " << solve_quadratic(lrs, c) << '\n';
     }
 
     return 0;
