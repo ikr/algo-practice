@@ -2,20 +2,14 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
 using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
+
 template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -28,44 +22,14 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-vi solve(const vector<pii> ps, const vi &s) {
-    map<int, int> xs;
-
-    for (const auto [a, b] : ps) {
-        for (int i = a; i <= b; ++i) {
-            ++xs[i];
-        }
-    }
-
-    vi ans(sz(s), 0);
-
-    for (int i = 0; i < sz(s); ++i) {
-        const auto jt = xs.lower_bound(s[i]);
-        const auto it = jt == cbegin(xs) ? jt : prev(jt);
-
-        const auto xt = [&]() {
-            if (abs(it->first - s[i]) <= abs(jt->first - s[i])) {
-                return it;
-            } else {
-                return jt;
-            }
-        }();
-
-        ans[i] = xt->first;
-        --xt->second;
-
-        if (xt->second == 0) {
-            xs.erase(xt);
-        }
-    }
-
+vll solve(const set<pair<ll, ll>> ps, const vll &s) {
+    vll ans(sz(s), 0);
     return ans;
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 
     int t;
     cin >> t;
@@ -73,12 +37,14 @@ int main() {
         int n, m;
         cin >> n >> m;
 
-        vector<pii> ps(n);
-        for (auto &[a, b] : ps) {
+        set<pair<ll, ll>> ps;
+        for (int j = 0; j < n; ++j) {
+            ll a, b;
             cin >> a >> b;
+            ps.emplace(a, b);
         }
 
-        vector<int> ss(m);
+        vll ss(m);
         for (auto &s : ss) cin >> s;
 
         cout << "Case #" << i << ": " << solve(ps, ss) << '\n';
