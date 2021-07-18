@@ -58,7 +58,7 @@ vll solve(set<pair<ll, ll>> ps, const vll &s) {
 
     for (int i = 0; i < sz(s); ++i) {
         const auto jt = [&]() {
-            const auto x = ps.find({s[i], 0});
+            const auto x = ps.lower_bound({s[i], 0});
             return x == cend(ps) ? prev(x) : x;
         }();
         const auto it = jt == cbegin(ps) ? jt : prev(jt);
