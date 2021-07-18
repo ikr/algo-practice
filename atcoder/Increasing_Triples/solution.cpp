@@ -20,7 +20,7 @@ template <typename T> constexpr double doof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int max_proper_triples_num(set<int> a, set<int> b, set<int> c) {
+int max_proper_triples_num(multiset<int> a, multiset<int> b, multiset<int> c) {
     int ans = 0;
 
     for (const auto x : a) {
@@ -46,7 +46,7 @@ int main() {
     int n;
     cin >> n;
 
-    array<set<int>, 3> abc;
+    array<multiset<int>, 3> abc;
     for (auto &xs : abc) {
         for (int i = 0; i < n; ++i) {
             int x;
