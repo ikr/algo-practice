@@ -49,51 +49,47 @@ ll number(const vi &ds) {
     return ans;
 }
 
-vi insert_at(vi ds, const int i, const int d) {
-    ds.insert(next(cbegin(ds), i), d);
-    return ds;
-}
+int min_k(const ll n) {
+    if (n == 0) return 0;
+    if (n <= 3) return 1;
 
-void append_next_generation(vll &xs) {
-    xs.reserve(sz(xs) * 6);
+    const auto ds = digits(n);
 
-    const int n = sz(xs);
+    vi lo(sz(ds), 0);
+    for (int i = 0; i < sz(ds); ++i) {
+        if (ds[i] == 0) {
+            assert(i > 0);
 
-    for (int k = 0; k < n; ++k) {
-        const auto x = xs[k];
-        const auto ds = digits(x);
-
-        for (int d = 1; d <= 3; ++d) {
-            for (int i = 0; i <= sz(ds); ++i) {
-                xs.push_back(number(insert_at(ds, i, d)));
+            if (lo[i - 1] == ds[i - 1]) {
+                --lo[i - 1];
             }
+
+            lo[i] = 3;
+            continue;
         }
+
+        if (i > 0 && lo[i - 1] < ds[i - 1]) {
+            lo[i] = 3;
+            continue;
+        }
+
+        lo[i] = min(3, ds[i]);
     }
-}
 
-vll all_basis() {
-    vll ans{1, 2, 3};
-
-    for (int i = 0; i < 7; ++i) {
-        append_next_generation(ans);
-    }
-
-    sort(begin(ans), end(ans));
-    cerr << "hi: " << ans.back() << endl;
-    return ans;
+    return 1 + min_k(n - number(lo));
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    const auto bs = all_basis();
-
     int t;
     cin >> t;
     while (t--) {
         ll n;
         cin >> n;
+
+        cout << min_k(n) << '\n';
     }
 
     return 0;
