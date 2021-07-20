@@ -72,7 +72,9 @@ int min_k(const ll n) {
         }
     }
 
-    cerr << ok[0] << endl;
+    if (4 < sz(xs)) {
+        cerr << ok[4] << endl;
+    }
 
     for (int k = 1; k <= K_MAX; ++k) {
         if (ok.back()[k][0]) return k;
