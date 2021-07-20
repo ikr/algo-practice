@@ -44,6 +44,23 @@ int min_k(const ll n) {
         }
     }
 
+    for (int i = 1; i < sz(xs); ++i) {
+        for (int k = 1; k <= K_MAX; ++k) {
+            for (int v = k; v <= 3 * k; ++v) {
+                for (int c = 0; c <= K_MAX; ++c) {
+                    if (!ok[i - 1][k][c]) continue;
+                    if ((v + c) % 10 != xs[i]) continue;
+                    ok[0][k][(v + c) / 10] = true;
+                }
+            }
+        }
+    }
+
+    for (int k = 1; k <= K_MAX; ++k) {
+        if (ok.back()[k][0]) return k;
+    }
+
+    assert(false);
     return -1;
 }
 
