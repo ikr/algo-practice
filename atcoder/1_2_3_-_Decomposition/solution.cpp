@@ -4,6 +4,22 @@ using namespace std;
 using ll = long long;
 using vi = vector<int>;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -55,6 +71,8 @@ int min_k(const ll n) {
             }
         }
     }
+
+    cerr << ok[1] << endl;
 
     for (int k = 1; k <= K_MAX; ++k) {
         if (ok.back()[k][0]) return k;
