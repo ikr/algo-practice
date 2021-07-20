@@ -3,19 +3,13 @@ using namespace std;
 
 using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
+
 template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -31,52 +25,26 @@ vi digits_reversed(ll n) {
     return ans;
 }
 
-vi digits(const ll n) {
-    vi ans = digits_reversed(n);
-    reverse(begin(ans), end(ans));
-    return ans;
-}
-
-ll number(const vi &ds) {
-    if (ds.empty()) return 0;
-
-    long long ans = 0;
-    long long mul = 1;
-    for (auto it = ds.crbegin(); it != ds.crend(); ++it) {
-        ans += (*it) * mul;
-        mul *= 10LL;
-    }
-    return ans;
-}
+static constexpr int K_MAX = 5;
 
 int min_k(const ll n) {
-    if (n == 0) return 0;
-    if (n <= 3) return 1;
+    const auto xs = digits_reversed(n);
 
-    const auto ds = digits(n);
+    // ok[i][k][c] is true iﬀ it is possible to produce a carry c at digit i
+    // after summing up k 123-numbers
 
-    vi lo(sz(ds), 0);
-    for (int i = 0; i < sz(ds); ++i) {
-        if (ds[i] == 0) {
-            assert(i > 0);
+    vector<vector<vector<bool>>> ok(
+        sz(xs), vector(K_MAX + 1, vector(K_MAX + 1, false)));
 
-            if (lo[i - 1] == ds[i - 1]) {
-                --lo[i - 1];
+    for (int k = 1; k <= K_MAX; ++k) {
+        for (int v = k; v <= 3 * k; ++v) {
+            if (v % 10 == xs[0]) {
+                ok[0][k][v / 10] = true;
             }
-
-            lo[i] = 3;
-            continue;
         }
-
-        if (i > 0 && lo[i - 1] < ds[i - 1]) {
-            lo[i] = 3;
-            continue;
-        }
-
-        lo[i] = min(3, ds[i]);
     }
 
-    return 1 + min_k(n - number(lo));
+    return -1;
 }
 
 int main() {
