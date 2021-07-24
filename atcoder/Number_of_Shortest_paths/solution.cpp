@@ -56,9 +56,14 @@ int shortest_paths_num(const vvi &g) {
     const int n = sz(g);
     const auto ds = distances(g);
 
+    map<pii, mint> memo;
+
     function<mint(int, int)> recur;
     recur = [&](const int u, const int d) -> mint {
         if (d == 0) return 1;
+
+        const auto it = memo.find(pii{u, d});
+        if (it != cend(memo)) return it->second;
 
         mint ans = 0;
 
@@ -68,6 +73,7 @@ int shortest_paths_num(const vvi &g) {
             }
         }
 
+        memo[pii{u, d}] = ans;
         return ans;
     };
 
