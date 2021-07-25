@@ -18,7 +18,7 @@ template <typename T> constexpr ll llof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll max_value(const int n, const int k) {
-    return 2LL * llof(k) * (llof(1 << n) - 1LL);
+    return 2LL * llof(min(1 << (n - 1), k)) * (llof(1 << n) - 1LL);
 }
 
 int main() {
