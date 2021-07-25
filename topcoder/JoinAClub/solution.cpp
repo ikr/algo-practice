@@ -1,8 +1,5 @@
 #include "lest.hpp"
-
-#include <algorithm>
-#include <cassert>
-#include <vector>
+#include <bits/stdc++.h>
 
 namespace atcoder {
 
@@ -66,24 +63,13 @@ struct dsu {
 
 } // namespace atcoder
 
-#include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
-}
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -168,17 +154,17 @@ const lest::test tests[] = {
     },
     CASE("Example 1") {
         const auto actual = JoinAClub{}.maximumClub(4, {0, 0, 0, 1, 1, 3}, {1, 2, 3, 3, 2, 2});
-        const auto expected = vi{2, 0, 1, 3};
+        const auto expected = vi{1, 0, 2, 3};
         EXPECT(actual == expected);
     },
     CASE("Example 2") {
         const auto actual = JoinAClub{}.maximumClub(6, {0, 1, 2, 5}, {3, 3, 3, 3});
-        const auto expected = vi{2, 3, 0, 1, 5};
+        const auto expected = vi{3, 5, 2, 1, 0};
         EXPECT(actual == expected);
     },
     CASE("Example 3") {
         const auto actual = JoinAClub{}.maximumClub(47, {0, 4, 6, 6, 42}, {13, 7, 7, 23, 15});
-        const auto expected = vi{4, 7, 6, 23};
+        const auto expected = vi{7, 6, 23, 4};
         EXPECT(actual == expected);
     },
 };
