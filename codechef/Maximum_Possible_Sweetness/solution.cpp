@@ -1,27 +1,15 @@
-#include "atcoder/segtree.hpp"
 #include <atcoder/segtree>
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-using tri = tuple<int, int, int>;
-
-static constexpr int INF = 1e9 + 7;
 
 pair<vi, vi> reorder_by_p(const vi &p, const vi &s) {
     const int n = sz(p);
@@ -43,9 +31,9 @@ pair<vi, vi> reorder_by_p(const vi &p, const vi &s) {
 }
 
 int op(const int a, const int b) { return max(a, b); }
-int e() { return -1; }
+int e() { return 0; }
 
-int last_index(const vi &xs, const int hi) {
+int bounding_index(const vi &xs, const int hi) {
     const auto it = upper_bound(cbegin(xs), cend(xs), hi);
     return inof(distance(cbegin(xs), it));
 }
@@ -60,7 +48,7 @@ int max_sweetness(const int d, const vi &p, const vi &s) {
         if (p[i] >= d) continue;
         ans = max(ans, s[i]);
 
-        const auto j = last_index(p, d - p[i]);
+        const auto j = bounding_index(p, d - p[i]);
         if (j <= i) {
             ans = max(ans, s[i] + t.prod(0, j));
         } else {
