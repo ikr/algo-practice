@@ -45,8 +45,9 @@ int max_sweetness(const int d, const vi &p, const vi &s) {
     int ans = 0;
 
     for (int i = 0; i < n; ++i) {
-        if (p[i] >= d) continue;
+        if (p[i] > d) continue;
         ans = max(ans, s[i]);
+        if (p[i] == d) continue;
 
         const auto j = bounding_index(p, d - p[i]);
         if (j <= i) {
