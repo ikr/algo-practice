@@ -167,6 +167,11 @@ const lest::test tests[] = {
         const auto expected = vi{7, 6, 23, 4};
         EXPECT(actual == expected);
     },
+    CASE("Example 4") {
+        const auto actual = JoinAClub{}.maximumClub(47, {0, 14, 6, 6, 42}, {13, 7, 7, 23, 15});
+        const auto expected = vi{7, 6, 23, 14 };
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
