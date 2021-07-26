@@ -10,61 +10,36 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vi next_sig(vi ds) {
-    for (int i = sz(ds) - 2; i >= 0; --i) {
-        if (ds[i]) {
-            --ds[i];
-            ++ds[i + 1];
-            break;
-        }
-    }
-
-    return ds;
+string pad(const int L, const char z, string xs) {
+    while (sz(xs) < L) xs += z;
+    return xs;
 }
 
-string encode(const string &xs, const vi &ds) {
+string encode(const string &a, const int L, int x) {
+    if (!x) return string(L, a[0]);
+
+    const auto base = sz(a);
     string ans;
 
-    for (int i = 0; i < sz(xs); ++i) {
-        if (ds[i]) {
-            ans += string(ds[i], xs[i]);
-        }
+    while (x) {
+        ans += a[x % base];
+        x /= base;
     }
 
-    return ans;
+    return pad(L, a[0], ans);
 }
 
 struct DistinctStrings final {
     vector<string> generate(const int L, string xs, const int N) const {
-        sort(begin(xs), end(xs));
-
-        vi ds;
-
-        const auto reset_ds = [&]() {
-            ds = vi(sz(xs), 0);
-            ds[0] = L;
-        };
-
-        reset_ds();
-
-        vector<string> ans;
+        vector<string> ans(N);
         for (int i = 0; i < N; ++i) {
-            ans.push_back(encode(xs, ds));
-            const auto ds_ = next_sig(ds);
-
-            if (ds_ == ds) {
-                next_permutation(begin(xs), end(xs));
-                reset_ds();
-                --i;
-                continue;
-            }
-
-            ds = ds_;
+            ans[i] = encode(xs, L, i);
         }
-
         return ans;
     }
 };
+
+//------------------------------------------------------------------------------
 
 template <typename T>
 constexpr typename vector<T>::const_iterator cbegin(const vector<T> &xs) {
