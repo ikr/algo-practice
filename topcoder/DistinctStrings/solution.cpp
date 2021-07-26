@@ -121,11 +121,19 @@ const lest::test tests[] = {
         EXPECT(are_all_distinct(actual));
         EXPECT(are_all_from_alphabet(actual, a));
     },
-    CASE("Short A") {
+    CASE("Short") {
         const auto a{"0123456789"};
         const auto actual = DistinctStrings{}.generate(3, a, 200);
         EXPECT(sz(actual) == 200);
         EXPECT(are_all_of_length(actual, 3));
+        EXPECT(are_all_distinct(actual));
+        EXPECT(are_all_from_alphabet(actual, a));
+    },
+    CASE("Long") {
+        const auto a{"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"};
+        const auto actual = DistinctStrings{}.generate(10, a, 200);
+        EXPECT(sz(actual) == 200);
+        EXPECT(are_all_of_length(actual, 10));
         EXPECT(are_all_distinct(actual));
         EXPECT(are_all_from_alphabet(actual, a));
     },
