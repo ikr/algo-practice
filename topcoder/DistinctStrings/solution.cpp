@@ -85,25 +85,41 @@ template <typename T> bool are_all_distinct(const vector<T> &xs) {
     return sz(set<string>(cbegin(xs), cend(xs))) == sz(xs);
 }
 
+bool are_all_from_alphabet(const vector<string> &xs, const string &a) {
+    set<char> aa(cbegin(a), cend(a));
+    return all_of(cbegin(xs), cend(xs), [aa](const auto &x) {
+        for (const auto y : x) {
+            if (!aa.count(y)) return false;
+        }
+        return true;
+    });
+}
+
 // clang-format off
 const lest::test tests[] = {
     CASE("Example 0") {
-        const auto actual = DistinctStrings{}.generate(5, "qwertyuiopasdfghjklzxcvbnm", 10);
+        const string a{"qwertyuiopasdfghjklzxcvbnm"};
+        const auto actual = DistinctStrings{}.generate(5, a, 10);
         EXPECT(sz(actual) == 10);
         EXPECT(are_all_of_length(actual, 5));
         EXPECT(are_all_distinct(actual));
+        EXPECT(are_all_from_alphabet(actual, a));
     },
     CASE("Example 1") {
-        const auto actual = DistinctStrings{}.generate(3, "ABCDE02468", 17);
+        const string a{"ABCDE02468"};
+        const auto actual = DistinctStrings{}.generate(3, a, 17);
         EXPECT(sz(actual) == 17);
         EXPECT(are_all_of_length(actual, 3));
         EXPECT(are_all_distinct(actual));
+        EXPECT(are_all_from_alphabet(actual, a));
     },
     CASE("Short A") {
-        const auto actual = DistinctStrings{}.generate(3, "0123456789", 200);
+        const auto a{"0123456789"};
+        const auto actual = DistinctStrings{}.generate(3, a, 200);
         EXPECT(sz(actual) == 200);
         EXPECT(are_all_of_length(actual, 3));
         EXPECT(are_all_distinct(actual));
+        EXPECT(are_all_from_alphabet(actual, a));
     },
 };
 // clang-format on
