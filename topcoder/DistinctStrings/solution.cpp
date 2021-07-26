@@ -32,7 +32,7 @@ constexpr typename vector<T>::const_iterator cend(const vector<T> &xs) {
 }
 
 vi next_sig(vi ds) {
-    for (int i = 0; i < sz(ds) - 1; ++i) {
+    for (int i = sz(ds) - 2; i >= 0; --i) {
         if (ds[i]) {
             --ds[i];
             ++ds[i + 1];
@@ -56,15 +56,33 @@ string corresponding(const string &xs, const vi &ds) {
 }
 
 struct DistinctStrings final {
-    vector<string> generate(const int L, const string &xs, const int N) const {
-        vi ds(sz(xs), 0);
-        ds[0] = L;
+    vector<string> generate(const int L, string xs, const int N) const {
+        sort(begin(xs), end(xs));
+
+        vi ds;
+
+        const auto reset_ds = [&]() {
+            ds = vi(sz(xs), 0);
+            ds[0] = L;
+        };
+
+        reset_ds();
 
         vector<string> ans;
         for (int i = 0; i < N; ++i) {
             ans.push_back(corresponding(xs, ds));
-            ds = next_sig(ds);
+            const auto ds_ = next_sig(ds);
+
+            if (ds_ == ds) {
+                next_permutation(begin(xs), end(xs));
+                reset_ds();
+                --i;
+                continue;
+            }
+
+            ds = ds_;
         }
+
         return ans;
     }
 };
