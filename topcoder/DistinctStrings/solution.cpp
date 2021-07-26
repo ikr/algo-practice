@@ -113,6 +113,14 @@ const lest::test tests[] = {
         EXPECT(are_all_distinct(actual));
         EXPECT(are_all_from_alphabet(actual, a));
     },
+    CASE("Example 2") {
+        const string a{"cdeopPrRtT"};
+        const auto actual = DistinctStrings{}.generate(8, a, 4);
+        EXPECT(sz(actual) == 4);
+        EXPECT(are_all_of_length(actual, 8));
+        EXPECT(are_all_distinct(actual));
+        EXPECT(are_all_from_alphabet(actual, a));
+    },
     CASE("Short A") {
         const auto a{"0123456789"};
         const auto actual = DistinctStrings{}.generate(3, a, 200);
