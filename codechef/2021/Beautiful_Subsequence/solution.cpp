@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 using vi = vector<int>;
 using vvi = vector<vi>;
 
@@ -19,23 +35,24 @@ int max_length(const int k, const vi &xs) {
         dp[j][0] = 1;
     }
 
-    for (int i = 0; i < n; ++i) {
-        dp[0][i] = 1;
-    }
-
     for (int i = 1; i < n; ++i) {
-        for (int j = 1; j <= k; ++j) {
+        for (int j = 0; j <= k; ++j) {
             const auto hi0 = hi_idx[j];
-            const auto hi1 = hi_idx[j - 1];
+            const auto hi1 = j > 0 ? hi_idx[j - 1] : hi0;
 
-            const auto v =
-                (hi0 == xs[i]) ? (dp[j][hi0] + 1) : (dp[j - 1][hi1] + 1);
+            const auto v = (hi0 == xs[i]) ? (dp[j][hi0] + 1)
+                                          : (dp[max(0, j - 1)][hi1] + 1);
+
             dp[j][i] = v;
+
             if (v > dp[j][hi0]) {
                 hi_idx[j] = j;
             }
         }
     }
+
+    cerr << dp << endl;
+    cerr << "hi_idx: " << hi_idx << endl;
 
     int ans = 0;
     for (int i = 0; i < n; ++i) {
