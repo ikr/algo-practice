@@ -29,30 +29,28 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 int max_length(const int k, const vi &xs) {
     const auto n = sz(xs);
     vvi dp(k + 1, vi(n, 0));
-    vi hi_idx(k + 1, 0);
 
     for (int j = 0; j <= k; ++j) {
         dp[j][0] = 1;
     }
 
-    for (int i = 1; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
+        dp[0][i] = 1;
+    }
+
+    for (int i = 0; i < n; ++i) {
         for (int j = 0; j <= k; ++j) {
-            const auto hi0 = hi_idx[j];
-            const auto hi1 = j > 0 ? hi_idx[j - 1] : hi0;
-
-            const auto v = (hi0 == xs[i]) ? (dp[j][hi0] + 1)
-                                          : (dp[max(0, j - 1)][hi1] + 1);
-
-            dp[j][i] = v;
-
-            if (v > dp[j][hi0]) {
-                hi_idx[j] = j;
+            for (int r = i + 1; r < n; ++r) {
+                if (xs[i] == xs[r]) {
+                    dp[j][r] = max(dp[j][r], dp[j][i] + 1);
+                } else {
+                    if (j < k) {
+                        dp[j + 1][r] = max(dp[j + 1][r], dp[j][i] + 1);
+                    }
+                }
             }
         }
     }
-
-    cerr << dp << endl;
-    cerr << "hi_idx: " << hi_idx << endl;
 
     int ans = 0;
     for (int i = 0; i < n; ++i) {
