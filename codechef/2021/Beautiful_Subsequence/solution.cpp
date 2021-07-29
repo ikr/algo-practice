@@ -19,6 +19,7 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
 
 using vi = vector<int>;
 using vvi = vector<vi>;
+using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -73,21 +74,34 @@ int max_length(const int k, const vi &xs) {
     vi hi_idx(k + 1, 0);
 
     for (int i = 1; i < n; ++i) {
+        vector<pii> his;
+
         for (int j = 0; j <= k; ++j) {
             const auto p = hi_idx_by_x[j].find(xs[i]);
+            bool new_hi = false;
+
             if (p != cend(hi_idx_by_x[j])) {
                 dp[j][i] = dp[j][p->second] + 1;
-                p->second = i;
-                hi_idx[j] = i;
+                new_hi = true;
             }
 
             if (j > 0 && dp[j - 1][hi_idx[j - 1]] + 1 > dp[j][i]) {
                 dp[j][i] = dp[j - 1][hi_idx[j - 1]] + 1;
-                hi_idx_by_x[j][xs[i]] = i;
-                hi_idx[j] = i;
+                new_hi = true;
+            }
+
+            if (new_hi) {
+                his.emplace_back(j, i);
             }
         }
+
+        for (const auto [a, b] : his) {
+            hi_idx_by_x[a][xs[b]] = b;
+            hi_idx[a] = b;
+        }
     }
+
+    cerr << dp << endl;
 
     return *max_element(cbegin(dp.back()), cend(dp.back()));
 }
