@@ -26,7 +26,7 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int max_length(const int k, const vi &xs) {
+int max_length_n2k(const int k, const vi &xs) {
     const auto n = sz(xs);
     vvi dp(k + 1, vi(n, 0));
 
@@ -59,6 +59,39 @@ int max_length(const int k, const vi &xs) {
     return ans;
 }
 
+int max_length(const int k, const vi &xs) {
+    const int n = sz(xs);
+
+    vvi dp(k + 1, vi(n, 1));
+    vector<map<int, int>> hi_idx_by_x(k + 1);
+
+    for (int j = 0; j <= k; ++j) {
+        hi_idx_by_x[j][xs[0]] = 0;
+        dp[j][0] = 1;
+    }
+
+    vi hi_idx(k + 1, 0);
+
+    for (int i = 1; i < n; ++i) {
+        for (int j = 0; j <= k; ++j) {
+            const auto p = hi_idx_by_x[j].find(xs[i]);
+            if (p != cend(hi_idx_by_x[j])) {
+                dp[j][i] = dp[j][p->second] + 1;
+                p->second = i;
+                hi_idx[j] = i;
+            }
+
+            if (j > 0 && dp[j - 1][hi_idx[j - 1]] + 1 > dp[j][i]) {
+                dp[j][i] = dp[j - 1][hi_idx[j - 1]] + 1;
+                hi_idx_by_x[j][xs[i]] = i;
+                hi_idx[j] = i;
+            }
+        }
+    }
+
+    return *max_element(cbegin(dp.back()), cend(dp.back()));
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -72,7 +105,9 @@ int main() {
         vi xs(n);
         for (auto &x : xs) cin >> x;
 
-        cout << max_length(k, xs) << '\n';
+        const auto ans = max_length(k, xs);
+        // assert(ans == max_length_n2k(k, xs));
+        cout << ans << '\n';
     }
 
     return 0;
