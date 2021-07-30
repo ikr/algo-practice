@@ -60,48 +60,50 @@ int max_length_n2k(const int k, const vi &xs) {
     return ans;
 }
 
+map<int, vi> gather_indices(const vi &xs) {
+    map<int, vi> ans;
+    for (int i = 0; i < sz(xs); ++i) {
+        ans[xs[i]].push_back(i);
+    }
+    return ans;
+}
+
 int max_length(const int k, const vi &xs) {
     const int n = sz(xs);
+    const auto idx = gather_indices(xs);
 
-    vvi dp(k + 1, vi(n, 1));
-    vector<map<int, int>> hi_idx_by_x(k + 1);
+    const auto prev_index = [&](const int x, const int i) -> int {
+        assert(idx.count(x));
+        const auto it = lower_bound(cbegin(idx.at(x)), cend(idx.at(x)), i);
+        assert(it != cend(idx.at(x)));
+        return it == cbegin(idx.at(x)) ? -1 : *prev(it);
+    };
+
+    vvi dp(k + 1, vi(n, 0));
+    vvi hi(k + 1, vi(n, 1));
 
     for (int j = 0; j <= k; ++j) {
-        hi_idx_by_x[j][xs[0]] = 0;
         dp[j][0] = 1;
     }
 
-    vi hi_idx(k + 1, 0);
-
     for (int i = 1; i < n; ++i) {
-        vector<pii> his;
-
         for (int j = 0; j <= k; ++j) {
-            const auto p = hi_idx_by_x[j].find(xs[i]);
-            bool new_hi = false;
-
-            if (p != cend(hi_idx_by_x[j])) {
-                dp[j][i] = dp[j][p->second] + 1;
-                new_hi = true;
+            if (j > 0) {
+                dp[j][i] = hi[j - 1][i - 1] + 1;
             }
 
-            if (j > 0 && dp[j - 1][hi_idx[j - 1]] + 1 > dp[j][i]) {
-                dp[j][i] = dp[j - 1][hi_idx[j - 1]] + 1;
-                new_hi = true;
+            const auto ii = prev_index(xs[i], i);
+            if (ii >= 0) {
+                dp[j][i] = max(dp[j][i], dp[j][ii] + 1);
             }
 
-            if (new_hi) {
-                his.emplace_back(j, i);
+            if (j > 0) {
+                hi[j][i] = max({hi[j - 1][i], hi[j][i - 1], dp[j][i]});
+            } else {
+                hi[j][i] = max({hi[j][i - 1], dp[j][i]});
             }
-        }
-
-        for (const auto [a, b] : his) {
-            hi_idx_by_x[a][xs[b]] = b;
-            hi_idx[a] = b;
         }
     }
-
-    cerr << dp << endl;
 
     return *max_element(cbegin(dp.back()), cend(dp.back()));
 }
