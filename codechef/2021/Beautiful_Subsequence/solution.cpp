@@ -10,11 +10,22 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-unordered_map<int, vi> gather_indices(const vi &xs) {
-    unordered_map<int, vi> ans;
+unordered_map<int, unordered_map<int, int>> gather_indices(const vi &xs) {
+    unordered_map<int, vi> src;
     for (int i = 0; i < sz(xs); ++i) {
-        ans[xs[i]].push_back(i);
+        src[xs[i]].push_back(i);
     }
+
+    unordered_map<int, unordered_map<int, int>> ans;
+
+    for (int i = 0; i < sz(xs); ++i) {
+        ans[xs[i]][src[xs[i]][0]] = -1;
+
+        for (int j = 1; j < sz(src[xs[i]]); ++j) {
+            ans[xs[i]][src[xs[i]][j]] = src[xs[i]][j - 1];
+        }
+    }
+
     return ans;
 }
 
@@ -23,9 +34,7 @@ int max_length(const int k, const vi &xs) {
     const auto idx = gather_indices(xs);
 
     const auto prev_index = [&idx](const int x, const int i) -> int {
-        const auto &ii = idx.at(x);
-        const auto it = lower_bound(cbegin(ii), cend(ii), i);
-        return it == cbegin(ii) ? -1 : *prev(it);
+        return idx.at(x).at(i);
     };
 
     vvi dp(k + 1, vi(n, 0));
