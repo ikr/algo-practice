@@ -60,8 +60,8 @@ int max_length_n2k(const int k, const vi &xs) {
     return ans;
 }
 
-map<int, vi> gather_indices(const vi &xs) {
-    map<int, vi> ans;
+unordered_map<int, vi> gather_indices(const vi &xs) {
+    unordered_map<int, vi> ans;
     for (int i = 0; i < sz(xs); ++i) {
         ans[xs[i]].push_back(i);
     }
@@ -72,11 +72,10 @@ int max_length(const int k, const vi &xs) {
     const int n = sz(xs);
     const auto idx = gather_indices(xs);
 
-    const auto prev_index = [&](const int x, const int i) -> int {
-        assert(idx.count(x));
-        const auto it = lower_bound(cbegin(idx.at(x)), cend(idx.at(x)), i);
-        assert(it != cend(idx.at(x)));
-        return it == cbegin(idx.at(x)) ? -1 : *prev(it);
+    const auto prev_index = [&idx](const int x, const int i) -> int {
+        const auto &ii = idx.at(x);
+        const auto it = lower_bound(cbegin(ii), cend(ii), i);
+        return it == cbegin(ii) ? -1 : *prev(it);
     };
 
     vvi dp(k + 1, vi(n, 0));
