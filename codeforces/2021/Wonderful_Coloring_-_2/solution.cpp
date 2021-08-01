@@ -2,8 +2,6 @@
 using namespace std;
 
 using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -19,72 +17,59 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-map<int, int> freqs(const vi &xs) {
-    map<int, int> fs;
-    for (const auto x : xs) ++fs[x];
-    return fs;
-}
+static constexpr int X_MAX = 200'000;
 
-vi paint_batch(const int k, map<int, int> &fs, priority_queue<pii> &pq) {
-    vi ans;
-    ans.reserve(k);
-    int i = k;
-
-    while (!pq.empty() && i > 0) {
-        const auto [v, x] = pq.top();
-        pq.pop();
-
-        for (int j = 0; j < min(i, v); ++j) {
-            ans.push_back(x);
-        }
-
-        fs.erase(x);
-        i -= min(i, v);
-    }
-
-    if ((sz(ans) < k)) return {};
-    return ans;
-}
-
-multimap<int, int> indices_by_value(const vi &xs) {
-    multimap<int, int> ans;
-
+map<int, vi> gather_indices(const vi &xs) {
+    map<int, vi> ans;
     for (int i = 0; i < sz(xs); ++i) {
-        ans.emplace(xs[i], i);
+        ans[xs[i]].push_back(i);
     }
-
     return ans;
 }
 
 vi coloring(const vi &xs, const int k) {
-    auto fs = freqs(xs);
-    priority_queue<pii> pq;
-
-    for (const auto [x, v] : fs) {
-        pq.emplace(v, x);
-    }
-
-    vector<pii> corr;
-    corr.reserve(sz(xs) / 2);
-
-    for (;;) {
-        const auto p = paint_batch(k, fs, pq);
-        if (p.empty()) break;
-        assert(sz(p) == k);
-
-        for (int i = 0; i < sz(p); ++i) {
-            corr.emplace_back(p[i], i + 1);
-        }
-    }
+    auto idx = gather_indices(xs);
 
     vi ans(sz(xs), 0);
-    auto idx = indices_by_value(xs);
-    for (const auto [x, c] : corr) {
-        const auto it = idx.find(x);
-        assert(it != cend(idx));
+    vi buf;
+    buf.reserve(k);
 
-        ans[it->second] = c;
-        idx.erase(it);
+    const auto flush_buf = [&]() {
+        assert(sz(buf) == k);
+        for (int j = 0; j < k; ++j) {
+            ans[buf[j]] = j + 1;
+        }
+        buf.clear();
+    };
+
+    for (auto it = begin(idx); it != end(idx);) {
+        auto &ii = it->second;
+
+        if (sz(ii) >= k) {
+            for (int j = 0; j < k; ++j) {
+                ans[ii[j]] = j + 1;
+            }
+
+            ++it;
+            continue;
+        }
+
+        const auto missing = k - sz(buf);
+        assert(missing > 0);
+
+        const auto moving = min(missing, sz(ii));
+        assert(moving > 0);
+
+        copy(cbegin(ii), next(cbegin(ii), moving), back_inserter(buf));
+        ii.erase(cbegin(ii), next(cbegin(ii), moving));
+
+        if (sz(buf) == k) {
+            flush_buf();
+        }
+
+        if (ii.empty()) {
+            ++it;
+        }
     }
 
     return ans;
