@@ -10,10 +10,6 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll group_score(const vvi &compat, const int bits_group) {
