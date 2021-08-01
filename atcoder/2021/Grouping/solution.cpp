@@ -65,14 +65,10 @@ ll max_total_score(const vvi &compat) {
     const auto n = sz(compat);
     const auto score = group_scores(compat);
     const auto fb = gather_free_bits(n);
-    vll memo(1 << n, -1LL);
 
     function<ll(int, int)> recur;
     recur = [&](const int bits_taken, const int bits_taking) -> ll {
         assert(!(bits_taken & bits_taking));
-        if (memo[bits_taken | bits_taking] != -1LL) {
-            return memo[bits_taken | bits_taking];
-        }
 
         ll ans = score[bits_taking];
         for (const auto bits : fb[bits_taken | bits_taking]) {
@@ -80,15 +76,14 @@ ll max_total_score(const vvi &compat) {
                                recur(bits_taken | bits_taking, bits));
         }
 
-        memo[bits_taken | bits_taking] = ans;
         return ans;
     };
 
-    ll ans = 0;
+    ll total = 0;
     for (int bits = 1; bits < (1 << n); ++bits) {
-        ans = max(ans, recur(0, bits));
+        total = max(total, recur(0, bits));
     }
-    return ans;
+    return total;
 }
 
 int main() {
