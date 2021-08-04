@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -27,10 +17,12 @@ ll group_score(const vvi &compat, const int bits_group) {
     ll ans = 0;
 
     for (int i = 0; i < n - 1; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            const bool one = (1 << i) & bits_group;
-            const bool two = (1 << j) & bits_group;
-            if (one && two) ans += compat[i][j];
+        if ((1 << i) & bits_group) {
+            for (int j = i + 1; j < n; ++j) {
+                if ((1 << j) & bits_group) {
+                    ans += compat[i][j];
+                }
+            }
         }
     }
 
@@ -93,7 +85,7 @@ ll max_total_score(const vvi &compat) {
 
     for (int bs = 1; bs < (1 << n); ++bs) {
         for (const auto sbs : subbits(bs)) {
-            dp[bs] = max(dp[bs], score[sbs] + score[bs ^ sbs]);
+            dp[bs] = max(dp[bs], score[sbs] + dp[bs ^ sbs]);
         }
     }
 
