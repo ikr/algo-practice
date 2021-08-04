@@ -53,25 +53,6 @@ vi popped_bits_indices(const int n) {
     return ans;
 }
 
-vi subbits(const int n) {
-    const auto idx = popped_bits_indices(n);
-    vi ans;
-
-    for (int i = 1; i < (1 << sz(idx)); ++i) {
-        int bits = 0;
-
-        for (int j = 0; j < sz(idx); ++j) {
-            if ((1 << j) & i) {
-                bits |= (1 << idx[j]);
-            }
-        }
-
-        ans.push_back(bits);
-    }
-
-    return ans;
-}
-
 static constexpr ll INF = 1e18;
 
 ll max_total_score(const vvi &compat) {
@@ -84,7 +65,17 @@ ll max_total_score(const vvi &compat) {
     dp[0] = 0;
 
     for (int bs = 1; bs < (1 << n); ++bs) {
-        for (const auto sbs : subbits(bs)) {
+        const auto idx = popped_bits_indices(bs);
+
+        for (int i = 1; i < (1 << sz(idx)); ++i) {
+            int sbs = 0;
+
+            for (int j = 0; j < sz(idx); ++j) {
+                if ((1 << j) & i) {
+                    sbs |= (1 << idx[j]);
+                }
+            }
+
             dp[bs] = max(dp[bs], score[sbs] + dp[bs ^ sbs]);
         }
     }
