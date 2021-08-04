@@ -89,11 +89,12 @@ ll max_total_score(const vvi &compat) {
     // dp[i] is the max score over all the group assignments for a rabbits
     // bit-masked subset i
     vll dp(1 << n, -INF);
+    dp[0] = 0;
 
-    function<void(int)> recur;
-    recur = [&](const int bits) {};
-
-    for (int bits = 0; bits < (1 << n); ++bits) {
+    for (int bs = 1; bs < (1 << n); ++bs) {
+        for (const auto sbs : subbits(bs)) {
+            dp[bs] = max(dp[bs], score[sbs] + score[bs ^ sbs]);
+        }
     }
 
     return dp.back();
