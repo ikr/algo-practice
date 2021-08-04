@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -38,52 +48,55 @@ vll group_scores(const vvi &compat) {
     return ans;
 }
 
-vvi gather_free_bits(const int n) {
-    vvi ans((1 << n));
-    for (int taken = 0; taken < (1 << n); ++taken) {
-        vi free_bits;
-        for (int i = 0; i < n; ++i) {
-            if ((1 << i) & taken) continue;
-            free_bits.push_back(i);
-        }
+constexpr int mlog2(const unsigned int x) {
+    return inof(8U * sizeof(unsigned int) - __builtin_clz(x) - 1U);
+}
 
-        for (int i = 1; i < (1 << sz(free_bits)); ++i) {
-            int bits = 0;
-            for (int j = 0; j < sz(free_bits); ++j) {
-                if ((1 << j) & i) {
-                    bits |= (1 << free_bits[j]);
-                }
-            }
-
-            ans[taken].push_back(bits);
-        }
+vi popped_bits_indices(const int n) {
+    const auto last = mlog2(n);
+    vi ans;
+    for (int i = 0; i <= last; ++i) {
+        if (n & (1 << i)) ans.push_back(i);
     }
     return ans;
 }
 
+vi subbits(const int n) {
+    const auto idx = popped_bits_indices(n);
+    vi ans;
+
+    for (int i = 1; i < (1 << sz(idx)); ++i) {
+        int bits = 0;
+
+        for (int j = 0; j < sz(idx); ++j) {
+            if ((1 << j) & i) {
+                bits |= (1 << idx[j]);
+            }
+        }
+
+        ans.push_back(bits);
+    }
+
+    return ans;
+}
+
+static constexpr ll INF = 1e18;
+
 ll max_total_score(const vvi &compat) {
     const auto n = sz(compat);
     const auto score = group_scores(compat);
-    const auto fb = gather_free_bits(n);
 
-    function<ll(int, int)> recur;
-    recur = [&](const int bits_taken, const int bits_taking) -> ll {
-        assert(!(bits_taken & bits_taking));
+    // dp[i] is the max score over all the group assignments for a rabbits
+    // bit-masked subset i
+    vll dp(1 << n, -INF);
 
-        ll ans = score[bits_taking];
-        for (const auto bits : fb[bits_taken | bits_taking]) {
-            ans = max(ans, score[bits_taking] +
-                               recur(bits_taken | bits_taking, bits));
-        }
+    function<void(int)> recur;
+    recur = [&](const int bits) {};
 
-        return ans;
-    };
-
-    ll total = 0;
-    for (int bits = 1; bits < (1 << n); ++bits) {
-        total = max(total, recur(0, bits));
+    for (int bits = 0; bits < (1 << n); ++bits) {
     }
-    return total;
+
+    return dp.back();
 }
 
 int main() {
