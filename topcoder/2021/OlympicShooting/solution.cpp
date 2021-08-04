@@ -1,5 +1,6 @@
 #include "lest.hpp"
 #include <bits/stdc++.h>
+#include <numeric>
 using namespace std;
 
 using ll = long long;
@@ -32,71 +33,56 @@ constexpr typename vector<T>::const_iterator cend(const vector<T> &xs) {
 }
 
 string::const_iterator cbegin(const string &xs) { return xs.cbegin(); }
-
 string::const_iterator cend(const string &xs) { return xs.cend(); }
-
-struct Chunk final {
-    string xs;
-    int hits;
-};
 
 struct Result final {
     int i;
-    vector<Chunk> cs;
+    vi chunk_hits;
     int hits;
+    string xs;
 };
-
-Chunk as_chunk(const string &xs) {
-    assert(sz(xs) == 25);
-    return Chunk{xs, inof(count(cbegin(xs), cend(xs), '1'))};
-}
 
 Result as_result(const int i, const string &xs) {
     assert(sz(xs) % 25 == 0);
     const int chunks_num = sz(xs) / 25;
-    vector<Chunk> cs;
+    vi chunk_hits(chunks_num, 0);
 
     for (int j = 0; j < chunks_num; ++j) {
         const auto sub = xs.substr(j * 25, 25);
-        cs.push_back(as_chunk(sub));
+        chunk_hits[j] = inof(count(cbegin(sub), cend(sub), '1'));
     }
 
-    int hits = 0;
-    for (const auto &c : cs) {
-        hits += c.hits;
-    }
-    return Result{i, cs, hits};
+    return Result{i, chunk_hits,
+                  accumulate(cbegin(chunk_hits), cend(chunk_hits), 0), xs};
 }
 
-bool is_less(const Chunk &a, const Chunk &b) {
-    if (a.hits < b.hits) return true;
-    if (a.hits > b.hits) return false;
-
-    assert(sz(a.xs) == sz(b.xs));
-
-    auto ps = a.xs;
-    reverse(begin(ps), end(ps));
-    auto qs = b.xs;
-    reverse(begin(qs), end(qs));
-
-    return ps < qs;
+bool is_less_on_chunk_hits(const vi &xs, const vi &ys) {
+    assert(sz(xs) == sz(ys));
+    for (int i = sz(xs) - 1; i >= 0; --i) {
+        if (xs[i] < ys[i]) return true;
+        if (xs[i] > ys[i]) return false;
+    }
+    return false;
 }
 
 bool is_less(const Result &a, const Result &b) {
     if (a.hits < b.hits) return true;
     if (a.hits > b.hits) return false;
 
-    assert(sz(a.cs) == sz(b.cs));
+    if (is_less_on_chunk_hits(a.chunk_hits, b.chunk_hits)) return true;
+    if (is_less_on_chunk_hits(b.chunk_hits, a.chunk_hits)) return false;
 
-    for (int i = sz(a.cs) - 1; i >= 0; --i) {
-        if (a.cs[i].hits < b.cs[i].hits) return true;
+    assert(b.chunk_hits == a.chunk_hits);
+    assert(sz(a.xs) == sz(b.xs));
+
+    if (a.xs == b.xs) return a.i > b.i;
+
+    for (int i = sz(a.xs) - 1; i >= 0; --i) {
+        if (a.xs[i] < b.xs[i]) return true;
+        if (a.xs[i] > b.xs[i]) return false;
     }
 
-    for (int i = sz(a.cs) - 1; i >= 0; --i) {
-        if (is_less(a.cs[i], b.cs[i])) return true;
-    }
-
-    return a.i > b.i;
+    return false;
 }
 
 vector<Result> as_results(const vector<string> &xss) {
@@ -125,6 +111,52 @@ struct OlympicShooting final {
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("pre-one") {
+        const auto r0 = as_result(0, "11111111111011111111111110000000000000000000010000");
+        const auto r1 = as_result(1, "11111111111111111111111000000000000000000000001000");
+        const auto r2 = as_result(2, "11111111111111111111101110000000000000000000000100");
+        const auto r3 = as_result(3, "11111111111111111111111110000000000000000000000010");
+        const auto r4 = as_result(4, "11111111111111111111101110000000000000000000000001");
+
+        EXPECT(!is_less(r0, r1));
+
+        EXPECT(is_less(r1, r0));
+        EXPECT(is_less(r1, r2));
+        EXPECT(is_less(r1, r4));
+        EXPECT(is_less(r1, r3));
+
+        EXPECT(is_less(r0, r3));
+        EXPECT(is_less(r0, r4));
+        EXPECT(is_less(r0, r2));
+
+        EXPECT(is_less(r2, r4));
+        EXPECT(is_less(r2, r3));
+
+        EXPECT(is_less(r4, r3));
+    },
+    CASE("pre-two") {
+        const auto r0 = as_result(0, "11111111111011111111111110000000000000000000000100");
+        const auto r1 = as_result(1, "11111111111111111111111000000000000000000000011000");
+        const auto r2 = as_result(2, "11111111111111111111101110000000000000000000000100");
+        const auto r3 = as_result(3, "11111111111111111111111110000000000000000000000010");
+        const auto r4 = as_result(4, "11111111111111111111101110000000000000000000000001");
+
+        EXPECT(is_less(r2, r0));
+        EXPECT(is_less(r2, r4));
+        EXPECT(is_less(r2, r1));
+        EXPECT(is_less(r2, r3));
+
+        EXPECT(is_less(r0, r1));
+        EXPECT(is_less(r0, r3));
+        EXPECT(is_less(r0, r4));
+
+        EXPECT(is_less(r4, r1));
+        EXPECT(is_less(r4, r3));
+
+        EXPECT(is_less(r1, r3));
+
+        EXPECT(!is_less(r1, r0));
+    },
     CASE("Example 0") {
         const auto actual = OlympicShooting{}.sort({"1111111111101111111111111", "1111111111111111111111100", "1111111111111111111110111", "1111111111111111111111111", "1111111111111111111110111"});
         const auto expected = vi{3, 0, 2, 4, 1};

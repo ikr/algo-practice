@@ -53,6 +53,9 @@ template <typename T>
 constexpr typename vector<T>::const_iterator cend(const vector<T> &xs) {
     return xs.cend();
 }
+
+string::const_iterator cbegin(const string &xs) { return xs.cbegin(); }
+string::const_iterator cend(const string &xs) { return xs.cend(); }
 """
 
 if args.tests:
