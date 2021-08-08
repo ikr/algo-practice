@@ -88,8 +88,26 @@ vector<pii> optimal_01_path(const vector<string> &grid) {
 }
 
 int min_punches(const vector<string> &grid) {
-    cerr << optimal_01_path(grid) << endl;
-    return -1;
+    const auto p = optimal_01_path(grid);
+    int ans = 0;
+
+    for (int i = 0; i < sz(p) - 1;) {
+        const auto [ro0, co0] = p[i];
+        const auto [ro1, co1] = p[i + 1];
+
+        if (grid[ro0][co0] == '#' && grid[ro1][co1] == '#') {
+            ++ans;
+            i += 2;
+            continue;
+        }
+
+        if (grid[ro0][co0] == '#') {
+            ++ans;
+        }
+        ++i;
+    }
+
+    return ans;
 }
 
 int main() {
