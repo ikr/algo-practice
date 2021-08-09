@@ -87,27 +87,67 @@ vector<pii> optimal_01_path(const vector<string> &grid) {
     }
 }
 
-int min_punches(const vector<string> &grid) {
-    const auto p = optimal_01_path(grid);
+int chebyshev(const pii &x, const pii &y) {
+    return max(abs(x.first - y.first), abs(x.second - y.second));
+}
+
+bool all_in_2x2_box(const vector<pii> &xs) {
+    for (int i = 0; i < sz(xs) - 1; ++i) {
+        for (int j = i + 1; i < sz(xs); ++j) {
+            if (chebyshev(xs[i], xs[j]) > 1) return false;
+        }
+    }
+
+    return true;
+}
+
+int walls_num(const vector<string> &grid, const vector<pii> &xs) {
+    return inof(count_if(cbegin(xs), cend(xs), [&grid](const pii x) {
+        return grid[x.first][x.second] == '#';
+    }));
+}
+
+int distinct_num(vector<pii> xs) { return sz(set<pii>(cbegin(xs), cend(xs))); }
+
+int punch_coverage_size(const vector<string> &grid, const vector<pii> &p) {
     int ans = 0;
 
-    for (int i = 0; i < sz(p) - 1;) {
-        const auto [ro0, co0] = p[i];
-        const auto [ro1, co1] = p[i + 1];
+    for (int i = 0; i < sz(p);) {
+        const auto x = p[i];
+        const auto y = i + 1 < sz(p) ? p[i + 1] : p[i];
 
-        if (grid[ro0][co0] == '#' && grid[ro1][co1] == '#') {
+        {
+            const auto z = i + 2 < sz(p) ? p[i + 2] : p[i];
+            const vector<pii> xs{x, y, z};
+            const auto wn = walls_num(grid, xs);
+
+            if (((wn == 3) || (distinct_num(xs) == 3 &&
+                               grid[y.first][y.second] == '.' && wn == 2)) &&
+                all_in_2x2_box(xs)) {
+                ++ans;
+                i += 3;
+                continue;
+            }
+        }
+
+        if (walls_num(grid, {x, y}) == 2) {
             ++ans;
             i += 2;
             continue;
         }
 
-        if (grid[ro0][co0] == '#') {
+        if (grid[x.first][x.second] == '#') {
             ++ans;
         }
+
         ++i;
     }
 
     return ans;
+}
+
+int min_punches(const vector<string> &grid) {
+    return punch_coverage_size(grid, optimal_01_path(grid));
 }
 
 int main() {
