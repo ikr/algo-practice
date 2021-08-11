@@ -44,22 +44,21 @@ int min_punches(const vector<string> &grid) {
     const auto W = sz(grid[0]);
     const pii dest{H - 1, W - 1};
 
-    vector<vector<bool>> discovered(H, vector(W, false));
-    discovered[0][0] = true;
+    vector<vector<bool>> visited(H, vector(W, false));
 
     deque<tri> q;
     q.emplace_front(0, 0, 0);
 
-    for (;;) {
+    while (!q.empty()) {
         const auto [cost, ro0, co0] = q.front();
         q.pop_front();
 
+        if (visited[ro0][co0]) continue;
+        visited[ro0][co0] = true;
+
         for (const auto v : adjacent(H, W, pii{ro0, co0})) {
             const auto [ro, co] = v;
-
-            if (discovered[ro][co]) continue;
             if (v == dest) return cost;
-            discovered[ro][co] = true;
 
             if (grid[ro][co] == '.') {
                 q.emplace_front(cost, ro, co);
@@ -71,16 +70,12 @@ int min_punches(const vector<string> &grid) {
 
             for (const auto v_ : adjacent_with_diag(H, W, v)) {
                 const auto [ro_, co_] = v_;
-
-                if (discovered[ro_][co_]) continue;
-                if (v_ == dest) return cost + 1;
-                discovered[ro_][co_] = true;
-
                 q.emplace_back(cost + 1, ro_, co_);
             }
         }
     }
 
+    assert(false && "min_punches return");
     return -1;
 }
 
