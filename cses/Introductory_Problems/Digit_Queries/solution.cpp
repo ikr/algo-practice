@@ -48,9 +48,8 @@ int kth_digit(const ll x, const int k) {
 int kth_digit_in_seq(const vll &ms, const ll k) {
     const auto bs = block_size(ms, k);
     assert(bs < sz(ms));
-    if (k == ms[bs]) return 9;
 
-    const auto i = k - ms[bs - 1];
+    const auto i = k - ms[bs - 1] - 1;
     const auto block_index = i / llof(bs);
     const auto digit_index = i % llof(bs);
     assert(digit_index < bs);
