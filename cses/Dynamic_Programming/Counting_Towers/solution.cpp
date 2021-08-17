@@ -9,8 +9,15 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using mint = atcoder::modint1000000007;
+static constexpr int LIM = 1'000'000;
 
-mint towers_num(const int n) { return -1; }
+// Encoding
+//
+// 0 |_._|   1 |_|_|   2 |.|.|
+//
+// 3 |_|.|   4 |.|_|   5 |...|
+
+mint towers_num(const int h) { return -1; }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
