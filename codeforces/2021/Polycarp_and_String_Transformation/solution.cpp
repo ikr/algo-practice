@@ -5,8 +5,6 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 constexpr int SZ = inof('z') - inof('a') + 1;
 
 string removal_seq(const string &t) {
