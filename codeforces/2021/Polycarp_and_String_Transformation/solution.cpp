@@ -39,16 +39,33 @@ int index_of_complete_occurance(const string &needle, const string &haystack) {
     return i;
 }
 
+bool verify(string s, const string &xs, const string &t) {
+    string buf;
+    for (const auto x : xs) {
+        buf += s;
+        s.erase(remove(begin(s), end(s), x), end(s));
+    }
+
+    return buf == t;
+}
+
 pair<string, string> s_and_removal_seq(const string &t) {
-    return {"?", removal_seq(t)};
+    const auto xs = removal_seq(t);
+    const auto edge =
+        max(index_of_complete_occurance(xs, t), inof(t.rfind(xs[0])));
+
+    string needle = t.substr(0, edge);
+    needle.erase(remove(begin(needle), end(needle), xs[0]), end(needle));
+
+    const auto i = t.find(needle, edge + 1);
+    const auto s = t.substr(0, i);
+
+    return verify(s, xs, t) ? pair{s, xs} : pair{string{""}, string{""}};
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-
-    cerr << "dbg: " << index_of_complete_occurance("bac", "abacabaaacaac")
-         << endl;
 
     int T;
     cin >> T;
@@ -57,7 +74,11 @@ int main() {
         cin >> t;
 
         const auto [s, xs] = s_and_removal_seq(t);
-        cout << s << ' ' << xs << '\n';
+        if (xs.empty()) {
+            cout << "-1\n";
+        } else {
+            cout << s << ' ' << xs << '\n';
+        }
     }
 
     return 0;
