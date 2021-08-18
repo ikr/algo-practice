@@ -26,6 +26,19 @@ string removal_seq(const string &t) {
     return ans;
 }
 
+int index_of_complete_occurance(const string &needle, const string &haystack) {
+    set<char> xs(cbegin(needle), cend(needle));
+    int i = 0;
+
+    for (;;) {
+        xs.erase(haystack[i]);
+        if (xs.empty()) break;
+        ++i;
+    }
+
+    return i;
+}
+
 pair<string, string> s_and_removal_seq(const string &t) {
     return {"?", removal_seq(t)};
 }
@@ -33,7 +46,9 @@ pair<string, string> s_and_removal_seq(const string &t) {
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
+
+    cerr << "dbg: " << index_of_complete_occurance("bac", "abacabaaacaac")
+         << endl;
 
     int T;
     cin >> T;
