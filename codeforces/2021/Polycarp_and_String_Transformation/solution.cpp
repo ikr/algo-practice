@@ -1,14 +1,18 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using vi = vector<int>;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-constexpr int SZ = inof('z') - inof('a') + 1;
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+constexpr int AZ = inof('z') - inof('a') + 1;
 
 string removal_seq(const string &t) {
-    vector<bool> seen(SZ, false);
+    vector<bool> seen(AZ, false);
     string ans;
 
     for (auto it = crbegin(t); it != crend(t); ++it) {
@@ -24,17 +28,36 @@ string removal_seq(const string &t) {
     return ans;
 }
 
-int index_of_complete_occurance(const string &needle, const string &haystack) {
-    set<char> xs(cbegin(needle), cend(needle));
-    int i = 0;
+array<int, AZ> freqs(const string &t) {
+    array<int, AZ> ans{};
+    for (const auto x : t) {
+        ++ans[inof(x) - inof('a')];
+    }
+    return ans;
+}
 
-    for (;;) {
-        xs.erase(haystack[i]);
-        if (xs.empty()) break;
-        ++i;
+optional<vi> positional_s_freqs(const string &xs, const string &t) {
+    const auto fs = freqs(t);
+    vi ans(sz(xs), 0);
+
+    for (int i = 0; i < sz(xs); ++i) {
+        const auto mul = i + 1;
+        const auto x = xs[i];
+        const auto f = fs[inof(x) - 'a'];
+
+        if (f % mul) return nullopt;
+        ans[i] = f / mul;
     }
 
-    return i;
+    return ans;
+}
+
+array<int, AZ> absolutize(const string &xs, const vi &positional_fs) {
+    array<int, AZ> ans{};
+    for (int i = 0; i < sz(xs); ++i) {
+        ans[inof(xs[i]) - inof('a')] = positional_fs[i];
+    }
+    return ans;
 }
 
 bool verify(string s, const string &xs, const string &t) {
@@ -48,17 +71,22 @@ bool verify(string s, const string &xs, const string &t) {
 }
 
 pair<string, string> s_and_removal_seq(const string &t) {
+    const auto nope = pair{string{""}, string{""}};
     const auto xs = removal_seq(t);
-    const auto edge =
-        max(index_of_complete_occurance(xs, t), inof(t.rfind(xs[0])));
 
-    string needle = t.substr(0, edge);
-    needle.erase(remove(begin(needle), end(needle), xs[0]), end(needle));
+    const auto positional_fs_box = positional_s_freqs(xs, t);
+    if (!positional_fs_box) return nope;
+    const auto fs = absolutize(xs, *positional_fs_box);
 
-    const auto i = t.find(needle, edge + 1);
-    const auto s = t.substr(0, i);
+    array<int, AZ> curr{};
+    int i = 0;
+    for (; i < sz(t); ++i) {
+        ++curr[inof(t[i]) - inof('a')];
+        if (curr == fs) break;
+    }
 
-    return verify(s, xs, t) ? pair{s, xs} : pair{string{""}, string{""}};
+    const auto s = t.substr(0, i + 1);
+    return verify(s, xs, t) ? pair{s, xs} : nope;
 }
 
 int main() {
