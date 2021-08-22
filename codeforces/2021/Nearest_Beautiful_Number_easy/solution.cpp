@@ -49,11 +49,12 @@ vi gather_solos() {
     return ans;
 }
 
-int two_digits_combo(const int d1, const int d2, const int bits) {
+int two_digits_combo(const int len, const int d1, const int d2,
+                     const int bits) {
     assert(d1 != d2);
-    vi ans(9, 0);
+    vi ans(len, 0);
 
-    for (int i = 0; i < 9; ++i) {
+    for (int i = 0; i < sz(ans); ++i) {
         ans[i] = ((1 << i) & bits) ? d2 : d1;
     }
 
@@ -61,13 +62,14 @@ int two_digits_combo(const int d1, const int d2, const int bits) {
 }
 
 vi gather_duos() {
-    const int lim = (1 << 9);
     vi ans{1'000'000'000};
 
-    for (int bits = 1; bits < lim - 1; ++bits) {
-        for (int i = 0; i <= 8; ++i) {
-            for (int j = i + 1; j <= 9; ++j) {
-                ans.push_back(two_digits_combo(i, j, bits));
+    for (int len = 2; len <= 9; ++len) {
+        for (int bits = 1; bits < (1 << len) - 1; ++bits) {
+            for (int i = 0; i <= 8; ++i) {
+                for (int j = i + 1; j <= 9; ++j) {
+                    ans.push_back(two_digits_combo(len, i, j, bits));
+                }
             }
         }
     }
