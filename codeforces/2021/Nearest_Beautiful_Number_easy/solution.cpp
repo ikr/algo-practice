@@ -39,7 +39,8 @@ template <typename T> T number(const vector<int> &ds) {
 }
 
 vi gather_solos() {
-    vi ans;
+    vi ans{1'111'111'111};
+
     for (int i = 1; i <= 9; ++i) {
         for (int j = 1; j <= 9; ++j) {
             ans.push_back(number<int>(vi(i, j)));
