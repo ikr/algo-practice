@@ -85,6 +85,7 @@ pair<vi, vi> bound_tables() {
     sort(begin(a), end(a));
     sort(begin(b), end(b));
 
+    b.erase(unique(begin(b), end(b)), end(b));
     return {a, b};
 }
 
