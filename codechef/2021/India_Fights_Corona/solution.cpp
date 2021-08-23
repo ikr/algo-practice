@@ -2,8 +2,6 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
 using vll = vector<ll>;
 
@@ -19,35 +17,28 @@ template <typename T1, typename T2> struct PairHash final {
     }
 };
 
-using Weig = unordered_map<pii, int, PairHash<int, int>>;
-
 static constexpr ll INF = 1e18;
 
 using Queue = set<pair<ll, int>>;
+using Graph = vector<vector<pii>>;
 
 // Dijkstra's algorithm
-vll min_costs(const vvi &g, const Weig &w) {
+vll min_costs(const Graph &g) {
     vll ans(sz(g), INF);
     ans[0] = 0;
 
-    Queue front;
-    for (const auto u : g[0]) {
-        const ll c = w.at(pii{0, u});
-        front.emplace(c, u);
-        ans[u] = c;
-    }
+    Queue q;
+    q.emplace(0, 0);
 
-    while (!front.empty()) {
-        const auto [_, u] = *front.begin();
-        front.erase(front.begin());
+    while (!q.empty()) {
+        const auto [_, u] = *q.begin();
+        q.erase(q.begin());
 
-        for (const auto v : g[u]) {
-            const ll c = w.at(pii{u, v});
-
-            if (ans[v] > c + ans[u]) {
-                front.erase(pair{ans[v], v});
-                ans[v] = c + ans[u];
-                front.emplace(ans[v], v);
+        for (const auto [v, w] : g[u]) {
+            if (ans[v] > w + ans[u]) {
+                q.erase(pair{ans[v], v});
+                ans[v] = w + ans[u];
+                q.emplace(ans[v], v);
             }
         }
     }
@@ -65,32 +56,25 @@ int main() {
         int N, M, K;
         cin >> N >> M >> K;
 
-        vvi g(N + 1);
-        Weig w;
+        Graph g(N + 1);
 
         for (int i = 0; i < K; ++i) {
             int x, C;
             cin >> x >> C;
 
-            g[x].push_back(0);
-            g[0].push_back(x);
-
-            w[pii{0, x}] = C;
-            w[pii{x, 0}] = C;
+            g[x].emplace_back(0, C);
+            g[0].emplace_back(x, C);
         }
 
         for (int i = 0; i < M; ++i) {
             int A, B, D;
             cin >> A >> B >> D;
 
-            g[A].push_back(B);
-            g[B].push_back(A);
-
-            w[pii{A, B}] = D;
-            w[pii{B, A}] = D;
+            g[A].emplace_back(B, D);
+            g[B].emplace_back(A, D);
         }
 
-        const auto ans = min_costs(g, w);
+        const auto ans = min_costs(g);
         for (int i = 1; i < sz(ans); ++i) {
             if (i > 1) cout << ' ';
             cout << ans[i];
