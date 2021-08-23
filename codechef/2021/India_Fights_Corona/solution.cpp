@@ -33,12 +33,12 @@ vll min_costs(const vvi &g, const Weig &w) {
     Queue front;
     for (const auto u : g[0]) {
         const ll c = w.at(pii{0, u});
-        front.emplace(-c, u);
+        front.emplace(c, u);
         ans[u] = c;
     }
 
     while (!front.empty()) {
-        const auto [c_, u] = *front.begin();
+        const auto [_, u] = *front.begin();
         front.erase(front.begin());
 
         for (const auto v : g[u]) {
@@ -47,7 +47,7 @@ vll min_costs(const vvi &g, const Weig &w) {
             if (ans[v] > c + ans[u]) {
                 front.erase(pair{ans[v], v});
                 ans[v] = c + ans[u];
-                front.emplace(-ans[v], v);
+                front.emplace(ans[v], v);
             }
         }
     }
