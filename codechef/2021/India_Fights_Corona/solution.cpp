@@ -30,6 +30,9 @@ vll min_costs(const vvi &g, const Weig &w) {
     vll ans(sz(g), INF);
     ans[0] = 0;
 
+    vector<bool> done(sz(g), false);
+    done[0] = true;
+
     Queue front;
     for (const auto u : g[0]) {
         const ll c = w.at(pii{0, u});
@@ -42,6 +45,7 @@ vll min_costs(const vvi &g, const Weig &w) {
         front.pop();
 
         for (const auto v : g[u]) {
+            if (done[v]) continue;
             const ll c = w.at(pii{u, v});
 
             if (ans[v] > c + ans[u]) {
@@ -49,6 +53,8 @@ vll min_costs(const vvi &g, const Weig &w) {
                 front.emplace(-ans[v], v);
             }
         }
+
+        done[u] = true;
     }
 
     return ans;
