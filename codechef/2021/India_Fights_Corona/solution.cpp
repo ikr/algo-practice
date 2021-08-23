@@ -23,15 +23,12 @@ using Weig = unordered_map<pii, int, PairHash<int, int>>;
 
 static constexpr ll INF = 1e18;
 
-using Queue = priority_queue<pair<ll, int>>;
+using Queue = set<pair<ll, int>>;
 
 // Dijkstra's algorithm
 vll min_costs(const vvi &g, const Weig &w) {
     vll ans(sz(g), INF);
     ans[0] = 0;
-
-    vector<bool> done(sz(g), false);
-    done[0] = true;
 
     Queue front;
     for (const auto u : g[0]) {
@@ -41,20 +38,18 @@ vll min_costs(const vvi &g, const Weig &w) {
     }
 
     while (!front.empty()) {
-        const auto [c_, u] = front.top();
-        front.pop();
+        const auto [c_, u] = *front.begin();
+        front.erase(front.begin());
 
         for (const auto v : g[u]) {
-            if (done[v]) continue;
             const ll c = w.at(pii{u, v});
 
             if (ans[v] > c + ans[u]) {
+                front.erase(pair{ans[v], v});
                 ans[v] = c + ans[u];
                 front.emplace(-ans[v], v);
             }
         }
-
-        done[u] = true;
     }
 
     return ans;
