@@ -11,10 +11,6 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 template <typename T1, typename T2> struct PairHash final {
@@ -25,7 +21,38 @@ template <typename T1, typename T2> struct PairHash final {
 
 using Weig = unordered_map<pii, int, PairHash<int, int>>;
 
-vll min_costs(const vvi &g, const Weig &w) { return vll(sz(g), -1); }
+static constexpr ll INF = 1e18;
+
+using Queue = priority_queue<pair<ll, int>>;
+
+// Dijkstra's algorithm
+vll min_costs(const vvi &g, const Weig &w) {
+    vll ans(sz(g), INF);
+    ans[0] = 0;
+
+    Queue front;
+    for (const auto u : g[0]) {
+        const ll c = w.at(pii{0, u});
+        front.emplace(-c, u);
+        ans[u] = c;
+    }
+
+    while (!front.empty()) {
+        const auto [c_, u] = front.top();
+        front.pop();
+
+        for (const auto v : g[u]) {
+            const ll c = w.at(pii{u, v});
+
+            if (ans[v] > c + ans[u]) {
+                ans[v] = c + ans[u];
+                front.emplace(-ans[v], v);
+            }
+        }
+    }
+
+    return ans;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
