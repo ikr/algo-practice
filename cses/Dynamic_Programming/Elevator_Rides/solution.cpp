@@ -28,14 +28,14 @@ int min_rides(const int cap, const vi &xs) {
                 const auto fits = w0 + xs[j] <= cap;
 
                 if (fits) {
-                    if (k0 < k) {
+                    if (k0 <= k) {
                         k = k0;
-                        w = w0 + xs[j];
+                        w = min(w, w0 + xs[j]);
                     }
                 } else {
-                    if (k0 + 1 < k) {
+                    if (k0 + 1 <= k) {
                         k = k0 + 1;
-                        w = xs[j];
+                        w = min(w, xs[j]);
                     }
                 }
             }
