@@ -30,6 +30,11 @@ int num_ways(const int n, const int m) {
     assert(!is_possible_upper_row(10, 7));
     assert(!is_possible_upper_row(10, 5));
     assert(is_possible_upper_row(10, 6));
+    assert(is_possible_upper_row(10, 768));
+
+    // dp[i][j] is …
+    vector<vector<mint>> dp(m, vector<mint>(1 << n, 0));
+
     return -1;
 }
 
