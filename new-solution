@@ -111,12 +111,22 @@ int main() {{
 }}
 """.format(streams_snippet)
 
+sanitization_arguments="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_CONCEPT_CHECKS -D_GLIBCXX_ASSERTIONS -D_GLIBCXX_SANITIZE_VECTOR -D_FORTIFY_SOURCE=2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector "
+
+compilation_command_base="g++ -I/home/ikr/code/ac-library -std=gnu++{0} -Wall -Wextra -Wshadow -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -pedantic -Wcast-qual -Wcast-align {1}-O2 -o ./solution ./solution.cpp"
+
+normal_compilation_command = compilation_command_base.format(args.cpp_standard, sanitization_arguments)
+optimized_compilation_command = compilation_command_base.format(args.cpp_standard, "")
+
 makefile = """build:
-	g++ -I/home/ikr/code/ac-library -std=gnu++{0} -Wall -Wextra -Wshadow -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -pedantic -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_CONCEPT_CHECKS -D_GLIBCXX_ASSERTIONS -D_GLIBCXX_SANITIZE_VECTOR -D_FORTIFY_SOURCE=2 -O2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector -o ./solution ./solution.cpp
+	{0}
+
+optimized:
+	{1}
 
 run: build
-	./solution{1}
-""".format(args.cpp_standard, ' -p' if args.tests else '')
+	./solution{2}
+""".format(normal_compilation_command, optimized_compilation_command, ' -p' if args.tests else '')
 
 compile_flags = """-I/home/ikr/code/ac-library
 -std=c++{0}
