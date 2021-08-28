@@ -1,16 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr char chof(const T x) {
-    return static_cast<char>(x);
-}
-
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
 constexpr int INF = 1e9;
-constexpr int AZ = 26;
 
 constexpr bool is_vowel(const char x) {
     switch (x) {
@@ -33,12 +24,10 @@ constexpr int min_seconds(const char s, const char t) {
 int min_seconds(const string &xs) {
     int ans = INF;
 
-    for (int t = 0; t < AZ; ++t) {
-        ans = min(ans, transform_reduce(cbegin(xs), cend(xs), 0, plus<int>{},
-                                        [t](const char s) {
-                                            return min_seconds(
-                                                s, chof(inof('a') + t));
-                                        }));
+    for (const auto t : string{"ABCDEFGHIJKLMNOPQRSTUVWXYZ"}) {
+        ans = min(ans, transform_reduce(
+                           cbegin(xs), cend(xs), 0, plus<int>{},
+                           [t](const char s) { return min_seconds(s, t); }));
     }
 
     return ans;
