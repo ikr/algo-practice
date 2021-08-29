@@ -17,21 +17,24 @@ string column(const vector<string> &grid, const int i) {
     return ans;
 }
 
-array<int, 3> freqs(const string &seq) {
-    array<int, 3> ans{};
+pair<array<int, 3>, optional<int>>
+freqs_and_an_index_of_dot(const string &seq) {
+    array<int, 3> fs{};
+    optional<int> index_of_dot;
 
-    for (const auto a : seq) {
-        switch (a) {
+    for (int i = 0; i < sz(seq); ++i) {
+        switch (seq[i]) {
         case '.':
-            ++ans[0];
+            ++fs[0];
+            index_of_dot = i;
             break;
 
         case 'X':
-            ++ans[1];
+            ++fs[1];
             break;
 
         case 'O':
-            ++ans[2];
+            ++fs[2];
             break;
 
         default:
@@ -40,33 +43,46 @@ array<int, 3> freqs(const string &seq) {
         }
     }
 
-    assert(ans[1] != sz(seq));
-    assert(ans[2] != sz(seq));
-    assert(ans[0] + ans[1] + ans[2] == sz(seq));
-    return ans;
+    assert(fs[1] != sz(seq));
+    assert(fs[2] != sz(seq));
+    assert(fs[0] + fs[1] + fs[2] == sz(seq));
+    return {fs, index_of_dot};
 }
 
-optional<int> xs_to_win(const string &seq) {
-    const auto fs = freqs(seq);
+constexpr optional<int> xs_to_win(const array<int, 3> &fs) {
     if (fs[2] > 0) return nullopt;
     return fs[0];
 }
 
 optional<pii> min_xs(const vector<string> &grid) {
     map<int, int> alts_by_xs;
+    set<pii> singles;
 
     for (int i = 0; i < sz(grid); ++i) {
-        for (const auto &seq : {grid[i], column(grid, i)}) {
-            const auto candidate = xs_to_win(seq);
+        for (const auto &[seq, is_row] :
+             {pair{grid[i], true}, pair{column(grid, i), false}}) {
+            const auto [fs, dot] = freqs_and_an_index_of_dot(seq);
+            if (xs_to_win(fs)) {
+                const int k = *xs_to_win(fs);
+                ++alts_by_xs[k];
 
-            if (candidate) {
-                ++alts_by_xs[*candidate];
+                if (k == 1) {
+                    assert(dot);
+
+                    if (is_row) {
+                        singles.emplace(i, *dot);
+                    } else {
+                        singles.emplace(*dot, i);
+                    }
+                }
             }
         }
     }
 
     if (alts_by_xs.empty()) return nullopt;
-    return *cbegin(alts_by_xs);
+    const auto [a, b] = *cbegin(alts_by_xs);
+
+    return a == 1 ? pair{1, sz(singles)} : pair{a, b};
 }
 
 string represent(const optional<pii> &ab) {
