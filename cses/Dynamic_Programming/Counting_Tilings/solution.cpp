@@ -25,20 +25,22 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int num_ways(const int n, const int m) {
-    assert(is_possible_upper_row(10, 0));
-    assert(is_possible_upper_row(10, 3));
-    assert(!is_possible_upper_row(10, 7));
-    assert(!is_possible_upper_row(10, 5));
-    assert(is_possible_upper_row(10, 6));
-    assert(is_possible_upper_row(10, 768));
-
     if (m == 1) return n % 2 ? 0 : 1;
     if (n == 1) return m % 2 ? 0 : 1;
 
-    // dp[i][j] is …
+    // dp[i][j] is number of ways at the row i, so that the i-th row's
+    // horizontal occupancy bits are j
     vector<vector<mint>> dp(m, vector<mint>(1 << n, 0));
 
-    return -1;
+    for (int bits = 0; bits < (1 << n); ++bits) {
+        if (is_possible_upper_row(n, bits)) dp[0][bits] = 1;
+    }
+
+    for (int i = 1; i < m - 1; ++i) {
+
+    }
+
+    return accumulate(cbegin(dp.back()), cend(dp.back()), mint{0}).val();
 }
 
 int main() {
