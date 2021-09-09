@@ -2,8 +2,30 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 using vi = vector<int>;
+using vvi = vector<vi>;
 using mint = atcoder::modint1000000007;
+
+ostream &operator<<(ostream &os, const mint x) {
+    os << x.val();
+    return os;
+}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -45,36 +67,57 @@ bool is_possible_transition(const int n, const int bits_a, const int bits_b) {
     return true;
 }
 
+vvi gather_successors(const int n) {
+    vvi ans(1 << n);
+
+    for (int bits_a = 0; bits_a < sz(ans); ++bits_a) {
+        for (int bits_b = 0; bits_b < sz(ans); ++bits_b) {
+            if (is_possible_transition(n, bits_a, bits_b)) {
+                ans[bits_a].push_back(bits_b);
+            }
+        }
+    }
+
+    return ans;
+}
+
 int num_ways(const int n, const int m) {
     if (m == 1) return n % 2 ? 0 : 1;
     if (n == 1) return m % 2 ? 0 : 1;
+    if ((n * m) % 2) return 0;
+
+    const auto succ = gather_successors(n);
 
     // dp[i][j] is number of ways at the row i, so that the i-th row's
-    // horizontal occupancy bits are j
+    // own occupancy bits are j
     vector<vector<mint>> dp(m, vector<mint>(1 << n, 0));
 
     for (int bits = 0; bits < (1 << n); ++bits) {
         if (is_possible_top_row(n, bits)) dp[0][bits] = 1;
     }
 
-    for (int i = 1; i < m - 1; ++i) {
+    for (int i = 0; i <= m - 3; ++i) {
+        for (int bits_a = 0; bits_a < (1 << n); ++bits_a) {
+            for (const auto bits_b : succ[i]) {
+                dp[i + 1][bits_b] += dp[i][bits_a];
+            }
+        }
     }
 
-    return accumulate(cbegin(dp.back()), cend(dp.back()), mint{0}).val();
+    for (int bits_a = 0; bits_a < (1 << n); ++bits_a) {
+        if (is_possible_transition(n, bits_a, (1 << n) - 1)) {
+            dp.back().back() += dp[m - 2][bits_a];
+        }
+    }
+
+    cerr << dp << endl;
+
+    return dp.back().back().val();
 }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-
-    assert(is_possible_transition(10, 0, (1 << 10) - 1));
-    assert(is_possible_transition(7, 0b1100110, 0b0011001));
-    assert(!is_possible_transition(7, 0b1100110, 0b0010001));
-    assert(is_possible_transition(7, 0b1100110, 0b0011111));
-    assert(!is_possible_transition(7, 0b1100110, 0b1011001));
-    assert(is_possible_transition(7, 0b1100110, 0b1111111));
-    assert(is_possible_transition(8, (1 << 8) - 1, 0b01111110));
-    assert(!is_possible_transition(8, (1 << 8) - 1, 0b01010101));
 
     int n, m;
     cin >> n >> m;
