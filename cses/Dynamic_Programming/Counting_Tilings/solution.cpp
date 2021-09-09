@@ -2,30 +2,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 using vi = vector<int>;
 using vvi = vector<vi>;
 using mint = atcoder::modint1000000007;
-
-ostream &operator<<(ostream &os, const mint x) {
-    os << x.val();
-    return os;
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -48,8 +27,6 @@ bool is_possible_top_row(const int n, const int bits) {
 }
 
 bool is_possible_transition(const int n, const int bits_a, const int bits_b) {
-    assert(n <= 10);
-
     vi set_vars;
     for (int i = 0; i < n; ++i) {
         const int a = (1 << i) & bits_a;
@@ -98,7 +75,7 @@ int num_ways(const int n, const int m) {
 
     for (int i = 0; i <= m - 3; ++i) {
         for (int bits_a = 0; bits_a < (1 << n); ++bits_a) {
-            for (const auto bits_b : succ[i]) {
+            for (const auto bits_b : succ[bits_a]) {
                 dp[i + 1][bits_b] += dp[i][bits_a];
             }
         }
@@ -109,8 +86,6 @@ int num_ways(const int n, const int m) {
             dp.back().back() += dp[m - 2][bits_a];
         }
     }
-
-    cerr << dp << endl;
 
     return dp.back().back().val();
 }
