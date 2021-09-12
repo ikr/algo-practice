@@ -134,7 +134,7 @@ compile_flags = """-I/home/ikr/code/ac-library
 
 def normalize(name):
     ans = name
-    muted = "!#$%^*()'!?"
+    muted = "!#$%^*()'!?:"
     for x in muted:
         ans = ans.replace(x, '')
     return re.sub(r'[ &,]+', '_', ans)
