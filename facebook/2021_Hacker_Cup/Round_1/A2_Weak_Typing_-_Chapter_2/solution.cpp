@@ -2,18 +2,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using Mint = atcoder::modint1000000007;
-using vi = vector<int>;
+using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -21,35 +11,36 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vi gather_milestones(const string &xs) {
-    vi ans;
+vector<pii> gather_milestones(const string &xs) {
+    vector<pii> ans;
+    optional<int> pr;
 
-    const auto it0 =
-        find_if(cbegin(xs), cend(xs), [](const char x) { return x != 'F'; });
+    for (int i = 0; i < sz(xs); ++i) {
+        if (xs[i] == 'F') continue;
 
-    if (it0 == cend(xs)) return ans;
-    ans.push_back(inof(distance(cbegin(xs), it0)));
+        if (!pr) {
+            pr = i;
+            continue;
+        }
 
-    for (auto it = it0;;) {
-        it = find_if(next(it), cend(xs),
-                     [&](const char x) { return x != 'F' && x != *it; });
+        if (xs[*pr] != xs[i]) {
+            ans.emplace_back(*pr, i);
+            pr = i;
+            continue;
+        }
 
-        if (it == cend(xs)) break;
-        ans.push_back(inof(distance(cbegin(xs), it)));
+        pr = i;
     }
-
-    cerr << ans << endl;
 
     return ans;
 }
 
 int solution(const string &xs) {
-    const auto ms = gather_milestones(xs);
     Mint ans = 0;
 
-    for (int i = 1; i < sz(ms); ++i) {
-        const Mint a{ms[i - 1] + 1};
-        const Mint b{sz(xs) - ms[i]};
+    for (const auto [i, j]: gather_milestones(xs)) {
+        const Mint a{i + 1};
+        const Mint b{sz(xs) - j};
         ans += a * b;
     }
 
