@@ -37,7 +37,7 @@ vi digits(const ll x) {
 vector<array<ll, 10>> sought_nums_up_to(const ll hi) {
     const auto ds = digits(hi);
 
-    // dp[i][j] is how many sought numbers are ≤ j * 10^i
+    // D[i][j] is # of sought ints having i digits, with the 1st digit being j
     vector<array<ll, 10>> dp(sz(ds) + 1, array<ll, 10>{});
 
     return dp;
