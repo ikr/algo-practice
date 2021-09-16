@@ -3,15 +3,19 @@ using namespace std;
 
 using ll = long long;
 using vi = vector<int>;
-using vll = vector<ll>;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+ostream &operator<<(ostream &os, const array<ll, 10> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
         if (i != xs.cbegin()) os << ' ';
         os << *i;
     }
     os << ']';
+    return os;
+}
+
+ostream &operator<<(ostream &os, const vector<array<ll, 10>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
     return os;
 }
 
@@ -45,31 +49,35 @@ vi digits(const ll x) {
     return ans;
 }
 
-vll counts_by_length(const int digits_num) {
-    // tbl[i] is # of sought Inst having i digits, starting with a fixed digit
-    // (no matter which one)
-    vll tbl(digits_num + 1, 0);
-    tbl[1] = 1;
-    for (int i = 2; i < sz(tbl); ++i) tbl[i] = 9 * tbl[i - 1];
+vector<array<ll, 10>> counts_by_length(const int digits_num) {
+    // tbl[i][j] is # of sought int-s having i digits, and starting with digit j
+    vector<array<ll, 10>> tbl(digits_num + 1, array<ll, 10>{});
+    tbl[1].fill(1);
+
+    for (int i = 2; i <= digits_num; ++i) {
+        const auto s = accumulate(cbegin(tbl[i - 1]), cend(tbl[i - 1]), 0LL);
+        tbl[i][0] = s;
+        for (int j = 1; j < 10; ++j) tbl[i][j] = s - tbl[i - 1][j];
+    }
+
     return tbl;
 }
 
-ll sought_nums_up_to(const ll hi) {
-    const auto ds = digits(hi);
-    const auto tbl = counts_by_length(sz(ds));
+ll sought_nums_up_to(const vi &ds, const vector<array<ll, 10>> &tbl) {
+    const int n = sz(ds);
+    assert(n > 0);
+    ll ans = 0;
 
-    ll ans = tbl[sz(ds), ds[0]] * ds[0];
-
-    for (int i = 1; i < sz(ds); ++i) {
-        ans -= tbl[sz(ds) - i] * (10 - ds[i]);
-    }
+    for (int j = 0; j <= ds[0]; ++j) ans += tbl[n][j];
 
     return ans;
 }
 
 ll sought_nums_in_between(const ll a, const ll b) {
-    return a ? (sought_nums_up_to(b) - sought_nums_up_to(a - 1))
-             : sought_nums_up_to(b);
+    const auto ds_b = digits(b);
+    const auto tbl = counts_by_length(sz(ds_b));
+    const auto nums_hi = sought_nums_up_to(ds_b, tbl);
+    return a ? (nums_hi - sought_nums_up_to(digits(a - 1), tbl)) : nums_hi;
 }
 
 int main() {
