@@ -58,7 +58,7 @@ ll sought_nums_up_to(const ll hi) {
     const auto ds = digits(hi);
     const auto tbl = counts_by_length(sz(ds));
 
-    ll ans = tbl[sz(ds), ds[0]];
+    ll ans = tbl[sz(ds), ds[0]] * ds[0];
 
     for (int i = 1; i < sz(ds); ++i) {
         ans -= tbl[sz(ds) - i] * (10 - ds[i]);
