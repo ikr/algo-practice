@@ -19,6 +19,16 @@ ostream &operator<<(ostream &os, const vector<array<ll, 10>> &xss) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -67,6 +77,8 @@ ll sought_nums_up_to(const vi &ds, const vector<array<ll, 10>> &tbl) {
     const int n = sz(ds);
     assert(n > 0);
     ll ans = 0;
+
+    cerr << ds << endl;
 
     for (int j = 0; j <= ds[0]; ++j) ans += tbl[n][j];
 
