@@ -70,6 +70,12 @@ ll sought_nums_up_to(const vi &ds, const vector<array<ll, 10>> &tbl) {
 
     for (int j = 0; j <= ds[0]; ++j) ans += tbl[n][j];
 
+    for (int i = n - 1; i > 0; --i) {
+        for (int j = ds[n - i]; j < 10; ++j) {
+            ans -= tbl[i][j];
+        }
+    }
+
     return ans;
 }
 
