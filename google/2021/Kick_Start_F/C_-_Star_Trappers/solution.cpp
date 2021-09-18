@@ -98,20 +98,58 @@ bool is_degenerate(const P &a, const P &b, const P &c) {
     return segDist(aa, bb, cc) < EPS;
 }
 
+using Tri = tuple<int, int, int>;
+
+map<pii, vector<Tri>> gather_tris_by_side(const vector<P> &ps) {
+    map<pii, vector<Tri>> ans;
+
+    for (int i = 0; i < sz(ps) - 2; ++i) {
+        for (int j = i + 1; j < sz(ps) - 1; ++j) {
+            for (int k = j + 1; k < sz(ps); ++k) {
+                if (is_degenerate(ps[i], ps[j], ps[k])) continue;
+
+                ans[{i, j}].emplace_back(i, j, k);
+                ans[{j, k}].emplace_back(i, j, k);
+                ans[{i, k}].emplace_back(i, j, k);
+            }
+        }
+    }
+
+    return ans;
+}
+
 optional<double> solve_brute(const vector<P> &ps, const P &B) {
+    const auto tris_by_side = gather_tris_by_side(ps);
+
     double best = INF;
 
     for (int i = 0; i < sz(ps) - 2; ++i) {
         for (int j = i + 1; j < sz(ps) - 1; ++j) {
             for (int k = j + 1; k < sz(ps); ++k) {
-                const auto a = ps[i];
-                const auto b = ps[j];
-                const auto c = ps[k];
+                if (is_degenerate(ps[i], ps[j], ps[k])) continue;
 
-                vector tri{a, b, c};
-                if (is_degenerate(a, b, c) || !inPolygon(tri, B)) continue;
+                vector<P> pl{ps[i], ps[j], ps[k]};
+                if (inPolygon(pl, B)) {
+                    best = min(best, perimeter(ps[i], ps[j], ps[k]));
+                    continue;
+                }
 
-                best = min(best, perimeter(a, b, c));
+                for (const auto [u, v] : vector<pii>{{i, j}, {j, k}, {i, k}}) {
+                    if (onSegment(ps[u], ps[v], B)) {
+                        assert(tris_by_side.count({u, v}));
+
+                        for (const auto [p, q, r] : tris_by_side.at({u, v})) {
+                            if (Tri{i, j, k} == Tri{p, q, r}) continue;
+
+                            const auto candidate =
+                                perimeter(ps[i], ps[j], ps[k]) +
+                                perimeter(ps[p], ps[q], ps[r]) -
+                                2 * dist(ps[u], ps[v]);
+
+                            best = min(best, candidate);
+                        }
+                    }
+                }
             }
         }
     }
