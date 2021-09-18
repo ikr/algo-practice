@@ -34,16 +34,19 @@ int min_lunchboxes(const pii XY, const vector<pii> &ab) {
 
     // tbl[i][j][k] is min boxes up to index i, in order to get exactly j of A &
     // k of B
-    vector<vvi> tbl(sz(ab), vvi(2 * X + 1, vi(2 * Y + 1, INF)));
+    vector<map<pii, int>> tbl(sz(ab));
 
     const auto [a0, b0] = ab[0];
-    tbl[0][0][0] = 0;
-    tbl[0][min(a0, X)][min(b0, Y)] = 1;
+    tbl[0][{0, 0}] = 0;
+    tbl[0][{a0, b0}] = 1;
 
     for (int i = 1; i < sz(ab); ++i) {
         auto [a, b] = ab[i];
-        a = min(a, X);
-        b = min(b, Y);
+
+        for (const auto [k, v] : tbl[i - 1]) {
+            const auto [x, y] = k;
+            tbl[i][{x, y}] = v;
+        }
 
         for (int j = 1; j <= 2 * X; ++j) {
             for (int k = 1; k <= 2 * Y; ++k) {
