@@ -12,6 +12,7 @@ using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pii = pair<int, int>;
+using pll = pair<ll, ll>;
 using vll = vector<ll>;
 using vvll = vector<vll>;
 
@@ -41,22 +42,22 @@ string::const_iterator cbegin(const string &xs) { return xs.cbegin(); }
 string::const_iterator cend(const string &xs) { return xs.cend(); }
 
 int solve(const ll a, const ll b) {
-    if (!b || a == b) return 0;
-    assert(b > a);
-
-    ll lo = 1LL;
-    ll hi = a - 1LL;
+    if (!b) return 0;
 
     const auto ut = [&](const ll k) -> ll {
-        return (k + 1LL) * (2LL * a - k) / 2LL;
+        return ((k + 1) * (2 * a - k)) / 2;
     };
 
+    ll lo = 0;
+    ll hi = a - 1;
+
+    if (ut(lo) >= b) return inof(ut(lo) - b);
     if (ut(hi) == b) return 0;
 
     while (lo < hi) {
         const ll mid = lo + (hi - lo) / 2LL;
 
-        if (ut(mid) > b) {
+        if (ut(mid) >= b) {
             hi = mid;
         } else {
             lo = mid;
@@ -65,7 +66,7 @@ int solve(const ll a, const ll b) {
         if (hi == lo + 1) break;
     }
 
-    return inof(ut(lo) - b);
+    return inof(ut(hi) - b);
 }
 
 struct LooRollPyramid final {
