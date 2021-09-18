@@ -28,41 +28,46 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 static constexpr int INF = 1e9;
-static constexpr int LIM = 8;
 
 int min_lunchboxes(const pii XY, const vector<pii> &ab) {
     const auto [X, Y] = XY;
 
     // tbl[i][j][k] is min boxes up to index i, in order to get exactly j of A &
     // k of B
-    vector<vvi> tbl(sz(ab), vvi(LIM, vi(LIM, INF)));
+    vector<vvi> tbl(sz(ab), vvi(2 * X + 1, vi(2 * Y + 1, INF)));
 
     const auto [a0, b0] = ab[0];
     tbl[0][0][0] = 0;
-    tbl[0][a0][b0] = 1;
+    tbl[0][min(a0, X)][min(b0, Y)] = 1;
 
     for (int i = 1; i < sz(ab); ++i) {
-        const auto [a, b] = ab[i];
+        auto [a, b] = ab[i];
+        a = min(a, X);
+        b = min(b, Y);
 
-        for (int j = 1; j < LIM; ++j) {
-            for (int k = 1; k < LIM; ++k) {
+        for (int j = 1; j <= 2 * X; ++j) {
+            for (int k = 1; k <= 2 * Y; ++k) {
                 tbl[i][j][k] = tbl[i - 1][j][k];
 
                 if (j - a >= 0 && k - b >= 0) {
                     tbl[i][j][k] =
                         min(tbl[i][j][k], tbl[i - 1][j - a][k - b] + 1);
                 }
+
+                tbl[i][min(j, X)][min(k, Y)] = tbl[i][j][k];
             }
         }
     }
 
     int ans = INF;
-    for (int j = X; j < LIM; ++j) {
-        for (int k = Y; k < LIM; ++k) {
+    for (int j = X; j <= 2 * X; ++j) {
+        for (int k = Y; k <= 2 * Y; ++k) {
             ans = min(ans, tbl.back()[j][k]);
         }
     }
     return ans;
+
+    return tbl.back()[X][Y];
 }
 
 int main() {
