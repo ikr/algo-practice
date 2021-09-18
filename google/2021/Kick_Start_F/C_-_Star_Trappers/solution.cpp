@@ -144,7 +144,7 @@ optional<double> solve_brute(const vector<P> &ps, const P &B) {
                             const auto candidate =
                                 perimeter(ps[i], ps[j], ps[k]) +
                                 perimeter(ps[p], ps[q], ps[r]) -
-                                2 * dist(ps[u], ps[v]);
+                                2.0 * dist(ps[u], ps[v]);
 
                             best = min(best, candidate);
                         }
