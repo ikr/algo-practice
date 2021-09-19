@@ -130,6 +130,38 @@ double seg_dist(const P &s, const P &e, const P &p) {
     return segDist(ss, ee, pp);
 }
 
+template <class P> int sideOf(P s, P e, P p) { return sgn(s.cross(e, p)); }
+
+pii two_tops(const pii uv, const Tri ijk, const Tri pqr) {
+    const auto [u, v] = uv;
+
+    pii ans{-1, -1};
+
+    {
+        const auto [i, j, k] = ijk;
+        if (i != u && i != v) {
+            ans.first = i;
+        } else if (j != u && j != v) {
+            ans.first = j;
+        } else if (k != u && k != v) {
+            ans.first = k;
+        }
+    }
+
+    {
+        const auto [p, q, r] = pqr;
+        if (p != u && p != v) {
+            ans.second = p;
+        } else if (q != u && q != v) {
+            ans.second = q;
+        } else if (r != u && r != v) {
+            ans.second = r;
+        }
+    }
+
+    return ans;
+}
+
 optional<double> solve_brute(const vector<P> &ps, const P &B) {
     const auto tris_by_side = gather_tris_by_side(ps);
 
@@ -148,11 +180,16 @@ optional<double> solve_brute(const vector<P> &ps, const P &B) {
 
                 for (const auto [u, v] : vector<pii>{{i, j}, {j, k}, {i, k}}) {
                     if (seg_dist(ps[u], ps[v], B) < EPS) {
-                        assert(tris_by_side.count({u, v}));
-
                         for (const auto [p, q, r] : tris_by_side.at({u, v})) {
                             if (Tri{i, j, k} == Tri{p, q, r} ||
                                 is_degenerate(ps[p], ps[q], ps[r])) {
+                                continue;
+                            }
+
+                            const auto [t1, t2] =
+                                two_tops({u, v}, {i, j, k}, {p, q, r});
+                            if (sideOf(ps[u], ps[v], ps[t1]) ==
+                                sideOf(ps[u], ps[v], ps[t2])) {
                                 continue;
                             }
 
