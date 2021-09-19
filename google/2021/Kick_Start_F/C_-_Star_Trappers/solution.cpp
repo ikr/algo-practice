@@ -53,10 +53,6 @@ template <class T> struct Point {
     }
 };
 
-template <class P> bool onSegment(P s, P e, P p) {
-    return p.cross(s, e) == 0 && (s - p).dot(e - p) <= 0;
-}
-
 typedef Point<double> P;
 double segDist(P &s, P &e, P &p) {
     if (s == e) return (p - s).dist();
@@ -72,8 +68,7 @@ template <class P> bool inPolygon(vector<P> &p, P a, bool strict = true) {
     int cnt = 0, n = sz(p);
     rep(i, 0, n) {
         P q = p[(i + 1) % n];
-        // if (onSegment(p[i], q, a)) return !strict;
-        if (abs(segDist(p[i], q, a)) < EPS) return !strict;
+        if (segDist(p[i], q, a) < EPS) return !strict;
         cnt ^= ((a.y < p[i].y) - (a.y < q.y)) * a.cross(p[i], q) > 0;
     }
     return cnt;
@@ -128,6 +123,13 @@ ostream &operator<<(ostream &os, const Tri &x) {
     return os;
 }
 
+double seg_dist(const P &s, const P &e, const P &p) {
+    P ss{s};
+    P ee{e};
+    P pp{p};
+    return segDist(ss, ee, pp);
+}
+
 optional<double> solve_brute(const vector<P> &ps, const P &B) {
     const auto tris_by_side = gather_tris_by_side(ps);
 
@@ -145,7 +147,7 @@ optional<double> solve_brute(const vector<P> &ps, const P &B) {
                 }
 
                 for (const auto [u, v] : vector<pii>{{i, j}, {j, k}, {i, k}}) {
-                    if (onSegment(ps[u], ps[v], B)) {
+                    if (seg_dist(ps[u], ps[v], B) < EPS) {
                         assert(tris_by_side.count({u, v}));
 
                         for (const auto [p, q, r] : tris_by_side.at({u, v})) {
