@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
