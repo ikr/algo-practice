@@ -1,49 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const multiset<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
 using ll = long long;
 using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
-}
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -116,29 +78,6 @@ ll solve(const vector<Tri> &atts, const int K) {
     return ans;
 }
 
-ll solve_brute(const int D, const vector<Tri> &atts, const int K) {
-    vvll tbl(D);
-
-    for (const auto [h, s, e] : atts) {
-        for (int i = s; i <= e; ++i) {
-            tbl[i].push_back(h);
-        }
-    }
-
-    ll ans = 0;
-
-    for (int i = 0; i < D; ++i) {
-        sort(rbegin(tbl[i]), rend(tbl[i]));
-
-        const auto candidate = accumulate(
-            cbegin(tbl[i]), cbegin(tbl[i]) + min(K, sz(tbl[i])), 0LL);
-
-        ans = max(ans, candidate);
-    }
-
-    return ans;
-}
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -156,7 +95,6 @@ int main() {
             --e;
         }
 
-        // assert(solve(atts, K) == solve_brute(D, atts, K));
         cout << "Case #" << i << ": " << solve(atts, K) << '\n';
     }
 
