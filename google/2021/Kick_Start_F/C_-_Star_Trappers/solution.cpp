@@ -2,20 +2,10 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
-}
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -115,12 +105,6 @@ map<pii, vector<Tri>> gather_tris_by_side(const vector<P> &ps) {
     }
 
     return ans;
-}
-
-ostream &operator<<(ostream &os, const Tri &x) {
-    const auto [a, b, c] = x;
-    os << '(' << a << ' ' << b << ' ' << c << ')';
-    return os;
 }
 
 double seg_dist(const P &s, const P &e, const P &p) {
