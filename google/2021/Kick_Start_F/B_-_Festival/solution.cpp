@@ -14,13 +14,53 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
 }
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using Tri = tuple<int, int, int>;
+
+ll solve(const vector<Tri> &atts, const int K) {
+    map<int, vi> by_s;
+    map<int, vi> by_e;
+
+    set<int> ms;
+
+    for (const auto [h, s, e] : atts) {
+        by_s[s].push_back(h);
+        by_e[e + 1].push_back(h);
+        ms.insert(s);
+        ms.insert(e + 1);
+    }
+
+    ll ans = 0;
+    ll curr = 0;
+    multiset<int> hp;
+
+    for (const auto x : ms) {
+        for (const auto h : by_s[x]) {
+            hp.insert(h);
+            curr += h;
+        }
+
+        for (const auto h : by_e[x]) {
+            const auto it = hp.find(h);
+
+            if (it != cend(hp)) {
+                hp.erase(it);
+                curr -= h;
+            }
+        }
+
+        while (sz(hp) > K) {
+            curr -= *cbegin(hp);
+            hp.erase(cbegin(hp));
+        }
+
+        ans = max(ans, curr);
+    }
+
+    return ans;
+}
 
 ll solve_brute(const int D, const vector<Tri> &atts, const int K) {
     vvll tbl(D);
@@ -48,7 +88,6 @@ ll solve_brute(const int D, const vector<Tri> &atts, const int K) {
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 
     int t;
     cin >> t;
@@ -63,7 +102,7 @@ int main() {
             --e;
         }
 
-        cout << "Case #" << i << ": " << solve_brute(D, atts, K) << '\n';
+        cout << "Case #" << i << ": " << solve(atts, K) << '\n';
     }
 
     return 0;
