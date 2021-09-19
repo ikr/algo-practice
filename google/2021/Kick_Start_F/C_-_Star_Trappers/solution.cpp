@@ -73,7 +73,7 @@ template <class P> bool inPolygon(vector<P> &p, P a, bool strict = true) {
     rep(i, 0, n) {
         P q = p[(i + 1) % n];
         // if (onSegment(p[i], q, a)) return !strict;
-        if (segDist(p[i], q, a) < EPS) return !strict;
+        if (abs(segDist(p[i], q, a)) < EPS) return !strict;
         cnt ^= ((a.y < p[i].y) - (a.y < q.y)) * a.cross(p[i], q) > 0;
     }
     return cnt;
@@ -91,11 +91,15 @@ double perimeter(const P &a, const P &b, const P &c) {
     return dist(a, b) + dist(b, c) + dist(a, c);
 }
 
+template <class T> T polygonArea2(vector<Point<T>> &v) {
+    T a = v.back().cross(v[0]);
+    rep(i, 0, sz(v) - 1) a += v[i].cross(v[i + 1]);
+    return a;
+}
+
 bool is_degenerate(const P &a, const P &b, const P &c) {
-    P aa{a};
-    P bb{b};
-    P cc{c};
-    return segDist(aa, bb, cc) < EPS;
+    vector pl{a, b, c};
+    return abs(polygonArea2(pl)) / 2.0 < EPS;
 }
 
 using Tri = tuple<int, int, int>;
@@ -116,6 +120,12 @@ map<pii, vector<Tri>> gather_tris_by_side(const vector<P> &ps) {
     }
 
     return ans;
+}
+
+ostream &operator<<(ostream &os, const Tri &x) {
+    const auto [a, b, c] = x;
+    os << '(' << a << ' ' << b << ' ' << c << ')';
+    return os;
 }
 
 optional<double> solve_brute(const vector<P> &ps, const P &B) {
@@ -139,7 +149,10 @@ optional<double> solve_brute(const vector<P> &ps, const P &B) {
                         assert(tris_by_side.count({u, v}));
 
                         for (const auto [p, q, r] : tris_by_side.at({u, v})) {
-                            if (Tri{i, j, k} == Tri{p, q, r}) continue;
+                            if (Tri{i, j, k} == Tri{p, q, r} ||
+                                is_degenerate(ps[p], ps[q], ps[r])) {
+                                continue;
+                            }
 
                             const auto candidate =
                                 perimeter(ps[i], ps[j], ps[k]) +
@@ -160,7 +173,7 @@ optional<double> solve_brute(const vector<P> &ps, const P &B) {
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(7) << fixed;
+    cout << setprecision(9) << fixed;
 
     int t;
     cin >> t;
