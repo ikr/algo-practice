@@ -70,8 +70,17 @@ ll solve(const vector<Tri> &atts, const int K) {
 
     for (const auto x : ms) {
         for (const auto h : by_s[x]) {
-            hp.insert(h);
-            curr += h;
+            if (!rs.empty() && *prev(cend(rs)) > h) {
+                const auto it = prev(cend(rs));
+                hp.insert(*it);
+                curr += *it;
+                rs.erase(it);
+
+                rs.insert(h);
+            } else {
+                hp.insert(h);
+                curr += h;
+            }
         }
 
         for (const auto h : by_e[x]) {
@@ -147,7 +156,7 @@ int main() {
             --e;
         }
 
-        assert(solve(atts, K) == solve_brute(D, atts, K));
+        // assert(solve(atts, K) == solve_brute(D, atts, K));
         cout << "Case #" << i << ": " << solve(atts, K) << '\n';
     }
 
