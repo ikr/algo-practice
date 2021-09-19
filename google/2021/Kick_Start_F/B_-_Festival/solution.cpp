@@ -1,6 +1,37 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const multiset<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -35,6 +66,7 @@ ll solve(const vector<Tri> &atts, const int K) {
     ll ans = 0;
     ll curr = 0;
     multiset<int> hp;
+    multiset<int> rs;
 
     for (const auto x : ms) {
         for (const auto h : by_s[x]) {
@@ -48,12 +80,25 @@ ll solve(const vector<Tri> &atts, const int K) {
             if (it != cend(hp)) {
                 hp.erase(it);
                 curr -= h;
+            } else {
+                const auto jt = rs.find(h);
+                assert(jt != cend(rs));
+                rs.erase(jt);
             }
         }
 
         while (sz(hp) > K) {
-            curr -= *cbegin(hp);
+            const auto h = *cbegin(hp);
+            curr -= h;
             hp.erase(cbegin(hp));
+            rs.insert(h);
+        }
+
+        while (sz(hp) < K && !rs.empty()) {
+            const auto it = prev(cend(rs));
+            hp.insert(*it);
+            curr += *it;
+            rs.erase(it);
         }
 
         ans = max(ans, curr);
@@ -102,6 +147,7 @@ int main() {
             --e;
         }
 
+        assert(solve(atts, K) == solve_brute(D, atts, K));
         cout << "Case #" << i << ": " << solve(atts, K) << '\n';
     }
 
