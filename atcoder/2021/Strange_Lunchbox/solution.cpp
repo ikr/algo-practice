@@ -32,29 +32,26 @@ static constexpr int INF = 1e9;
 int min_lunchboxes(const pii XY, const vector<pii> &ab) {
     const auto [X, Y] = XY;
 
-    // tbl[i][j][k] is min boxes up to index i, in order to get exactly the
-    // min(j, X) of A & the min(k, Y) of B
-    vector<vvi> tbl(sz(ab), vvi(X + 1, vi(Y + 1, INF)));
+    // tbl[i][j][k] is min boxes up to box i, in order to get exactly min(j, X)
+    // of A & min(k, Y) of B
+    vector<vvi> D(sz(ab) + 1, vvi(X + 1, vi(Y + 1, INF)));
+    D[0][0][0] = 0;
 
-    const auto [a0, b0] = ab[0];
-    tbl[0][0][0] = 0;
-    tbl[0][min(a0, X)][min(b0, Y)] = 1;
-
-    for (int i = 1; i < sz(ab); ++i) {
-        tbl[i][0][0] = 0;
+    for (int i = 0; i < sz(ab); ++i) {
+        D[i + 1] = D[i];
         const auto [a, b] = ab[i];
 
-        for (int j = 1; j <= X; ++j) {
-            for (int k = 1; k <= Y; ++k) {
-                tbl[i][j][k] = min(tbl[i][j][k], tbl[i - 1][j][k]);
-
-                tbl[i][j][k] = min(
-                    tbl[i][j][k], tbl[i - 1][max(0, j - a)][max(0, k - b)] + 1);
+        for (int j = 0; j <= X; ++j) {
+            for (int k = 0; k <= Y; ++k) {
+                auto &curr = D[i + 1][min(j + a, X)][min(k + b, Y)];
+                curr = min(curr, D[i][j][k] + 1);
             }
         }
     }
 
-    return tbl.back()[X][Y];
+    // for (const auto &grid : tbl) cerr << grid << endl;
+
+    return D.back()[X][Y];
 }
 
 int main() {
