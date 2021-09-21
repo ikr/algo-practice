@@ -32,43 +32,27 @@ static constexpr int INF = 1e9;
 int min_lunchboxes(const pii XY, const vector<pii> &ab) {
     const auto [X, Y] = XY;
 
-    // tbl[i][j][k] is min boxes up to index i, in order to get exactly j of A &
-    // k of B
-    vector<map<pii, int>> tbl(sz(ab));
+    // tbl[i][j][k] is min boxes up to index i, in order to get exactly the
+    // min(j, X) of A & the min(k, Y) of B
+    vector<vvi> tbl(sz(ab), vvi(X + 1, vi(Y + 1, INF)));
 
     const auto [a0, b0] = ab[0];
-    tbl[0][{0, 0}] = 0;
-    tbl[0][{a0, b0}] = 1;
+    tbl[0][0][0] = 0;
+    tbl[0][min(a0, X)][min(b0, Y)] = 1;
 
     for (int i = 1; i < sz(ab); ++i) {
-        auto [a, b] = ab[i];
+        tbl[i][0][0] = 0;
+        const auto [a, b] = ab[i];
 
-        for (const auto [k, v] : tbl[i - 1]) {
-            const auto [x, y] = k;
-            tbl[i][{x, y}] = v;
-        }
+        for (int j = 1; j <= X; ++j) {
+            for (int k = 1; k <= Y; ++k) {
+                tbl[i][j][k] = min(tbl[i][j][k], tbl[i - 1][j][k]);
 
-        for (int j = 1; j <= 2 * X; ++j) {
-            for (int k = 1; k <= 2 * Y; ++k) {
-                tbl[i][j][k] = tbl[i - 1][j][k];
-
-                if (j - a >= 0 && k - b >= 0) {
-                    tbl[i][j][k] =
-                        min(tbl[i][j][k], tbl[i - 1][j - a][k - b] + 1);
-                }
-
-                tbl[i][min(j, X)][min(k, Y)] = tbl[i][j][k];
+                tbl[i][j][k] = min(
+                    tbl[i][j][k], tbl[i - 1][max(0, j - a)][max(0, k - b)] + 1);
             }
         }
     }
-
-    int ans = INF;
-    for (int j = X; j <= 2 * X; ++j) {
-        for (int k = Y; k <= 2 * Y; ++k) {
-            ans = min(ans, tbl.back()[j][k]);
-        }
-    }
-    return ans;
 
     return tbl.back()[X][Y];
 }
