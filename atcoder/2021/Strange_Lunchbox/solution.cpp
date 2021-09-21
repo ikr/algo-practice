@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pii = pair<int, int>;
@@ -32,7 +16,7 @@ static constexpr int INF = 1e9;
 int min_lunchboxes(const pii XY, const vector<pii> &ab) {
     const auto [X, Y] = XY;
 
-    // tbl[i][j][k] is min boxes up to box i, in order to get exactly min(j, X)
+    // D[i][j][k] is min boxes up to box i, in order to get exactly min(j, X)
     // of A & min(k, Y) of B
     vector<vvi> D(sz(ab) + 1, vvi(X + 1, vi(Y + 1, INF)));
     D[0][0][0] = 0;
@@ -48,8 +32,6 @@ int min_lunchboxes(const pii XY, const vector<pii> &ab) {
             }
         }
     }
-
-    // for (const auto &grid : tbl) cerr << grid << endl;
 
     return D.back()[X][Y];
 }
