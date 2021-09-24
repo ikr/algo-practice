@@ -3,38 +3,11 @@ using namespace std;
 
 using ll = long long;
 using vi = vector<int>;
-
-ostream &operator<<(ostream &os, const array<ll, 10> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const vector<array<ll, 10>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
+using vll = vector<ll>;
+using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
-}
-
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
@@ -59,43 +32,51 @@ vi digits(const ll x) {
     return ans;
 }
 
-vector<array<ll, 10>> counts_by_length(const int digits_num) {
-    // tbl[i][j] is # of sought int-s having i digits, and starting with digit j
-    vector<array<ll, 10>> tbl(digits_num + 1, array<ll, 10>{});
-    tbl[1].fill(1);
+struct State final {
+    bool first_is_zero;
+    int i;
+    bool capped;
+    int prev_digit;
+};
 
-    for (int i = 2; i <= digits_num; ++i) {
-        const auto s = accumulate(cbegin(tbl[i - 1]), cend(tbl[i - 1]), 0LL);
-        tbl[i][0] = s;
-        for (int j = 1; j < 10; ++j) tbl[i][j] = s - tbl[i - 1][j];
-    }
-
-    return tbl;
+bool operator<(const State &lhs, const State &rhs) {
+    const array<int, 4> a{lhs.first_is_zero, lhs.i, lhs.capped, lhs.prev_digit};
+    const array<int, 4> b{rhs.first_is_zero, rhs.i, rhs.capped, rhs.prev_digit};
+    return a < b;
 }
 
-ll sought_nums_up_to(const vi &ds, const vector<array<ll, 10>> &tbl) {
+// The state, aka “what matters at this point”
+//
+// - Left-to-right index of the digit we're “standing” at
+// - The digit we put now at this index
+// - Do we have leading zeros up to to but not including this index?
+// - Can we go up to 9 at the current index, or are we capped by the
+//   digit in the number?
+
+ll sought_nums_up_to(const ll hi) {
+    const auto ds = digits(hi);
     const int n = sz(ds);
     assert(n > 0);
-    ll ans = 0;
 
-    cerr << ds << endl;
+    vector<array<ll, 10>> DZ(n, array<ll, 10>{});
+    vector<array<ll, 10>> DA(n, array<ll, 10>{});
 
-    for (int j = 0; j <= ds[0]; ++j) ans += tbl[n][j];
+    DZ[0][0] = 1;
 
-    for (int i = n - 1; i > 0; --i) {
-        for (int j = ds[n - i]; j < 10; ++j) {
-            ans -= tbl[i][j];
-        }
+    for (int j = 1; j <= ds[0]; ++j) {
+        DA[0][j] = 1;
     }
 
-    return ans;
+    for (int i = 1; i < n; ++i) {
+    }
+
+    return accumulate(cbegin(DZ.back()), cend(DZ.back()), 0LL) +
+           accumulate(cbegin(DA.back()), cend(DA.back()), 0LL);
 }
 
 ll sought_nums_in_between(const ll a, const ll b) {
-    const auto ds_b = digits(b);
-    const auto tbl = counts_by_length(sz(ds_b));
-    const auto nums_hi = sought_nums_up_to(ds_b, tbl);
-    return a ? (nums_hi - sought_nums_up_to(digits(a - 1), tbl)) : nums_hi;
+    const auto nums_hi = sought_nums_up_to(b);
+    return a ? (nums_hi - sought_nums_up_to(a - 1)) : nums_hi;
 }
 
 int main() {
