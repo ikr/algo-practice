@@ -3,8 +3,7 @@ using namespace std;
 
 using ll = long long;
 using vi = vector<int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
+using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -32,46 +31,69 @@ vi digits(const ll x) {
     return ans;
 }
 
+struct LeadingZeros final {};
+struct Nothing final {};
+struct Digit final {
+    int value;
+};
+using Pre = variant<LeadingZeros, Nothing, Digit>;
+template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+// The recursion state
 struct State final {
-    bool first_is_zero;
-    int i;
+    int digits_count;
+    Pre pre;
     bool capped;
-    int prev_digit;
 };
 
+int numerize(const Pre &pre) {
+    return visit(overloaded{
+                     [](const LeadingZeros it) -> int { return -2; },
+                     [](const Nothing it) -> int { return -1; },
+                     [](const Digit it) -> int { return it.value; },
+                 },
+                 pre);
+}
+
 bool operator<(const State &lhs, const State &rhs) {
-    const array<int, 4> a{lhs.first_is_zero, lhs.i, lhs.capped, lhs.prev_digit};
-    const array<int, 4> b{rhs.first_is_zero, rhs.i, rhs.capped, rhs.prev_digit};
+    const array<int, 3> a{lhs.digits_count, numerize(lhs.pre), lhs.capped};
+    const array<int, 3> b{rhs.digits_count, numerize(rhs.pre), rhs.capped};
     return a < b;
 }
 
-// The state, aka “what matters at this point”
-//
-// - Left-to-right index of the digit we're “standing” at
-// - The digit we put now at this index
-// - Do we have leading zeros up to to but not including this index?
-// - Can we go up to 9 at the current index, or are we capped by the
-//   digit in the number?
-
 ll sought_nums_up_to(const ll hi) {
     const auto ds = digits(hi);
-    const int n = sz(ds);
-    assert(n > 0);
 
-    vector<array<ll, 10>> DZ(n, array<ll, 10>{});
-    vector<array<ll, 10>> DA(n, array<ll, 10>{});
+    map<State, ll> memo;
+    function<ll(State)> recur;
+    recur = [&](const State &s) -> ll {
+        const auto it = memo.find(s);
+        if (it != cend(memo)) return it->second;
 
-    DZ[0][0] = 1;
+        const int i = sz(ds) - s.digits_count;
 
-    for (int j = 1; j <= ds[0]; ++j) {
-        DA[0][j] = 1;
-    }
+        for (int d = 0; d <= 9; ++d) {
+            if (s.capped && d == ds[i]) break;
+        }
 
-    for (int i = 1; i < n; ++i) {
-    }
+        ll ans = 0;
+        const pii ab = visit(overloaded{
+                                 [](const LeadingZeros _) -> pii {
+                                     return {0, 9};
+                                 },
+                                 [&](const Nothing _) -> pii {
+                                     return {0, ds[i]};
+                                 },
+                                 [](const Digit x) -> pii { return {}; },
+                             },
+                             s.pre);
 
-    return accumulate(cbegin(DZ.back()), cend(DZ.back()), 0LL) +
-           accumulate(cbegin(DA.back()), cend(DA.back()), 0LL);
+        memo[s] = ans;
+        return ans;
+    };
+
+    return recur({sz(ds), Nothing{}, true});
 }
 
 ll sought_nums_in_between(const ll a, const ll b) {
