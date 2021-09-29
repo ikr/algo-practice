@@ -1,7 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+
+template <typename T>
+using ordered_set =
+    tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
 using vi = vector<int>;
+using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -18,21 +27,25 @@ int min_inversions(const vi &xs) {
     for (int i = 0; i < sz(ys); ++i) idx[ys[i]] = i;
 
     int ans = 0;
-    vi q;
-    q.reserve(sz(xs));
+    int t = 0;
+    ordered_set<pii> q;
 
     for (const auto x : xs) {
         const auto ord = idx.at(x);
-        const auto it = lower_bound(cbegin(q), cend(q), ord);
-        const auto jt = upper_bound(it, cend(q), ord);
 
         if (q.empty()) {
-            q.push_back(ord);
+            q.insert({ord, t++});
             continue;
         }
 
-        ans += inof(min(distance(cbegin(q), it), distance(jt, cend(q))));
-        q.insert(it, ord);
+        const auto it = q.lower_bound(pii{ord, 0});
+        const auto jt = q.upper_bound(pii{ord, t + 1});
+
+        const auto k = sz(q);
+
+        ans += min(it == cend(q) ? k : inof(q.order_of_key(*it)),
+                   jt == cend(q) ? 0 : k - inof(q.order_of_key(*jt)));
+        q.insert({ord, t++});
     }
 
     return ans;
