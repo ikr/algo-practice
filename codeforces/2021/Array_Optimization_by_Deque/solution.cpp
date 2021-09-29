@@ -14,7 +14,7 @@ int min_inversions(const vi &xs) {
     sort(begin(ys), end(ys));
     ys.erase(unique(begin(ys), end(ys)), end(ys));
 
-    map<int, int> idx;
+    unordered_map<int, int> idx;
     for (int i = 0; i < sz(ys); ++i) idx[ys[i]] = i;
 
     int ans = 0;
@@ -24,7 +24,7 @@ int min_inversions(const vi &xs) {
     for (const auto x : xs) {
         const auto ord = idx.at(x);
         const auto it = lower_bound(cbegin(q), cend(q), ord);
-        const auto jt = upper_bound(cbegin(q), cend(q), ord);
+        const auto jt = upper_bound(it, cend(q), ord);
 
         if (q.empty()) {
             q.push_back(ord);
