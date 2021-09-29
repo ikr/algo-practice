@@ -22,16 +22,17 @@ int min_inversions(const vi &xs) {
     q.reserve(sz(xs));
 
     for (const auto x : xs) {
-        const auto j = idx.at(x);
-        const auto it = lower_bound(cbegin(q), cend(q), j);
+        const auto ord = idx.at(x);
+        const auto it = lower_bound(cbegin(q), cend(q), ord);
+        const auto jt = upper_bound(cbegin(q), cend(q), ord);
 
         if (q.empty()) {
-            q.push_back(j);
+            q.push_back(ord);
             continue;
         }
 
-        ans += inof(min(distance(cbegin(q), it), distance(it, cend(q))));
-        q.insert(it, j);
+        ans += inof(min(distance(cbegin(q), it), distance(jt, cend(q))));
+        q.insert(it, ord);
     }
 
     return ans;
