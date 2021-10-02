@@ -31,25 +31,36 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 vi days_by_players_count_shifted(const vector<pii> &ps) {
     map<int, int> incs;
     map<int, int> decs;
-    set<int> ms;
+    set<int> mss;
 
     for (const auto [a, b] : ps) {
-        ms.insert(a);
-        ms.insert(a + b);
+        mss.insert(a);
+        mss.insert(a + b);
 
         ++incs[a];
         ++decs[a + b];
     }
 
-    vi ans(sz(ps), 0);
+    vi ms(cbegin(mss), cend(mss));
+    vi nums(sz(ms), 0);
 
     int curr = 0;
-    for (const auto m : ms) {
-        curr += incs[m];
-        curr -= decs[m];
+    for (int i = 0; i < sz(ms); ++i) {
+        curr += incs[ms[i]];
+        curr -= decs[ms[i]];
 
         assert(curr >= 0);
-        if (curr) ++ans[curr - 1];
+        nums[i] = curr;
+    }
+
+    assert(curr == 0);
+
+    vi ans(sz(ps), 0);
+
+    for (int i = 1; i < sz(ms); ++i) {
+        if (nums[i - 1]) {
+            ans[nums[i - 1] - 1] += ms[i] - ms[i - 1];
+        }
     }
 
     return ans;
