@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -76,32 +75,20 @@ int min_swaps(const vector<string> &grid) {
         return d + max(0, extra_ones - d);
     };
 
-    // D[i][j][k] — when there are i ones total already placed, counted up to
-    // the row j, when in that row is exactly k ones.
-    vector<vvi> D(M + 1, vvi(H, vi(W + 1, INF)));
+    function<int(int, int, int)> recur;
+    recur = [&](const int m, const int ro, const int hi) -> int {
+        if (m <= 0 || ro >= H) return 0;
 
-    for (int m = 0; m <= min(M, W); ++m) {
-        D[m][0][m] = num_moves(0, m);
-    }
-
-    for (int ro = 1; ro < H; ++ro) {
-        for (int n = 0; n <= min(M, W); ++n) { // # of 1-s placed in this row
-            const int m_lo = min((ro + 1) * n, M);
-            const int m_hi = min(n + ro * W, M);
-
-            int opt = INF;
-            for (int m = m_lo; m <= m_hi; ++m) {
-                for (int k = n; k <= min(W, m - n); ++k) {
-                    opt = min(opt, D[m - n][ro - 1][k]);
-                }
-
-                D[m][ro][n] = opt + num_moves(ro, n);
-            }
+        int ans = INF;
+        for (int n = 0; n <= hi; ++n) { // # of 1s placed in the row
+            if (m - n <= 0) break;
+            ans = min(ans, recur(m - n, ro + 1, n) + num_moves(ro, n));
         }
-    }
 
-    const auto &edge = D[M][H - 1];
-    return *min_element(cbegin(edge), cend(edge));
+        return ans;
+    };
+
+    return recur(M, 0, min(M, W));
 }
 
 int main() {
