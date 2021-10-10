@@ -29,28 +29,39 @@ struct DevuAndRabbitNumbering final {
         const auto ps = gather_kvs(gather_freqs(xs));
         if (ps[0].second > 3) return NO;
 
-        const auto new_pre = [](const int x, const int f) -> int {
+        const auto new_pre_without_overlap = [](const int x,
+                                                const int f) -> int {
             assert(f > 0);
             if (f == 1) return x - 1;
             if (f == 2) return x;
             return x + 1;
         };
 
-        int pre = new_pre(ps[0].first, ps[0].second);
+        int pre = new_pre_without_overlap(ps[0].first, ps[0].second);
 
         for (int i = 1; i < sz(ps); ++i) {
             const auto x = ps[i].first;
             const auto f = ps[i].second;
 
-            const bool conseq = (x - pre <= 1);
-
-            if (conseq) {
+            if (x == pre) {
                 if (f > 1) return NO;
                 pre = x + 1;
-            } else {
-                if (f > 3) return NO;
-                pre = new_pre(x, f);
+                continue;
             }
+
+            if (x - pre == 1) {
+                if (f == 1) {
+                    pre = x;
+                } else if (f == 2) {
+                    pre = x + 1;
+                } else
+                    return NO;
+
+                continue;
+            }
+
+            if (f > 3) return NO;
+            pre = new_pre_without_overlap(x, f);
         }
 
         return YES;
@@ -106,6 +117,11 @@ const lest::test tests[] = {
     },
     CASE("Own sample D") {
         const auto actual = DevuAndRabbitNumbering{}.canRenumber({2, 2, 2, 3});
+        const auto expected = YES;
+        EXPECT(actual == expected);
+    },
+    CASE("Hm…") {
+        const auto actual = DevuAndRabbitNumbering{}.canRenumber({1, 1, 2, 3, 3});
         const auto expected = YES;
         EXPECT(actual == expected);
     },
