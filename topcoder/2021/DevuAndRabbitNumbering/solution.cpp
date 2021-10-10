@@ -64,7 +64,6 @@ struct DevuAndRabbitNumbering final {
 
         for (int i = 1; i < sz(ps); ++i) {
             const auto x = ps[i].first;
-            assert(pre < x);
             const bool conseq = x - pre == 1;
 
             if (conseq) {
@@ -94,32 +93,52 @@ struct DevuAndRabbitNumbering final {
 const lest::test tests[] = {
     CASE("Example 0") {
         const auto actual = DevuAndRabbitNumbering{}.canRenumber({1, 2, 3});
-        const auto expected = string{"can"};
+        const auto expected = YES;
         EXPECT(actual == expected);
     },
     CASE("Example 1") {
         const auto actual = DevuAndRabbitNumbering{}.canRenumber({1, 2, 2});
-        const auto expected = string{"can"};
+        const auto expected = YES;
         EXPECT(actual == expected);
     },
     CASE("Example 2") {
         const auto actual = DevuAndRabbitNumbering{}.canRenumber({2, 4, 2, 2, 1, 2});
-        const auto expected = string{"cannot"};
+        const auto expected = NO;
         EXPECT(actual == expected);
     },
     CASE("Example 3") {
         const auto actual = DevuAndRabbitNumbering{}.canRenumber({1, 2, 4, 2, 6, 6, 7});
-        const auto expected = string{"can"};
+        const auto expected = YES;
         EXPECT(actual == expected);
     },
     CASE("Example 4") {
         const auto actual = DevuAndRabbitNumbering{}.canRenumber({960,578,296,414,352,610,872,556,113,818,194,804,141,859,761,887,3,952,234,667,196,693,783});
-        const auto expected = string{"can"};
+        const auto expected = YES;
         EXPECT(actual == expected);
     },
     CASE("Example 5") {
         const auto actual = DevuAndRabbitNumbering{}.canRenumber({97, 64, 22, 17, 75, 97, 85, 68, 35, 82, 64, 10, 71, 11, 64, 64, 94, 52, 28, 40, 48, 46, 5, 82, 39, 65, 2, 93, 43, 50, 44, 90, 69, 72, 94, 6, 62, 17, 12, 12, 84, 33, 38});
-        const auto expected = string{"cannot"};
+        const auto expected = NO;
+        EXPECT(actual == expected);
+    },
+    CASE("Own sample A") {
+        const auto actual = DevuAndRabbitNumbering{}.canRenumber({1, 1, 1, 1});
+        const auto expected = NO;
+        EXPECT(actual == expected);
+    },
+    CASE("Own sample B") {
+        const auto actual = DevuAndRabbitNumbering{}.canRenumber({1, 1, 1});
+        const auto expected = YES;
+        EXPECT(actual == expected);
+    },
+    CASE("Own sample C") {
+        const auto actual = DevuAndRabbitNumbering{}.canRenumber({1, 1, 1, 2, 2});
+        const auto expected = NO;
+        EXPECT(actual == expected);
+    },
+    CASE("Own sample D") {
+        const auto actual = DevuAndRabbitNumbering{}.canRenumber({2, 2, 2, 3});
+        const auto expected = YES;
         EXPECT(actual == expected);
     },
 };
