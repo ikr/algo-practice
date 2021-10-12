@@ -7,6 +7,17 @@ ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     return os;
 }
 
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -110,24 +121,27 @@ int max_points(const int N, const int A, const int B) {
 
         int ans = INT_MIN;
 
-        const auto me = max_even_divisor(x);
-        if (me) {
-            ans = max(ans, A + recur(x / 2));
-            ans = max(ans, A + recur(x / *me));
-        }
+        if (isPrime(x)) {
+            ans = (x == 2) ? A : B;
+        } else {
+            for (int q = 1; llof(q) * llof(q) <= llof(x); ++q) {
+                if (x % q) continue;
+                if (q > 1) {
+                    ans = max(ans, ((q % 2) ? B : A) + recur(x / q));
+                }
 
-        const auto pq = min_max_odd_divisor(x);
-        if (pq) {
-            const auto [p, q] = *pq;
-            ans = max(ans, B + recur(x / p));
-            ans = max(ans, B + recur(x / q));
+                const int p = x / q;
+                ans = max(ans, ((p % 2) ? B : A) + recur(x / p));
+            }
         }
 
         memo[x] = ans;
         return ans;
     };
 
-    return recur(N);
+    const auto ans = recur(N);
+    // cerr << memo << endl;
+    return ans;
 }
 
 int main() {
