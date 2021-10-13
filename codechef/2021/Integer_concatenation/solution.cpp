@@ -22,8 +22,8 @@ template <typename T> vi digits_reversed(T n) {
     vi ans;
 
     while (n) {
-        ans.push_back(n % 10);
-        n /= 10;
+        ans.push_back(inof(n % static_cast<T>(10)));
+        n /= static_cast<T>(10);
     }
 
     return ans;
@@ -70,10 +70,23 @@ ll min_prefix_to_be_at_least_A(const int x, const ll A) {
     }();
 
     assert(concat(hi, x) > A);
+
+    while (hi - lo > 1LL) {
+        const auto mid = lo + (hi - lo) / 2LL;
+        if (concat(mid, x) < A) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return hi;
 }
 
-ll suitable_pairs_num(const vi &xs, const int L, const int R) {
+ll suitable_pairs_num(const vi &xs, const ll L, const ll R) {
     assert(L <= R);
+    cerr << "x:" << xs[0] << " L:" << L
+         << " min-prefix:" << min_prefix_to_be_at_least_A(xs[0], L) << endl;
     return -1;
 }
 
@@ -92,6 +105,8 @@ int main() {
 
         vi xs(N);
         for (auto &x : xs) cin >> x;
+
+        cout << suitable_pairs_num(xs, L, R) << '\n';
     }
 
     return 0;
