@@ -83,6 +83,8 @@ ll min_prefix_to_be_at_least_A(const int x, const ll A) {
     return hi;
 }
 
+ll max_prefix_to_be_at_most_B(const int x, const ll B) {}
+
 ll suitable_pairs_num(const vi &xs, const ll L, const ll R) {
     assert(L <= R);
     cerr << "x:" << xs[0] << " L:" << L
