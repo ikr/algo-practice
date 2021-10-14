@@ -1,30 +1,15 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vi all_leaves(const vvi &g) {
     vi ans;
@@ -36,36 +21,48 @@ vi all_leaves(const vvi &g) {
     return ans;
 }
 
+vi all_degrees(const vvi &g) {
+    vi ans(sz(g), 0);
+    for (int u = 0; u < sz(g); ++u) {
+        ans[u] = sz(g[u]);
+    }
+    return ans;
+}
+
 int vertices_num_after_k_ops(const vvi &g, const int k) {
-    vi deg(sz(g), 0);
+    if (sz(g) < 3) return 0;
+
+    auto deg = all_degrees(g);
+    queue<pii> q;
+    set<int> qd;
+
+    int step = 1;
     for (const auto u : all_leaves(g)) {
-        deg[u] = 1;
+        q.emplace(u, step);
+        qd.insert(u);
     }
 
-    vector<bool> visited(sz(g), false);
-    function<int(int)> recur;
-    recur = [&](const int u) -> int {
-        if (deg[u]) return deg[u];
+    while (!q.empty() && step <= k) {
+        const auto [u, t] = q.front();
+        if (t > step) {
+            ++step;
+            continue;
+        }
+        q.pop();
 
-        int ans{};
+        deg[u] = -1;
 
         for (const auto v : g[u]) {
-            if (visited[v]) continue;
-            visited[v] = true;
-            ans = max(ans, 1 + recur(v));
+            --deg[v];
+            if (deg[v] <= 1 && !qd.count(v)) {
+                q.emplace(v, step + 1);
+                qd.insert(v);
+            }
         }
-
-        deg[u] = ans;
-        return ans;
-    };
-
-    for (int u = 0; u < sz(g); ++u) {
-        fill(begin(visited), end(visited), false);
-        visited[u] = true;
-        recur(u);
     }
 
-    return count_if(cbegin(deg), cend(deg), [k](const int d) { return d > k; });
+    return inof(
+        count_if(cbegin(deg), cend(deg), [](const int x) { return x >= 0; }));
 }
 
 int main() {
