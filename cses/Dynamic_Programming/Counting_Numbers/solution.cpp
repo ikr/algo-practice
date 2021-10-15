@@ -32,68 +32,26 @@ vi digits(const ll x) {
 }
 
 struct LeadingZeros final {};
-struct Nothing final {};
 struct Digit final {
     int value;
 };
-using Pre = variant<LeadingZeros, Nothing, Digit>;
+using Pre = variant<LeadingZeros, Digit>;
 template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-// The recursion state
-struct State final {
-    int digits_count;
-    Pre pre;
-    bool capped;
-};
-
 int numerize(const Pre &pre) {
     return visit(overloaded{
-                     [](const LeadingZeros it) -> int { return -2; },
-                     [](const Nothing it) -> int { return -1; },
+                     [](__attribute__((unused)) const LeadingZeros _) -> int {
+                         return -2;
+                     },
                      [](const Digit it) -> int { return it.value; },
                  },
                  pre);
 }
 
-bool operator<(const State &lhs, const State &rhs) {
-    const array<int, 3> a{lhs.digits_count, numerize(lhs.pre), lhs.capped};
-    const array<int, 3> b{rhs.digits_count, numerize(rhs.pre), rhs.capped};
-    return a < b;
-}
-
 ll sought_nums_up_to(const ll hi) {
     const auto ds = digits(hi);
-
-    map<State, ll> memo;
-    function<ll(State)> recur;
-    recur = [&](const State &s) -> ll {
-        const auto it = memo.find(s);
-        if (it != cend(memo)) return it->second;
-
-        const int i = sz(ds) - s.digits_count;
-
-        for (int d = 0; d <= 9; ++d) {
-            if (s.capped && d == ds[i]) break;
-        }
-
-        ll ans = 0;
-        const pii ab = visit(overloaded{
-                                 [](const LeadingZeros _) -> pii {
-                                     return {0, 9};
-                                 },
-                                 [&](const Nothing _) -> pii {
-                                     return {0, ds[i]};
-                                 },
-                                 [](const Digit x) -> pii { return {}; },
-                             },
-                             s.pre);
-
-        memo[s] = ans;
-        return ans;
-    };
-
-    return recur({sz(ds), Nothing{}, true});
+    return -1;
 }
 
 ll sought_nums_in_between(const ll a, const ll b) {
