@@ -11,22 +11,19 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vi digits_reversed(const ll x) {
-    if (!x) return {0};
-
+template <typename T> vi digits_reversed(T n) {
     vi ans;
-    ll r = x;
 
-    while (r) {
-        ans.push_back(inof(r % 10LL));
-        r /= 10LL;
+    while (n) {
+        ans.push_back(inof(n % static_cast<T>(10)));
+        n /= static_cast<T>(10);
     }
 
     return ans;
 }
 
-vi digits(const ll x) {
-    auto ans = digits_reversed(x);
+template <typename T> vi digits(const T n) {
+    vi ans = digits_reversed(n);
     reverse(begin(ans), end(ans));
     return ans;
 }
