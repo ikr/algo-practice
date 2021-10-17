@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -47,57 +46,54 @@ vvi graph(const int n, const vector<pii> &ab) {
     return g;
 }
 
-vvi inverted_graph(const vvi &g) {
-    vvi ans(sz(g));
-    for (int u = 0; u < sz(g); ++u) {
+vi all_in_degrees(const vvi &g) {
+    const int n = sz(g);
+    vi ans(n, 0);
+
+    for (int u = 0; u < n; ++u) {
         for (const auto v : g[u]) {
-            ans[v].push_back(u);
-        }
-    }
-    return ans;
-}
-
-vi sources(const vvi &g) {
-    const auto g_ = inverted_graph(g);
-    vi ans;
-
-    for (int u = 0; u < sz(g_); ++u) {
-        if (g_[u].empty()) {
-            ans.push_back(u);
+            ++ans[v];
         }
     }
 
     return ans;
 }
 
-vi toposort_with_a_twist(const vvi &g) {
+vi properly_sorted(const vvi &g) {
     const auto n = sz(g);
-    vector<bool> visited(n, false);
+    auto indeg = all_in_degrees(g);
+
+    queue<int> q;
+    for (int u = 0; u < n; ++u) {
+        if (indeg[u] == 0) q.push(u);
+    }
 
     vi ans;
     ans.reserve(n);
 
-    function<void(int)> recur;
-    recur = [&](const int u) {
-        for (const auto v : g[u]) {
-            if (visited[v]) continue;
-            visited[v] = true;
-            recur(v);
-        }
-        ans.push_back(u);
-    };
+    while (!q.empty()) {
+        const auto u = q.front();
+        q.pop();
 
-    for (const auto u : sources(g)) {
-        recur(u);
+        indeg[u] = -1;
+
+        for (const auto v : g[u]) {
+            --indeg[v];
+
+            if (indeg[v] == 0) {
+                q.push(v);
+            }
+        }
+
+        ans.push_back(u);
     }
 
-    reverse(begin(ans), end(ans));
     return ans;
 }
 
 vi min_proper_perm(const int n, const vector<pii> &ab) {
     const auto g = graph(n, ab);
-    return is_acyclic(g) ? toposort_with_a_twist(g) : vi{};
+    return is_acyclic(g) ? properly_sorted(g) : vi{};
 }
 
 int main() {
@@ -113,6 +109,9 @@ int main() {
         --a;
         --b;
     }
+
+    sort(begin(ab), end(ab));
+    ab.erase(unique(begin(ab), end(ab)), end(ab));
 
     const auto ans = min_proper_perm(n, ab);
     if (ans.empty()) {
