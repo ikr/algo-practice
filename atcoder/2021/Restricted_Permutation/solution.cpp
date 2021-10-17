@@ -12,32 +12,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    return os;
-}
-
-vi gather_unused(const int n, const vector<pii> &ab) {
-    set<int> used;
-    for (const auto [a, b] : ab) {
-        used.insert(a);
-        used.insert(b);
-    }
-
-    vi unused;
-    unused.reserve(n - sz(used));
-
-    for (int i = 1; i <= n; ++i) {
-        if (used.count(i)) continue;
-        unused.push_back(i);
-    }
-
-    return unused;
-}
-
 enum class Color { WHITE, GRAY, BLACK };
 
 bool is_acyclic(const vvi &g) {
@@ -65,20 +39,65 @@ bool is_acyclic(const vvi &g) {
     return true;
 }
 
-vi min_proper_perm(const int n, const vector<pii> &ab) {
-    vvi g(n + 1);
-
+vvi graph(const int n, const vector<pii> &ab) {
+    vvi g(n);
     for (const auto [a, b] : ab) {
-        g[b].push_back(a);
+        g[a].push_back(b);
     }
+    return g;
+}
+
+vvi inverted_graph(const vvi &g) {
+    vvi ans(sz(g));
+    for (int u = 0; u < sz(g); ++u) {
+        for (const auto v : g[u]) {
+            ans[v].push_back(u);
+        }
+    }
+    return ans;
+}
+
+vi sources(const vvi &g) {
+    const auto g_ = inverted_graph(g);
+    vi ans;
+
+    for (int u = 0; u < sz(g_); ++u) {
+        if (g_[u].empty()) {
+            ans.push_back(u);
+        }
+    }
+
+    return ans;
+}
+
+vi toposort_with_a_twist(const vvi &g) {
+    const auto n = sz(g);
+    vector<bool> visited(n, false);
 
     vi ans;
     ans.reserve(n);
-    for (int i = 1; i <= n; ++i) {
-        ans.push_back(i);
+
+    function<void(int)> recur;
+    recur = [&](const int u) {
+        for (const auto v : g[u]) {
+            if (visited[v]) continue;
+            visited[v] = true;
+            recur(v);
+        }
+        ans.push_back(u);
+    };
+
+    for (const auto u : sources(g)) {
+        recur(u);
     }
 
-    return is_acyclic(g) ? ans : vi{};
+    reverse(begin(ans), end(ans));
+    return ans;
+}
+
+vi min_proper_perm(const int n, const vector<pii> &ab) {
+    const auto g = graph(n, ab);
+    return is_acyclic(g) ? toposort_with_a_twist(g) : vi{};
 }
 
 int main() {
@@ -89,13 +108,22 @@ int main() {
     cin >> n >> m;
 
     vector<pii> ab(m);
-    for (auto &[a, b] : ab) cin >> a >> b;
+    for (auto &[a, b] : ab) {
+        cin >> a >> b;
+        --a;
+        --b;
+    }
 
     const auto ans = min_proper_perm(n, ab);
     if (ans.empty()) {
         cout << "-1\n";
     } else {
-        cout << ans << '\n';
+        for (auto it = cbegin(ans); it != cend(ans); ++it) {
+            if (it != cbegin(ans)) cout << ' ';
+            cout << ((*it) + 1);
+        }
+
+        cout << '\n';
     }
     return 0;
 }
