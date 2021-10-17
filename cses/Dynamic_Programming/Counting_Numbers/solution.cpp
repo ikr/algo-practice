@@ -41,32 +41,68 @@ Pre dig(const int value, const bool capped) {
     return Pre{Tag::DIGIT, value, capped};
 }
 
-int numerize(const Pre &pre) {
+constexpr int numerize(const Pre &pre) {
     if (pre.tag == Tag::LEADING_ZEROS) return -2;
-    return pre.capped ? (pre.value * 100) : pre.value;
+    return pre.capped ? (pre.value * 11) : pre.value;
+}
+
+struct State final {
+    int index;
+    Pre pre;
+};
+
+bool operator<(const State &lhs, const State &rhs) {
+    return pii{lhs.index, numerize(lhs.pre)} <
+           pii{rhs.index, numerize(rhs.pre)};
 }
 
 ll sought_nums_up_to(const ll hi) {
+    if (!hi) return 1;
     const auto ds = digits(hi);
+    if (sz(ds) == 1) return hi + 1;
 
+    map<State, ll> memo;
     function<ll(int, Pre)> recur;
-    recur = [&](const int index, const Pre pre) -> ll {
-        if (index >= sz(ds)) return 1;
+    recur = [&](const int index, const Pre &pre) -> ll {
+        const State key{index, pre};
+        const auto known = memo.find(key);
+        if (known != cend(memo)) return known->second;
 
-        if (pre.tag == Tag::LEADING_ZEROS) {
-            ll ans = recur(index + 1, lz());
-            for (int x = 1; x <= 9; ++x) {
-                ans += recur(index, dig(x, false));
+        return memo[key] = [&]() -> ll {
+            if (index >= sz(ds)) return 0;
+
+            if (index == sz(ds) - 1) {
+                if (pre.tag == Tag::LEADING_ZEROS) {
+                    return 10;
+                }
+
+                ll ans{};
+                const auto upto = (pre.capped ? ds.back() : 9);
+                for (int x = 0; x <= upto; ++x) {
+                    if (x == pre.value) continue;
+                    ++ans;
+                }
+                return ans;
             }
-            return ans;
-        } else {
-            ll ans{};
-            for (int x = 0; x <= (pre.capped ? ds[index] : 9); ++x) {
-                if (x == pre.value) continue;
-                ans += recur(index + 1, dig(x, pre.capped && (x == ds[index])));
+
+            if (pre.tag == Tag::LEADING_ZEROS) {
+                ll ans = recur(index + 1, lz());
+                for (int x = 1; x <= 9; ++x) {
+                    ans += recur(index + 1, dig(x, false));
+                }
+                return ans;
             }
-            return ans;
-        }
+
+            {
+                ll ans{};
+                for (int x = 0; x <= (pre.capped ? ds[index] : 9); ++x) {
+                    if (x == pre.value) continue;
+                    ans += recur(index + 1,
+                                 dig(x, pre.capped && (x == ds[index])));
+                }
+                return ans;
+            }
+        }();
     };
 
     ll ans = recur(1, lz());
