@@ -28,25 +28,22 @@ template <typename T> vi digits(const T n) {
     return ans;
 }
 
-struct LeadingZeros final {};
-struct Digit final {
+enum class Tag { LEADING_ZEROS, DIGIT };
+struct Pre final {
+    Tag tag;
     int value;
     bool capped;
 };
-using Pre = variant<LeadingZeros, Digit>;
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+Pre lz() { return Pre{Tag::LEADING_ZEROS, -1, false}; }
+
+Pre dig(const int value, const bool capped) {
+    return Pre{Tag::DIGIT, value, capped};
+}
 
 int numerize(const Pre &pre) {
-    return visit(overloaded{
-                     [](__attribute__((unused)) const LeadingZeros it) -> int {
-                         return -2;
-                     },
-                     [](const Digit it) -> int {
-                         return it.capped ? (it.value * 100) : it.value;
-                     },
-                 },
-                 pre);
+    if (pre.tag == Tag::LEADING_ZEROS) return -2;
+    return pre.capped ? (pre.value * 100) : pre.value;
 }
 
 ll sought_nums_up_to(const ll hi) {
@@ -56,33 +53,27 @@ ll sought_nums_up_to(const ll hi) {
     recur = [&](const int index, const Pre pre) -> ll {
         if (index >= sz(ds)) return 1;
 
-        return visit(
-            overloaded{
-                [&](__attribute__((unused)) const LeadingZeros it) -> ll {
-                    ll ans = recur(index + 1, LeadingZeros{});
-                    for (int x = 1; x <= 9; ++x) {
-                        ans += recur(index, Digit{x, false});
-                    }
-                    return ans;
-                },
-                [&](const Digit it) -> ll {
-                    ll ans{};
-                    for (int x = 0; x <= (it.capped ? ds[index] : 9); ++x) {
-                        if (x == it.value) continue;
-                        ans += recur(index + 1,
-                                     Digit{x, it.capped && (x == ds[index])});
-                    }
-                    return ans;
-                },
-            },
-            pre);
+        if (pre.tag == Tag::LEADING_ZEROS) {
+            ll ans = recur(index + 1, lz());
+            for (int x = 1; x <= 9; ++x) {
+                ans += recur(index, dig(x, false));
+            }
+            return ans;
+        } else {
+            ll ans{};
+            for (int x = 0; x <= (pre.capped ? ds[index] : 9); ++x) {
+                if (x == pre.value) continue;
+                ans += recur(index + 1, dig(x, pre.capped && (x == ds[index])));
+            }
+            return ans;
+        }
     };
 
-    ll ans = recur(1, LeadingZeros{});
+    ll ans = recur(1, lz());
     for (int x = 1; x <= ds[0] - 1; ++x) {
-        ans += recur(1, Digit{ds[0], false});
+        ans += recur(1, dig(ds[0], false));
     }
-    ans += recur(1, Digit{ds[0], true});
+    ans += recur(1, dig(ds[0], true));
 
     return ans;
 }
