@@ -11,33 +11,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-enum class Color { WHITE, GRAY, BLACK };
-
-bool is_acyclic(const vvi &g) {
-    vector<Color> state(sz(g), Color::WHITE);
-
-    function<bool(int)> recur;
-    recur = [&](const int u) -> bool {
-        state[u] = Color::GRAY;
-
-        for (const auto v : g[u]) {
-            if (state[v] == Color::GRAY) return false;
-            if (!recur(v)) return false;
-        }
-
-        state[u] = Color::BLACK;
-        return true;
-    };
-
-    for (int u = 0; u < sz(g); ++u) {
-        if (state[u] == Color::WHITE) {
-            if (!recur(u)) return false;
-        }
-    }
-
-    return true;
-}
-
 vvi graph(const int n, const vector<pii> &ab) {
     vvi g(n);
     for (const auto [a, b] : ab) {
@@ -46,22 +19,16 @@ vvi graph(const int n, const vector<pii> &ab) {
     return g;
 }
 
-vi all_indegrees(const vvi &g) {
-    const int n = sz(g);
+vi all_indegrees(const int n, const vector<pii> &ab) {
     vi ans(n, 0);
-
-    for (int u = 0; u < n; ++u) {
-        for (const auto v : g[u]) {
-            ++ans[v];
-        }
+    for (const auto [_, b] : ab) {
+        ++ans[b];
     }
-
     return ans;
 }
 
-vi properly_sorted(const vvi &g) {
+vi properly_sorted(const vvi &g, vi indeg) {
     const auto n = sz(g);
-    auto indeg = all_indegrees(g);
 
     priority_queue<int, vi, greater<int>> q;
     for (int u = 0; u < n; ++u) {
@@ -88,12 +55,16 @@ vi properly_sorted(const vvi &g) {
         ans.push_back(u);
     }
 
+    if (any_of(cbegin(indeg), cend(indeg),
+               [](const int d) { return d >= 0; })) {
+        return vi{};
+    }
+
     return ans;
 }
 
 vi min_proper_perm(const int n, const vector<pii> &ab) {
-    const auto g = graph(n, ab);
-    return is_acyclic(g) ? properly_sorted(g) : vi{};
+    return properly_sorted(graph(n, ab), all_indegrees(n, ab));
 }
 
 int main() {
