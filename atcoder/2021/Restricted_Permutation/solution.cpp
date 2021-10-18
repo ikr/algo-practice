@@ -46,7 +46,7 @@ vvi graph(const int n, const vector<pii> &ab) {
     return g;
 }
 
-vi all_in_degrees(const vvi &g) {
+vi all_indegrees(const vvi &g) {
     const int n = sz(g);
     vi ans(n, 0);
 
@@ -61,9 +61,9 @@ vi all_in_degrees(const vvi &g) {
 
 vi properly_sorted(const vvi &g) {
     const auto n = sz(g);
-    auto indeg = all_in_degrees(g);
+    auto indeg = all_indegrees(g);
 
-    queue<int> q;
+    priority_queue<int, vi, greater<int>> q;
     for (int u = 0; u < n; ++u) {
         if (indeg[u] == 0) q.push(u);
     }
@@ -72,7 +72,7 @@ vi properly_sorted(const vvi &g) {
     ans.reserve(n);
 
     while (!q.empty()) {
-        const auto u = q.front();
+        const auto u = q.top();
         q.pop();
 
         indeg[u] = -1;
