@@ -3,6 +3,7 @@ using namespace std;
 
 using ll = long long;
 using vi = vector<int>;
+using pii = pair<int, int>;
 
 template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
@@ -18,12 +19,26 @@ ll min_moves(const vi &xs) {
     if (sz(xs) == 2) return 0;
     if (sz(xs) == 3) return min(xs[1] - xs[0], xs[2] - xs[1]);
 
+    const auto moves_num = [&](const pii ab, const pii cd) -> ll {
+        const auto [a, b] = ab;
+        const auto [c, d] = cd;
+
+        assert(a <= b);
+        assert(c <= d);
+
+        return abs(llof(b) - llof(a) - llof(c - d));
+    };
+
     const int a = xs[0];
     const int b = xs[1];
+    const int rl = xs[2];
+
     const int c = xs[sz(xs) - 2];
     const int d = xs.back();
+    const int rr = xs[sz(xs) - 3];
 
-    return min(abs(llof(c) - a - llof(d - b)), abs(llof(d) - a - llof(c - b)));
+    return min({moves_num({a, c}, {b, d}), moves_num({a, d}, {b, c}),
+                moves_num({a, b}, {rl, d}), moves_num({a, rr}, {c, d})});
 }
 
 int main() {
