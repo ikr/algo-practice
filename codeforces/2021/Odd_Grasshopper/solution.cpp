@@ -2,27 +2,6 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
-
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
-}
 
 ll end_coord(const ll x0, const ll n) {
     const ll x0m2 = ((x0 % 2LL) + 2LL) % 2LL;
@@ -37,7 +16,7 @@ ll end_coord(const ll x0, const ll n) {
 
         ll k = (n - a) / 4LL;
 
-        if (k > 0) {
+        if (k > 0LL) {
             return (k + 1) * ((2 * a + 4 * k) / 2LL);
         }
 
