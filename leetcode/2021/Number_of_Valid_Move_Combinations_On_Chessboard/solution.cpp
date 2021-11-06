@@ -22,12 +22,6 @@ using Coord = complex<int>;
 constexpr int row(const Coord coord) { return coord.real(); }
 constexpr int col(const Coord coord) { return coord.imag(); }
 
-struct CoordLess final {
-    bool operator()(const Coord &a, const Coord &b) const {
-        return (row(a) == row(b)) ? (col(a) < col(b)) : (row(a) < row(b));
-    }
-};
-
 static constexpr int SZ = 8;
 
 constexpr bool in_bounds(const Coord p) {
@@ -96,39 +90,34 @@ vector<Dir> piece_dirs(const string &name) {
     return concat(X_DIRS, vector{Dir::Z});
 }
 
-using TrajectoryPoint = pair<int, Coord>;
-
-struct TrajectoryPointLess final {
-    bool operator()(const TrajectoryPoint &a, const TrajectoryPoint &b) const {
-        return a.first == b.first ? CoordLess{}(a.second, b.second)
-                                  : a.first < b.first;
-    }
-};
-
 vector<int> one_to(const int x) {
     vector<int> result(x);
     iota(begin(result), end(result), 1);
     return result;
 }
 
-vector<TrajectoryPoint> trajectory(const Coord p0, const Dir dir,
-                                   const int steps, const int standing_time) {
-    vector<TrajectoryPoint> result;
+using Tri = tuple<int, int, int>;
+
+vector<Tri> trajectory(const Coord p0, const Dir dir, const int steps,
+                       const int standing_time) {
+    vector<Tri> result;
 
     if (dir == Dir::Z) {
         for (int i = 1; i <= steps + standing_time; ++i) {
-            result.emplace_back(i, p0);
+            result.emplace_back(i, row(p0), col(p0));
         }
 
         return result;
     }
 
     for (int i = 1; i <= steps; ++i) {
-        result.emplace_back(i, p0 + step_in(dir) * i);
+        const auto p = p0 + step_in(dir) * i;
+        result.emplace_back(i, row(p), col(p));
     }
 
     for (int i = steps + 1; i <= steps + standing_time; ++i) {
-        result.emplace_back(i, p0 + step_in(dir) * steps);
+        const auto p = p0 + step_in(dir) * steps;
+        result.emplace_back(i, row(p), col(p));
     }
 
     return result;
@@ -149,10 +138,13 @@ vector<vector<Dir>> dir_combos(const vector<string> &pieces) {
     return cartesian_product(dirs_by_piece);
 }
 
-bool is_possible(const set<TrajectoryPoint, TrajectoryPointLess> &occupied,
-                 const vector<TrajectoryPoint> &tr) {
+using Occ = array<array<array<bool, SZ + 1>, SZ + 1>, SZ + 1>;
+
+bool occupy_if_possible(Occ &occ, const vector<Tri> &tr) {
     for (const auto tp : tr) {
-        if (occupied.count(tp)) return false;
+        const auto [t, r, c] = tp;
+        if (occ[t][r][c]) return false;
+        occ[t][r][c] = true;
     }
     return true;
 }
@@ -175,16 +167,14 @@ int count_games(const vector<Coord> &ps, const vector<Dir> &dirs) {
     const auto move_combos = cartesian_product(move_ranges);
     for (const auto &moves : move_combos) {
         assert(sz(moves) == sz(ps));
-        set<TrajectoryPoint, TrajectoryPointLess> tps;
+        Occ occ{};
 
         bool ok = true;
         for (int i = 0; i < sz(ps); ++i) {
             assert(moves[i] <= hi);
             const auto tr = trajectory(ps[i], dirs[i], moves[i], hi - moves[i]);
 
-            if (is_possible(tps, tr)) {
-                tps.insert(cbegin(tr), cend(tr));
-            } else {
+            if (!occupy_if_possible(occ, tr)) {
                 ok = false;
                 break;
             }
