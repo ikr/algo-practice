@@ -39,10 +39,12 @@ template <typename T> constexpr double doof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-bool has_eulerian_trail(const vvi &g, const vi &us) {
+bool is_ok(const vvi &g, const vi &us) {
     int od{};
 
     for (const auto u : us) {
+        if (sz(g[u]) > 3) return false;
+
         if (sz(g[u]) % 2) {
             ++od;
         }
@@ -58,7 +60,7 @@ mint num_ways(const vvi &g, const vvi &cs) {
     }
 
     if (all_of(cbegin(cs), cend(cs),
-               [&g](const vi &us) { return has_eulerian_trail(g, us); })) {
+               [&g](const vi &us) { return is_ok(g, us); })) {
         return mint{2}.pow(sz(cs));
     }
 
