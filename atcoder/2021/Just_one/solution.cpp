@@ -40,17 +40,15 @@ template <typename T> constexpr double doof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 bool is_ok(const vvi &g, const vi &us) {
-    int od{};
+    int odd{};
+    int ones{};
 
     for (const auto u : us) {
-        if (sz(g[u]) > 3) return false;
-
-        if (sz(g[u]) % 2) {
-            ++od;
-        }
+        if (sz(g[u]) == 1) ++ones;
+        if (sz(g[u]) % 2) ++odd;
     }
 
-    return od == 0 || od == 2;
+    return (odd == 0 || odd == 2) && (ones <= 1);
 }
 
 mint num_ways(const vvi &g, const vvi &cs) {
