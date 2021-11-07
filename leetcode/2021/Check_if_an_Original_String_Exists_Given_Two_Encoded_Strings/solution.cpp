@@ -45,7 +45,7 @@ const lest::test tests[] = {
         EXPECT(actual == expected);
     },
     CASE("6aa and 23aa") {
-        const auto actual = Solution{}.possiblyEquals("6", "23");
+        const auto actual = Solution{}.possiblyEquals("6aa", "23aa");
         const auto expected = false;
         EXPECT(actual == expected);
     },
