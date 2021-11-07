@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     os << '(' << x.first << ' ' << x.second << ')';
@@ -37,6 +36,11 @@ template <typename T> constexpr double doof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+template <typename T> constexpr T sign(const T x) {
+    if (x == 0) return 0;
+    return (x < 0) ? -1 : 1;
+}
+
 int min_spells(const vector<pii> &towns) {
     set<pii> spells;
 
@@ -47,11 +51,18 @@ int min_spells(const vector<pii> &towns) {
             const auto [xi, yi] = towns[i];
             const auto [xj, yj] = towns[j];
 
-            spells.emplace(xi - xj, yi - yj);
+            const auto a = xi - xj;
+            const auto b = yi - yj;
+
+            const auto d = [&]() -> int {
+                if (!a && !b) return 1;
+                return (a && b) ? gcd(abs(a), abs(b)) : max(abs(a), abs(b));
+            }();
+
+            spells.emplace(sign(a) * abs(a) / d, sign(b) * abs(b) / d);
         }
     }
 
-    cerr << spells << endl;
     return sz(spells);
 }
 
