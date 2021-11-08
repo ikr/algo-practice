@@ -20,80 +20,94 @@ string number_prefix(const string &xs) {
     return result;
 }
 
-bool recur(const string &a, const string &b) {
-    if (a.empty() && b.empty()) return true;
-    if (a.empty() != b.empty()) return false;
+bool recur(map<pair<string, string>, bool> &memo, const string &a,
+           const string &b) {
+    const auto key = pair{a, b};
+    const auto it = memo.find(key);
+    if (it != cend(memo)) return it->second;
 
-    if (!isdigit(a[0]) && !isdigit(b[0])) {
-        if (a[0] != b[0]) return false;
-        return recur(a.substr(1), b.substr(1));
-    }
+    const auto result = [&memo, &a, &b]() -> bool {
+        if (a.empty() && b.empty()) return true;
+        if (a.empty() != b.empty()) return false;
 
-    if (isdigit(a[0]) && isdigit(b[0])) {
-        const auto na = number_prefix(a);
+        if (!isdigit(a[0]) && !isdigit(b[0])) {
+            if (a[0] != b[0]) return false;
+            return recur(memo, a.substr(1), b.substr(1));
+        }
+
+        if (isdigit(a[0]) && isdigit(b[0])) {
+            const auto na = number_prefix(a);
+            const auto nb = number_prefix(b);
+
+            for (int i = 1; i <= sz(na); ++i) {
+                for (int j = 1; j <= sz(nb); ++j) {
+                    const int x = stoi(na.substr(0, i));
+                    const int y = stoi(nb.substr(0, j));
+
+                    const auto ra = na.substr(i);
+                    const auto rb = nb.substr(j);
+
+                    if (x == y) {
+                        if (recur(memo, ra + a.substr(sz(na)),
+                                  rb + b.substr(sz(nb)))) {
+                            return true;
+                        }
+                    } else if (x < y) {
+                        if (recur(memo, ra + a.substr(sz(na)),
+                                  to_string(y - x) + rb + b.substr(sz(nb)))) {
+                            return true;
+                        }
+                    } else {
+                        assert(x > y);
+                        if (recur(memo,
+                                  to_string(x - y) + ra + a.substr(sz(na)),
+                                  rb + b.substr(sz(nb)))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        if (!isdigit(b[0])) return recur(memo, b, a);
+        assert(!isdigit(a[0]));
+        assert(isdigit(b[0]));
+
         const auto nb = number_prefix(b);
+        for (int j = 1; j <= sz(nb); ++j) {
+            const int y = stoi(nb.substr(0, j));
+            const auto rb = nb.substr(j);
 
-        for (int i = 1; i <= sz(na); ++i) {
-            for (int j = 1; j <= sz(nb); ++j) {
-                const int x = stoi(na.substr(0, i));
-                const int y = stoi(nb.substr(0, j));
-
-                const auto ra = na.substr(i);
-                const auto rb = nb.substr(j);
-
-                if (x == y) {
-                    if (recur(ra + a.substr(sz(na)), rb + b.substr(sz(nb)))) {
-                        return true;
-                    }
-                } else if (x < y) {
-                    if (recur(ra + a.substr(sz(na)),
-                              to_string(y - x) + rb + b.substr(sz(nb)))) {
-                        return true;
-                    }
-                } else {
-                    assert(x > y);
-                    if (recur(to_string(x - y) + ra + a.substr(sz(na)),
-                              rb + b.substr(sz(nb)))) {
-                        return true;
-                    }
+            if (y == 0) {
+                if (recur(memo, a, rb + b.substr(sz(nb)))) {
+                    return true;
+                }
+            } else if (y == 1) {
+                if (recur(memo, a.substr(1), rb + b.substr(sz(nb)))) {
+                    return true;
+                }
+            } else {
+                assert(y > 1);
+                if (recur(memo, a.substr(1),
+                          to_string(y - 1) + rb + b.substr(sz(nb)))) {
+                    return true;
                 }
             }
         }
 
         return false;
-    }
+    }();
 
-    if (!isdigit(b[0])) return recur(b, a);
-    assert(!isdigit(a[0]));
-    assert(isdigit(b[0]));
-
-    const auto nb = number_prefix(b);
-    for (int j = 1; j <= sz(nb); ++j) {
-        const int y = stoi(nb.substr(0, j));
-        const auto rb = nb.substr(j);
-
-        if (y == 0) {
-            if (recur(a, rb + b.substr(sz(nb)))) {
-                return true;
-            }
-        } else if (y == 1) {
-            if (recur(a.substr(1), rb + b.substr(sz(nb)))) {
-                return true;
-            }
-        } else {
-            assert(y > 1);
-            if (recur(a.substr(1), to_string(y - 1) + rb + b.substr(sz(nb)))) {
-                return true;
-            }
-        }
-    }
-
-    return false;
+    memo[key] = result;
+    return result;
 }
 
 struct Solution final {
     bool possiblyEquals(const string &a, const string &b) const {
-        return recur(a, b);
+        map<pair<string, string>, bool> memo;
+        return recur(memo, a, b);
     }
 };
 
