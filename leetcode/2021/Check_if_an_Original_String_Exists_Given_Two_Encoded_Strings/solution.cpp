@@ -113,6 +113,12 @@ struct Solution final {
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("Example A") {
+        const auto actual = Solution{}.possiblyEquals(
+            "2ternationali32ninternationa21ation", "i18ni18n");
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
     CASE("Example 1") {
         const auto actual = Solution{}.possiblyEquals("internationalization", "i18n");
         const auto expected = true;
