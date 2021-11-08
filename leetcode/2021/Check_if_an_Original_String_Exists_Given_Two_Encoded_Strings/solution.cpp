@@ -22,7 +22,7 @@ string number_prefix(const string &xs) {
 
 bool recur(map<pair<string, string>, bool> &memo, const string &a,
            const string &b) {
-    const auto key = pair{a, b};
+    const auto key = pair{min(a, b), max(a, b)};
     const auto it = memo.find(key);
     if (it != cend(memo)) return it->second;
 
@@ -150,6 +150,18 @@ const lest::test tests[] = {
     },
     CASE("Test case 28") {
         const auto actual = Solution{}.possiblyEquals("4p6p9p87q11", "p857q3q27");
+        const auto expected = false;
+        EXPECT(actual == expected);
+    },
+    CASE("Test case 101") {
+        const auto actual = Solution{}.possiblyEquals(
+            "8q42g7q1g27g735g929g2q62g235q7", "9g6g8g128g46q1q74g419q419q9q11");
+        const auto expected = false;
+        EXPECT(actual == expected);
+    },
+    CASE("Test case 102") {
+        const auto actual = Solution{}.possiblyEquals(
+            "g71g15q581g59g67g3q599q56g87g", "44q4g31g7q636g699g383g44q453g");
         const auto expected = false;
         EXPECT(actual == expected);
     },
