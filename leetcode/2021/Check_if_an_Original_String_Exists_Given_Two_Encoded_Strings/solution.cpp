@@ -8,8 +8,91 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+string number_prefix(const string &xs) {
+    string result;
+
+    for (auto it = cbegin(xs); it != cend(xs) && isdigit(*it); ++it) {
+        result += *it;
+    }
+
+    assert(!result.empty());
+    assert(sz(result) <= 3);
+    return result;
+}
+
+bool recur(const string &a, const string &b) {
+    if (a.empty() && b.empty()) return true;
+    if (a.empty() != b.empty()) return false;
+
+    if (!isdigit(a[0]) && !isdigit(b[0])) {
+        if (a[0] != b[0]) return false;
+        return recur(a.substr(1), b.substr(1));
+    }
+
+    if (isdigit(a[0]) && isdigit(b[0])) {
+        const auto na = number_prefix(a);
+        const auto nb = number_prefix(b);
+
+        for (int i = 1; i <= sz(na); ++i) {
+            for (int j = 1; j <= sz(nb); ++j) {
+                const int x = stoi(na.substr(0, i));
+                const int y = stoi(nb.substr(0, j));
+
+                const auto ra = na.substr(i);
+                const auto rb = nb.substr(j);
+
+                if (x == y) {
+                    if (recur(ra + a.substr(sz(na)), rb + b.substr(sz(nb)))) {
+                        return true;
+                    }
+                } else if (x < y) {
+                    if (recur(ra + a.substr(sz(na)),
+                              to_string(y - x) + rb + b.substr(sz(nb)))) {
+                        return true;
+                    }
+                } else {
+                    assert(x > y);
+                    if (recur(to_string(x - y) + ra + a.substr(sz(na)),
+                              rb + b.substr(sz(nb)))) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    if (!isdigit(b[0])) return recur(b, a);
+    assert(!isdigit(a[0]));
+    assert(isdigit(b[0]));
+
+    const auto nb = number_prefix(b);
+    for (int j = 1; j <= sz(nb); ++j) {
+        const int y = stoi(nb.substr(0, j));
+        const auto rb = nb.substr(j);
+
+        if (y == 1) {
+            if (recur(a.substr(1), rb + b.substr(sz(nb)))) {
+                return true;
+            }
+        } else {
+            cerr << "a:" << a << " b:" << b << "nb:" << nb << " rb:" << rb
+                 << " y:" << y << endl;
+            assert(y > 1);
+            if (recur(a.substr(1), to_string(y - 1) + rb + b.substr(sz(nb)))) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 struct Solution final {
-    bool possiblyEquals(const string &a, const string &b) { return false; }
+    bool possiblyEquals(const string &a, const string &b) const {
+        return recur(a, b);
+    }
 };
 
 // clang-format off
