@@ -134,6 +134,11 @@ const lest::test tests[] = {
         const auto expected = false;
         EXPECT(actual == expected);
     },
+    CASE("Test case 28") {
+        const auto actual = Solution{}.possiblyEquals("4p6p9p87q11", "p857q3q27");
+        const auto expected = false;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
