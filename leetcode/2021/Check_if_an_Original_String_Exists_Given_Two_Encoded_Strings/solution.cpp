@@ -72,13 +72,15 @@ bool recur(const string &a, const string &b) {
         const int y = stoi(nb.substr(0, j));
         const auto rb = nb.substr(j);
 
-        if (y == 1) {
+        if (y == 0) {
+            if (recur(a, rb + b.substr(sz(nb)))) {
+                return true;
+            }
+        } else if (y == 1) {
             if (recur(a.substr(1), rb + b.substr(sz(nb)))) {
                 return true;
             }
         } else {
-            cerr << "a:" << a << " b:" << b << "nb:" << nb << " rb:" << rb
-                 << " y:" << y << endl;
             assert(y > 1);
             if (recur(a.substr(1), to_string(y - 1) + rb + b.substr(sz(nb)))) {
                 return true;
