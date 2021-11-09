@@ -22,7 +22,7 @@ string number_prefix(const string &xs) {
 
 bool recur(map<pair<string, string>, bool> &memo, const string &a,
            const string &b) {
-    const auto key = pair{min(a, b), max(a, b)};
+    const auto key = pair{a, b};
     const auto it = memo.find(key);
     if (it != cend(memo)) return it->second;
 
@@ -71,7 +71,32 @@ bool recur(map<pair<string, string>, bool> &memo, const string &a,
             return false;
         }
 
-        if (!isdigit(b[0])) return recur(memo, b, a);
+        if (!isdigit(b[0])) {
+            const auto na = number_prefix(a);
+            for (int i = 1; i <= sz(na); ++i) {
+                const int x = stoi(na.substr(0, i));
+                const auto ra = na.substr(i);
+
+                if (x == 0) {
+                    if (recur(memo, ra + a.substr(sz(na)), b)) {
+                        return true;
+                    }
+                } else if (x == 1) {
+                    if (recur(memo, ra + a.substr(sz(na)), b.substr(1))) {
+                        return true;
+                    }
+                } else {
+                    assert(x > 1);
+                    if (recur(memo, to_string(x - 1) + ra + a.substr(sz(na)),
+                              b.substr(1))) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         assert(!isdigit(a[0]));
         assert(isdigit(b[0]));
 
