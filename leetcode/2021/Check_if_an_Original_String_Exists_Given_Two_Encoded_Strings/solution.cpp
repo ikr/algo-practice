@@ -196,6 +196,12 @@ const lest::test tests[] = {
         const auto expected = false;
         EXPECT(actual == expected);
     },
+    CASE("Test case 103") {
+        const auto actual = Solution{}.possiblyEquals(
+            "1q955g8g8q18q7g1g63q73q6g7g1g73", "43q968g34q731q98g778q2q6g48g78g");
+        const auto expected = false;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
