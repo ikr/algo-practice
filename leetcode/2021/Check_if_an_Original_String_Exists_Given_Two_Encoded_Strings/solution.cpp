@@ -2,11 +2,71 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using vi = vector<int>;
+using vvi = vector<vi>;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+vi distinct(vi xs) {
+    sort(begin(xs), end(xs));
+    xs.erase(unique(begin(xs), end(xs)), end(xs));
+    return xs;
+}
+
+vi numeral_alternatives(const string &xs) {
+    assert(
+        all_of(cbegin(xs), cend(xs), [](const auto x) { return isdigit(x); }));
+    if (sz(xs) == 1) return {stoi(xs)};
+    if (sz(xs) == 2) {
+        return {stoi(xs.substr(0, 1)) + stoi(xs.substr(1)), stoi(xs)};
+    }
+
+    assert(sz(xs) == 3);
+    return distinct(
+        {stoi(xs),
+         stoi(xs.substr(0, 1)) + stoi(xs.substr(1, 1)) + stoi(xs.substr(2)),
+         stoi(xs.substr(0, 2)) + stoi(xs.substr(2)),
+         stoi(xs.substr(0, 1)) + stoi(xs.substr(1))});
+}
+
+vector<string> split_into_parts(const string &xs) {
+    assert(!xs.empty());
+    vector<string> result;
+    string curr{xs[0]};
+
+    for (int i = 1; i < sz(xs); ++i) {
+        if (isdigit(curr.back()) == isdigit(xs[i])) {
+            curr += xs[i];
+            continue;
+        }
+
+        result.push_back(curr);
+        curr = string{xs[i]};
+    }
+
+    if (!curr.empty()) result.push_back(curr);
+    return result;
+}
+
+vvi part_selector(const string &part) {
+    assert(!part.empty());
+
+    if (isdigit(part[0])) {
+        return {numeral_alternatives(part)};
+    }
+
+    assert(all_of(cbegin(part), cend(part),
+                  [](const auto x) { return !isdigit(x); }));
+
+    vvi result(sz(part));
+    transform(cbegin(part), cend(part), begin(result),
+              [](const char x) { return vi{-inof(x)}; });
+    return result;
+}
 
 string number_prefix(const string &xs) {
     string result;
@@ -138,6 +198,46 @@ struct Solution final {
 
 // clang-format off
 const lest::test tests[] = {
+    CASE("numeral_alternatives(7)") {
+        const auto actual = numeral_alternatives("7");
+        const auto expected = vi{7};
+        EXPECT(actual == expected);
+    },
+    CASE("numeral_alternatives(23)") {
+        const auto actual = numeral_alternatives("23");
+        const auto expected = vi{5, 23};
+        EXPECT(actual == expected);
+    },
+    CASE("numeral_alternatives(123)") {
+        const auto actual = numeral_alternatives("123");
+        const auto expected = vi{6, 15, 24, 123};
+        EXPECT(actual == expected);
+    },
+    CASE("numeral_alternatives(111)") {
+        const auto actual = numeral_alternatives("111");
+        const auto expected = vi{3, 12, 111};
+        EXPECT(actual == expected);
+    },
+    CASE("split_into_parts(abc)") {
+        const auto actual = split_into_parts("abc");
+        const auto expected = vector<string>{"abc"};
+        EXPECT(actual == expected);
+    },
+    CASE("split_into_parts(333aaa22bb1c)") {
+        const auto actual = split_into_parts("333aaa22bb1c");
+        const auto expected = vector<string>{"333", "aaa", "22", "bb", "1", "c"};
+        EXPECT(actual == expected);
+    },
+    CASE("part_selector(az)") {
+        const auto actual = part_selector("az");
+        const auto expected = vvi{{-97}, {-122}};
+        EXPECT(actual == expected);
+    },
+    CASE("part_selector(24)") {
+        const auto actual = part_selector("24");
+        const auto expected = vvi{{6, 24}};
+        EXPECT(actual == expected);
+    },
     CASE("Example A") {
         const auto actual = Solution{}.possiblyEquals(
             "2ternationali32ninternationa21ation", "i18ni18n");
