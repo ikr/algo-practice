@@ -68,6 +68,18 @@ vvi part_selector(const string &part) {
     return result;
 }
 
+vvi full_selector(const string &xs) {
+    const auto parts = split_into_parts(xs);
+    vvi result;
+
+    for (const auto &p : parts) {
+        const auto s = part_selector(p);
+        result.insert(cend(result), cbegin(s), cend(s));
+    }
+
+    return result;
+}
+
 string number_prefix(const string &xs) {
     string result;
 
@@ -236,6 +248,11 @@ const lest::test tests[] = {
     CASE("part_selector(24)") {
         const auto actual = part_selector("24");
         const auto expected = vvi{{6, 24}};
+        EXPECT(actual == expected);
+    },
+    CASE("full_selector(12az1)") {
+        const auto actual = full_selector("12az1");
+        const auto expected = vvi{{3, 12}, {-97}, {-122}, {1}};
         EXPECT(actual == expected);
     },
     CASE("Example A") {
