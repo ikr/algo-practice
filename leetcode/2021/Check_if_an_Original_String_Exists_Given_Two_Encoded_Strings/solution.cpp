@@ -80,6 +80,61 @@ vvi full_selector(const string &xs) {
     return result;
 }
 
+int match_length(const vi &instance) {
+    return transform_reduce(cbegin(instance), cend(instance), 0, plus<int>{},
+                            [](const int x) {
+                                assert(x != 0);
+                                return x < 0 ? 1 : x;
+                            });
+}
+
+bool confirm_match(vi instance_a, vi instance_b) {
+    auto it = begin(instance_a);
+    auto jt = begin(instance_b);
+
+    while (it != end(instance_a) && jt != end(instance_b)) {
+        assert(*it != 0 && *jt != 0);
+
+        if (*it < 0 && *jt < 0) {
+            if (*it != *jt) return false;
+            ++it;
+            ++jt;
+            continue;
+        }
+
+        if (*it > 0 && *jt > 0) {
+            if (*it == *jt) {
+                ++it;
+                ++jt;
+                continue;
+            }
+
+            const auto d = min(*it, *jt);
+            *it -= d;
+            *jt -= d;
+            if (*it == 0) ++it;
+            if (*jt == 0) ++jt;
+            continue;
+        }
+
+        if (*it < 0) {
+            assert(*jt > 0);
+            ++it;
+            --(*jt);
+            if (*jt == 0) ++jt;
+            continue;
+        }
+
+        assert(*it > 0);
+        assert(*jt < 0);
+        --(*it);
+        if (*it == 0) ++jt;
+        ++jt;
+    }
+
+    return it == end(instance_a) && jt == end(instance_b);
+}
+
 string number_prefix(const string &xs) {
     string result;
 
@@ -253,6 +308,31 @@ const lest::test tests[] = {
     CASE("full_selector(12az1)") {
         const auto actual = full_selector("12az1");
         const auto expected = vvi{{3, 12}, {-97}, {-122}, {1}};
+        EXPECT(actual == expected);
+    },
+    CASE("match_length(-97, 11, -97)") {
+        const auto actual = match_length({-97, 11, -97});
+        const auto expected = 13;
+        EXPECT(actual == expected);
+    },
+    CASE("confirm_match positive A") {
+        const auto actual = confirm_match({-97, 11, -97}, {-97, 12});
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("confirm_match positive B") {
+        const auto actual = confirm_match({2, -100, 15}, {18});
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("confirm_match negative A") {
+        const auto actual = confirm_match({11}, {2});
+        const auto expected = false;
+        EXPECT(actual == expected);
+    },
+    CASE("confirm_match negative B") {
+        const auto actual = confirm_match({-100, -100}, {-100, -101});
+        const auto expected = false;
         EXPECT(actual == expected);
     },
     CASE("Example A") {
