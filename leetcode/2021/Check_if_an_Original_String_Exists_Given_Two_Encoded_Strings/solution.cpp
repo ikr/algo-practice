@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using pii = pair<int, int>;
 using vi = vector<int>;
 using vvi = vector<vi>;
 
@@ -80,111 +81,46 @@ vvi full_selector(const string &xs) {
     return result;
 }
 
-int match_length(const vi &instance) {
-    return transform_reduce(cbegin(instance), cend(instance), 0, plus<int>{},
-                            [](const int x) {
-                                assert(x != 0);
-                                return x < 0 ? 1 : x;
-                            });
-}
+using Quad = tuple<int, int, int, int>;
 
-bool confirm_match(vi instance_a, vi instance_b) {
-    auto it = begin(instance_a);
-    auto jt = begin(instance_b);
+constexpr bool is_char(const vvi &sel, const int i) { return sel[i][0] < 0; }
 
-    while (it != end(instance_a) && jt != end(instance_b)) {
-        assert(*it != 0 && *jt != 0);
+bool confirm_related(const vvi &sel_a, const vvi &sel_b) {
+    map<Quad, bool> memo;
+    function<bool(pii, pii)> recur;
+    recur = [&](const pii pa, const pii pb) -> bool {
+        const auto [ia, oa] = pa;
+        const auto [ib, ob] = pb;
+        const Quad key{ia, oa, ib, ob};
 
-        if (*it < 0 && *jt < 0) {
-            if (*it != *jt) return false;
-            ++it;
-            ++jt;
-            continue;
+        {
+            const auto cache_it = memo.find(key);
+            if (cache_it != cend(memo)) return cache_it->second;
         }
 
-        if (*it > 0 && *jt > 0) {
-            if (*it == *jt) {
-                ++it;
-                ++jt;
-                continue;
-            }
-
-            const auto d = min(*it, *jt);
-            *it -= d;
-            *jt -= d;
-            if (*it == 0) ++it;
-            if (*jt == 0) ++jt;
-            continue;
+        if (ia == sz(sel_a) && ib == sz(sel_b)) {
+            assert(!oa);
+            assert(!ob);
+            return memo[key] = true;
         }
 
-        if (*it < 0) {
-            assert(*jt > 0);
-            ++it;
-            --(*jt);
-            if (*jt == 0) ++jt;
-            continue;
+        if ((ia == sz(sel_a)) != (ib == sz(sel_b))) {
+            return memo[key] = false;
         }
 
-        assert(*it > 0);
-        assert(*jt < 0);
-        --(*it);
-        if (*it == 0) ++it;
-        ++jt;
-    }
+        if (!oa) {
 
-    return it == end(instance_a) && jt == end(instance_b);
-}
-
-template <typename T>
-vector<vector<T>> cartesian_product(const vector<vector<T>> &src) {
-    vector<vector<T>> result;
-    if (src.empty() || any_of(cbegin(src), cend(src),
-                              [](const auto &xs) { return xs.empty(); })) {
-        return result;
-    }
-
-    result.push_back(vector<T>{});
-    for (const auto &xs : src) {
-        vector<vector<T>> next_gen;
-
-        for (const auto x : xs) {
-            for (auto curr : result) {
-                curr.push_back(x);
-                next_gen.push_back(curr);
-            }
+        } else {
+            assert(!is_char(sel_a, ia));
         }
+    };
 
-        result = next_gen;
-    }
-
-    return result;
-}
-
-multimap<int, vi> gather_instances_by_length(const string &xs) {
-    const auto sel = full_selector(xs);
-    multimap<int, vi> result;
-
-    for (const vi &inst : cartesian_product(sel)) {
-        result.emplace(match_length(inst), inst);
-    }
-
-    return result;
+    return recur({0, 0}, {0, 0});
 }
 
 struct Solution final {
     bool possiblyEquals(const string &a, const string &b) const {
-        const multimap<int, vi> a_insts_by_len = gather_instances_by_length(a);
-
-        for (auto inst_b : cartesian_product(full_selector(b))) {
-            const auto [first, last] =
-                a_insts_by_len.equal_range(match_length(inst_b));
-
-            for (auto it = first; it != last; ++it) {
-                if (confirm_match(it->second, inst_b)) return true;
-            }
-        }
-
-        return false;
+        return confirm_related(full_selector(a), full_selector(b));
     }
 };
 
@@ -233,36 +169,6 @@ const lest::test tests[] = {
     CASE("full_selector(12az1)") {
         const auto actual = full_selector("12az1");
         const auto expected = vvi{{3, 12}, {-97}, {-122}, {1}};
-        EXPECT(actual == expected);
-    },
-    CASE("match_length(-97, 11, -97)") {
-        const auto actual = match_length({-97, 11, -97});
-        const auto expected = 13;
-        EXPECT(actual == expected);
-    },
-    CASE("confirm_match positive A") {
-        const auto actual = confirm_match({-97, 11, -97}, {-97, 12});
-        const auto expected = true;
-        EXPECT(actual == expected);
-    },
-    CASE("confirm_match positive B") {
-        const auto actual = confirm_match({2, -100, 15}, {18});
-        const auto expected = true;
-        EXPECT(actual == expected);
-    },
-    CASE("confirm_match positive C") {
-        const auto actual = confirm_match({1}, {-100});
-        const auto expected = true;
-        EXPECT(actual == expected);
-    },
-    CASE("confirm_match negative A") {
-        const auto actual = confirm_match({11}, {2});
-        const auto expected = false;
-        EXPECT(actual == expected);
-    },
-    CASE("confirm_match negative B") {
-        const auto actual = confirm_match({-100, -100}, {-100, -101});
-        const auto expected = false;
         EXPECT(actual == expected);
     },
     CASE("Example A") {
