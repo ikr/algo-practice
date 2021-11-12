@@ -83,7 +83,8 @@ vvi full_selector(const string &xs) {
 
 using Quad = tuple<int, int, int, int>;
 
-constexpr bool is_char(const vvi &sel, const int i) { return sel[i][0] < 0; }
+bool is_char(const vvi &sel, const int i) { return sel[i][0] < 0; }
+bool is_num(const vvi &sel, const int i) { return sel[i][0] > 0; }
 
 bool confirm_related(const vvi &sel_a, const vvi &sel_b) {
     map<Quad, bool> memo;
@@ -99,8 +100,8 @@ bool confirm_related(const vvi &sel_a, const vvi &sel_b) {
         }
 
         if (ia == sz(sel_a) && ib == sz(sel_b)) {
-            assert(!oa);
-            assert(!ob);
+            assert(oa == 0);
+            assert(ob == 0);
             return memo[key] = true;
         }
 
@@ -108,10 +109,68 @@ bool confirm_related(const vvi &sel_a, const vvi &sel_b) {
             return memo[key] = false;
         }
 
-        if (!oa) {
-
+        if (oa == 0) {
+            if (is_char(sel_a, ia)) {
+                if (is_char(sel_b, ib)) {
+                    assert(ob == 0);
+                    if (sel_a[ia][0] != sel_b[ib][0]) {
+                        return memo[key] = false;
+                    }
+                    return memo[key] = recur({ia + 1, 0}, {ib + 1, 0});
+                } else {
+                    assert(is_num(sel_b, ib));
+                    if (ob > 0) {
+                        return memo[key] =
+                                   recur({ia + 1, 0},
+                                         {(ob == 1) ? (ib + 1) : ib, ob - 1});
+                    } else {
+                        assert(ob == 0);
+                        for (const int y : sel_b[ib]) {
+                            if (recur({ia, oa}, {ib, y})) {
+                                return memo[key] = true;
+                            }
+                        }
+                        return memo[key] = false;
+                    }
+                }
+            } else {
+                assert(oa == 0);
+                assert(is_num(sel_a, ia));
+                for (const int x : sel_a[ia]) {
+                    if (recur({ia, x}, {ib, ob})) {
+                        return memo[key] = true;
+                    }
+                }
+                return memo[key] = false;
+            }
         } else {
-            assert(!is_char(sel_a, ia));
+            assert(oa > 0);
+            assert(is_num(sel_a, ia));
+            if (is_char(sel_b, ib)) {
+                assert(ob == 0);
+                return memo[key] = recur({(oa == 1) ? (ia + 1) : ia, oa - 1},
+                                         {ib + 1, 0});
+            } else {
+                assert(is_num(sel_b, ib));
+                if (ob > 0) {
+                    if (oa == ob) {
+                        return memo[key] = recur({ia + 1, 0}, {ib + 1, 0});
+                    } else if (oa > ob) {
+                        return memo[key] = recur({ia, oa - ob}, {ib + 1, 0});
+                    } else {
+                        assert(ob > oa);
+                        return memo[key] = recur({ia + 1, 0}, {ib, ob - oa});
+                    }
+                } else {
+                    assert(ob == 0);
+                    for (const int y : sel_b[ib]) {
+                        if (recur({ia, oa}, {ib, y})) {
+                            return memo[key] = true;
+                        }
+                    }
+                    return memo[key] = false;
+                }
+            }
         }
     };
 
@@ -174,6 +233,12 @@ const lest::test tests[] = {
     CASE("Example A") {
         const auto actual = Solution{}.possiblyEquals(
             "2ternationali32ninternationa21ation", "i18ni18n");
+        const auto expected = true;
+        EXPECT(actual == expected);
+    },
+    CASE("Example B") {
+        const auto actual = Solution{}.possiblyEquals(
+            "a998z", "99x99x99x99x99x99x99x99x99xx99");
         const auto expected = true;
         EXPECT(actual == expected);
     },
