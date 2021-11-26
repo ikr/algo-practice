@@ -3,27 +3,17 @@ using namespace std;
 
 using ll = long long;
 
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
-}
-
 constexpr ll num_substrings(const ll n) { return n * (n + 1LL) / 2LL; }
 
 ll min_f(const int n, const int m) {
     if (n == m) return 0;
     if (m == 0) return num_substrings(n);
 
-    const ll zeros = n - m;
-    if (zeros <= m + 1LL) return zeros;
+    const ll z = n - m;
+    const ll a = z / (m + 1LL);
+    const ll b = z % (m + 1LL);
 
-    if (zeros % (m + 1LL) == 0LL) {
-        const ll span = zeros / (m + 1LL);
-        return (m + 1LL) * num_substrings(span);
-    }
-
-    const ll span = (zeros + 1LL) / (m + 1LL);
-    const ll rem = zeros - m * span;
-    return m * num_substrings(span) + num_substrings(rem);
+    return b * num_substrings(a + 1) + (m + 1 - b) * num_substrings(a);
 }
 
 int main() {
