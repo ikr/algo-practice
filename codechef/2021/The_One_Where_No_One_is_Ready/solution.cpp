@@ -1,4 +1,6 @@
 #include <bits/stdc++.h>
+#include <iterator>
+#include <numeric>
 using namespace std;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
@@ -52,38 +54,32 @@ vvi runlength_encode(const string &xs) {
     return ans;
 }
 
+vi to_pref_suff_form(const string &xs, const char x, vi rle) {
+    const bool is_first = (xs[0] == x);
+    const bool is_last = (xs.back() == x);
+
+    if (!is_first) rle.insert(cbegin(rle), 0);
+    if (!is_last) rle.push_back(0);
+
+    sort(next(begin(rle)), prev(end(rle)), greater<int>{});
+    return rle;
+}
+
 int max_monochrome_pants(const string &xs, const char x, const vi &rle,
                          const int k) {
     if (rle.empty()) return -1;
 
     const bool is_first = (xs[0] == x);
     const bool is_last = (xs.back() == x);
+    if (is_first && is_last && sz(rle) == 1) return rle[0];
+    if (k == 0) return -1;
 
-    if (k == 0) {
-        return (is_first && is_last && sz(rle) == 1) ? rle[0] : -1;
-    }
+    const auto psf = to_pref_suff_form(xs, x, rle);
+    if (k == 1) return max(psf[0], psf.back());
+    if (sz(psf) <= 2) return accumulate(cbegin(psf), cend(psf), 0);
 
-    vi ss(sz(rle), 0);
-    partial_sum(cbegin(rle), cend(rle), begin(ss));
-
-    const auto sum_for = [&ss](const int l, const int r) -> int {
-        return ss[r - 1] - (l ? ss[l - 1] : 0);
-    };
-
-    int ans = -1;
-
-    for (int i = 0; i + k < sz(rle); ++i) {
-        const auto r = [&]() -> int {
-            int rr = i + k + 1;
-            if (i == 0 && !is_first) --rr;
-            if (rr == sz(rle) && !is_last) --rr;
-            return rr;
-        }();
-
-        ans = max(ans, sum_for(i, r));
-    }
-
-    return ans;
+    return psf[0] + psf.back() +
+           accumulate(next(cbegin(psf)), next(cbegin(psf), k), 0);
 }
 
 int max_monochrome_pants(const string &xs, const int k) {
