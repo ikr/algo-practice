@@ -1,23 +1,5 @@
 #include <bits/stdc++.h>
-#include <iterator>
-#include <numeric>
 using namespace std;
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
 
 using vi = vector<int>;
 using vvi = vector<vi>;
@@ -75,14 +57,19 @@ int max_monochrome_pants(const string &xs, const char x, const vi &rle,
     if (k == 0) return -1;
 
     const auto psf = to_pref_suff_form(xs, x, rle);
-    if (k == 1) return max(psf[0], psf.back());
+
+    if (k == 1) {
+        return is_first && is_last ? (psf[0] + psf.back())
+                                   : max(psf[0], psf.back());
+    }
+
     if (sz(psf) <= 2) return accumulate(cbegin(psf), cend(psf), 0);
 
     const auto inner_sz = sz(psf) - 2;
 
     return psf[0] + psf.back() +
-           accumulate(next(cbegin(psf)), next(cbegin(psf), min(1 + inner_sz, k)),
-                      0);
+           accumulate(next(cbegin(psf)),
+                      next(cbegin(psf), min(1 + inner_sz, k)), 0);
 }
 
 int max_monochrome_pants(const string &xs, const int k) {
