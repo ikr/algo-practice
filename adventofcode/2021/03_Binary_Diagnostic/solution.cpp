@@ -1,18 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
-using vi = vector<int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -24,43 +13,53 @@ template <typename T> constexpr ll llof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vi gather_ones_freqs(const vector<string> &xss) {
-    vi ans(sz(xss[0]), 0);
-
+int freq_of_one(const vector<string> &xss, const int i) {
+    int ans{};
     for (const auto &xs : xss) {
-        for (int i = 0; i < sz(xs); ++i) {
-            if (xs[i] == '1') ++ans[i];
-        }
+        if (xs[i] == '1') ++ans;
     }
-
     return ans;
 }
 
-ll as_ll(const string &bits) { return llof(bitset<30>(bits).to_ulong()); }
+vector<string> discriminate(const vector<string> &xss, const int i,
+                            const char bit) {
+    vector<string> ans;
+    copy_if(cbegin(xss), cend(xss), back_inserter(ans),
+            [&](const string &xs) { return xs[i] == bit; });
+    return ans;
+}
 
 template <typename T> constexpr T div_ceil(const T x, const T y) {
     return x ? (1 + (x - 1) / y) : 0;
 }
 
-ll power_consumption(const vector<string> &xss) {
-    const int n = sz(xss);
-    const auto fs = gather_ones_freqs(xss);
+string rating(const function<char(int, int)> which_bit, vector<string> xss,
+              const int i) {
+    assert(!xss.empty());
+    if (sz(xss) == 1 || i >= sz(xss[0])) return xss[0];
 
-    string gamma_rate(sz(fs), ' ');
-    string epsilon_rate(sz(fs), ' ');
-    const int maj = div_ceil(n, 2);
+    const auto foo = freq_of_one(xss, i);
+    const auto maj = div_ceil(sz(xss), 2);
+    xss = discriminate(xss, i, which_bit(foo, maj));
+    return rating(which_bit, xss, i + 1);
+}
 
-    for (int i = 0; i < sz(fs); ++i) {
-        if (fs[i] >= maj) {
-            gamma_rate[i] = '1';
-            epsilon_rate[i] = '0';
-        } else {
-            gamma_rate[i] = '0';
-            epsilon_rate[i] = '1';
-        }
-    }
+string o2_gen_rating(vector<string> xss) {
+    return rating(
+        [](const int foo, const int maj) { return foo >= maj ? '1' : '0'; },
+        xss, 0);
+}
 
-    return as_ll(gamma_rate) * as_ll(epsilon_rate);
+string co2_scrubber_rating(vector<string> xss) {
+    return rating(
+        [](const int foo, const int maj) { return foo >= maj ? '0' : '1'; },
+        xss, 0);
+}
+
+ll as_ll(const string &bits) { return llof(bitset<30>(bits).to_ulong()); }
+
+ll life_support_rating(const vector<string> &xss) {
+    return as_ll(o2_gen_rating(xss)) * as_ll(co2_scrubber_rating(xss));
 }
 
 int main() {
@@ -72,6 +71,6 @@ int main() {
         xss.push_back(line);
     }
 
-    cout << power_consumption(xss) << '\n';
+    cout << life_support_rating(xss) << '\n';
     return 0;
 }
