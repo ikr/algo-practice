@@ -14,13 +14,12 @@ parser.add_argument("-p", "--prefix-output",
 parser.add_argument("-s", "--cpp-standard",
                     type=int,
                     default=17,
-                    help="The C++ standard to use: 20, 17, 14, or 11")
+                    help="The C++ standard to use: 20, 17 (default), 14, or 11")
 parser.add_argument("name", help="The name of the problem")
 args = parser.parse_args()
 
 streams_snippet = """cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    cout << setprecision(9) << fixed;
 """
 
 code = '#include "lest.hpp"\n' if args.tests else ""
@@ -32,30 +31,20 @@ using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pii = pair<int, int>;
-using vll = vector<ll>;
-using vvll = vector<vll>;
 
 template <typename T> constexpr int inof(const T x) { return static_cast<int>(x); }
-template <typename T> constexpr ll llof(const T x) { return static_cast<ll>(x); }
-template <typename T> constexpr double doof(const T x) { return static_cast<double>(x); }
-
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 """
 
 if args.cpp_standard < 17:
     code = code + """
-template <typename T>
-constexpr typename vector<T>::const_iterator cbegin(const vector<T> &xs) {
+template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
     return xs.cbegin();
 }
 
-template <typename T>
-constexpr typename vector<T>::const_iterator cend(const vector<T> &xs) {
+template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
     return xs.cend();
 }
-
-string::const_iterator cbegin(const string &xs) { return xs.cbegin(); }
-string::const_iterator cend(const string &xs) { return xs.cend(); }
 """
 
 if args.tests:
