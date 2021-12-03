@@ -85,6 +85,88 @@ int max_monochrome_pants(const string &xs, const int k) {
     return ans;
 }
 
+int oracle(const string &s, const int k) {
+    const int n = sz(s);
+
+    {
+        int ok = 1;
+        for (int i = 1; i < n; ++i) {
+            if (s[i] != s[0]) {
+                ok = 0;
+            }
+        }
+        if (ok) {
+            return n;
+        }
+    }
+    if (k == 0) {
+        return -1;
+    }
+    vector<vector<int>> a(26);
+    int cnt = 1;
+    for (int i = 1; i <= n; ++i) {
+        if (i == n || s[i] != s[i - 1]) {
+            a[s[i - 1] - 'A'].push_back(cnt);
+            cnt = 1;
+        } else {
+            cnt += 1;
+        }
+    }
+    int ans = 0;
+    if (k > 1) {
+        for (int i = 0; i < 26; ++i) {
+            vector<int> b = a[i];
+            sort(b.begin(), b.end(), greater<int>());
+            int tmp = 0;
+            for (int j = 0; j < b.size() && j < k - 1; ++j) {
+                tmp += b[j];
+            }
+            ans = max(ans, tmp);
+        }
+    }
+    {
+        vector<int> b = a[s[0] - 'A'];
+        int tmp = b[0];
+        b.erase(b.begin());
+        sort(b.begin(), b.end(), greater<int>());
+        for (int j = 0; j < b.size() && j < k - 1; ++j) {
+            tmp += b[j];
+        }
+        ans = max(ans, tmp);
+    }
+    {
+        vector<int> b = a[s.back() - 'A'];
+        int tmp = b.back();
+        b.pop_back();
+        sort(b.begin(), b.end(), greater<int>());
+        for (int j = 0; j < b.size() && j < k - 1; ++j) {
+            tmp += b[j];
+        }
+        ans = max(ans, tmp);
+    }
+    if (s[0] == s.back()) {
+        vector<int> b = a[s.back() - 'A'];
+        int tmp = b[0] + b.back();
+        b.erase(b.begin());
+        b.pop_back();
+        sort(b.begin(), b.end(), greater<int>());
+        for (int j = 0; j < b.size() && j < k - 1; ++j) {
+            tmp += b[j];
+        }
+        ans = max(ans, tmp);
+    }
+    return ans;
+}
+
+template <typename T> struct RndInt final {
+    RndInt(const T lo, const T hi) : m_gen{random_device{}()}, m_dist{lo, hi} {}
+    T next() { return m_dist(m_gen); }
+
+  private:
+    mt19937 m_gen;
+    uniform_int_distribution<T> m_dist;
+};
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -99,6 +181,32 @@ int main() {
         cin >> xs;
 
         cout << max_monochrome_pants(xs, k) << '\n';
+    }
+
+    RndInt az(0, AZ - 1);
+    RndInt nn(99999, 100000);
+
+    for (t = 0; t < 1; ++t) {
+        const int n = nn.next();
+
+        string xs(n, ' ');
+        for (int i = 0; i < n; ++i) {
+            xs[i] = chof(inof('A') + az.next());
+        }
+
+        for (int k = 0; k <= n; ++k) {
+            const auto own = max_monochrome_pants(xs, k);
+            const auto orc = oracle(xs, k);
+
+            if (own != orc) {
+                cerr << "\n\nFound! " << xs << " " << own << "/" << orc << endl;
+                return 0;
+            }
+
+            if (k % 1000 == 0) {
+                cerr << k << ' ';
+            }
+        }
     }
 
     return 0;
