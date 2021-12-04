@@ -81,6 +81,7 @@ int winning_score(const int last_drawn_number, const Card &card,
 int winning_score(const vector<Card> &cards, const vector<int> &drawn_numbers) {
     const auto idx = build_index(cards);
     vector<State> states(sz(cards), State{});
+    set<int> cards_won;
 
     for (const auto x : drawn_numbers) {
         const auto [first, last] = idx.equal_range(x);
@@ -89,9 +90,14 @@ int winning_score(const vector<Card> &cards, const vector<int> &drawn_numbers) {
             const auto l = it->second;
             states[l.card_index][l.row][l.column] = true;
 
-            if (has_just_won(states[l.card_index], l.row, l.column)) {
-                return winning_score(x, cards[l.card_index],
-                                     states[l.card_index]);
+            if (!cards_won.count(l.card_index) &&
+                has_just_won(states[l.card_index], l.row, l.column)) {
+                cards_won.insert(l.card_index);
+
+                if (sz(cards_won) == sz(cards)) {
+                    return winning_score(x, cards[l.card_index],
+                                         states[l.card_index]);
+                }
             }
         }
     }
