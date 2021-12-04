@@ -2,29 +2,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
-    return xs.cbegin();
-}
-
-template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
-    return xs.cend();
-}
-
 struct Catchphrase final {
     int reconstruct(int A, int B) const {
         if (A % 100 || B % 100) return -1;
 
-        int ans{};
+        int forced{};
 
         for (const auto bonus : {1000, 500}) {
             if (B >= bonus) {
@@ -32,7 +14,7 @@ struct Catchphrase final {
             } else {
                 if (A < bonus) return -1;
                 A -= bonus;
-                ++ans;
+                ++forced;
             }
         }
 
@@ -52,29 +34,20 @@ struct Catchphrase final {
             B = 0;
         }
 
-        if (!A) return ans;
+        int opt = -1;
+        for (int i = 0; i <= p100; ++i) {
+            for (int j = 0; j <= p200; ++j) {
+                const int m = i * 100 + j * 200;
+                if (m > A) continue;
 
-        for (int i = p100; i >= 1; --i) {
-            if (i * 100 >= A && (A - i * 100) % 200 == 0) {
-                ans += i;
-                A -= i * 100;
-                break;
-            }
-        }
-        if (!A) return ans;
+                const int r = A - m;
+                if (r % 500) continue;
 
-        for (int i = p200; i >= 1; --i) {
-            if (i * 200 >= A && (A - i * 200) % 500 == 0) {
-                ans += i;
-                A -= i * 200;
-                break;
+                opt = max(opt, i + j + r / 500);
             }
         }
 
-        if (A % 500) return -1;
-
-        ans += A / 500;
-        return ans;
+        return opt == -1 ? -1 : forced + opt;
     }
 };
 
