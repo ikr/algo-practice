@@ -1,8 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using vi = vector<int>;
-using vvi = vector<vi>;
 using pii = pair<int, int>;
 
 vector<string> split(const string &delim_regex, const string &s) {
@@ -15,6 +13,11 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+template <typename T>
+constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
+    return {a.first + b.first, a.second + b.second};
+}
 
 pii parse_pair(const string &src) {
     const auto xs = split(",", src);
@@ -36,6 +39,14 @@ int main() {
         } else if (y1 == y2) {
             for (int x = min(x1, x2); x <= max(x1, x2); ++x) {
                 ++freqs[pii{x, y1}];
+            }
+        } else if (abs(x1 - x2) == abs(y1 - y2)) {
+            for (pii xy{x1, y1},
+                 delta{(x2 - x1) / abs(x1 - x2), (y2 - y1) / abs(y1 - y2)};
+                 ;) {
+                ++freqs[xy];
+                if (xy == pii{x2, y2}) break;
+                xy = xy + delta;
             }
         }
     }
