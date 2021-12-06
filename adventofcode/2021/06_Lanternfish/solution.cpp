@@ -1,18 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using vi = vector<int>;
+using ll = long long;
+using vll = vector<ll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -25,9 +15,9 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
-using Population = array<int, 9>;
+using Population = array<ll, 9>;
 
-Population initial_population(const vi &xs) {
+Population initial_population(const vll &xs) {
     Population result{};
     for (const auto x : xs) {
         ++result[x];
@@ -47,14 +37,14 @@ Population evolve(const Population &p) {
     return result;
 }
 
-int population_after_80_days(const vi &xs) {
+ll population_after_256_days(const vll &xs) {
     auto p = initial_population(xs);
 
-    for (int i = 0; i < 80; ++i) {
+    for (int i = 0; i < 256; ++i) {
         p = evolve(p);
     }
 
-    return accumulate(cbegin(p), cend(p), 0);
+    return accumulate(cbegin(p), cend(p), 0LL);
 }
 
 int main() {
@@ -62,10 +52,10 @@ int main() {
     cin >> src;
 
     const auto nums_src = split(",", src);
-    vi xs(sz(nums_src));
+    vll xs(sz(nums_src));
     transform(cbegin(nums_src), cend(nums_src), begin(xs),
-              [](const auto &x) { return stoi(x); });
+              [](const auto &x) { return stoll(x); });
 
-    cout << population_after_80_days(xs) << '\n';
+    cout << population_after_256_days(xs) << '\n';
     return 0;
 }
