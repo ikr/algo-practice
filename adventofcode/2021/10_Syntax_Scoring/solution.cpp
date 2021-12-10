@@ -2,21 +2,9 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-int score(const char c) {
-    const map<char, int> table{{')', 3}, {']', 57}, {'}', 1197}, {'>', 25137}};
-    return table.at(c);
-}
-
-const optional<char> first_incorrect_closer(const string &xs) {
+const pair<optional<char>, stack<char>>
+first_incorrect_closer_and_end_stack(const string &xs) {
     stack<char> st;
 
     const auto top_matches = [&](const char x) -> bool {
@@ -30,7 +18,7 @@ const optional<char> first_incorrect_closer(const string &xs) {
                 st.pop();
                 break;
             } else {
-                return x;
+                return {x, st};
             }
 
         case ']':
@@ -38,7 +26,7 @@ const optional<char> first_incorrect_closer(const string &xs) {
                 st.pop();
                 break;
             } else {
-                return x;
+                return {x, st};
             }
 
         case '}':
@@ -46,7 +34,7 @@ const optional<char> first_incorrect_closer(const string &xs) {
                 st.pop();
                 break;
             } else {
-                return x;
+                return {x, st};
             }
 
         case '>':
@@ -54,7 +42,7 @@ const optional<char> first_incorrect_closer(const string &xs) {
                 st.pop();
                 break;
             } else {
-                return x;
+                return {x, st};
             }
 
         default:
@@ -62,18 +50,58 @@ const optional<char> first_incorrect_closer(const string &xs) {
         }
     }
 
-    return nullopt;
+    return {nullopt, st};
+}
+
+string closing_brackets(stack<char> st) {
+    string result;
+    while (!st.empty()) {
+        const auto x = st.top();
+        st.pop();
+
+        switch (x) {
+        case '(':
+            result += ')';
+            break;
+        case '[':
+            result += ']';
+            break;
+        case '{':
+            result += '}';
+            break;
+        case '<':
+            result += '>';
+            break;
+        default:
+            assert(false && "/o\\");
+        }
+    }
+    return result;
+}
+
+ll char_score(const char c) {
+    const map<char, int> table{{')', 1}, {']', 2}, {'}', 3}, {'>', 4}};
+    return table.at(c);
+}
+
+ll score(const string &xs) {
+    return accumulate(cbegin(xs), cend(xs), 0LL,
+                      [](const ll agg, const char x) -> ll {
+                          return agg * 5 + char_score(x);
+                      });
 }
 
 int main() {
-    int ans{};
+    vector<ll> ss;
+
     for (string line; getline(cin, line);) {
-        const auto x = first_incorrect_closer(line);
-        if (x) {
-            ans += score(*x);
-        }
+        const auto [x, st] = first_incorrect_closer_and_end_stack(line);
+        if (x) continue;
+
+        ss.push_back(score(closing_brackets(st)));
     }
 
-    cout << ans << '\n';
+    sort(begin(ss), end(ss));
+    cout << ss[ss.size() / 2] << '\n';
     return 0;
 }
