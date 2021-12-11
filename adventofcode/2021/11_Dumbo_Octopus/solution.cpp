@@ -28,8 +28,24 @@ constexpr bool in_bounds(const pii dim, const pii roco) {
     return 0 <= ro && ro < H && 0 <= co && co < W;
 }
 
-void flash_and_enqueue_chained(vvi &grid, queue<pii> chained, const int ro,
-                               const int co) {
+template <typename T>
+optional<T> first_outside_intersection(const set<T> &a, const set<T> &b) {
+    set<T> x;
+    set_intersection(cbegin(a), cend(a), cbegin(b), cend(b),
+                     inserter(x, cbegin(x)));
+
+    for (const auto i : a) {
+        if (!x.count(i)) return i;
+    }
+
+    for (const auto i : b) {
+        if (!x.count(i)) return i;
+    }
+
+    return nullopt;
+}
+
+void flash(vvi &grid, set<pii> &flashing, const int ro, const int co) {
     assert(grid[ro][co] == 0);
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
@@ -41,9 +57,9 @@ void flash_and_enqueue_chained(vvi &grid, queue<pii> chained, const int ro,
             const auto co_ = co + dco;
             if (!in_bounds({H, W}, {ro_, co_})) continue;
 
-            if (grid[ro_][co_] == 0) continue;
+            if (flashing.count(pii{ro_, co_})) continue;
             evolve(grid, ro_, co_);
-            if (grid[ro_][co_] == 0) chained.emplace(ro_, co_);
+            if (grid[ro_][co_] == 0) flashing.emplace(ro_, co_);
         }
     }
 }
@@ -52,26 +68,34 @@ vvi evolve(vvi grid) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
 
-    queue<pii> chained;
+    set<pii> flashing;
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
             evolve(grid, ro, co);
-            if (grid[ro][co] == 0) chained.emplace(ro, co);
+            if (grid[ro][co] == 0) flashing.emplace(ro, co);
         }
     }
 
-    while (!chained.empty()) {
-        const auto [ro, co] = chained.front();
-        chained.pop();
-        flash_and_enqueue_chained(grid, chained, ro, co);
+    set<pii> flashed;
+    for (;;) {
+        const auto roco = first_outside_intersection(flashing, flashed);
+        if (!roco) break;
+
+        const auto [ro, co] = *roco;
+        flash(grid, flashing, ro, co);
+        flashed.emplace(ro, co);
     }
 
     return grid;
 }
 
 int count_total_flashes(vvi grid, const int steps) {
-    for (int i = 0; i < steps; ++i) grid = evolve(grid);
-    return count_zeros(grid);
+    int ans{};
+    for (int i = 0; i < steps; ++i) {
+        grid = evolve(grid);
+        ans += count_zeros(grid);
+    }
+    return ans;
 }
 
 int main() {
@@ -84,6 +108,6 @@ int main() {
         grid.push_back(xs);
     }
 
-    cout << count_total_flashes(grid, 1) << '\n';
+    cout << count_total_flashes(grid, 100) << '\n';
     return 0;
 }
