@@ -89,13 +89,16 @@ vvi evolve(vvi grid) {
     return grid;
 }
 
-int count_total_flashes(vvi grid, const int steps) {
-    int ans{};
-    for (int i = 0; i < steps; ++i) {
+int first_fully_flashing_generation(vvi grid) {
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+
+    for (int i = 1;; ++i) {
         grid = evolve(grid);
-        ans += count_zeros(grid);
+        if (count_zeros(grid) == H * W) return i;
     }
-    return ans;
+
+    return -1;
 }
 
 int main() {
@@ -108,6 +111,6 @@ int main() {
         grid.push_back(xs);
     }
 
-    cout << count_total_flashes(grid, 100) << '\n';
+    cout << first_fully_flashing_generation(grid) << '\n';
     return 0;
 }
