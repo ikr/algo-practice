@@ -41,32 +41,8 @@ int paths_num(const multimap<string, string> &g) {
     return ans;
 }
 
-int paths_num(const vector<pair<string, string>> &edges,
-              const string &dual_cave) {
-    multimap<string, string> g;
-
-    for (const auto &[u, v] : edges) {
-        g.emplace(u, v);
-        g.emplace(v, u);
-
-        if (u == dual_cave) {
-            g.emplace(u + "_", v);
-        } else if (v == dual_cave) {
-            g.emplace(v + "_", u);
-        }
-    }
-
-    return paths_num(g);
-}
-
-int paths_num(const vector<pair<string, string>> &edges,
-              const set<string> &small_caves) {
-    int ans{}
-}
-
 int main() {
-    vector<pair<string, string>> edges;
-    set<string> small_caves;
+    multimap<string, string> g;
 
     for (string line; getline(cin, line);) {
         const auto parts = split("-", line);
@@ -74,15 +50,10 @@ int main() {
         const auto u = parts[0];
         const auto v = parts[1];
 
-        edges.emplace_back(u, v);
-
-        for (const auto &x : {u, v}) {
-            if (!is_multientrant(x) && x != "start" && x != "end") {
-                small_caves.insert(x);
-            }
-        }
+        g.emplace(u, v);
+        g.emplace(v, u);
     }
 
-    cout << paths_num(edges, small_caves) << '\n';
+    cout << paths_num(g) << '\n';
     return 0;
 }
