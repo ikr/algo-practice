@@ -20,24 +20,29 @@ bool is_multientrant(const string &u) {
 int paths_num(const multimap<string, string> &g) {
     int ans{};
 
-    function<void(set<string>, string)> recur;
-    recur = [&](set<string> nogo, const string &u) {
+    function<void(set<string>, bool, string)> recur;
+    recur = [&](set<string> smalls, const bool can_double_dip,
+                const string &u) {
         if (u == "end") {
             ++ans;
             return;
         }
 
-        if (!is_multientrant(u)) nogo.insert(u);
+        if (!is_multientrant(u)) smalls.insert(u);
 
         const auto [first, last] = g.equal_range(u);
         for (auto it = first; it != last; ++it) {
             const auto v = it->second;
-            if (nogo.count(v)) continue;
-            recur(nogo, v);
+            if (smalls.count(v)) {
+                if (!can_double_dip || v == "start" || v == "end") continue;
+                recur(smalls, false, v);
+            } else {
+                recur(smalls, can_double_dip, v);
+            }
         }
     };
 
-    recur({}, "start");
+    recur({}, true, "start");
     return ans;
 }
 
