@@ -1,31 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
+
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<string> split(const string &delim_regex, const string &s) {
@@ -41,25 +22,52 @@ void line_break() {
 
 static constexpr int AZ = 26;
 
-vi gather_freqs(const string &xs) {
-    vi ans(AZ, 0);
-    for (const auto x : xs) ++ans[inof(x) - inof('A')];
-    return ans;
+struct State final {
+    vector<ll> char_freqs;
+    array<array<ll, AZ>, AZ> pair_freqs;
+
+    State() : char_freqs(AZ, 0), pair_freqs{} {
+        for (auto a = 0; a < AZ; ++a) {
+            for (auto b = 0; b < AZ; ++b) {
+                assert(pair_freqs[a][b] == 0);
+            }
+        }
+    }
+};
+
+constexpr int ctoi(const char x) { return inof(x) - inof('A'); }
+
+State initial_state(const string &xs) {
+    State st;
+
+    for (const auto x : xs) ++st.char_freqs[ctoi(x)];
+
+    for (int i = 1; i < sz(xs); ++i) {
+        ++st.pair_freqs[ctoi(xs[i - 1])][ctoi(xs[i])];
+    }
+
+    return st;
 }
 
-string evolve(const map<pair<char, char>, char> &rules, const string &xs) {
-    string ans;
-    for (int i = 1; i < sz(xs); ++i) {
-        const auto a = xs[i - 1];
-        const auto b = xs[i];
+using Rule = tuple<char, char, char>;
 
-        if (i == 1) ans += a;
-        if (rules.count(pair{a, b})) {
-            ans += rules.at(pair{a, b});
-        }
-        ans += b;
+State evolve(const vector<Rule> &rules, const State &st) {
+    State st_ = st;
+
+    for (const auto [aa, bb, cc] : rules) {
+        const auto a = ctoi(aa);
+        const auto b = ctoi(bb);
+        const auto c = ctoi(cc);
+
+        if (!st.pair_freqs[a][b]) continue;
+
+        st_.pair_freqs[a][b] -= st.pair_freqs[a][b];
+        st_.pair_freqs[a][c] += st.pair_freqs[a][b];
+        st_.pair_freqs[c][b] += st.pair_freqs[a][b];
+        st_.char_freqs[c] += st.pair_freqs[a][b];
     }
-    return ans;
+
+    return st_;
 }
 
 int main() {
@@ -68,16 +76,20 @@ int main() {
     line_break();
     line_break();
 
-    map<pair<char, char>, char> rules;
+    vector<Rule> rules;
 
     for (string line; getline(cin, line);) {
         const auto parts = split(" -> ", line);
-        rules[{parts[0][0], parts[0][1]}] = parts[1][0];
+        rules.emplace_back(parts[0][0], parts[0][1], parts[1][0]);
     }
 
-    for (int i = 0; i < 10; ++i) xs = evolve(rules, xs);
+    auto st = initial_state(xs);
 
-    auto fs = gather_freqs(xs);
+    for (int i = 0; i < 40; ++i) {
+        st = evolve(rules, st);
+    }
+
+    auto fs = st.char_freqs;
     sort(begin(fs), end(fs));
     fs.erase(remove(begin(fs), end(fs), 0), end(fs));
     cout << (fs.back() - fs[0]) << '\n';
