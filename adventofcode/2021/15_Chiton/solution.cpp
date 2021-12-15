@@ -37,6 +37,22 @@ int min_total_risk(const vvi &grid) {
     return dp.back().back();
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 int main() {
     vector<string> lines;
 
@@ -44,13 +60,33 @@ int main() {
         lines.push_back(line);
     }
 
-    vvi grid(sz(lines), vi(sz(lines[0]), -1));
-    for (int ro = 0; ro < sz(lines); ++ro) {
-        for (int co = 0; co < sz(lines[0]); ++co) {
+    const int H = sz(lines);
+    const int W = sz(lines[0]);
+
+    vvi grid(H, vi(W, -1));
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
             grid[ro][co] = inof(lines[ro][co]) - inof('0');
         }
     }
 
-    cout << min_total_risk(grid) << '\n';
+    vvi mega_grid(5 * H, vi(5 * W, -1));
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            const auto local_val = [&](const int x) -> int {
+                if (i + j == 0) return x;
+                const int a = i + j;
+                return ((x - 1 + a) % 9) + 1;
+            };
+
+            for (int ro = 0; ro < H; ++ro) {
+                for (int co = 0; co < W; ++co) {
+                    mega_grid[i * H + ro][j * W + co] = local_val(grid[ro][co]);
+                }
+            }
+        }
+    }
+
+    cout << min_total_risk(mega_grid) << '\n';
     return 0;
 }
