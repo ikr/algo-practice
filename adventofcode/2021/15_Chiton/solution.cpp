@@ -1,49 +1,25 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 using vi = vector<int>;
 using vvi = vector<vi>;
 using pii = pair<int, int>;
 using Tri = pair<int, pii>;
 
+static constexpr int INF = 1e9;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
+
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-static constexpr int INF = 1e9;
-
-int min_total_risk_dp(const vvi &grid) {
-    const int H = sz(grid);
-    const int W = sz(grid[0]);
-
-    vvi dp(H, vi(W, INF));
-    dp[0][0] = 0;
-
-    for (int co = 1; co < W; ++co) {
-        dp[0][co] = dp[0][co - 1] + grid[0][co];
-    }
-
-    for (int ro = 1; ro < H; ++ro) {
-        dp[ro][0] = dp[ro - 1][0] + grid[ro][0];
-    }
-
-    for (int ro = 1; ro < H; ro++) {
-        for (int co = 1; co < W; ++co) {
-            dp[ro][co] = min(dp[ro - 1][co], dp[ro][co - 1]) + grid[ro][co];
-        }
-    }
-
-    return dp.back().back();
-}
 
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
-int min_total_risk_dijlstra(const vvi &grid) {
+int min_total_risk_dijkstra(const vvi &grid) {
     const int H = sz(grid);
     const int W = sz(grid[0]);
 
@@ -77,22 +53,6 @@ int min_total_risk_dijlstra(const vvi &grid) {
     }
 
     return D.back().back();
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
 }
 
 int main() {
@@ -129,8 +89,6 @@ int main() {
         }
     }
 
-    // cerr << mega_grid << endl;
-    cout << min_total_risk_dp(mega_grid) << '\n';
-    cout << min_total_risk_dijlstra(mega_grid) << '\n';
+    cout << min_total_risk_dijkstra(mega_grid) << '\n';
     return 0;
 }
