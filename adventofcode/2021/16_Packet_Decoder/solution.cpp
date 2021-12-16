@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using iter = string::const_iterator;
 
 struct Packet final {
@@ -41,26 +31,31 @@ tuple<int, bool, iter> read_value_chunk(iter i) {
     return tuple{x, keep_reading, i};
 }
 
-pair<vector<int>, iter> read_value(const iter last, iter i) {
-    vector<int> xs;
+pair<string, iter> read_value(const iter last, iter i) {
+    string xs;
     for (; i != last;) {
         const auto [x, keep_reading, i_] = read_value_chunk(i);
         i = i_;
-        xs.push_back(x);
 
-        if (!keep_reading) {
-            while (i != last && *i == '0') ++i;
-            break;
-        }
+        xs += bitset<4>(static_cast<unsigned long>(x)).to_string();
+
+        if (!keep_reading) break;
     }
 
+    cerr << "read_value:" << stoll(xs, nullptr, 2) << endl;
     return {xs, i};
 }
 
-optional<pair<Packet, iter>> read_packet(const iter last, iter i) {
-    if (i == last) return nullopt;
+vector<Packet> read_packets(const iter last, iter i);
+
+static int ans{};
+
+pair<Packet, iter> read_packet(const iter last, iter i) {
+    assert(i != last);
 
     const auto version = read_N<3>(i);
+    ans += version;
+    cerr << "v:" << version << endl;
     i += 3;
 
     const auto type_id = read_N<3>(i);
@@ -79,20 +74,34 @@ optional<pair<Packet, iter>> read_packet(const iter last, iter i) {
 
             const auto xs = string(i, i + l);
             i += l;
-            read_value(cend(xs), cbegin(xs));
-            while (i != last && *i == '0') ++i;
+
+            read_packets(cend(xs), cbegin(xs));
         } else {
             assert(length_type_id == CHUNKS_NUM_LTID);
             const auto n = read_N<11>(i);
             i += 11;
 
-            const auto [xs, it_] = read_value(last, i);
-            i = it_;
-            assert(sz(xs) == n);
+            for (int j = 0; j < n; ++j) {
+                const auto [p, i_] = read_packet(last, i);
+                i = i_;
+            }
         }
     }
 
     return pair{Packet{version}, i};
+}
+
+vector<Packet> read_packets(const iter last, iter i) {
+    vector<Packet> result;
+
+    for (; i != last;) {
+        if (all_of(i, last, [](const char d) { return d == '0'; })) break;
+        const auto [p, i_] = read_packet(last, i);
+        result.push_back(p);
+        i = i_;
+    }
+
+    return result;
 }
 
 string hex_to_bin(const string &xs) {
@@ -112,13 +121,7 @@ int main() {
     const auto bits = hex_to_bin(src);
     cerr << bits << endl;
 
-    for (auto i = cbegin(bits);;) {
-        const auto res = read_packet(cend(bits), i);
-        if (!res) break;
-
-        const auto [p, i_] = *res;
-        i = i_;
-    }
-
+    read_packets(cend(bits), cbegin(bits));
+    cout << "ans:" << ans << '\n';
     return 0;
 }
