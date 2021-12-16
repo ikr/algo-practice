@@ -2,12 +2,26 @@
 using namespace std;
 
 using iter = string::const_iterator;
+using ll = long long;
+
+enum class Opcode {
+    SUM = 0,
+    PROD = 1,
+    MIN = 2,
+    MAX = 3,
+    VAL = 4,
+    GT = 5,
+    LT = 6,
+    EQ = 7
+};
 
 struct Packet final {
     int version;
+    Opcode code;
+    ll value;
+    vector<Packet> sub;
 };
 
-static constexpr int LITERAL_TID = 4;
 static constexpr int TOTAL_LENGTH_LTID = 0;
 static constexpr int CHUNKS_NUM_LTID = 1;
 
@@ -31,7 +45,7 @@ tuple<int, bool, iter> read_value_chunk(iter i) {
     return tuple{x, keep_reading, i};
 }
 
-pair<string, iter> read_value(const iter last, iter i) {
+pair<ll, iter> read_value(const iter last, iter i) {
     string xs;
     for (; i != last;) {
         const auto [x, keep_reading, i_] = read_value_chunk(i);
@@ -42,28 +56,24 @@ pair<string, iter> read_value(const iter last, iter i) {
         if (!keep_reading) break;
     }
 
-    cerr << "read_value:" << stoll(xs, nullptr, 2) << endl;
-    return {xs, i};
+    return {stoll(xs, nullptr, 2), i};
 }
 
 vector<Packet> read_packets(const iter last, iter i);
-
-static int ans{};
 
 pair<Packet, iter> read_packet(const iter last, iter i) {
     assert(i != last);
 
     const auto version = read_N<3>(i);
-    ans += version;
-    cerr << "v:" << version << endl;
     i += 3;
 
     const auto type_id = read_N<3>(i);
     i += 3;
 
-    if (type_id == LITERAL_TID) {
-        const auto [xs, it_] = read_value(last, i);
+    if (type_id == inof(Opcode::VAL)) {
+        const auto [value, it_] = read_value(last, i);
         i = it_;
+        return {Packet{version, Opcode::VAL, value, {}}, i};
     } else { // it's an operator packet
         const auto length_type_id = read_N<1>(i);
         ++i;
@@ -75,20 +85,23 @@ pair<Packet, iter> read_packet(const iter last, iter i) {
             const auto xs = string(i, i + l);
             i += l;
 
-            read_packets(cend(xs), cbegin(xs));
+            return {Packet{version, static_cast<Opcode>(type_id), 0,
+                           read_packets(cend(xs), cbegin(xs))},
+                    i};
         } else {
             assert(length_type_id == CHUNKS_NUM_LTID);
             const auto n = read_N<11>(i);
             i += 11;
 
+            vector<Packet> ps;
             for (int j = 0; j < n; ++j) {
                 const auto [p, i_] = read_packet(last, i);
                 i = i_;
+                ps.push_back(p);
             }
+            return {Packet{version, static_cast<Opcode>(type_id), 0, ps}, i};
         }
     }
-
-    return pair{Packet{version}, i};
 }
 
 vector<Packet> read_packets(const iter last, iter i) {
@@ -114,14 +127,56 @@ string hex_to_bin(const string &xs) {
     return result;
 }
 
+static constexpr ll INF = 1e18;
+
+ll evaluate(const Packet &p) {
+    switch (p.code) {
+    case Opcode::SUM:
+        return accumulate(
+            cbegin(p.sub), cend(p.sub), 0LL,
+            [](const ll agg, const Packet &pp) { return agg + evaluate(pp); });
+    case Opcode::PROD:
+        return accumulate(
+            cbegin(p.sub), cend(p.sub), 1LL,
+            [](const ll agg, const Packet &pp) { return agg * evaluate(pp); });
+    case Opcode::MIN:
+        assert(!p.sub.empty());
+        return accumulate(cbegin(p.sub), cend(p.sub), INF,
+                          [](const ll agg, const Packet &pp) {
+                              return min(agg, evaluate(pp));
+                          });
+    case Opcode::MAX:
+        assert(!p.sub.empty());
+        return accumulate(cbegin(p.sub), cend(p.sub), -INF,
+                          [](const ll agg, const Packet &pp) {
+                              return max(agg, evaluate(pp));
+                          });
+    case Opcode::VAL:
+        return p.value;
+    case Opcode::GT:
+        assert(sz(p.sub) == 2);
+        return evaluate(p.sub[0]) > evaluate(p.sub[1]) ? 1 : 0;
+    case Opcode::LT:
+        assert(sz(p.sub) == 2);
+        return evaluate(p.sub[0]) < evaluate(p.sub[1]) ? 1 : 0;
+    case Opcode::EQ:
+        assert(sz(p.sub) == 2);
+        return evaluate(p.sub[0]) == evaluate(p.sub[1]) ? 1 : 0;
+    default:
+        cerr << "oc:" << inof(p.code) << endl;
+        assert(false && "Impossible opcode");
+        return -1;
+    }
+}
+
 int main() {
     string src;
     cin >> src;
 
     const auto bits = hex_to_bin(src);
-    cerr << bits << endl;
 
-    read_packets(cend(bits), cbegin(bits));
-    cout << "ans:" << ans << '\n';
+    const auto ps = read_packets(cend(bits), cbegin(bits));
+    assert(sz(ps) == 1);
+    cout << evaluate(ps[0]) << '\n';
     return 0;
 }
