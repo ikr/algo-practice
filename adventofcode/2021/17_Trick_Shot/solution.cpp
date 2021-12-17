@@ -28,8 +28,24 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 using ll = long long;
 using pii = pair<int, int>;
+
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
@@ -58,27 +74,61 @@ optional<int> find_n(const int d) {
     return nullopt;
 }
 
-int highest_y(const pii rx, const pii ry) {
+int possible_velocities_num(const pii rx, const pii ry) {
     const auto [x_lo, x_hi] = rx;
     const auto [y_lo, y_hi] = ry;
 
     int max_vy = -1;
+    set<pii> ans;
 
+    // Ballistic trajectory
     for (auto x = x_lo; x <= x_hi; ++x) {
         const auto vx = find_n(x);
         if (!vx) continue;
         const auto t_lo = *vx;
 
         for (auto y = y_lo; y <= y_hi; ++y) {
-            for (auto t = t_lo; t < 1000; ++t) {
+            for (auto t = t_lo; t < 400; ++t) {
                 const auto y0 = y + t * (t + 1) / 2;
+                if (y0 == 1) cerr << "HERE\n";
                 const auto vy = find_n(y0);
-                if (vy) max_vy = max(max_vy, *vy);
+                if (vy) {
+                    max_vy = max(max_vy, *vy);
+                    ans.emplace(*vx, *vy);
+                }
             }
         }
     }
 
-    return max_vy * (max_vy + 1) / 2;
+    // Direct shot trajectory
+    for (int vx0 = 0; vx0 <= x_hi; ++vx0) {
+        for (int vy0 = 0; vy0 >= y_lo; --vy0) {
+            int vx{vx0};
+            int vy{vy0};
+            int x{vx};
+            int y{vy};
+            bool hit{false};
+
+            while (x <= x_hi && y >= y_lo) {
+                if (x >= x_lo && y <= y_hi) {
+                    hit = true;
+                    break;
+                }
+
+                if (vx) --vx;
+                --vy;
+
+                x += vx;
+                y += vy;
+            }
+
+            if (hit) ans.emplace(vx0, vy0);
+        }
+    }
+
+    cerr << "h_max:" << max_vy * (max_vy + 1) / 2 << endl;
+    cerr << ans << endl;
+    return sz(ans);
 }
 
 int main() {
@@ -89,6 +139,6 @@ int main() {
     const auto rx = parse_range(parts[0].substr(X_EQ.size()));
     const auto ry = parse_range(parts[1].substr(Y_EQ.size()));
 
-    cout << highest_y(rx, ry) << '\n';
+    cout << possible_velocities_num(rx, ry) << '\n';
     return 0;
 }
