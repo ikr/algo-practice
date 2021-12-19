@@ -1,10 +1,24 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 using vi = vector<int>;
 using vvi = vector<vi>;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -20,6 +34,8 @@ int max_visited(const vector<string> &grid) {
 
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
+            if (grid[ro][co] == '#' || dp[ro][co] == 0) continue;
+
             if (co < W - 1 && grid[ro][co + 1] != '#') {
                 dp[ro][co + 1] = max(dp[ro][co + 1], dp[ro][co] + 1);
             }
