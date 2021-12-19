@@ -20,10 +20,13 @@ findExploding(explodingBox, 0, lines[0])
 console.info('Exploding pair:')
 console.dir(explodingBox.value)
 
+const lnei = makeFindNei([0, 1])
+const rnei = makeFindNei([1, 0])
+
 {
     const resultContanier = {pair: null, index: -1}
     assert(explodingBox.value !== null)
-    findContainer(resultContanier, explodingBox.value, lines[0])
+    findContainer(resultContanier, x => x === explodingBox.value, lines[0])
     console.info('Exploding pair container:')
     console.dir(resultContanier)
 }
@@ -44,6 +47,24 @@ console.dir(explodingBox.value)
     rnei(resultContanier, explodingBox.value, explodingSeenBox, lines[0])
     console.info('rnei container:')
     console.dir(resultContanier)
+}
+
+function explode(n) {
+    const explodingBox = {value: null}
+    findExploding(explodingBox, 0, n)
+    assert(explodingBox.value !== null)
+
+    const A = explodingBox.value[0]
+    const B = explodingBox.value[1]
+
+    const explodingPairContanier = {pair: null, index: -1}
+    findContainer(explodingPairContanier, x => x === explodingBox.value, n)
+
+    const lneiContanier = {pair: null, index: -1}
+    lnei(lneiContanier, explodingBox.value, {value: false}, n)
+
+    const rneiContanier = {pair: null, index: -1}
+    rnei(rneiContanier, explodingBox.value, {value: false}, n)
 }
 
 function traverseInOrder(bufBox, n) {
@@ -87,94 +108,41 @@ function findExploding(resultBox, level, n) {
     findExploding(resultBox, level + 1, n[1])
 }
 
-function findContainer(resultContanier, needle, n) {
+function findContainer(resultContanier, pred, n) {
     if (resultContanier.pair !== null || Number.isInteger(n)) return
 
-    if (n[0] == needle) {
-        resultContanier.pair = n
-        resultContanier.index = 0
-        return;
-    }
-
-    findContainer(resultContanier, needle, n[0])
-
-    if (n[1] == needle) {
-        resultContanier.pair = n
-        resultContanier.index = 1
-        return;
-    }
-
-    findContainer(resultContanier, needle, n[1])
-}
-
-// ResultContainer is { pair: Array, index: 0 | 1 }
-function lnei(resultContanier, explodingArr, explodingSeenBox, n) {
-    assert(Array.isArray(n))
-    if (explodingSeenBox.value) return
-
-    if (n[0] === explodingArr) {
-        explodingSeenBox.value = true
-        return
-    }
-
-    if (Number.isInteger(n[0])) {
-        if (!explodingSeenBox.value) {
+    for (let i of [0, 1]) {
+        if (pred(n[i])) {
             resultContanier.pair = n
-            resultContanier.index = 0
+            resultContanier.index = i
+            return;
         }
-    } else {
-        assert(Array.isArray(n[0]))
-        lnei(resultContanier, explodingArr, explodingSeenBox, n[0])
-    }
 
-    if (n[1] === explodingArr) {
-        explodingSeenBox.value = true
-        return
-    }
-
-    if (Number.isInteger(n[1])) {
-        if (!explodingSeenBox.value) {
-            resultContanier.pair = n
-            resultContanier.index = 1
-        }
-      } else {
-        assert(Array.isArray(n[1]))
-        lnei(resultContanier, explodingArr, explodingSeenBox, n[1])
+        findContainer(resultContanier, pred, n[i])
     }
 }
 
 // ResultContainer is { pair: Array, index: 0 | 1 }
-function rnei(resultContanier, explodingArr, explodingSeenBox, n) {
-    assert(Array.isArray(n))
-    if (explodingSeenBox.value) return
+function makeFindNei(indices) {
+    return function recur(resultContanier, explodingArr, explodingSeenBox, n) {
+        assert(Array.isArray(n))
+        if (explodingSeenBox.value) return
 
-    if (n[1] === explodingArr) {
-        explodingSeenBox.value = true
-        return
-    }
+        for (let i of indices) {
+            if (n[i] === explodingArr) {
+                explodingSeenBox.value = true
+                return
+            }
 
-    if (Number.isInteger(n[1])) {
-        if (!explodingSeenBox.value) {
-            resultContanier.pair = n
-            resultContanier.index = 1
+            if (Number.isInteger(n[i])) {
+                if (!explodingSeenBox.value) {
+                    resultContanier.pair = n
+                    resultContanier.index = i
+                }
+            } else {
+                assert(Array.isArray(n[i]))
+                recur(resultContanier, explodingArr, explodingSeenBox, n[i])
+            }
         }
-    } else {
-        assert(Array.isArray(n[1]))
-        rnei(resultContanier, explodingArr, explodingSeenBox, n[1])
-    }
-
-    if (n[0] === explodingArr) {
-        explodingSeenBox.value = true
-        return
-    }
-
-    if (Number.isInteger(n[0])) {
-        if (!explodingSeenBox.value) {
-            resultContanier.pair = n
-            resultContanier.index = 0
-        }
-      } else {
-        assert(Array.isArray(n[0]))
-        rnei(resultContanier, explodingArr, explodingSeenBox, n[0])
     }
 }
