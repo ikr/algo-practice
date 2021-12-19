@@ -23,6 +23,14 @@ console.dir(explodingBox.value)
 {
     const resultContanier = {pair: null, index: -1}
     assert(explodingBox.value !== null)
+    findContainer(resultContanier, explodingBox.value, lines[0])
+    console.info('Exploding pair container:')
+    console.dir(resultContanier)
+}
+
+{
+    const resultContanier = {pair: null, index: -1}
+    assert(explodingBox.value !== null)
     const explodingSeenBox = {value: false}
     lnei(resultContanier, explodingBox.value, explodingSeenBox, lines[0])
     console.info('lnei container:')
@@ -77,6 +85,26 @@ function findExploding(resultBox, level, n) {
 
     findExploding(resultBox, level + 1, n[0])
     findExploding(resultBox, level + 1, n[1])
+}
+
+function findContainer(resultContanier, needle, n) {
+    if (resultContanier.pair !== null || Number.isInteger(n)) return
+
+    if (n[0] == needle) {
+        resultContanier.pair = n
+        resultContanier.index = 0
+        return;
+    }
+
+    findContainer(resultContanier, needle, n[0])
+
+    if (n[1] == needle) {
+        resultContanier.pair = n
+        resultContanier.index = 1
+        return;
+    }
+
+    findContainer(resultContanier, needle, n[1])
 }
 
 // ResultContainer is { pair: Array, index: 0 | 1 }
