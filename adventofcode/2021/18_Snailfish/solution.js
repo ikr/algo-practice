@@ -20,13 +20,23 @@ findExploding(explodingBox, 0, lines[0])
 console.info('Exploding pair:')
 console.dir(explodingBox.value)
 
+{
+    const resultContanier = {pair: null, index: -1}
+    assert(explodingBox.value !== null)
+    const explodingSeenBox = {value: false}
+    lnei(resultContanier, explodingBox.value, explodingSeenBox, lines[0])
+    console.info('lnei container:')
+    console.dir(resultContanier)
+}
 
-const resultContanier = {pair: null, index: -1}
-assert(explodingBox.value !== null)
-const explodingSeenBox = {value: false}
-lnei(resultContanier, explodingBox.value, explodingSeenBox, lines[0])
-console.info('lnei container:')
-console.dir(resultContanier)
+{
+    const resultContanier = {pair: null, index: -1}
+    assert(explodingBox.value !== null)
+    const explodingSeenBox = {value: false}
+    rnei(resultContanier, explodingBox.value, explodingSeenBox, lines[0])
+    console.info('rnei container:')
+    console.dir(resultContanier)
+}
 
 function traverseInOrder(bufBox, n) {
     assert(typeof bufBox.value === 'string')
@@ -102,5 +112,41 @@ function lnei(resultContanier, explodingArr, explodingSeenBox, n) {
       } else {
         assert(Array.isArray(n[1]))
         lnei(resultContanier, explodingArr, explodingSeenBox, n[1])
+    }
+}
+
+// ResultContainer is { pair: Array, index: 0 | 1 }
+function rnei(resultContanier, explodingArr, explodingSeenBox, n) {
+    assert(Array.isArray(n))
+    if (explodingSeenBox.value) return
+
+    if (n[1] === explodingArr) {
+        explodingSeenBox.value = true
+        return
+    }
+
+    if (Number.isInteger(n[1])) {
+        if (!explodingSeenBox.value) {
+            resultContanier.pair = n
+            resultContanier.index = 1
+        }
+    } else {
+        assert(Array.isArray(n[1]))
+        rnei(resultContanier, explodingArr, explodingSeenBox, n[1])
+    }
+
+    if (n[0] === explodingArr) {
+        explodingSeenBox.value = true
+        return
+    }
+
+    if (Number.isInteger(n[0])) {
+        if (!explodingSeenBox.value) {
+            resultContanier.pair = n
+            resultContanier.index = 0
+        }
+      } else {
+        assert(Array.isArray(n[0]))
+        rnei(resultContanier, explodingArr, explodingSeenBox, n[0])
     }
 }
