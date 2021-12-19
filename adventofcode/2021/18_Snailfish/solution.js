@@ -49,7 +49,18 @@ const rnei = makeFindNei([1, 0])
     console.dir(resultContanier)
 }
 
-function explode(n) {
+function clone(x) {
+    return JSON.parse(JSON.stringify(x))
+}
+
+{
+    console.info('Post-explode:')
+    console.info(JSON.stringify(explode(lines[0])))
+}
+
+function explode(src) {
+    const n = clone(src)
+
     const explodingBox = {value: null}
     findExploding(explodingBox, 0, n)
     assert(explodingBox.value !== null)
@@ -65,6 +76,18 @@ function explode(n) {
 
     const rneiContanier = {pair: null, index: -1}
     rnei(rneiContanier, explodingBox.value, {value: false}, n)
+
+    explodingPairContanier.pair[explodingPairContanier.index] = 0
+
+    if (lneiContanier.pair !== null) {
+        lneiContanier.pair[lneiContanier.index] += A
+    }
+
+    if (rneiContanier.pair !== null) {
+        rneiContanier.pair[rneiContanier.index] += B
+    }
+
+    return n
 }
 
 function traverseInOrder(bufBox, n) {
