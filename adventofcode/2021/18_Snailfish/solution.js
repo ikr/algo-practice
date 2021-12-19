@@ -9,53 +9,44 @@ const lines = fullInput
       .filter(x => x.length > 0)
       .map(JSON.parse)
 
-const bufBox = {value: ''}
-traverseInOrder(bufBox, lines[0])
-console.dir(bufBox)
-console.info(`Max level: ${maxLevel(0, lines[0])}`)
-
-const explodingBox = {value: null}
-findExploding(explodingBox, 0, lines[0])
-
-console.info('Exploding pair:')
-console.dir(explodingBox.value)
-
 const lnei = makeFindNei([0, 1])
 const rnei = makeFindNei([1, 0])
-
-{
-    const resultContanier = {pair: null, index: -1}
-    assert(explodingBox.value !== null)
-    findContainer(resultContanier, x => x === explodingBox.value, lines[0])
-    console.info('Exploding pair container:')
-    console.dir(resultContanier)
-}
-
-{
-    const resultContanier = {pair: null, index: -1}
-    assert(explodingBox.value !== null)
-    const explodingSeenBox = {value: false}
-    lnei(resultContanier, explodingBox.value, explodingSeenBox, lines[0])
-    console.info('lnei container:')
-    console.dir(resultContanier)
-}
-
-{
-    const resultContanier = {pair: null, index: -1}
-    assert(explodingBox.value !== null)
-    const explodingSeenBox = {value: false}
-    rnei(resultContanier, explodingBox.value, explodingSeenBox, lines[0])
-    console.info('rnei container:')
-    console.dir(resultContanier)
-}
 
 function clone(x) {
     return JSON.parse(JSON.stringify(x))
 }
 
-{
-    console.info('Post-explode:')
-    console.info(JSON.stringify(explode(lines[0])))
+console.info("Reduced SF num:")
+console.info(JSON.stringify(reduce_snailfish_number(lines[0])))
+
+function reduce_snailfish_number(src) {
+    let n = clone(src)
+    for (;;) {
+        if (maxLevel(0, n) > 4) {
+            n = explode(n)
+            continue
+        }
+
+        const splitnumContanier = {pair: null, index: -1}
+        findContainer(splitnumContanier, x => Number.isInteger(x) && x > 9, n)
+
+        if (splitnumContanier.pair !== null) {
+            splitnumContanier.pair[splitnumContanier.index] = split_number(
+                splitnumContanier.pair[splitnumContanier.index]
+            )
+            continue
+        }
+
+        break
+    }
+    return n
+}
+
+function split_number(x) {
+    assert(Number.isInteger(x))
+    const a = Math.floor(x / 2)
+    const b = x - a
+    return [a, b]
 }
 
 function explode(src) {
@@ -138,7 +129,7 @@ function findContainer(resultContanier, pred, n) {
         if (pred(n[i])) {
             resultContanier.pair = n
             resultContanier.index = i
-            return;
+            return
         }
 
         findContainer(resultContanier, pred, n[i])
