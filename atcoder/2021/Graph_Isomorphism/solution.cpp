@@ -1,3 +1,4 @@
+#include <atcoder/dsu>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -20,8 +21,23 @@ vi degrees(const int n, const vector<pii> &es) {
     return ans;
 }
 
+vi component_sizes(const int n, const vector<pii> &es) {
+    atcoder::dsu dsu(n);
+    for (const auto [u, v] : es) {
+        dsu.merge(u, v);
+    }
+
+    const auto cs = dsu.groups();
+    vi ans(sz(cs), 0);
+    transform(cbegin(cs), cend(cs), begin(ans),
+              [](const auto &c) { return sz(c); });
+    sort(begin(ans), end(ans));
+    return ans;
+}
+
 bool are_same(const int n, const vector<pii> &e1, const vector<pii> &e2) {
-    return degrees(n, e1) == degrees(n, e2);
+    return component_sizes(n, e1) == component_sizes(n, e2) &&
+           degrees(n, e1) == degrees(n, e2);
 }
 
 int main() {
