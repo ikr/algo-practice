@@ -16,8 +16,52 @@ function clone(x) {
     return JSON.parse(JSON.stringify(x))
 }
 
-console.info("Reduced SF num:")
-console.info(JSON.stringify(reduce_snailfish_number(lines[0])))
+console.info("SF nums sum:")
+console.info(JSON.stringify(snailfish_numbers_sum(lines)))
+
+console.info("SF nums sum magnitude:")
+console.info(JSON.stringify(magnitude(snailfish_numbers_sum(lines))))
+
+assert.deepEqual(explode([[[[[9,8],1],2],3],4]), [[[[0,9],2],3],4])
+assert.deepEqual(explode([7,[6,[5,[4,[3,2]]]]]), [7,[6,[5,[7,0]]]])
+assert.deepEqual(explode([[6,[5,[4,[3,2]]]],1]), [[6,[5,[7,0]]],3])
+assert.deepEqual(explode([[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]), [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]])
+assert.deepEqual(explode([[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]), [[3,[2,[8,0]]],[9,[5,[7,0]]]])
+
+assert.deepEqual(
+    reduce_snailfish_number([[[[[4,3],4],4],[7,[[8,4],9]]], [1,1]]),
+    [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
+)
+
+assert.deepEqual(
+    reduce_snailfish_number(
+        [
+            [[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],
+            [7,[5,[[3,8],[1,4]]]]
+        ]
+    ),
+    [[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]
+)
+
+function snailfish_numbers_sum(ns) {
+    let x = ns[0]
+    // console.info(`  ${JSON.stringify(x)}`)
+
+    for (let i = 1; i < ns.length; ++i) {
+        // console.info(`+ ${JSON.stringify(ns[i])}`)
+        x = reduce_snailfish_number([x, ns[i]])
+        // console.info(`= ${JSON.stringify(x)}\n`)
+    }
+
+    return x
+}
+
+function magnitude(n) {
+    if (Number.isInteger(n)) return n
+    assert(Array.isArray(n))
+    assert(n.length == 2)
+    return 3 * magnitude(n[0]) + 2 * magnitude(n[1])
+}
 
 function reduce_snailfish_number(src) {
     let n = clone(src)
@@ -28,7 +72,7 @@ function reduce_snailfish_number(src) {
         }
 
         const splitnumContanier = {pair: null, index: -1}
-        findContainer(splitnumContanier, x => Number.isInteger(x) && x > 9, n)
+        findContainer(splitnumContanier, x => (Number.isInteger(x) && x > 9), n)
 
         if (splitnumContanier.pair !== null) {
             splitnumContanier.pair[splitnumContanier.index] = split_number(
