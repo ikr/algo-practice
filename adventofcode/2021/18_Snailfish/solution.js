@@ -22,6 +22,9 @@ console.info(JSON.stringify(snailfish_numbers_sum(lines)))
 console.info("SF nums sum magnitude:")
 console.info(JSON.stringify(magnitude(snailfish_numbers_sum(lines))))
 
+assert.strictEqual(magnitude([[1,2],[[3,4],5]]), 143)
+assert.strictEqual(magnitude([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]), 3488)
+
 assert.deepEqual(explode([[[[[9,8],1],2],3],4]), [[[[0,9],2],3],4])
 assert.deepEqual(explode([7,[6,[5,[4,[3,2]]]]]), [7,[6,[5,[7,0]]]])
 assert.deepEqual(explode([[6,[5,[4,[3,2]]]],1]), [[6,[5,[7,0]]],3])
