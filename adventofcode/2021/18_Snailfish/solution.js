@@ -36,15 +36,19 @@ assert.deepEqual(
     [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
 )
 
-assert.deepEqual(
-    reduce_snailfish_number(
-        [
-            [[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],
-            [7,[5,[[3,8],[1,4]]]]
-        ]
-    ),
-    [[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]
-)
+assert.deepEqual(explode([[1,[5,[7,[2,5]]]],[[[[4,6],3],2],4]]), [[1,[5,[9,0]]],[[[[9,6],3],2],4]])
+assert.deepEqual(explode([[1,[5,[9,0]]],[[[[9,6],3],2],4]]), [[1,[5,[9,9]]],[[[0,9],2],4]])
+assert.deepEqual(explode([1,[2,[3,[4,[5,6]]]]]), [1,[2,[3,[9,0]]]])
+
+// assert.deepEqual(
+//     reduce_snailfish_number(
+//         [
+//             [[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],
+//             [7,[5,[[3,8],[1,4]]]]
+//         ]
+//     ),
+//     [[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]
+// )
 
 function snailfish_numbers_sum(ns) {
     let x = ns[0]
@@ -62,7 +66,7 @@ function snailfish_numbers_sum(ns) {
 function magnitude(n) {
     if (Number.isInteger(n)) return n
     assert(Array.isArray(n))
-    assert(n.length == 2)
+    assert(n.length === 2)
     return 3 * magnitude(n[0]) + 2 * magnitude(n[1])
 }
 
@@ -70,7 +74,9 @@ function reduce_snailfish_number(src) {
     let n = clone(src)
     for (;;) {
         if (maxLevel(0, n) > 4) {
-            n = explode(n)
+            const n_ = explode(n);
+            // console.info(`EXPL ${JSON.stringify(n)} → ${JSON.stringify(n_)}`)
+            n = n_
             continue
         }
 
@@ -78,9 +84,14 @@ function reduce_snailfish_number(src) {
         findContainer(splitnumContanier, x => (Number.isInteger(x) && x > 9), n)
 
         if (splitnumContanier.pair !== null) {
+            // const snap0 = JSON.stringify(splitnumContanier.pair[splitnumContanier.index]);
+            // const snap1 = JSON.stringify(n);
+
             splitnumContanier.pair[splitnumContanier.index] = split_number(
                 splitnumContanier.pair[splitnumContanier.index]
             )
+
+            // console.info(`SPLT ${snap0} ${snap1} → ${JSON.stringify(n)}`)
             continue
         }
 
@@ -103,8 +114,12 @@ function explode(src) {
     findExploding(explodingBox, 0, n)
     assert(explodingBox.value !== null)
 
+    // console.info(`Exploding the ${JSON.stringify(explodingBox.value)}`)
+
     const A = explodingBox.value[0]
+    assert(Number.isInteger(A))
     const B = explodingBox.value[1]
+    assert(Number.isInteger(B))
 
     const explodingPairContanier = {pair: null, index: -1}
     findContainer(explodingPairContanier, x => x === explodingBox.value, n)
