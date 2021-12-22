@@ -12,7 +12,8 @@ const lines = fullInput
 const lnei = makeFindNei([0, 1])
 const rnei = makeFindNei([1, 0])
 
-console.info(JSON.stringify(magnitude(snailfish_numbers_sum(lines))))
+// console.info(magnitude(snailfish_numbers_sum(lines)))
+console.info(max_pairing_magnitude(lines))
 
 function clone(x) {
     return JSON.parse(JSON.stringify(x))
@@ -24,6 +25,17 @@ function snailfish_numbers_sum(ns) {
         x = reduce_snailfish_number([x, ns[i]])
     }
     return x
+}
+
+function max_pairing_magnitude(ns) {
+    let ans = 0
+    for (let i = 0; i < ns.length; ++i) {
+        for (let j = 0; j < ns.length; ++j) {
+            if (i == j) continue
+            ans = Math.max(ans, magnitude(snailfish_numbers_sum([clone(ns[i]), clone(ns[j])])))
+        }
+    }
+    return ans
 }
 
 function magnitude(n) {
