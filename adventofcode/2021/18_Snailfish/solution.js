@@ -12,6 +12,14 @@ const lines = fullInput
 const lnei = makeFindNei([0, 1])
 const rnei = makeFindNei([1, 0])
 
+lines.forEach(n => {
+    const src = JSON.stringify(n)
+
+    const bufBox = {value: ''}
+    traverseInOrder(bufBox, n)
+    assert.strictEqual(bufBox.value, src)
+})
+
 function clone(x) {
     return JSON.parse(JSON.stringify(x))
 }
@@ -40,15 +48,16 @@ assert.deepEqual(explode([[1,[5,[7,[2,5]]]],[[[[4,6],3],2],4]]), [[1,[5,[9,0]]],
 assert.deepEqual(explode([[1,[5,[9,0]]],[[[[9,6],3],2],4]]), [[1,[5,[9,9]]],[[[0,9],2],4]])
 assert.deepEqual(explode([1,[2,[3,[4,[5,6]]]]]), [1,[2,[3,[9,0]]]])
 
-// assert.deepEqual(
-//     reduce_snailfish_number(
-//         [
-//             [[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],
-//             [7,[5,[[3,8],[1,4]]]]
-//         ]
-//     ),
-//     [[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]
-// )
+assert.deepEqual(
+    reduce_snailfish_number(
+        [
+            [[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],
+            [7,[5,[[3,8],[1,4]]]]
+        ]
+    ),
+    [[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]],
+    'The first non-trivial reduction I saw failing'
+)
 
 function snailfish_numbers_sum(ns) {
     let x = ns[0]
