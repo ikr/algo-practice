@@ -12,66 +12,17 @@ const lines = fullInput
 const lnei = makeFindNei([0, 1])
 const rnei = makeFindNei([1, 0])
 
-lines.forEach(n => {
-    const src = JSON.stringify(n)
-
-    const bufBox = {value: ''}
-    traverseInOrder(bufBox, n)
-    assert.strictEqual(bufBox.value, src)
-})
+console.info(JSON.stringify(magnitude(snailfish_numbers_sum(lines))))
 
 function clone(x) {
     return JSON.parse(JSON.stringify(x))
 }
 
-console.info("SF nums sum:")
-console.info(JSON.stringify(snailfish_numbers_sum(lines)))
-
-console.info("SF nums sum magnitude:")
-console.info(JSON.stringify(magnitude(snailfish_numbers_sum(lines))))
-
-assert.strictEqual(magnitude([[1,2],[[3,4],5]]), 143)
-assert.strictEqual(magnitude([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]), 3488)
-
-assert.deepEqual(explode([[[[[9,8],1],2],3],4]), [[[[0,9],2],3],4])
-assert.deepEqual(explode([[[[[1,1],[1,1]],2],3],4]), [[[[0,[2,1]],2],3],4])
-assert.deepEqual(explode([7,[6,[5,[4,[3,2]]]]]), [7,[6,[5,[7,0]]]])
-assert.deepEqual(explode([[6,[5,[4,[3,2]]]],1]), [[6,[5,[7,0]]],3])
-assert.deepEqual(explode([[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]), [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]])
-assert.deepEqual(explode([[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]), [[3,[2,[8,0]]],[9,[5,[7,0]]]])
-
-assert.deepEqual(
-    reduce_snailfish_number([[[[[4,3],4],4],[7,[[8,4],9]]], [1,1]]),
-    [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
-)
-
-assert.deepEqual(reduce_snailfish_number([45,1]), [[[[5,6],[5,6]],[[5,6],[6,6]]],1])
-
-assert.deepEqual(explode([[1,[5,[7,[2,5]]]],[[[[4,6],3],2],4]]), [[1,[5,[9,0]]],[[[[9,6],3],2],4]])
-assert.deepEqual(explode([[1,[5,[9,0]]],[[[[9,6],3],2],4]]), [[1,[5,[9,9]]],[[[0,9],2],4]])
-assert.deepEqual(explode([1,[2,[3,[4,[5,6]]]]]), [1,[2,[3,[9,0]]]])
-
-assert.deepEqual(
-    reduce_snailfish_number(
-        [
-            [[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],
-            [7,[5,[[3,8],[1,4]]]]
-        ]
-    ),
-    [[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]],
-    'The first non-trivial reduction I saw failing'
-)
-
 function snailfish_numbers_sum(ns) {
     let x = ns[0]
-    // console.info(`  ${JSON.stringify(x)}`)
-
     for (let i = 1; i < ns.length; ++i) {
-        // console.info(`+ ${JSON.stringify(ns[i])}`)
         x = reduce_snailfish_number([x, ns[i]])
-        // console.info(`= ${JSON.stringify(x)}\n`)
     }
-
     return x
 }
 
@@ -86,9 +37,7 @@ function reduce_snailfish_number(src) {
     let n = clone(src)
     for (;;) {
         if (maxLevel(0, n) > 4) {
-            const n_ = explode(n);
-            // console.info(`EXPL ${JSON.stringify(n)} → ${JSON.stringify(n_)}`)
-            n = n_
+            n = explode(n);
             continue
         }
 
@@ -96,14 +45,9 @@ function reduce_snailfish_number(src) {
         findContainer(splitnumContanier, x => (Number.isInteger(x) && x > 9), n)
 
         if (splitnumContanier.pair !== null) {
-            // const snap0 = JSON.stringify(splitnumContanier.pair[splitnumContanier.index]);
-            // const snap1 = JSON.stringify(n);
-
             splitnumContanier.pair[splitnumContanier.index] = split_number(
                 splitnumContanier.pair[splitnumContanier.index]
             )
-
-            // console.info(`SPLT ${snap0} ${snap1} → ${JSON.stringify(n)}`)
             continue
         }
 
@@ -123,8 +67,6 @@ function explode(n) {
     const explodingBox = {value: null}
     findExploding(explodingBox, 0, n)
     assert(explodingBox.value !== null)
-
-    // console.info(`Exploding the ${JSON.stringify(explodingBox.value)}`)
 
     const A = explodingBox.value[0]
     assert(Number.isInteger(A))
@@ -150,24 +92,6 @@ function explode(n) {
 
     explodingPairContanier.pair[explodingPairContanier.index] = 0
     return n
-}
-
-function traverseInOrder(bufBox, n) {
-    assert(typeof bufBox.value === 'string')
-
-    if (Number.isInteger(n)) {
-        bufBox.value += n
-        return
-    }
-
-    assert(Array.isArray(n))
-    assert(n.length === 2)
-
-    bufBox.value += '['
-    traverseInOrder(bufBox, n[0])
-    bufBox.value += ','
-    traverseInOrder(bufBox, n[1])
-    bufBox.value += ']'
 }
 
 function maxLevel(level, n) {
