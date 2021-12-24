@@ -71,16 +71,17 @@ Tri apply_transformation(const Transform t, const Tri &p) {
     const auto [x, y, z] = as_tuple(p);
 
     switch (t.z) {
-    case ZDir::PX:
-    case ZDir::NX:
-    case ZDir::PY:
-    case ZDir::NY:
-    case ZDir::PZ:
-    case ZDir::NZ:
+    case ZDir::PX: //  z → x, x → y, y → z
+    case ZDir::NX: // z → -x, x → z, y → y
+    case ZDir::PY: //  z → y, x → z, y → x
+    case ZDir::NY: // z → -y, x → x, y → z
+    case ZDir::PZ: //  z → z, x → x, y → y
+    case ZDir::NZ: // z → -z, x → y, y → x
     default:
         assert(false && "Impossible orientation of z-axis");
         return {};
     }
+}
 }
 
 bool is_scanner_sep_line(const string &line) {
