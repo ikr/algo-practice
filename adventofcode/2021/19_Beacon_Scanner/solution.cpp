@@ -35,6 +35,53 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using Tri = array<int, 3>;
+using Duo = pair<int, int>;
+
+constexpr tuple<int, int, int> as_tuple(const Tri &t) {
+    return {t[0], t[1], t[2]};
+}
+
+enum class ZDir { PX, NX, PY, NY, PZ, NZ };
+enum class XYRot { D0, D90, D180, D270 };
+
+struct Transform final {
+    ZDir z;
+    XYRot xy;
+};
+
+Duo apply_rotation(const XYRot &r, const Duo xy) {
+    const auto [x, y] = xy;
+
+    switch (r) {
+    case XYRot::D0:
+        return xy;
+    case XYRot::D90:
+        return {-y, x};
+    case XYRot::D180:
+        return {-x, -y};
+    case XYRot::D270:
+        return {y, -x};
+    default:
+        assert(false && "Impossible rotation");
+        return {};
+    }
+}
+
+Tri apply_transformation(const Transform t, const Tri &p) {
+    const auto [x, y, z] = as_tuple(p);
+
+    switch (t.z) {
+    case ZDir::PX:
+    case ZDir::NX:
+    case ZDir::PY:
+    case ZDir::NY:
+    case ZDir::PZ:
+    case ZDir::NZ:
+    default:
+        assert(false && "Impossible orientation of z-axis");
+        return {};
+    }
+}
 
 bool is_scanner_sep_line(const string &line) {
     return line.find("--- scanner ") == 0;
@@ -68,16 +115,6 @@ int main() {
 
     assert(!curr.empty());
     data.push_back(curr);
-
-    cerr << "Read measurements of " << sz(data) << " scanners\n";
-    for (const auto &ds : data) {
-        cerr << sz(ds) << ' ';
-    }
-    cerr << '\n';
-
-    for (const auto &ds : data) {
-        cerr << ds << '\n';
-    }
 
     return 0;
 }
