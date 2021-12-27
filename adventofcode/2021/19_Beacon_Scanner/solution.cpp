@@ -28,19 +28,10 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+static constexpr int MATCH_THERSHOLD = 12;
 
 using Tri = array<int, 3>;
 using Duo = pair<int, int>;
-
-constexpr tuple<int, int, int> as_tuple(const Tri &t) {
-    return {t[0], t[1], t[2]};
-}
-
 enum class ZDir { PX, NX, PY, NY, PZ, NZ };
 enum class Rot2d { D0, D90, D180, D270 };
 
@@ -48,6 +39,47 @@ struct Rot3d final {
     ZDir z;
     Rot2d xy;
 };
+
+struct Transf final {
+    Tri o_src;
+    Tri o_trg;
+    Rot3d r;
+};
+
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+constexpr tuple<int, int, int> as_tuple(const Tri &t) {
+    return {t[0], t[1], t[2]};
+}
+
+Tri negate_t(Tri t) {
+    transform(cbegin(t), cend(t), begin(t), [](const int a) { return -a; });
+    return t;
+}
+
+Tri operator+(Tri t0, const Tri &t1) {
+    transform(cbegin(t0), cend(t0), cbegin(t1), begin(t0),
+              [](const int a, const int b) { return a + b; });
+    return t0;
+}
+
+vector<Rot3d> all_possible_rotations() {
+    vector<Rot3d> result;
+
+    for (int i = inof(ZDir::PX); i <= inof(ZDir::NZ); ++i) {
+        for (int j = inof(Rot2d::D0); j <= inof(Rot2d::D270); ++j) {
+            result.push_back(
+                Rot3d{static_cast<ZDir>(i), static_cast<Rot2d>(j)});
+        }
+    }
+
+    assert(sz(result) == 24);
+    return result;
+}
 
 Duo apply_rotation(const Rot2d &r, const Duo xy) {
     const auto [x, y] = xy;
@@ -111,6 +143,46 @@ Tri apply_rotation(const Rot3d t, const Tri &p) {
         assert(false && "Impossible orientation of z-axis");
         return {};
     }
+}
+
+static const auto RS = all_possible_rotations();
+
+int intersection_size(vector<Tri> a, vector<Tri> b) {
+    sort(begin(a), end(a));
+    sort(begin(b), end(b));
+
+    vector<Tri> x;
+    set_intersection(cbegin(a), cend(a), cbegin(b), cend(b), back_inserter(x));
+    return sz(x);
+}
+
+vector<Tri> center(const Tri &o, vector<Tri> a) {
+    const auto o_ = negate_t(o);
+    transform(cbegin(a), cend(a), begin(a),
+              [&o_](const Tri &x) { return x + o_; });
+    return a;
+}
+
+optional<Transf> overlap(const vector<Tri> &src, const vector<Tri> &trg) {
+    for (const auto &o_src : src) {
+        for (const auto &o_trg : trg) {
+            const auto trg_ = center(o_trg, trg);
+            const auto src_ = center(o_src, src);
+
+            for (const auto &r : RS) {
+                auto src__ = src_;
+
+                transform(cbegin(src__), cend(src__), begin(src__),
+                          [&r](const Tri &a) { return apply_rotation(r, a); });
+
+                if (intersection_size(trg_, src__) >= MATCH_THERSHOLD) {
+                    return Transf{o_src, o_trg, r};
+                }
+            }
+        }
+    }
+
+    return nullopt;
 }
 
 bool is_scanner_sep_line(const string &line) {
