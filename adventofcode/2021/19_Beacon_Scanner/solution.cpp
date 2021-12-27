@@ -200,16 +200,15 @@ map<Duo, Transf> index_transf(const Graph &g) {
     return result;
 }
 
-int beacons_num(const vector<vector<Tri>> &data) {
-    const auto g = build_graph(data);
-    const auto n = sz(g);
+vector<Tri> join_into_common_space(const Graph &g,
+                                   const vector<vector<Tri>> &spaces) {
     const auto idx = index_transf(g);
-
-    vector<bool> visited(n, false);
+    vector<bool> visited(sz(g), false);
     function<vector<Tri>(int)> dfs;
+
     dfs = [&](const int u) -> vector<Tri> {
         visited[u] = true;
-        vector<Tri> result(cbegin(data[u]), cend(data[u]));
+        vector<Tri> result(cbegin(spaces[u]), cend(spaces[u]));
 
         for (const auto &[v, _] : g[u]) {
             if (visited[v]) continue;
@@ -235,7 +234,11 @@ int beacons_num(const vector<vector<Tri>> &data) {
         return result;
     };
 
-    return sz(dfs(0));
+    return dfs(0);
+}
+
+int manhattan(const Tri &a, const Tri &b) {
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2]);
 }
 
 int main() {
@@ -261,6 +264,20 @@ int main() {
     assert(!curr.empty());
     data.push_back(curr);
 
-    cout << beacons_num(data) << '\n';
+    const auto g = build_graph(data);
+    cout << "Total beacons: " << sz(join_into_common_space(g, data)) << '\n';
+
+    const vector<vector<Tri>> zs(sz(g), vector<Tri>{{0, 0, 0}});
+    const auto ts = join_into_common_space(g, zs);
+
+    int ans{};
+
+    for (int i = 0; i < sz(ts) - 1; ++i) {
+        for (int j = i + 1; j < sz(ts); ++j) {
+            ans = max(ans, manhattan(ts[i], ts[j]));
+        }
+    }
+
+    cout << "Manhattan diameter of scanners: " << ans << '\n';
     return 0;
 }
