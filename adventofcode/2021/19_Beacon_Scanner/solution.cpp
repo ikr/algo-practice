@@ -18,7 +18,7 @@ ostream &operator<<(ostream &os, const vector<array<T, N>> &xss) {
     return os;
 }
 
-static constexpr int MATCH_THERSHOLD = 6;
+static constexpr int MATCH_THERSHOLD = 12;
 
 using Tri = array<int, 3>;
 using Duo = pair<int, int>;
@@ -205,6 +205,56 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
+map<Duo, Transf> index_transf(const Graph &g) {
+    map<Duo, Transf> result;
+
+    for (int u = 0; u < sz(g); ++u) {
+        for (const auto &[v, tr] : g[u]) {
+            result[{u, v}] = tr;
+        }
+    }
+
+    return result;
+}
+
+int beacons_num(const vector<vector<Tri>> &data) {
+    const auto g = build_graph(data);
+    const auto n = sz(g);
+    const auto idx = index_transf(g);
+
+    vector<bool> visited(n, false);
+    function<vector<Tri>(int)> dfs;
+    dfs = [&](const int u) -> vector<Tri> {
+        visited[u] = true;
+        vector<Tri> result(cbegin(data[u]), cend(data[u]));
+
+        for (const auto &[v, _] : g[u]) {
+            if (visited[v]) continue;
+            auto sub = dfs(v);
+            const auto tr = idx.at({v, u});
+
+            transform(cbegin(result), cend(result), begin(result),
+                      [&](const Tri &t) { return t + negate_t(tr.o_trg); });
+
+            transform(cbegin(sub), cend(sub), begin(sub), [&](const Tri &t) {
+                return apply_rotation(tr.r, t + negate_t(tr.o_src));
+            });
+
+            result.insert(cend(result), cbegin(sub), cend(sub));
+
+            transform(cbegin(result), cend(result), begin(result),
+                      [&](const Tri &t) { return t + tr.o_trg; });
+
+            sort(begin(result), end(result));
+            result.erase(unique(begin(result), end(result)), end(result));
+        }
+
+        return result;
+    };
+
+    return sz(dfs(0));
+}
+
 int main() {
     vector<vector<Tri>> data;
     vector<Tri> curr;
@@ -228,6 +278,6 @@ int main() {
     assert(!curr.empty());
     data.push_back(curr);
 
-    const auto g = build_graph(data);
+    cout << beacons_num(data) << '\n';
     return 0;
 }
