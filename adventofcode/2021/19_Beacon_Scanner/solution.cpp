@@ -1,23 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const vector<array<T, N>> &xss) {
-    for (const auto xs : xss) os << xs << ' ';
-    return os;
-}
-
 static constexpr int MATCH_THERSHOLD = 12;
 
 using Tri = array<int, 3>;
