@@ -42,24 +42,24 @@ constexpr tuple<int, int, int> as_tuple(const Tri &t) {
 }
 
 enum class ZDir { PX, NX, PY, NY, PZ, NZ };
-enum class XYRot { D0, D90, D180, D270 };
+enum class Rot2d { D0, D90, D180, D270 };
 
-struct Transform final {
+struct Rot3d final {
     ZDir z;
-    XYRot xy;
+    Rot2d xy;
 };
 
-Duo apply_rotation(const XYRot &r, const Duo xy) {
+Duo apply_rotation(const Rot2d &r, const Duo xy) {
     const auto [x, y] = xy;
 
     switch (r) {
-    case XYRot::D0:
+    case Rot2d::D0:
         return xy;
-    case XYRot::D90:
+    case Rot2d::D90:
         return {-y, x};
-    case XYRot::D180:
+    case Rot2d::D180:
         return {-x, -y};
-    case XYRot::D270:
+    case Rot2d::D270:
         return {y, -x};
     default:
         assert(false && "Impossible rotation");
@@ -67,21 +67,50 @@ Duo apply_rotation(const XYRot &r, const Duo xy) {
     }
 }
 
-Tri apply_transformation(const Transform t, const Tri &p) {
+Tri apply_rotation(const Rot3d t, const Tri &p) {
     const auto [x, y, z] = as_tuple(p);
 
     switch (t.z) {
     case ZDir::PX: //  z → x, x → y, y → z
+    {
+        const int x_ = z;
+        const auto [y_, z_] = apply_rotation(t.xy, {x, y});
+        return {x_, y_, z_};
+    }
     case ZDir::NX: // z → -x, x → z, y → y
+    {
+        const int x_ = -z;
+        const auto [z_, y_] = apply_rotation(t.xy, {x, y});
+        return {x_, y_, z_};
+    }
     case ZDir::PY: //  z → y, x → z, y → x
+    {
+        const int y_ = z;
+        const auto [z_, x_] = apply_rotation(t.xy, {x, y});
+        return {x_, y_, z_};
+    }
     case ZDir::NY: // z → -y, x → x, y → z
+    {
+        const int y_ = -z;
+        const auto [x_, z_] = apply_rotation(t.xy, {x, y});
+        return {x_, y_, z_};
+    }
     case ZDir::PZ: //  z → z, x → x, y → y
+    {
+        const int z_ = z;
+        const auto [x_, y_] = apply_rotation(t.xy, {x, y});
+        return {x_, y_, z_};
+    }
     case ZDir::NZ: // z → -z, x → y, y → x
+    {
+        const int z_ = -z;
+        const auto [x_, y_] = apply_rotation(t.xy, {x, y});
+        return {x_, y_, z_};
+    }
     default:
         assert(false && "Impossible orientation of z-axis");
         return {};
     }
-}
 }
 
 bool is_scanner_sep_line(const string &line) {
