@@ -1,34 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const vector<array<T, N>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-static constexpr int MATCH_THERSHOLD = 12;
+static constexpr int MATCH_THERSHOLD = 6;
 
 using Tri = array<int, 3>;
 using Duo = pair<int, int>;
@@ -45,6 +18,8 @@ struct Transf final {
     Tri o_trg;
     Rot3d r;
 };
+
+using Graph = vector<vector<pair<int, Transf>>>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -185,6 +160,25 @@ optional<Transf> overlap(const vector<Tri> &src, const vector<Tri> &trg) {
     return nullopt;
 }
 
+Graph build_graph(const vector<vector<Tri>> &data) {
+    const auto n = sz(data);
+    Graph g(n, vector<pair<int, Transf>>(n));
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (i == j) continue;
+
+            const auto tr = overlap(data[i], data[j]);
+            if (!tr) continue;
+            g[i].emplace_back(j, *tr);
+            cerr << '(' << i << ", " << j << ") ";
+        }
+    }
+
+    cerr << endl;
+    return g;
+}
+
 bool is_scanner_sep_line(const string &line) {
     return line.find("--- scanner ") == 0;
 }
@@ -218,5 +212,6 @@ int main() {
     assert(!curr.empty());
     data.push_back(curr);
 
+    const auto g = build_graph(data);
     return 0;
 }
