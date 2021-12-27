@@ -1,6 +1,23 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const vector<array<T, N>> &xss) {
+    for (const auto xs : xss) os << xs << ' ';
+    return os;
+}
+
 static constexpr int MATCH_THERSHOLD = 6;
 
 using Tri = array<int, 3>;
@@ -111,7 +128,7 @@ Tri apply_rotation(const Rot3d t, const Tri &p) {
     case ZDir::NZ: // z → -z, x → y, y → x
     {
         const int z_ = -z;
-        const auto [x_, y_] = apply_rotation(t.xy, {x, y});
+        const auto [y_, x_] = apply_rotation(t.xy, {x, y});
         return {x_, y_, z_};
     }
     default:
@@ -171,11 +188,10 @@ Graph build_graph(const vector<vector<Tri>> &data) {
             const auto tr = overlap(data[i], data[j]);
             if (!tr) continue;
             g[i].emplace_back(j, *tr);
-            cerr << '(' << i << ", " << j << ") ";
+            cerr << i << " → " << j << endl;
         }
     }
 
-    cerr << endl;
     return g;
 }
 
