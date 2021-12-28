@@ -84,10 +84,10 @@ int main() {
     vector<string> src;
     for (string row; getline(cin, row);) src.push_back(row);
 
-    src = enlarge_canvas(6, src);
+    src = enlarge_canvas(150, src);
     print_grid(src);
 
-    for (int step = 0; step < 2; ++step) {
+    for (int step = 0; step < 50; ++step) {
         src = evolve(pad, src, step % 2 ? '#' : '.');
         print_grid(src);
     }
