@@ -21,13 +21,11 @@ vector<vvi> outcomes(const int starting_space) {
     vector<vvi> dp(31, vvi(22, vi(11, 0)));
     dp[0][0][starting_space] = 1;
 
-    for (int i = 0; i < sz(dp); ++i) {
+    for (int i = 0; i < 21; ++i) {
         for (int j = 0; j < sz(dp[i]); ++j) {
-            for (int k = 1; k < sz(dp[i][j]); ++k) {
+            for (int k = 1; k <= 10; ++k) {
                 for (int d = 1; d <= 3; ++d) {
-                    if (i + cycle(k + d) >= sz(dp) || j + 1 >= sz(dp[0])) {
-                        continue;
-                    }
+                    if (j + 1 >= sz(dp[0])) continue;
                     dp[i + cycle(k + d)][j + 1][cycle(k + d)] += dp[i][j][k];
                 }
             }
@@ -52,7 +50,7 @@ ll count_wins(const vector<vvi> &own_dp, const vector<vvi> &other_dp,
 
             ll other_outcomes{};
             for (int i = 0; i < 21; ++i) {
-                for (int k = 1; k < sz(other_dp[i][other_moves]); ++k) {
+                for (int k = 1; k <= 10; ++k) {
                     other_outcomes += other_dp[i][other_moves][k];
                 }
             }
