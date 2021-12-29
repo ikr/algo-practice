@@ -1,17 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int roll_value(const int n) {
     const auto cycle = [](const int x) -> int { return ((x - 1) % 100) + 1; };
     const int base = 3 * (n - 1);
