@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
 using ull = unsigned long long;
 using vi = vector<int>;
@@ -85,9 +75,9 @@ ull optimal_positive_divisor(const ull n) {
     const auto fs = factor(n);
     const auto ps = gather_powers(fs);
 
-    ull phi = 1;
+    ull baseline = 1;
     for (const auto [p, k] : ps) {
-        phi *= (p - 1) * modpow(p, k - 1, INF);
+        baseline *= (k + 1);
     }
 
     ull ans = n;
@@ -95,10 +85,7 @@ ull optimal_positive_divisor(const ull n) {
 
     for (auto it = crbegin(ps); it != crend(ps); ++it) {
         const auto [p, k] = *it;
-        assert(phi % (p - 1) == 0);
-        assert(k == 1 || phi % p == 0);
-
-        const auto candidate = (k == 1) ? (phi / (p - 1)) : (phi / p);
+        const auto candidate = (baseline / (k + 1)) * k;
 
         if (candidate >= divisors_of_m) {
             divisors_of_m = candidate;
