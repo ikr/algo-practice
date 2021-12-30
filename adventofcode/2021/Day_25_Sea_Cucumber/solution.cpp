@@ -12,36 +12,30 @@ vector<string> evolve(vector<string> grid) {
     const int W = sz(grid[0]);
 
     for (int ro = 0; ro < H; ++ro) {
-        const auto org_l = grid[ro][0];
-        const auto org_r = grid[ro].back();
-
-        for (int co = W - 2; co >= 0; --co) {
-            if (grid[ro][co] == '>' && grid[ro][co + 1] == '.') {
-                grid[ro][co] = '.';
-                grid[ro][co + 1] = '>';
+        vector<int> to_move;
+        for (int co = 0; co < W; ++co) {
+            if (grid[ro][co] == '>' && grid[ro][(co + 1) % W] == '.') {
+                to_move.push_back(co);
             }
         }
 
-        if (org_r == '>' && org_l == '.') {
-            grid[ro].back() = '.';
-            grid[ro][0] = '>';
+        for (const auto co : to_move) {
+            grid[ro][co] = '.';
+            grid[ro][(co + 1) % W] = '>';
         }
     }
 
-    for (int co = 0; co < H; ++co) {
-        const auto org_t = grid[0][co];
-        const auto org_b = grid[H - 1][co];
-
-        for (int ro = H - 2; ro >= 0; --ro) {
-            if (grid[ro][co] == 'v' && grid[ro + 1][co] == '.') {
-                grid[ro][co] = '.';
-                grid[ro + 1][co] = 'v';
+    for (int co = 0; co < W; ++co) {
+        vector<int> to_move;
+        for (int ro = 0; ro < H; ++ro) {
+            if (grid[ro][co] == 'v' && grid[(ro + 1) % H][co] == '.') {
+                to_move.push_back(ro);
             }
         }
 
-        if (org_b == 'v' && org_t == '.') {
-            grid[H - 1][co] = '.';
-            grid[0][co] = 'v';
+        for (const auto ro : to_move) {
+            grid[ro][co] = '.';
+            grid[(ro + 1) % H][co] = 'v';
         }
     }
 
