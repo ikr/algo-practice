@@ -49,15 +49,21 @@ void dump_grid(const vector<string> &grid) {
     cerr << endl;
 }
 
+int first_step_without_movement(vector<string> grid) {
+    for (int i = 1;; ++i) {
+        auto grid_ = evolve(grid);
+        if (grid_ == grid) return i;
+        swap(grid, grid_);
+    }
+    return -1;
+}
+
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) {
         grid.push_back(line);
     }
 
-    for (int i = 1; i <= 4; ++i) {
-        grid = evolve(grid);
-        dump_grid(grid);
-    }
+    cout << first_step_without_movement(move(grid)) << '\n';
     return 0;
 }
