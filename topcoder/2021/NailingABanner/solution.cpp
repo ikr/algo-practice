@@ -27,7 +27,7 @@ struct NailingABanner final {
         if (n == 2) return HI;
 
         vll cs;
-        for (ll i = 0; (1LL << i) < N_MAX / 2LL; ++i) {
+        for (ll i = 0; (1LL << i) < N_MAX; ++i) {
             cs.push_back(1LL << i);
         }
 
@@ -48,6 +48,21 @@ struct NailingABanner final {
         return st0 + (d - 1LL) * st;
     }
 };
+
+ll oracle(ll N) {
+    if (N == 1) return 0;
+    if (N == 2) return 1L << 60;
+    N -= 2;
+    for (int round = 1;; ++round) {
+        long placed_this_round = 1L << (round - 1);
+        if (placed_this_round < N) {
+            N -= placed_this_round;
+            continue;
+        }
+        long first_index = 1L << (60 - round);
+        return (2 * N - 1) * first_index;
+    }
+}
 
 // clang-format off
 const lest::test tests[] = {
@@ -80,6 +95,22 @@ const lest::test tests[] = {
         const auto actual = NailingABanner{}.coordinate(2);
         const auto expected = (1LL << 60LL);
         EXPECT(actual == expected);
+    },
+    CASE("Testing against an oracle - LO") {
+        for (ll i = 1; i < 1'000; ++i) {
+            const auto actual = NailingABanner{}.coordinate(i);
+            const auto expected = oracle(i);
+            EXPECT(actual == expected);
+        }
+    },
+    CASE("Testing against an oracle - HI") {
+        const ll BIG = 1'000'000'000'000;
+
+        for (ll i = BIG - 1'000LL; i <= BIG; ++i) {
+            const auto actual = NailingABanner{}.coordinate(i);
+            const auto expected = oracle(i);
+            EXPECT(actual == expected);
+        }
     },
 };
 // clang-format on
