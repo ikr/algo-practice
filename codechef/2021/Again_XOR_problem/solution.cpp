@@ -30,14 +30,19 @@ int num_ones_in_t(const string &xs, const int k) {
         return xor_every(xs);
     }
 
-    int ans{};
+    int l{}, r{};
 
     for (int i = k; i < sz(xs); ++i) {
-        if (xs[i - 1] != xs[i]) ++ans;
-        if (xs[i - k + 1] != xs[i - k]) ++ans;
+        if (xs[i - 1] != xs[i]) {
+            r ^= 1;
+        }
+
+        if (xs[i - k + 1] != xs[i - k]) {
+            l ^= 1;
+        }
     }
 
-    return ans;
+    return l + r;
 }
 
 int main() {
