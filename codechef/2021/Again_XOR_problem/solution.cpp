@@ -11,25 +11,30 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+int xor_every(const string &xs) {
+    int ans{};
+
+    for (const auto x : xs) {
+        ans ^= (inof(x) - inof('0'));
+    }
+
+    return ans;
+}
+
 int num_ones_in_t(const string &xs, const int k) {
     if (k == sz(xs)) {
         return inof(count(cbegin(xs), cend(xs), '1'));
     }
 
     if (k == 1) {
-        int ans{};
-
-        for (const auto x : xs) {
-            ans ^= (inof(x) - inof('0'));
-        }
-
-        return ans;
+        return xor_every(xs);
     }
 
     int ans{};
 
     for (int i = k; i < sz(xs); ++i) {
-        if (xs[i] != xs[i - k]) ++ans;
+        if (xs[i - 1] != xs[i]) ++ans;
+        if (xs[i - k + 1] != xs[i - k]) ++ans;
     }
 
     return ans;
