@@ -71,12 +71,41 @@ Cmd parse_command(const string &src) {
                parse_range(parts[2].substr(2))};
 }
 
+constexpr bool is_between(const pii ab, const int x) {
+    return ab.first <= x && x <= ab.second;
+}
+
 int main() {
     vector<Cmd> commands;
     for (string line; getline(cin, line);) {
         commands.push_back(parse_command(line));
     }
 
-    cerr << commands << endl;
+    vector<vector<vector<bool>>> on(101, vector(101, vector(101, false)));
+
+    for (const auto &c : commands) {
+        for (int i = 0; i < sz(on); ++i) {
+            for (int j = 0; j < sz(on[i]); ++j) {
+                for (int k = 0; k < sz(on[i][j]); ++k) {
+                    const auto x = i - 50;
+                    const auto y = j - 50;
+                    const auto z = k - 50;
+
+                    if (is_between(c.x, x) && is_between(c.y, y) &&
+                        is_between(c.z, z)) {
+                        on[i][j][k] = c.s == Switch::ON;
+                    }
+                }
+            }
+        }
+    }
+
+    int ans{};
+    for (int i = 0; i < sz(on); ++i) {
+        for (int j = 0; j < sz(on[i]); ++j) {
+            ans += inof(count(cbegin(on[i][j]), cend(on[i][j]), true));
+        }
+    }
+    cout << ans << '\n';
     return 0;
 }
