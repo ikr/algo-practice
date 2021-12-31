@@ -75,37 +75,23 @@ constexpr bool is_between(const pii ab, const int x) {
     return ab.first <= x && x <= ab.second;
 }
 
+optional<pii> intersection(const pii ab, const pii cd) {
+    const auto [a, b] = ab;
+    const auto [c, d] = cd;
+
+    assert(a <= b);
+    assert(c <= d);
+    if (d < a || c > b) return nullopt;
+
+    array<int, 4> xs{a, b, c, d};
+    sort(begin(xs), end(xs));
+    return pii{xs[1], xs[2]};
+}
+
 int main() {
     vector<Cmd> commands;
     for (string line; getline(cin, line);) {
         commands.push_back(parse_command(line));
     }
-
-    vector<vector<vector<bool>>> on(101, vector(101, vector(101, false)));
-
-    for (const auto &c : commands) {
-        for (int i = 0; i < sz(on); ++i) {
-            for (int j = 0; j < sz(on[i]); ++j) {
-                for (int k = 0; k < sz(on[i][j]); ++k) {
-                    const auto x = i - 50;
-                    const auto y = j - 50;
-                    const auto z = k - 50;
-
-                    if (is_between(c.x, x) && is_between(c.y, y) &&
-                        is_between(c.z, z)) {
-                        on[i][j][k] = c.s == Switch::ON;
-                    }
-                }
-            }
-        }
-    }
-
-    int ans{};
-    for (int i = 0; i < sz(on); ++i) {
-        for (int j = 0; j < sz(on[i]); ++j) {
-            ans += inof(count(cbegin(on[i][j]), cend(on[i][j]), true));
-        }
-    }
-    cout << ans << '\n';
     return 0;
 }
