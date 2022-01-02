@@ -22,16 +22,24 @@ using pii = pair<int, int>;
 
 enum class Switch { ON, OFF };
 
-struct Cmd final {
-    Switch s;
+struct Box final {
     pii x;
     pii y;
     pii z;
 };
 
+struct Cmd final {
+    Switch s;
+    Box b;
+};
+
+ostream &operator<<(ostream &os, const Box &a) {
+    os << '[' << a.x << ' ' << a.y << ' ' << a.z << ']';
+    return os;
+}
+
 ostream &operator<<(ostream &os, const Cmd &a) {
-    os << '{' << (a.s == Switch::ON ? "ON" : "OFF") << ' ' << a.x << ' ' << a.y
-       << ' ' << a.z << '}';
+    os << '{' << (a.s == Switch::ON ? "ON" : "OFF") << ' ' << a.b << '}';
     return os;
 }
 
@@ -93,5 +101,7 @@ int main() {
     for (string line; getline(cin, line);) {
         commands.push_back(parse_command(line));
     }
+
+    cerr << commands << endl;
     return 0;
 }
