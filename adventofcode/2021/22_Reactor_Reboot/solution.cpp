@@ -27,6 +27,12 @@ struct Box final {
     pii x;
     pii y;
     pii z;
+
+    bool operator==(const Box &o) const {
+        return x == o.x && y == o.y && z == o.z;
+    }
+
+    bool operator!=(const Box &o) const { return !(*this == o); }
 };
 
 struct Cmd final {
@@ -76,6 +82,36 @@ constexpr bool contains(const Box &a, const Box &b) {
     return true;
 }
 
+vector<Box> cut_out_subbox(Box src, const Box &del) {
+    assert(contains(src, del));
+    assert(src != del);
+    vector<Box> result;
+
+    if (src.x.first < del.x.first) {
+        result.push_back(Box{pii{src.x.first, del.x.first - 1}, src.y, src.z});
+        src.x.first = del.x.first;
+    }
+
+    if (del.x.second < src.x.second) {
+        result.push_back(
+            Box{pii{del.x.second + 1, src.x.second}, src.y, src.z});
+        src.x.second = del.x.second;
+    }
+
+    if (src.y.first < del.y.first) {
+        result.push_back(Box{src.x, pii{src.y.first, del.y.first - 1}, src.z});
+        src.y.first = del.y.first;
+    }
+
+    if (del.y.second < src.y.second) {
+        result.push_back(
+            Box{src.x, pii{del.y.second + 1, src.y.second}, src.z});
+        src.y.second = del.y.second;
+    }
+
+    return result;
+}
+
 optional<pii> intersection(const pii ab, const pii cd) {
     const auto [a, b] = ab;
     const auto [c, d] = cd;
@@ -111,7 +147,12 @@ vector<string> split(const string &delim_regex, const string &s) {
 pii parse_range(const string &src) {
     const auto parts = split("\\.\\.", src);
     assert(sz(parts) == 2);
-    return {stoi(parts[0]), stoi(parts[1])};
+
+    const auto a = stoi(parts[0]);
+    const auto b = stoi(parts[1]);
+    assert(a <= b);
+
+    return {a, b};
 }
 
 Cmd parse_command(const string &src) {
@@ -134,6 +175,5 @@ int main() {
         commands.push_back(parse_command(line));
     }
 
-    cerr << commands << endl;
     return 0;
 }
