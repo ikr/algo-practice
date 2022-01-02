@@ -19,6 +19,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 using ll = long long;
 using pii = pair<int, int>;
+using tri = tuple<int, int, int>;
 
 enum class Switch { ON, OFF };
 
@@ -53,6 +54,54 @@ template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
 }
 
+constexpr array<int, 2> as_arr(const pii &a) { return {a.first, a.second}; }
+
+constexpr bool is_between(const pii ab, const int x) {
+    return ab.first <= x && x <= ab.second;
+}
+
+constexpr bool contains(const Box &b, const tri &p) {
+    const auto [x, y, z] = p;
+    return is_between(b.x, x) && is_between(b.y, y) && is_between(b.z, z);
+}
+
+constexpr bool contains(const Box &a, const Box &b) {
+    for (const auto x : as_arr(b.x)) {
+        for (const auto y : as_arr(b.y)) {
+            for (const auto z : as_arr(b.z)) {
+                if (!contains(a, {x, y, z})) return false;
+            }
+        }
+    }
+    return true;
+}
+
+optional<pii> intersection(const pii ab, const pii cd) {
+    const auto [a, b] = ab;
+    const auto [c, d] = cd;
+
+    assert(a <= b);
+    assert(c <= d);
+    if (d < a || c > b) return nullopt;
+
+    array<int, 4> xs{a, b, c, d};
+    sort(begin(xs), end(xs));
+    return pii{xs[1], xs[2]};
+}
+
+optional<Box> intersection(const Box &a, const Box &b) {
+    const auto x = intersection(a.x, b.x);
+    if (!x) return nullopt;
+
+    const auto y = intersection(a.y, b.y);
+    if (!y) return nullopt;
+
+    const auto z = intersection(a.z, b.z);
+    if (!z) return nullopt;
+
+    return Box{*x, *y, *z};
+}
+
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
@@ -77,23 +126,6 @@ Cmd parse_command(const string &src) {
     return Cmd{s, parse_range(parts[0].substr(2)),
                parse_range(parts[1].substr(2)),
                parse_range(parts[2].substr(2))};
-}
-
-constexpr bool is_between(const pii ab, const int x) {
-    return ab.first <= x && x <= ab.second;
-}
-
-optional<pii> intersection(const pii ab, const pii cd) {
-    const auto [a, b] = ab;
-    const auto [c, d] = cd;
-
-    assert(a <= b);
-    assert(c <= d);
-    if (d < a || c > b) return nullopt;
-
-    array<int, 4> xs{a, b, c, d};
-    sort(begin(xs), end(xs));
-    return pii{xs[1], xs[2]};
 }
 
 int main() {
