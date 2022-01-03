@@ -56,14 +56,20 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
-
 constexpr array<int, 2> as_arr(const pii &a) { return {a.first, a.second}; }
 
 constexpr bool is_between(const pii ab, const int x) {
     return ab.first <= x && x <= ab.second;
+}
+
+int length(const pii ab) {
+    const auto [a, b] = ab;
+    assert(a <= b);
+    return b - a + 1;
+}
+
+ll volume(const Box &b) {
+    return 1LL * length(b.x) * length(b.y) * length(b.z);
 }
 
 constexpr bool contains(const Box &b, const tri &p) {
@@ -109,6 +115,18 @@ vector<Box> cut_out_subbox(Box src, const Box &del) {
         src.y.second = del.y.second;
     }
 
+    if (src.z.first < del.z.first) {
+        result.push_back(Box{src.x, src.y, pii{src.z.first, del.z.first - 1}});
+        src.z.first = del.z.first;
+    }
+
+    if (del.z.second < src.z.second) {
+        result.push_back(
+            Box{src.x, src.y, pii{del.z.second + 1, src.z.second}});
+        src.z.second = del.z.second;
+    }
+
+    assert(src == del);
     return result;
 }
 
@@ -174,6 +192,15 @@ int main() {
     for (string line; getline(cin, line);) {
         commands.push_back(parse_command(line));
     }
+
+    const Box src{{0, 10}, {0, 10}, {0, 10}};
+    const Box del{{0, 3}, {0, 3}, {0, 3}};
+    const auto bs = cut_out_subbox(src, del);
+    cerr << bs << endl;
+
+    ll v = transform_reduce(cbegin(bs), cend(bs), 0LL, plus<ll>{}, volume);
+    v += volume(del);
+    assert(v == volume(src));
 
     return 0;
 }
