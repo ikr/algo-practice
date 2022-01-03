@@ -194,7 +194,7 @@ int main() {
     }
 
     const Box src{{0, 10}, {0, 10}, {0, 10}};
-    const Box del{{0, 3}, {0, 3}, {0, 3}};
+    const Box del{{2, 3}, {7, 8}, {9, 10}};
     const auto bs = cut_out_subbox(src, del);
     cerr << bs << endl;
 
