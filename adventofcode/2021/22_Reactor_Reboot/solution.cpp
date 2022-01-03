@@ -156,12 +156,43 @@ optional<Box> intersection(const Box &a, const Box &b) {
     return Box{*x, *y, *z};
 }
 
+void remove_contained(list<Box> &world, const Box &b) {
+    for (auto it = cbegin(world); it != cend(world);) {
+        if (contains(b, *it)) {
+            it = world.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void remove_intersections(list<Box> &world, const Box &b) {
+    list<Box> novelty;
+
+    for (auto it = cbegin(world); it != cend(world);) {
+        const auto del = intersection(b, *it);
+
+        if (del) {
+            const auto leftovers = cut_out_subbox(*it, *del);
+            it = world.erase(it);
+            novelty.insert(cend(novelty), cbegin(leftovers), cend(leftovers));
+        } else {
+            ++it;
+        }
+    }
+
+    world.insert(cend(world), cbegin(novelty), cend(novelty));
+}
+
 void switch_on(list<Box> &world, const Box &b) {
-    // TODO
+    remove_contained(world, b);
+    remove_intersections(world, b);
+    world.push_back(b);
 }
 
 void switch_off(list<Box> &world, const Box &b) {
-    // TODO
+    remove_contained(world, b);
+    remove_intersections(world, b);
 }
 
 vector<string> split(const string &delim_regex, const string &s) {
