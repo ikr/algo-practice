@@ -156,6 +156,14 @@ optional<Box> intersection(const Box &a, const Box &b) {
     return Box{*x, *y, *z};
 }
 
+void switch_on(list<Box> &world, const Box &b) {
+    // TODO
+}
+
+void switch_off(list<Box> &world, const Box &b) {
+    // TODO
+}
+
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
@@ -188,19 +196,20 @@ Cmd parse_command(const string &src) {
 }
 
 int main() {
-    vector<Cmd> commands;
+    list<Box> world;
     for (string line; getline(cin, line);) {
-        commands.push_back(parse_command(line));
+        const auto cmd = parse_command(line);
+
+        if (cmd.s == Switch::ON) {
+            switch_on(world, cmd.b);
+        } else {
+            assert(cmd.s == Switch::OFF);
+            switch_off(world, cmd.b);
+        }
     }
 
-    const Box src{{0, 10}, {0, 10}, {0, 10}};
-    const Box del{{2, 3}, {7, 8}, {9, 10}};
-    const auto bs = cut_out_subbox(src, del);
-    cerr << bs << endl;
-
-    ll v = transform_reduce(cbegin(bs), cend(bs), 0LL, plus<ll>{}, volume);
-    v += volume(del);
-    assert(v == volume(src));
-
+    cout << transform_reduce(cbegin(world), cend(world), 0LL, plus<ll>{},
+                             volume)
+         << '\n';
     return 0;
 }
