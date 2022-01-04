@@ -35,6 +35,8 @@ template <typename T> constexpr int inof(const T x) {
 
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
 Hallway empty_hallway() {
     Hallway result;
     result.fill(SPC);
@@ -54,9 +56,9 @@ bool can_move_in_hallway(const Hallway &hw, const int lo, const int hi) {
     return all_of(cbegin(hw) + lo, cbegin(hw) + hi + 1, is_a(SPC));
 }
 
-vector<pair<State, int>>
-adjacent_for_room_k(const State &st, const int k,
-                    const vector<int> &hallway_destinations) {
+static const vector<int> DESTS{0, 1, 3, 5, 7, 9, 10};
+
+vector<pair<State, int>> adjacent_by_room_k(const State &st, const int k) {
     const char tenant{chof(inof('A') + k)};
 
     vector<pair<State, int>> result;
@@ -87,7 +89,7 @@ adjacent_for_room_k(const State &st, const int k,
     }(room);
 
     const auto exit_i = 2 + k * 2;
-    for (const auto i : hallway_destinations) {
+    for (const auto i : DESTS) {
         if (can_move_in_hallway(st.hw, min(i, exit_i), max(i, exit_i))) {
             Hallway hw = st.hw;
             hw[i] = a;
@@ -100,9 +102,82 @@ adjacent_for_room_k(const State &st, const int k,
     return result;
 }
 
-vector<pair<State, int>> adjacent(const State &st) {
+vector<pair<State, int>> adjacent_by_hallway(const State &st) {
     vector<pair<State, int>> result;
-    // TODO
+
+    for (int i = 0; i < sz(st.hw); ++i) {
+        if (st.hw[i] == SPC) continue;
+
+        const auto a = st.hw[i];
+        const auto k = inof(a) - inof('A');
+        const auto entrance_i = 2 + k * 2;
+
+        auto hw = st.hw;
+        hw[i] = SPC;
+
+        if (!can_move_in_hallway(hw, min(i, entrance_i), max(i, entrance_i)) ||
+            st.rs[k][0] != SPC || (st.rs[k][1] != SPC && st.rs[k][1] != a)) {
+            continue;
+        }
+
+        const auto [landing, room] = [&]() -> pair<int, Room> {
+            if (st.rs[k][1] == SPC) {
+                Room r = st.rs[k];
+                r[1] = a;
+                return {2, r};
+            }
+
+            assert(st.rs[k][1] == a);
+            Room r = st.rs[k];
+            r[0] = a;
+            return {1, r};
+        }();
+
+        const auto rooms = [&](const Room &r) -> Rooms {
+            Rooms rs = st.rs;
+            rs[k] = r;
+            return rs;
+        }(room);
+
+        const int steps = landing + abs(i - entrance_i);
+        result.emplace_back(State{rooms, hw}, steps * step_energy(a));
+    }
+
+    return result;
+}
+
+vector<pair<State, int>> adjacent(const State &st) {
+    auto result = adjacent_by_hallway(st);
+
+    for (int k = 0; k < sz(st.rs); ++k) {
+        const auto to_add = adjacent_by_room_k(st, k);
+        result.insert(cend(result), cbegin(to_add), cend(to_add));
+    }
+
+    return result;
+}
+
+static constexpr Rooms RS_FINAL{Room{'A', 'A'}, Room{'B', 'B'}, Room{'C', 'C'},
+                                Room{'D', 'D'}};
+
+int least_energy_to_organize(const Rooms &initial_rooms) {
+    const State st0{initial_rooms, empty_hallway()};
+
+    int result = INT_MAX;
+
+    function<void(int, State)> recur;
+    recur = [&](const int e, const State st) {
+        if (st.rs == RS_FINAL) {
+            assert(st.hw == empty_hallway());
+            result = min(result, e);
+        }
+
+        for (const auto &[st_, e_] : adjacent(st)) {
+            recur(e + e_, st_);
+        }
+    };
+
+    recur(0, st0);
     return result;
 }
 
@@ -120,6 +195,6 @@ int main() {
         }
     }
 
-    cerr << rooms << endl;
+    cout << least_energy_to_organize(rooms) << '\n';
     return 0;
 }
