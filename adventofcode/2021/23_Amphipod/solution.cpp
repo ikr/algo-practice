@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using Room = array<char, 2>;
+using Room = array<char, 4>;
 using Rooms = array<Room, 4>;
 using Hallway = array<char, 11>;
 
@@ -62,24 +62,28 @@ vector<pair<State, int>> adjacent_by_room_k(const State &st, const int k) {
     const char tenant{chof(inof('A') + k)};
 
     vector<pair<State, int>> result;
-    if (all_of(cbegin(st.rs[k]), cend(st.rs[k]), is_a(SPC))) return result;
-    if (all_of(cbegin(st.rs[k]), cend(st.rs[k]), is_a(tenant))) return result;
-    if (st.rs[k][0] == SPC && st.rs[k][1] == tenant) return result;
+
+    {
+        const auto it = find(cbegin(st.rs[k]), cend(st.rs[k]), tenant);
+        if (all_of(cbegin(st.rs[k]), it, is_a(SPC)) &&
+            all_of(it, cend(st.rs[k]), is_a(tenant))) {
+            return result;
+        }
+    }
+
+    assert(is_partitioned(cbegin(st.rs[k]), cend(st.rs[k]), is_a(SPC)));
 
     const auto [a, takeoff, room] = [&]() -> tuple<char, int, Room> {
-        if (st.rs[k][0] == SPC) {
-            const auto x = st.rs[k][1];
-            assert(x != SPC);
-            assert(x != tenant);
+        const auto it =
+            find_if_not(cbegin(st.rs[k]), cend(st.rs[k]), is_a(SPC));
+        assert(it != cend(st.rs[k]));
 
-            Room r = st.rs[k];
-            r[1] = '.';
-            return {x, 2, r};
-        }
+        const auto i = inof(distance(cbegin(st.rs[k]), it));
+        const auto x = *it;
 
         Room r = st.rs[k];
-        r[0] = '.';
-        return {st.rs[k][0], 1, r};
+        r[i] = '.';
+        return {x, i + 1, r};
     }();
 
     const auto rooms = [&](const Room &r) -> Rooms {
@@ -184,16 +188,18 @@ int least_energy_to_organize(const Rooms &initial_rooms) {
     return result;
 }
 
+static const array<string, 2> FOLDED{"  #D#C#B#A#", "  #D#B#A#C#"};
+
 int main() {
     vector<string> grid;
-
     for (string line; getline(cin, line);) {
         grid.push_back(line);
     }
+    grid.insert(cbegin(grid) + 3, cbegin(FOLDED), cend(FOLDED));
 
     Rooms rooms{};
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 2; ++j) {
+    for (int i = 0; i < sz(rooms); ++i) {
+        for (int j = 0; j < sz(rooms[i]); ++j) {
             rooms[i][j] = grid[2 + j][3 + 2 * i];
         }
     }
