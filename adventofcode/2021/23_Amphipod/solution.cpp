@@ -56,21 +56,18 @@ bool can_move_in_hallway(const Hallway &hw, const int lo, const int hi) {
     return all_of(cbegin(hw) + lo, cbegin(hw) + hi + 1, is_a(SPC));
 }
 
+bool only_spaces_before_xs(const Room &r, const char x) {
+    const auto it = find(cbegin(r), cend(r), x);
+    return all_of(cbegin(r), it, is_a(SPC)) && all_of(it, cend(r), is_a(x));
+}
+
 static const vector<int> DESTS{0, 1, 3, 5, 7, 9, 10};
 
 vector<pair<State, int>> adjacent_by_room_k(const State &st, const int k) {
     const char tenant{chof(inof('A') + k)};
 
     vector<pair<State, int>> result;
-
-    {
-        const auto it = find(cbegin(st.rs[k]), cend(st.rs[k]), tenant);
-        if (all_of(cbegin(st.rs[k]), it, is_a(SPC)) &&
-            all_of(it, cend(st.rs[k]), is_a(tenant))) {
-            return result;
-        }
-    }
-
+    if (only_spaces_before_xs(st.rs[k], tenant)) return result;
     assert(is_partitioned(cbegin(st.rs[k]), cend(st.rs[k]), is_a(SPC)));
 
     const auto [a, takeoff, room] = [&]() -> tuple<char, int, Room> {
@@ -98,7 +95,6 @@ vector<pair<State, int>> adjacent_by_room_k(const State &st, const int k) {
             Hallway hw = st.hw;
             hw[i] = a;
             const auto steps = takeoff + abs(i - exit_i);
-
             result.emplace_back(State{rooms, hw}, steps * step_energy(a));
         }
     }
@@ -120,21 +116,17 @@ vector<pair<State, int>> adjacent_by_hallway(const State &st) {
         hw[i] = SPC;
 
         if (!can_move_in_hallway(hw, min(i, entrance_i), max(i, entrance_i)) ||
-            st.rs[k][0] != SPC || (st.rs[k][1] != SPC && st.rs[k][1] != a)) {
+            !only_spaces_before_xs(st.rs[k], a)) {
             continue;
         }
 
         const auto [landing, room] = [&]() -> pair<int, Room> {
-            if (st.rs[k][1] == SPC) {
-                Room r = st.rs[k];
-                r[1] = a;
-                return {2, r};
-            }
+            const auto it = prev(find(cbegin(st.rs[k]), cend(st.rs[k]), a));
+            const auto j = inof(distance(cbegin(st.rs[k]), it));
 
-            assert(st.rs[k][1] == a);
             Room r = st.rs[k];
-            r[0] = a;
-            return {1, r};
+            r[j] = a;
+            return {j + 1, r};
         }();
 
         const auto rooms = [&](const Room &r) -> Rooms {
@@ -161,8 +153,9 @@ vector<pair<State, int>> adjacent(const State &st) {
     return result;
 }
 
-static constexpr Rooms RS_FINAL{Room{'A', 'A'}, Room{'B', 'B'}, Room{'C', 'C'},
-                                Room{'D', 'D'}};
+static constexpr Rooms RS_FINAL{
+    Room{'A', 'A', 'A', 'A'}, Room{'B', 'B', 'B', 'B'},
+    Room{'C', 'C', 'C', 'C'}, Room{'D', 'D', 'D', 'D'}};
 
 int least_energy_to_organize(const Rooms &initial_rooms) {
     const State st0{initial_rooms, empty_hallway()};
