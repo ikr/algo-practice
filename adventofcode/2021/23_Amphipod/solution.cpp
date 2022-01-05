@@ -164,11 +164,11 @@ int least_energy_to_organize(const Rooms &initial_rooms) {
 
     function<void(int, State)> recur;
     recur = [&](const int e, const State st) {
+        if (e >= result) return;
+
         if (st.rs == RS_FINAL) {
             assert(st.hw == empty_hallway());
-            if (e < result) {
-                cerr << "e:" << e << endl;
-            }
+            cerr << "e:" << e << endl;
             result = min(result, e);
         }
 
