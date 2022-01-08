@@ -48,12 +48,12 @@ vull precompute_all() {
             vi curr{x0};
 
             while (0 <= curr.back() + d && curr.back() + d <= 9 &&
-                   sz(curr) <= 18) {
+                   sz(curr) <= 19) {
                 curr.push_back(curr.back() + d);
-            }
 
-            if (sz(curr) > 2) {
-                ans.insert(number<ull>(curr));
+                if (sz(curr) > 2) {
+                    ans.insert(number<ull>(curr));
+                }
             }
         }
     }
