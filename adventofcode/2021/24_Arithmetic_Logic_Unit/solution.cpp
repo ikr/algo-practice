@@ -12,6 +12,17 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 constexpr ll neq(const ll a, const ll b) { return a == b ? 0 : 1; }
 
+template<typename T> vi digits_reversed(T n) {
+    vi ans;
+
+    while (n) {
+        ans.push_back(inof(n % static_cast<T>(10)));
+        n /= static_cast<T>(10);
+    }
+
+    return ans;
+}
+
 template <typename T> vi digits(T n) {
     vi ans = digits_reversed(n);
     reverse(begin(ans), end(ans));
@@ -104,5 +115,7 @@ template <typename T> T number(const vi &ds) {
 
 int main() {
     cerr << the_z({1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 1, 2, 3, 4}) << endl;
+    cerr << the_z(digits<ll>(96979989692495LL)) << endl;
+
     return 0;
 }
