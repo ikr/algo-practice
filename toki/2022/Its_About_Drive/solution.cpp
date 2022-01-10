@@ -2,31 +2,17 @@
 using namespace std;
 
 using ll = long long;
-using tri = tuple<ll, ll, ll>;
 
 bool is_possible(const ll N, const ll F, const ll D) {
-    map<tri, bool> memo;
-
-    function<bool(ll, ll, ll)> recur;
-    recur = [&](const ll n, const ll f, const ll d) -> bool {
-        const tri key{n, f, d};
-
-        {
-            const auto it = memo.find(key);
-            if (it != cend(memo)) return it->second;
+    const auto lo = F * (F + 1) / 2LL;
+    const auto hi = [&]() -> ll {
+        ll result{};
+        for (ll i = 1; i <= N; ++i) {
+            result += min(i, F + N - i);
         }
-
-        return memo[key] = [&]() -> bool {
-            if (f > n || f < 0 || d < 0) return false;
-            if (n == 0 && f == 0 && d == 0) return true;
-            if (n == 0) return false;
-
-            return recur(n - 1, f - 1, d - f) || recur(n - 1, f, d - f) ||
-                   recur(n - 1, f + 1, d - f);
-        }();
-    };
-
-    return recur(N, F, D);
+        return result;
+    }();
+    return lo <= D && D <= hi;
 }
 
 int main() {
