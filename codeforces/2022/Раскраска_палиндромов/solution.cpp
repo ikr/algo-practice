@@ -26,35 +26,46 @@ priority_queue<int> gather_freqs(const string &xs) {
 int max_length_of_shortest_palindrome(const int k, const string &xs) {
     auto fs = gather_freqs(xs);
 
-    priority_queue<int, vector<int>, greater<int>> g;
+    multiset<int> g;
     for (int i = 1; i <= k; ++i) {
-        g.push(0);
+        g.insert(0);
     }
 
     while (!fs.empty() && fs.top() > 1) {
-        const auto l = g.top();
-        g.pop();
+        const auto l = *cbegin(g);
+        g.erase(cbegin(g));
 
         const auto f = fs.top();
         assert(f >= 2);
         fs.pop();
 
-        g.push(l + 2);
+        g.insert(l + 2);
         if (f - 2 > 0) fs.push(f - 2);
     }
 
     assert(fs.empty() || fs.top() == 1);
 
     auto ones = sz(fs);
-    while (g.top() % 2 == 0 && ones > 0) {
-        const auto l = g.top();
-        g.pop();
+    while (*cbegin(g) % 2 == 0 && ones > 0) {
+        const auto l = *cbegin(g);
+        g.erase(cbegin(g));
 
-        g.push(l + 1);
+        g.insert(l + 1);
         --ones;
     }
 
-    return g.top();
+    if (*crbegin(g) > *cbegin(g) && *cbegin(g) % 2 == 0) {
+        const auto lo = *cbegin(g);
+        g.erase(cbegin(g));
+
+        const auto hi = *crbegin(g);
+        g.erase(prev(cend(g)));
+
+        g.insert(lo + 1);
+        g.insert(hi - 1);
+    }
+
+    return *cbegin(g);
 }
 
 int main() {
