@@ -30,6 +30,7 @@ int main() {
         cin >> xs;
         assert(sz(xs) == m);
 
+        bool unhappy = false;
         for (int j = 0; j < m; ++j) {
             const auto yes = xs[j] == '1';
 
@@ -38,11 +39,12 @@ int main() {
             } else { // instructed
                 if (!yes) continue;
                 if (!trained[j]) {
-                    ++ans;
+                    unhappy = true;
                 }
                 trained[j] = false;
             }
         }
+        if (unhappy) ++ans;
     }
 
     cout << ans << '\n';
