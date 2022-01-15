@@ -27,12 +27,12 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
 
         auto outcomes_ = outcomes;
 
-        for (int k = 1; k <= n; ++k) {
+        for (int k = 1; k <= n + 1; ++k) {
             if (!outcomes[k]) continue;
 
             for (int i = 1; i <= 6; ++i) {
                 const auto newval_src =
-                    k + i < sz(outcomes) ? (k + i) : (n + 1);
+                    (k + i) < sz(outcomes) ? (k + i) : (n + 1);
                 const auto newval =
                     sfs.count(newval_src) ? sfs.at(newval_src) : newval_src;
                 ++outcomes_[newval];
