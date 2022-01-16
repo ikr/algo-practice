@@ -32,7 +32,7 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
                 }
             }
 
-            --outcomes_[k];
+            outcomes_[k] -= outcomes[k];
         }
 
         tail = tail * 6 + addition_to_tail;
