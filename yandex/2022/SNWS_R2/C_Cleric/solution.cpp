@@ -15,7 +15,7 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
         const auto hi = outcomes[n] + tail;
         const auto lo = accumulate(cbegin(outcomes), cbegin(outcomes) + n, 0.0,
                                    plus<double>{});
-        if (hi / lo >= p) return ans;
+        if (hi / (lo + hi) >= p) return ans;
 
         double addition_to_tail{};
         auto outcomes_ = outcomes;
