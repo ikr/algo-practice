@@ -18,7 +18,6 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
                                    plus<double>{});
         if (hi / lo >= p) return ans;
 
-        tail *= 6;
         double addition_to_tail{};
         auto outcomes_ = outcomes;
 
@@ -34,6 +33,7 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
             }
         }
 
+        tail *= 6;
         tail += addition_to_tail;
         swap(outcomes, outcomes_);
     }
