@@ -1,10 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -16,13 +12,14 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
     assert(n >= 6);
     for (int i = 1; i <= 6; ++i) ++outcomes[i];
 
-    for (auto [ans, tail] = pair{1, 0LL};; ++ans) {
+    for (auto [ans, tail] = pair{1, 0.0};; ++ans) {
         const auto hi = outcomes[n] + tail;
-        const auto lo = accumulate(cbegin(outcomes), cbegin(outcomes) + n, 0);
-        if (doof(hi) / doof(lo) >= p) return ans;
+        const auto lo = accumulate(cbegin(outcomes), cbegin(outcomes) + n, 0.0,
+                                   plus<double>{});
+        if (hi / lo >= p) return ans;
 
         tail *= 6;
-        long long addition_to_tail{};
+        double addition_to_tail{};
         auto outcomes_ = outcomes;
 
         for (int k = 1; k <= n; ++k) {
