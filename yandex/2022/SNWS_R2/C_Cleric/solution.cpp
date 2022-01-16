@@ -14,9 +14,8 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 int min_fights(const int n, const double p, const map<int, int> &sfs) {
     vector<int> outcomes(n + 2, 0);
     for (int i = 1; i <= 6; ++i) ++outcomes[min(i, n + 1)];
-    int ans = 1;
 
-    for (;; ++ans) {
+    for (int ans = 1;; ++ans) {
         const auto hi = outcomes[n] + outcomes[n + 1];
         const auto lo =
             accumulate(cbegin(outcomes) + 1, cbegin(outcomes) + n, 0);
@@ -38,7 +37,7 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
         swap(outcomes, outcomes_);
     }
 
-    return ans;
+    return -1;
 }
 
 int main() {
