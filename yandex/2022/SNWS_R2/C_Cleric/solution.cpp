@@ -31,10 +31,11 @@ int min_fights(const int n, const double p, const map<int, int> &sfs) {
                     ++addition_to_tail;
                 }
             }
+
+            --outcomes_[k];
         }
 
-        tail = tail + tail * 6;
-        tail += addition_to_tail;
+        tail = tail * 6 + addition_to_tail;
         swap(outcomes, outcomes_);
     }
 
