@@ -31,8 +31,8 @@ int min_fights(const int n, const long double p, const map<int, int> &sfs) {
         //      << endl;
         if (hi / (lo + hi) >= p) return ans;
 
-        long double addition_to_tail = 0.0;
-        vector<long double> outcomes_(n + 1, 0.0);
+        auto addition_to_tail = 0.0L;
+        vector<long double> outcomes_(n + 1, 0.0L);
 
         for (int k = 0; k <= n; ++k) {
             if (outcomes[k] < EPS) continue;
