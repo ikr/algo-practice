@@ -1,37 +1,50 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int min_fights(const int n, const double p, const map<int, int> &sfs) {
-    vector<int> outcomes(n + 1, 0);
+static constexpr long double EPS = 0.000000001L;
+
+int min_fights(const int n, const long double p, const map<int, int> &sfs) {
+    vector<long double> outcomes(n + 1, 0.0);
     outcomes[0] = 1;
 
-    for (auto [ans, tail] = pair{0, 0.0};; ++ans) {
+    for (auto [ans, tail] = pair{0, 0.0L};; ++ans) {
         const auto hi = outcomes[n] + tail;
-        const auto lo = accumulate(cbegin(outcomes), cbegin(outcomes) + n, 0.0,
-                                   plus<double>{});
+        const auto lo =
+            accumulate(cbegin(outcomes), cbegin(outcomes) + n, 0.0L);
+        // cerr << outcomes << " lo:" << lo << " hi:" << hi << " tail:" << tail
+        //      << endl;
         if (hi / (lo + hi) >= p) return ans;
 
-        double addition_to_tail{};
-        auto outcomes_ = outcomes;
+        long double addition_to_tail = 0.0;
+        vector<long double> outcomes_(n + 1, 0.0);
 
         for (int k = 0; k <= n; ++k) {
-            if (!outcomes[k]) continue;
+            if (outcomes[k] < EPS) continue;
 
             for (int i = 1; i <= 6; ++i) {
                 if (k + i <= n) {
-                    ++outcomes_[sfs.count(k + i) ? sfs.at(k + i) : (k + i)];
+                    const auto j = sfs.count(k + i) ? sfs.at(k + i) : (k + i);
+                    outcomes_[j] += outcomes[k];
                 } else {
-                    ++addition_to_tail;
+                    addition_to_tail += outcomes[k];
                 }
             }
-
-            outcomes_[k] -= outcomes[k];
         }
 
         tail = tail * 6 + addition_to_tail;
@@ -48,7 +61,7 @@ int main() {
     int n, k;
     cin >> n >> k;
 
-    double p;
+    long double p;
     cin >> p;
 
     map<int, int> sfs;
