@@ -74,3 +74,5 @@ int main() {
     cout << min_fights(n, p, sfs) << '\n';
     return 0;
 }
+
+// FTR https://contest.yandex.ru/snws2022/contest/23958/problems/C/
