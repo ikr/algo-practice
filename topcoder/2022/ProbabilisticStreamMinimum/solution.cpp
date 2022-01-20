@@ -27,10 +27,10 @@ template <typename T> constexpr double doof(const T x) {
 struct ProbabilisticStreamMinimum final {
     double calculate(const int N, const int K) const {
         assert(N > 0);
-        auto agg = 0.0;
+        auto agg = 1.0;
 
         for (int i = 1; i <= K - 1; ++i) {
-            agg += doof(K - i) / doof(K * K);
+            agg *= doof(K * K - i) / doof(K * K);
         }
 
         return agg;
