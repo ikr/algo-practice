@@ -11,22 +11,23 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll max_distortions(const vector<pii> &xys) {
+    set<int> xs;
+    map<int, int> xf;
     set<int> ys;
     map<int, int> yf;
 
-    for (const auto [_, y] : xys) {
+    for (const auto [x, y] : xys) {
+        xs.insert(x);
+        ++xf[x];
         ys.insert(y);
         ++yf[y];
     }
 
-    map<int, int> best;
+    ll ans = 1LL * sz(xs) * sz(ys);
     for (const auto [x, y] : xys) {
-        best[x] = max(best[x], yf[y] > 1 ? sz(ys) : (sz(ys) - 1));
-    }
-
-    ll ans{};
-    for (const auto [_, a] : best) {
-        ans += a;
+        if (xf[x] == 1 && yf[y] == 1) {
+            --ans;
+        }
     }
     return ans;
 }
@@ -38,16 +39,9 @@ int main() {
     int n;
     cin >> n;
 
-    vector<pii> xys;
-    vector<pii> yxs;
+    vector<pii> xys(n);
+    for (auto &[x, y] : xys) cin >> x >> y;
 
-    for (int i = 0; i < n; ++i) {
-        int x, y;
-        cin >> x >> y;
-        xys.emplace_back(x, y);
-        yxs.emplace_back(y, x);
-    }
-
-    cout << max(max_distortions(xys), max_distortions(yxs)) << '\n';
+    cout << max_distortions(xys) << '\n';
     return 0;
 }
