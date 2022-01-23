@@ -52,7 +52,8 @@ template <class P> int sideOf(const P &s, const P &e, const P &p, double eps) {
     return (a > l) - (a < -l);
 }
 
-using Seg = pair<Point<ll>, Point<ll>>;
+using Seg = pair<Point<double>, Point<double>>;
+static constexpr double EPS = 0.000001;
 
 bool first_cut_part_intact(const vector<Seg> &cuts) {
     if (sz(cuts) < 2) return true;
@@ -61,8 +62,8 @@ bool first_cut_part_intact(const vector<Seg> &cuts) {
     set<int> signs;
     for (int i = 1; i < sz(cuts); ++i) {
         const auto [C, D] = cuts[i];
-        signs.insert(sideOf(A, B, C));
-        signs.insert(sideOf(A, B, D));
+        signs.insert(sideOf(A, B, C, EPS));
+        signs.insert(sideOf(A, B, D, EPS));
     }
 
     return sz(signs) == 1 || (sz(signs) == 2 && signs.count(0));
