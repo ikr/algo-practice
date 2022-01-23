@@ -2,13 +2,11 @@
 using namespace std;
 
 using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
+
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 // Source:
@@ -52,18 +50,18 @@ template <class P> int sideOf(const P &s, const P &e, const P &p, double eps) {
     return (a > l) - (a < -l);
 }
 
-using Seg = pair<Point<double>, Point<double>>;
-static constexpr double EPS = 0.000001;
+using Seg = pair<Point<ll>, Point<ll>>;
 
 bool first_cut_part_intact(const vector<Seg> &cuts) {
     if (sz(cuts) < 2) return true;
+
     const auto [A, B] = cuts[0];
 
     set<int> signs;
     for (int i = 1; i < sz(cuts); ++i) {
         const auto [C, D] = cuts[i];
-        signs.insert(sideOf(A, B, C, EPS));
-        signs.insert(sideOf(A, B, D, EPS));
+        signs.insert(sideOf(A, B, C));
+        signs.insert(sideOf(A, B, D));
     }
 
     return sz(signs) == 1 || (sz(signs) == 2 && signs.count(0));
@@ -85,3 +83,5 @@ int main() {
     cout << (first_cut_part_intact(cuts) ? "YES" : "NO") << '\n';
     return 0;
 }
+
+// FTR https://contest.yandex.ru/snws2022/contest/23960/problems/D
