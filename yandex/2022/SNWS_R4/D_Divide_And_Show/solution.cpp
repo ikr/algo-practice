@@ -65,7 +65,7 @@ bool first_cut_part_intact(const vector<Seg> &cuts) {
         signs.insert(sideOf(A, B, D));
     }
 
-    return sz(signs) < 3;
+    return sz(signs) == 1 || (sz(signs) == 2 && signs.count(0));
 }
 
 int main() {
