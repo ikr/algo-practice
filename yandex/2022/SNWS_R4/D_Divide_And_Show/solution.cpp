@@ -84,4 +84,4 @@ int main() {
     return 0;
 }
 
-// FTR https://contest.yandex.ru/snws2022/contest/23960/problems/D
+// FTR 2022-01-23 https://contest.yandex.ru/snws2022/contest/23960/problems/D
