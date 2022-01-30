@@ -17,13 +17,29 @@ constexpr int happiness_delta(const int h1, const int h2) {
     return 2 * (h1 - h2);
 }
 
-constexpr ll INF = 1e17;
+constexpr ll INF = 1e16;
 
 ll max_happiness(const vector<vector<pii>> &g) {
     const auto n = sz(g);
     vll d(n, -INF);
+    d[0] = 0;
 
     queue<int> q;
+    q.push(0);
+
+    while (!q.empty()) {
+        const auto u = q.front();
+        q.pop();
+
+        for (const auto [v, w] : g[u]) {
+            if (d[u] + w > d[v]) {
+                d[v] = d[u] + w;
+                q.push(v);
+            }
+        }
+    }
+
+    return *max_element(cbegin(d), cend(d));
 }
 
 int main() {
@@ -36,7 +52,7 @@ int main() {
     vi H(N, 0);
     for (auto &h : H) cin >> h;
 
-    vector<vector<pii>> g;
+    vector<vector<pii>> g(N);
 
     for (int i = 1; i <= M; ++i) {
         int u, v;
