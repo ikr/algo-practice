@@ -2,11 +2,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -20,8 +15,89 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
     return xs.cend();
 }
 
+template <typename T>
+constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
+    return {a.first + b.first, a.second + b.second};
+}
+
+template <typename T>
+constexpr pair<T, T> times_k(const pair<T, T> a, const T k) {
+    return {k * a.first, k * a.second};
+}
+
+using Graph = vector<vector<vector<vector<bool>>>>;
+using pii = pair<int, int>;
+
+Graph build_graph(const vector<string> &grid) {
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+
+    const auto in_bounds = [&](const pii roco) -> bool {
+        const auto ro = roco.first;
+        const auto co = roco.second;
+        return 0 <= ro && ro < H && 0 <= co && co < W;
+    };
+
+    Graph g(H, vector<vector<vector<bool>>>(
+                   W, vector<vector<bool>>(H, vector<bool>(W, false))));
+
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            const auto roco = pii{ro, co};
+
+            for (const auto delta :
+                 vector<pii>{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}) {
+
+                for (int k = 1; in_bounds(roco + times_k(delta, k)); ++k) {
+                    const auto t = roco + times_k(delta, k);
+                    const auto ro_ = t.first;
+                    const auto co_ = t.second;
+                    if (grid[ro_][co_] == '#') continue;
+
+                    if (k == 1) {
+                        g[ro][co][ro_][co_] = true;
+                    } else {
+                        const auto t_ = roco + times_k(delta, k + 1);
+                        if (!in_bounds(t_)) continue;
+
+                        const auto ro__ = t_.first;
+                        const auto co__ = t_.second;
+                        if (grid[ro__][co__] == '#') continue;
+                        g[ro][co][ro__][co__] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    return g;
+}
+
+pair<pii, pii> endpoints(const vector<string> &grid) {
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+
+    pii start{-1, -1};
+    pii finish{-1, -1};
+
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            if (grid[ro][co] == 'T') {
+                start = pii{ro, co};
+            } else if (grid[ro][co] == 'L') {
+                finish = pii{ro, co};
+            }
+        }
+    }
+
+    return {start, finish};
+}
+
 struct JumpingTiger final {
-    int travel(const vector<string> &grid) const { return 42; }
+    int travel(const vector<string> &grid) const {
+        const auto g = build_graph(grid);
+        return 42;
+    }
 };
 
 // clang-format off
