@@ -7,14 +7,6 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
-    return xs.cbegin();
-}
-
-template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
-    return xs.cend();
-}
-
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
@@ -25,8 +17,9 @@ constexpr pair<T, T> times_k(const pair<T, T> a, const T k) {
     return {k * a.first, k * a.second};
 }
 
-using Graph = vector<vector<vector<vector<bool>>>>;
 using pii = pair<int, int>;
+using tri = array<int, 3>;
+using Graph = vector<vector<vector<tri>>>;
 
 Graph build_graph(const vector<string> &grid) {
     const auto H = sz(grid);
@@ -38,8 +31,7 @@ Graph build_graph(const vector<string> &grid) {
         return 0 <= ro && ro < H && 0 <= co && co < W;
     };
 
-    Graph g(H, vector<vector<vector<bool>>>(
-                   W, vector<vector<bool>>(H, vector<bool>(W, false))));
+    Graph g(H, vector<vector<tri>>(W));
 
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
@@ -55,7 +47,7 @@ Graph build_graph(const vector<string> &grid) {
                     if (grid[ro_][co_] == '#') continue;
 
                     if (k == 1) {
-                        g[ro][co][ro_][co_] = true;
+                        g[ro][co].push_back(tri{ro_, co_, 1});
                     } else {
                         const auto t_ = roco + times_k(delta, k + 1);
                         if (!in_bounds(t_)) continue;
@@ -63,7 +55,7 @@ Graph build_graph(const vector<string> &grid) {
                         const auto ro__ = t_.first;
                         const auto co__ = t_.second;
                         if (grid[ro__][co__] == '#') continue;
-                        g[ro][co][ro__][co__] = true;
+                        g[ro][co].push_back(tri{ro__, co__, 2});
                     }
                 }
             }
@@ -73,7 +65,7 @@ Graph build_graph(const vector<string> &grid) {
     return g;
 }
 
-pair<pii, pii> endpoints(const vector<string> &grid) {
+pair<pii, pii> find_endpoints(const vector<string> &grid) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
 
@@ -96,7 +88,34 @@ pair<pii, pii> endpoints(const vector<string> &grid) {
 struct JumpingTiger final {
     int travel(const vector<string> &grid) const {
         const auto g = build_graph(grid);
-        return 42;
+        const auto endpoints = find_endpoints(grid);
+        const auto start = endpoints.first;
+        const auto finish = endpoints.second;
+
+        vector<vector<int>> d(sz(grid), vector<int>(sz(grid[0]), -1));
+        d[start.first][start.second] = 0;
+        queue<pii> q;
+        q.push(start);
+
+        while (!q.empty()) {
+            const auto u = q.front();
+            q.pop();
+            const auto d0 = d[u.first][u.second];
+
+            for (const auto &v : g[u.first][u.second]) {
+                const auto ro = v[0];
+                const auto co = v[1];
+                const auto w = v[2];
+
+                if (d[ro][co] != -1) continue;
+                if (pii{ro, co} == finish) return d0 + w;
+
+                d[ro][co] = d0 + w;
+                q.emplace(ro, co);
+            }
+        }
+
+        return d[finish.first][finish.second];
     }
 };
 
