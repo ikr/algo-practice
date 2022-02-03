@@ -77,7 +77,39 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
         return 0;
     };
 
+    const auto beta = [&](const int j, const int k) -> int {
+        assert(0 <= j && j < m);
+        assert(0 <= k && k < n);
+
+        if (binary_search(cbegin(author_stories[j]), cend(author_stories[j]),
+                          k)) {
+            return 2;
+        }
+        if (binary_search(cbegin(s_fllw[j]), cend(s_fllw[j]), k)) return 1;
+        return 0;
+    };
+
     vector<array<int, 3>> result(m, array<int, 3>{});
+    for (int i = 0; i < m; ++i) {
+        vi scores(n, 0);
+        for (int k = 0; k < n; ++k) {
+            for (int j = 0; j < m; ++j) {
+                scores[k] += alpha(i, j) * beta(j, k);
+            }
+        }
+
+        vi idx(n, -1);
+        iota(begin(idx), end(idx), 0);
+        partial_sort(begin(idx), begin(idx) + 3, end(idx),
+                     [&](const int a, const int b) {
+                         if (scores[a] == scores[b]) return a < b;
+                         return scores[a] > scores[b];
+                     });
+
+        for (int t = 0; t < 3; ++t) {
+            result[i][t] = idx[t];
+        }
+    }
     return result;
 }
 
