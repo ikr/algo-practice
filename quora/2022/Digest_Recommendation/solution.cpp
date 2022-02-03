@@ -41,10 +41,41 @@ vector<array<T, N>> inc_each(vector<array<T, N>> src) {
     return src;
 }
 
+vvi gather_author_stories(const int m, const vi &story_authors) {
+    vvi result(m);
+    for (int s = 0; s < sz(story_authors); ++s) {
+        const auto a = story_authors[s];
+        result[a].push_back(s);
+    }
+    sort_rows(result);
+    return result;
+}
+
 vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
                                 const vvi &s_fllw) {
     const auto n = sz(story_authors);
     const auto m = sz(u_fllw);
+    const auto author_stories = gather_author_stories(m, story_authors);
+
+    const auto alpha = [&](const int i, const int j) -> int {
+        assert(0 <= i && i < m);
+        assert(0 <= j && j < m);
+
+        const auto ui_follows_story_s = [&](const int s) -> bool {
+            return binary_search(cbegin(s_fllw[i]), cbegin(s_fllw[i]), s);
+        };
+
+        if (i == j) return 0;
+        if (binary_search(cbegin(u_fllw[i]), cend(u_fllw[i]), j)) return 3;
+        if (any_of(cbegin(author_stories[j]), cend(author_stories[j]),
+                   ui_follows_story_s)) {
+            return 2;
+        }
+        if (any_of(cbegin(s_fllw[j]), cend(s_fllw[j]), ui_follows_story_s)) {
+            return 1;
+        }
+        return 0;
+    };
 
     vector<array<int, 3>> result(m, array<int, 3>{});
     return result;
