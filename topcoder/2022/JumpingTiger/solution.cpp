@@ -85,6 +85,8 @@ pair<pii, pii> find_endpoints(const vector<string> &grid) {
     return {start, finish};
 }
 
+static constexpr int INF = 1e8;
+
 struct JumpingTiger final {
     int travel(const vector<string> &grid) const {
         const auto g = build_graph(grid);
@@ -92,14 +94,14 @@ struct JumpingTiger final {
         const auto start = endpoints.first;
         const auto finish = endpoints.second;
 
-        vector<vector<int>> d(sz(grid), vector<int>(sz(grid[0]), -1));
+        vector<vector<int>> d(sz(grid), vector<int>(sz(grid[0]), INF));
         d[start.first][start.second] = 0;
-        queue<pii> q;
-        q.push(start);
+        set<pair<int, pii>> q;
+        q.emplace(0, start);
 
         while (!q.empty()) {
-            const auto u = q.front();
-            q.pop();
+            const auto u = q.cbegin()->second;
+            q.erase(q.cbegin());
             const auto d0 = d[u.first][u.second];
 
             for (const auto &v : g[u.first][u.second]) {
@@ -107,15 +109,17 @@ struct JumpingTiger final {
                 const auto co = v[1];
                 const auto w = v[2];
 
-                if (d[ro][co] != -1) continue;
-                if (pii{ro, co} == finish) return d0 + w;
-
-                d[ro][co] = d0 + w;
-                q.emplace(ro, co);
+                if (d0 + w < d[ro][co]) {
+                    q.erase({d[ro][co], pii{ro, co}});
+                    d[ro][co] = d0 + w;
+                    q.emplace(d0 + w, pii{ro, co});
+                }
             }
         }
 
-        return d[finish.first][finish.second];
+        return d[finish.first][finish.second] < INF
+                   ? d[finish.first][finish.second]
+                   : -1;
     }
 };
 
