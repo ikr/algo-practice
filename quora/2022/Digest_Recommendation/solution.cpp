@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto xs : xss) os << xs << '\n';
+    return os;
+}
+
 using vi = vector<int>;
 using vvi = vector<vi>;
 
@@ -56,6 +72,7 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
     const auto n = sz(story_authors);
     const auto m = sz(u_fllw);
     const auto author_stories = gather_author_stories(m, story_authors);
+    cerr << "author_stories: " << author_stories << endl;
 
     const auto alpha = [&](const int i, const int j) -> int {
         assert(0 <= i && i < m);
@@ -93,10 +110,16 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
     for (int i = 0; i < m; ++i) {
         vi scores(n, 0);
         for (int k = 0; k < n; ++k) {
-            for (int j = 0; j < m; ++j) {
-                scores[k] += alpha(i, j) * beta(j, k);
+            if (story_authors[k] == i ||
+                binary_search(cbegin(s_fllw[i]), cend(s_fllw[i]), k)) {
+                scores[k] = -1;
+            } else {
+                for (int j = 0; j < m; ++j) {
+                    scores[k] += alpha(i, j) * beta(j, k);
+                }
             }
         }
+        cerr << "scores: " << scores << endl;
 
         vi idx(n, -1);
         iota(begin(idx), end(idx), 0);
