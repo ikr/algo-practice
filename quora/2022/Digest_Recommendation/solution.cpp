@@ -67,6 +67,23 @@ vvi gather_author_stories(const int m, const vi &story_authors) {
     return result;
 }
 
+array<int, 3> top_3_indices(const vi &scores) {
+    vi idx(sz(scores), -1);
+    iota(begin(idx), end(idx), 0);
+
+    partial_sort(begin(idx), begin(idx) + 3, end(idx),
+                 [&](const int a, const int b) {
+                     if (scores[a] == scores[b]) return a < b;
+                     return scores[a] > scores[b];
+                 });
+
+    array<int, 3> result;
+    for (int t = 0; t < 3; ++t) {
+        result[t] = idx[t];
+    }
+    return result;
+}
+
 vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
                                 const vvi &s_fllw) {
     const auto n = sz(story_authors);
@@ -120,18 +137,7 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
             }
         }
         cerr << "scores: " << scores << endl;
-
-        vi idx(n, -1);
-        iota(begin(idx), end(idx), 0);
-        partial_sort(begin(idx), begin(idx) + 3, end(idx),
-                     [&](const int a, const int b) {
-                         if (scores[a] == scores[b]) return a < b;
-                         return scores[a] > scores[b];
-                     });
-
-        for (int t = 0; t < 3; ++t) {
-            result[i][t] = idx[t];
-        }
+        result[i] = top_3_indices(scores);
     }
     return result;
 }
@@ -144,9 +150,9 @@ int main() {
     cin >> n >> m;
 
     vi story_authors(n, -1);
-    for (auto &a : story_authors) {
-        cin >> a;
-        --a;
+    for (auto &j : story_authors) {
+        cin >> j;
+        --j;
     }
 
     int p, q;
