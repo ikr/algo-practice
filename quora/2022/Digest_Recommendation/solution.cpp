@@ -167,6 +167,7 @@ int main() {
         u_fllw[u].push_back(v);
     }
     sort_rows(u_fllw);
+    cerr << "u_fllw: " << u_fllw << endl;
 
     vvi s_fllw(m);
     for (int i = 1; i <= q; ++i) {
@@ -177,6 +178,7 @@ int main() {
         s_fllw[u].push_back(v);
     }
     sort_rows(s_fllw);
+    cerr << "s_fllw: " << s_fllw << endl;
 
     cout << inc_each(recommend(story_authors, u_fllw, s_fllw));
     return 0;
