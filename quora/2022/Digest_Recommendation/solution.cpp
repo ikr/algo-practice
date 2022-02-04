@@ -115,10 +115,7 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
         assert(0 <= j && j < m);
         assert(0 <= k && k < n);
 
-        if (binary_search(cbegin(author_stories[j]), cend(author_stories[j]),
-                          k)) {
-            return 2;
-        }
+        if (story_authors[k] == j) return 2;
         if (binary_search(cbegin(s_fllw[j]), cend(s_fllw[j]), k)) return 1;
         return 0;
     };
