@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 using vi = vector<int>;
 using vvi = vector<vi>;
 
@@ -89,14 +73,13 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
     const auto n = sz(story_authors);
     const auto m = sz(u_fllw);
     const auto author_stories = gather_author_stories(m, story_authors);
-    cerr << "author_stories: " << author_stories << endl;
 
     const auto alpha = [&](const int i, const int j) -> int {
         assert(0 <= i && i < m);
         assert(0 <= j && j < m);
 
         const auto ui_follows_story_s = [&](const int s) -> bool {
-            return binary_search(cbegin(s_fllw[i]), cbegin(s_fllw[i]), s);
+            return binary_search(cbegin(s_fllw[i]), cend(s_fllw[i]), s);
         };
 
         if (i == j) return 0;
@@ -114,7 +97,6 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
     const auto beta = [&](const int j, const int k) -> int {
         assert(0 <= j && j < m);
         assert(0 <= k && k < n);
-
         if (story_authors[k] == j) return 2;
         if (binary_search(cbegin(s_fllw[j]), cend(s_fllw[j]), k)) return 1;
         return 0;
@@ -133,7 +115,6 @@ vector<array<int, 3>> recommend(const vi &story_authors, const vvi &u_fllw,
                 }
             }
         }
-        cerr << "scores: " << scores << endl;
         result[i] = top_3_indices(scores);
     }
     return result;
@@ -164,7 +145,6 @@ int main() {
         u_fllw[u].push_back(v);
     }
     sort_rows(u_fllw);
-    cerr << "u_fllw: " << u_fllw << endl;
 
     vvi s_fllw(m);
     for (int i = 1; i <= q; ++i) {
@@ -175,7 +155,6 @@ int main() {
         s_fllw[u].push_back(v);
     }
     sort_rows(s_fllw);
-    cerr << "s_fllw: " << s_fllw << endl;
 
     cout << inc_each(recommend(story_authors, u_fllw, s_fllw));
     return 0;
