@@ -24,29 +24,27 @@ optional<int> suggest_missing(const vector<vector<int>> &grid) {
 
     if (sz(fs) == 1 && cbegin(fs)->first == 0) return 0;
 
-    const auto [evs, ods, one_odd] = [&]() -> tuple<int, int, int> {
+    const auto [evs, ods, one_ev, one_od] = [&]() -> tuple<int, int, int, int> {
         int a{};
         int b{};
         int c = -1;
+        int d = -1;
 
         for (const auto [x, f] : fs) {
             if (f % 2 == 0) {
                 ++a;
+                c = x;
             } else {
                 ++b;
-                c = x;
+                d = x;
             }
         }
 
-        return {a, b, c};
+        return {a, b, c, d};
     }();
 
-    if (ods == 1) {
-        assert(one_odd > 0);
-        assert(one_odd % 2);
-        return one_odd;
-    }
-
+    if (ods == 1) return one_od;
+    if (ods == 0) return 0;
     return nullopt;
 }
 
