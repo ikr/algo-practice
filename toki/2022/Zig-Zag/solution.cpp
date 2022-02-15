@@ -28,10 +28,8 @@ bool can_zig_zag_impl(int l, map<int, int> fs) {
         if (fs[k] == 0) fs.erase(k);
     };
 
-    // cerr << fs << endl;
-
     while (!fs.empty()) {
-        // cerr << fs << endl;
+        // cerr << fs << " l:" << l << endl;
         if (sz(fs) == 1) {
             const auto rem = prev(cend(fs))->first;
             if (rem >= l || fs[rem] != 1) return false;
@@ -41,7 +39,7 @@ bool can_zig_zag_impl(int l, map<int, int> fs) {
         const int a = prev(cend(fs), 2)->first;
         const int b = prev(cend(fs))->first;
         if (a >= l) return false;
-        const auto d = min(a, b);
+        const auto d = min(fs[a], fs[b]);
         dec_at(a, d);
         dec_at(b, d);
         l = b;
