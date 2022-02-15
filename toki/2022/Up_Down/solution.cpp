@@ -17,7 +17,7 @@ optional<int> suggest_missing(const vector<vector<int>> &grid) {
 
     for (const auto &row : grid) {
         for (const auto x : row) {
-            if (x == -1) continue;
+            if (x == -1 || x == 0) continue;
             ++fs[x];
         }
     }
