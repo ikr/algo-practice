@@ -24,13 +24,8 @@ streams_snippet = """cin.tie(0)->sync_with_stdio(0);
 
 code = '#include "lest.hpp"\n' if args.tests else ""
 
-code += """#include <bits/stdc++.h>
+code += """#include <iostream>
 using namespace std;
-
-using ll = long long;
-using vi = vector<int>;
-using vvi = vector<vi>;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) { return static_cast<int>(x); }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
