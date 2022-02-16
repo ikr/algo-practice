@@ -161,6 +161,9 @@ pair<int, int> blue_red_num(const vector<string> &grid) {
 }
 
 Outcome solve(const vector<string> &grid) {
+    const auto [bs, rs] = blue_red_num(grid);
+    if (abs(bs - rs) > 1) return Outcome::IMPOSSIBLE;
+
     const auto bcs = connections_num(grid, blue_sources(grid),
                                      make_is_blue_destiation(sz(grid)));
     if (bcs > 1) return Outcome::IMPOSSIBLE;
@@ -168,11 +171,7 @@ Outcome solve(const vector<string> &grid) {
     const auto rcs = connections_num(grid, red_sources(grid),
                                      make_is_red_destiation(sz(grid)));
     if (rcs > 1) return Outcome::IMPOSSIBLE;
-
-    const auto [bs, rs] = blue_red_num(grid);
-    if (abs(bs - rs) > 1 || (bcs && rcs)) {
-        return Outcome::IMPOSSIBLE;
-    }
+    if (bcs && rcs) return Outcome::IMPOSSIBLE;
 
     if (!bcs && !rcs) return Outcome::NEUTRAL;
 
