@@ -6,6 +6,22 @@
 #include <vector>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using RoCo = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -63,22 +79,24 @@ vector<RoCo> adjacent_hexagons_of_same_color(const vector<string> &grid,
     return result;
 }
 
-optional<RoCo> connection_destination(const vector<string> &grid,
-                                      const RoCo source,
-                                      const function<bool(RoCo)> is_destination,
-                                      const set<RoCo> &used_destinations) {
+optional<vector<RoCo>>
+connection_path(const vector<string> &grid, const RoCo source,
+                const function<bool(RoCo)> is_destination,
+                const set<RoCo> &used) {
     assert(grid[source.first][source.second] != '.');
     vector<vector<bool>> visited(sz(grid), vector(sz(grid[0]), false));
+    vector<vector<RoCo>> anc(sz(grid), vector(sz(grid[0]), RoCo{-1, -1}));
 
     const auto dfs = [&](const auto &self, const RoCo u) -> optional<RoCo> {
         const auto [ro, co] = u;
         visited[ro][co] = true;
-        if (is_destination(u) && !used_destinations.count(u)) return u;
+        if (is_destination(u) && !used.count(u)) return u;
 
         for (const auto v : adjacent_hexagons_of_same_color(grid, u)) {
             const auto [ro_, co_] = v;
-            if (visited[ro_][co_]) continue;
+            if (visited[ro_][co_] || used.count(v)) continue;
 
+            anc[ro_][co_] = u;
             const auto sub = self(self, v);
             if (sub) return sub;
         }
@@ -86,20 +104,35 @@ optional<RoCo> connection_destination(const vector<string> &grid,
         return nullopt;
     };
 
-    return dfs(dfs, source);
+    const auto dest = dfs(dfs, source);
+
+    if (dest) {
+        vector<RoCo> result;
+
+        auto curr = *dest;
+        while (curr != RoCo{-1, -1}) {
+            result.push_back(curr);
+            curr = anc[curr.first][curr.second];
+        }
+
+        reverse(begin(result), end(result));
+        // cerr << result << endl;
+        return result;
+    }
+
+    return nullopt;
 }
 
 int connections_num(const vector<string> &grid, const vector<RoCo> sources,
                     const function<bool(RoCo)> is_destination) {
     int result{};
-    set<RoCo> used_destinations;
+    set<RoCo> used;
 
     for (const auto u : sources) {
-        const auto dest =
-            connection_destination(grid, u, is_destination, used_destinations);
-        if (dest) {
+        const auto path = connection_path(grid, u, is_destination, used);
+        if (path) {
             ++result;
-            used_destinations.insert(*dest);
+            used.insert(cbegin(*path), cend(*path));
         }
     }
 
@@ -171,8 +204,8 @@ Outcome solve(const vector<string> &grid) {
     const auto rcs = connections_num(grid, red_sources(grid),
                                      make_is_red_destiation(sz(grid)));
     if (rcs > 1) return Outcome::IMPOSSIBLE;
-    if (bcs && rcs) return Outcome::IMPOSSIBLE;
 
+    if (bcs && rcs) return Outcome::IMPOSSIBLE;
     if (!bcs && !rcs) return Outcome::NEUTRAL;
 
     if (bcs) {
@@ -197,6 +230,10 @@ int main() {
         for (auto &row : grid) {
             cin >> row;
         }
+
+        // const auto bcs = connections_num(grid, blue_sources(grid),
+        //                                  make_is_blue_destiation(sz(grid)));
+        // cerr << "BCS:" << bcs << endl;
 
         cout << "Case #" << i << ": " << outcome_literal(solve(grid)) << '\n';
     }
