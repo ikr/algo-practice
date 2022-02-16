@@ -70,3 +70,5 @@ int main() {
     }
     return 0;
 }
+
+// AJN 2022-02-16 https://tlx.toki.id/problems/troc-26/C

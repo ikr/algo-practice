@@ -74,3 +74,5 @@ int main() {
     cout << (can_zig_zag(move(fs)) ? "YES" : "NO") << '\n';
     return 0;
 }
+
+// AJN 2022-02-16 https://tlx.toki.id/problems/troc-26/C
