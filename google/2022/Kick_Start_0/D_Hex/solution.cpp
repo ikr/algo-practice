@@ -40,7 +40,7 @@ constexpr bool in_bounds(const int N, const RoCo roco) {
     return 0 <= ro && ro < N && 0 <= co && co < N;
 }
 
-static const vector<RoCo> HEXAGON_DELTAS{{-1, 0}, {1, -1}, {0, 1},
+static const vector<RoCo> HEXAGON_DELTAS{{-1, 0}, {-1, 1}, {0, 1},
                                          {1, 0},  {1, -1}, {0, -1}};
 
 vector<RoCo> adjacent_hexagons_of_same_color(const vector<string> &grid,
