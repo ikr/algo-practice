@@ -63,9 +63,9 @@ vector<RoCo> adjacent_hexagons_of_same_color(const vector<string> &grid,
 }
 
 bool confirm_connection(const vector<string> &grid, const RoCo source,
-                        const function<bool(RoCo)> is_destination,
-                        vector<vector<bool>> &visited) {
+                        const function<bool(RoCo)> is_destination) {
     assert(grid[source.first][source.second] != '.');
+    vector<vector<bool>> visited(sz(grid), vector(sz(grid[0]), false));
 
     const auto dfs = [&](const auto &self, const RoCo u) -> bool {
         const auto [ro, co] = u;
@@ -84,17 +84,11 @@ bool confirm_connection(const vector<string> &grid, const RoCo source,
     return dfs(dfs, source);
 }
 
-bool confirm_connection(const vector<string> &grid, const vector<RoCo> sources,
-                        const function<bool(RoCo)> is_destination) {
-    vector<vector<bool>> visited(sz(grid), vector(sz(grid[0]), false));
-
-    for (const auto source : sources) {
-        if (confirm_connection(grid, source, is_destination, visited)) {
-            return true;
-        }
-    }
-
-    return false;
+int connections_num(const vector<string> &grid, const vector<RoCo> sources,
+                    const function<bool(RoCo)> is_destination) {
+    return inof(count_if(cbegin(sources), cend(sources), [&](const auto src) {
+        return confirm_connection(grid, src, is_destination);
+    }));
 }
 
 vector<RoCo> blue_sources(const vector<string> &grid) {
@@ -152,22 +146,25 @@ pair<int, int> blue_red_num(const vector<string> &grid) {
 }
 
 Outcome solve(const vector<string> &grid) {
-    const auto blue_connected = confirm_connection(
-        grid, blue_sources(grid), make_is_blue_destiation(sz(grid)));
-    const auto red_connected = confirm_connection(
-        grid, red_sources(grid), make_is_red_destiation(sz(grid)));
+    const auto bcs = connections_num(grid, blue_sources(grid),
+                                     make_is_blue_destiation(sz(grid)));
+    if (bcs > 1) return Outcome::IMPOSSIBLE;
+
+    const auto rcs = connections_num(grid, red_sources(grid),
+                                     make_is_red_destiation(sz(grid)));
+    if (rcs > 1) return Outcome::IMPOSSIBLE;
 
     const auto [bs, rs] = blue_red_num(grid);
-    if (abs(bs - rs) > 1 || (blue_connected && red_connected)) {
+    if (abs(bs - rs) > 1 || (bcs && rcs)) {
         return Outcome::IMPOSSIBLE;
     }
 
-    if (!blue_connected && !red_connected) return Outcome::NEUTRAL;
+    if (!bcs && !rcs) return Outcome::NEUTRAL;
 
-    if (blue_connected) {
+    if (bcs) {
         return rs > bs ? Outcome::IMPOSSIBLE : Outcome::BLUE_WINS;
     } else {
-        assert(red_connected);
+        assert(rcs);
         return bs > rs ? Outcome::IMPOSSIBLE : Outcome::RED_WINS;
     }
 }
