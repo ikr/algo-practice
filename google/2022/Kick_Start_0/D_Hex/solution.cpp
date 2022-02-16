@@ -131,14 +131,45 @@ function<bool(RoCo)> make_is_red_destiation(const int N) {
     };
 }
 
+pair<int, int> blue_red_num(const vector<string> &grid) {
+    int bs{};
+    int rs{};
+
+    for (int ro = 0; ro < sz(grid); ++ro) {
+        for (int co = 0; co < sz(grid[0]); ++co) {
+            switch (grid[ro][co]) {
+            case 'B':
+                ++bs;
+                break;
+            case 'R':
+                ++rs;
+                break;
+            }
+        }
+    }
+
+    return {bs, rs};
+}
+
 Outcome solve(const vector<string> &grid) {
     const auto blue_connected = confirm_connection(
         grid, blue_sources(grid), make_is_blue_destiation(sz(grid)));
     const auto red_connected = confirm_connection(
         grid, red_sources(grid), make_is_red_destiation(sz(grid)));
 
-    cerr << "BC:" << blue_connected << " RC:" << red_connected << endl;
-    return Outcome::NEUTRAL;
+    const auto [bs, rs] = blue_red_num(grid);
+    if (abs(bs - rs) > 1 || (blue_connected && red_connected)) {
+        return Outcome::IMPOSSIBLE;
+    }
+
+    if (!blue_connected && !red_connected) return Outcome::NEUTRAL;
+
+    if (blue_connected) {
+        return rs > bs ? Outcome::IMPOSSIBLE : Outcome::BLUE_WINS;
+    } else {
+        assert(red_connected);
+        return bs > rs ? Outcome::IMPOSSIBLE : Outcome::RED_WINS;
+    }
 }
 
 int main() {
