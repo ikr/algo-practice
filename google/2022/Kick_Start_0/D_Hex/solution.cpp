@@ -1,6 +1,7 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <set>
 #include <utility>
 #include <vector>
 using namespace std;
@@ -62,23 +63,27 @@ vector<RoCo> adjacent_hexagons_of_same_color(const vector<string> &grid,
     return result;
 }
 
-bool confirm_connection(const vector<string> &grid, const RoCo source,
-                        const function<bool(RoCo)> is_destination) {
+optional<RoCo> connection_destination(const vector<string> &grid,
+                                      const RoCo source,
+                                      const function<bool(RoCo)> is_destination,
+                                      const set<RoCo> &used_destinations) {
     assert(grid[source.first][source.second] != '.');
     vector<vector<bool>> visited(sz(grid), vector(sz(grid[0]), false));
 
-    const auto dfs = [&](const auto &self, const RoCo u) -> bool {
+    const auto dfs = [&](const auto &self, const RoCo u) -> optional<RoCo> {
         const auto [ro, co] = u;
         visited[ro][co] = true;
-        if (is_destination(u)) return true;
+        if (is_destination(u) && !used_destinations.count(u)) return u;
 
         for (const auto v : adjacent_hexagons_of_same_color(grid, u)) {
             const auto [ro_, co_] = v;
             if (visited[ro_][co_]) continue;
-            if (self(self, v)) return true;
+
+            const auto sub = self(self, v);
+            if (sub) return sub;
         }
 
-        return false;
+        return nullopt;
     };
 
     return dfs(dfs, source);
@@ -86,9 +91,19 @@ bool confirm_connection(const vector<string> &grid, const RoCo source,
 
 int connections_num(const vector<string> &grid, const vector<RoCo> sources,
                     const function<bool(RoCo)> is_destination) {
-    return inof(count_if(cbegin(sources), cend(sources), [&](const auto src) {
-        return confirm_connection(grid, src, is_destination);
-    }));
+    int result{};
+    set<RoCo> used_destinations;
+
+    for (const auto u : sources) {
+        const auto dest =
+            connection_destination(grid, u, is_destination, used_destinations);
+        if (dest) {
+            ++result;
+            used_destinations.insert(*dest);
+        }
+    }
+
+    return result;
 }
 
 vector<RoCo> blue_sources(const vector<string> &grid) {
