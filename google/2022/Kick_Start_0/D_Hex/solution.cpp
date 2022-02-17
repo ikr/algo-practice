@@ -159,10 +159,24 @@ vector<RoCo> red_sources(const vector<string> &grid) {
     return result;
 }
 
+function<bool(RoCo)> make_is_blue_source(const int N) {
+    return [N](const RoCo roco) -> bool {
+        const auto [_, co] = roco;
+        return co == 0;
+    };
+}
+
 function<bool(RoCo)> make_is_blue_destiation(const int N) {
     return [N](const RoCo roco) -> bool {
         const auto [_, co] = roco;
         return co == N - 1;
+    };
+}
+
+function<bool(RoCo)> make_is_red_source(const int N) {
+    return [N](const RoCo roco) -> bool {
+        const auto [ro, _] = roco;
+        return ro == 0;
     };
 }
 
@@ -215,6 +229,8 @@ Outcome solve(const vector<string> &grid) {
         return bs > rs ? Outcome::IMPOSSIBLE : Outcome::RED_WINS;
     }
 }
+
+enum class PlayerPosition { NEUTRAL, IMPOSSIBLE, POTENTIAL_WIN };
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
