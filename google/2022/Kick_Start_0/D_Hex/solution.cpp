@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -232,6 +233,110 @@ Outcome solve(const vector<string> &grid) {
 
 enum class PlayerPosition { NEUTRAL, IMPOSSIBLE, POTENTIAL_WIN };
 
+string player_position_literal(const PlayerPosition x) {
+    switch (x) {
+    case PlayerPosition::NEUTRAL:
+        return "Neutral";
+    case PlayerPosition::IMPOSSIBLE:
+        return "Impossible";
+    case PlayerPosition::POTENTIAL_WIN:
+    default:
+        return "Potential win";
+    }
+}
+
+bool is_bridging_source(const vector<string> &grid, const RoCo source,
+                        const function<bool(RoCo)> is_destination) {
+    vector<vector<bool>> visited(sz(grid), vector(sz(grid[0]), false));
+
+    const auto dfs = [&](const auto &self, const RoCo u) -> bool {
+        if (is_destination(u)) return true;
+        const auto [ro, co] = u;
+        visited[ro][co] = true;
+
+        for (const auto v : adjacent_hexagons_of_same_color(grid, u)) {
+            if (visited[v.first][v.second]) continue;
+            if (self(self, v)) return true;
+        }
+
+        return false;
+    };
+
+    return dfs(dfs, source);
+}
+
+set<RoCo> component_of(const vector<string> &grid, const RoCo roco,
+                       const optional<RoCo> punctured) {
+    if (punctured) {
+        assert(*punctured != roco);
+    }
+
+    set<RoCo> result;
+
+    const auto dfs = [&](const auto &self, const RoCo u) -> void {
+        result.insert(u);
+        for (const auto v : adjacent_hexagons_of_same_color(grid, u)) {
+            if (result.count(v) || (punctured && *punctured == v)) continue;
+            self(self, v);
+        }
+    };
+
+    dfs(dfs, roco);
+    return result;
+}
+
+bool is_1_connected(const vector<string> &grid, const set<RoCo> &component,
+                    const function<bool(RoCo)> is_source,
+                    const function<bool(RoCo)> is_destination) {
+    const auto src_it = find_if(cbegin(component), cend(component), is_source);
+    assert(src_it != cend(component));
+
+    for (const auto punctured : component) {
+        if (is_source(punctured) || is_destination(punctured)) continue;
+
+        if (sz(component_of(grid, *src_it, punctured)) != sz(component) - 1) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+PlayerPosition
+evaluate_standalone_player_position(const vector<string> &grid,
+                                    const vector<RoCo> &sources,
+                                    const function<bool(RoCo)> is_source,
+                                    const function<bool(RoCo)> is_destination) {
+    const auto b_src_it =
+        find_if(cbegin(sources), cend(sources), [&](const auto src) {
+            return is_bridging_source(grid, src, is_destination);
+        });
+
+    if (b_src_it == cend(sources)) return PlayerPosition::NEUTRAL;
+
+    const auto bridge = component_of(grid, *b_src_it, nullopt);
+
+    for (auto it = next(b_src_it); it != cend(sources); ++it) {
+        if (bridge.count(*it)) continue;
+
+        if (is_bridging_source(grid, *it, is_destination)) {
+            return PlayerPosition::IMPOSSIBLE;
+        }
+    }
+
+    assert(count_if(cbegin(bridge), cend(bridge), is_source) > 0);
+    assert(count_if(cbegin(bridge), cend(bridge), is_destination) > 0);
+
+    if (count_if(cbegin(bridge), cend(bridge), is_source) == 1 ||
+        count_if(cbegin(bridge), cend(bridge), is_destination) == 1) {
+        return PlayerPosition::POTENTIAL_WIN;
+    }
+
+    return is_1_connected(grid, bridge, is_source, is_destination)
+               ? PlayerPosition::POTENTIAL_WIN
+               : PlayerPosition::IMPOSSIBLE;
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -250,6 +355,18 @@ int main() {
         // const auto bcs = connections_num(grid, blue_sources(grid),
         //                                  make_is_blue_destiation(sz(grid)));
         // cerr << "BCS:" << bcs << endl;
+
+        cerr << "B: "
+             << player_position_literal(evaluate_standalone_player_position(
+                    grid, blue_sources(grid), make_is_blue_source(N),
+                    make_is_blue_destiation(N)))
+             << endl;
+
+        cerr << "R: "
+             << player_position_literal(evaluate_standalone_player_position(
+                    grid, red_sources(grid), make_is_red_source(N),
+                    make_is_red_destiation(N)))
+             << endl;
 
         cout << "Case #" << i << ": " << outcome_literal(solve(grid)) << '\n';
     }
