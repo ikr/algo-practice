@@ -7,22 +7,6 @@
 #include <vector>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using RoCo = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -75,66 +59,6 @@ vector<RoCo> adjacent_hexagons_of_same_color(const vector<string> &grid,
         if (grid[ro_][co_] != color) continue;
 
         result.emplace_back(ro_, co_);
-    }
-
-    return result;
-}
-
-optional<vector<RoCo>>
-connection_path(const vector<string> &grid, const RoCo source,
-                const function<bool(RoCo)> is_destination,
-                const set<RoCo> &used) {
-    assert(grid[source.first][source.second] != '.');
-    vector<vector<bool>> visited(sz(grid), vector(sz(grid[0]), false));
-    vector<vector<RoCo>> anc(sz(grid), vector(sz(grid[0]), RoCo{-1, -1}));
-
-    const auto dfs = [&](const auto &self, const RoCo u) -> optional<RoCo> {
-        const auto [ro, co] = u;
-        visited[ro][co] = true;
-        if (is_destination(u) && !used.count(u)) return u;
-
-        for (const auto v : adjacent_hexagons_of_same_color(grid, u)) {
-            const auto [ro_, co_] = v;
-            if (visited[ro_][co_] || used.count(v)) continue;
-
-            anc[ro_][co_] = u;
-            const auto sub = self(self, v);
-            if (sub) return sub;
-        }
-
-        return nullopt;
-    };
-
-    const auto dest = dfs(dfs, source);
-
-    if (dest) {
-        vector<RoCo> result;
-
-        auto curr = *dest;
-        while (curr != RoCo{-1, -1}) {
-            result.push_back(curr);
-            curr = anc[curr.first][curr.second];
-        }
-
-        reverse(begin(result), end(result));
-        // cerr << result << endl;
-        return result;
-    }
-
-    return nullopt;
-}
-
-int connections_num(const vector<string> &grid, const vector<RoCo> sources,
-                    const function<bool(RoCo)> is_destination) {
-    int result{};
-    set<RoCo> used;
-
-    for (const auto u : sources) {
-        const auto path = connection_path(grid, u, is_destination, used);
-        if (path) {
-            ++result;
-            used.insert(cbegin(*path), cend(*path));
-        }
     }
 
     return result;
@@ -208,42 +132,7 @@ pair<int, int> blue_red_num(const vector<string> &grid) {
     return {bs, rs};
 }
 
-Outcome solve(const vector<string> &grid) {
-    const auto [bs, rs] = blue_red_num(grid);
-    if (abs(bs - rs) > 1) return Outcome::IMPOSSIBLE;
-
-    const auto bcs = connections_num(grid, blue_sources(grid),
-                                     make_is_blue_destiation(sz(grid)));
-    if (bcs > 1) return Outcome::IMPOSSIBLE;
-
-    const auto rcs = connections_num(grid, red_sources(grid),
-                                     make_is_red_destiation(sz(grid)));
-    if (rcs > 1) return Outcome::IMPOSSIBLE;
-
-    if (bcs && rcs) return Outcome::IMPOSSIBLE;
-    if (!bcs && !rcs) return Outcome::NEUTRAL;
-
-    if (bcs) {
-        return rs > bs ? Outcome::IMPOSSIBLE : Outcome::BLUE_WINS;
-    } else {
-        assert(rcs);
-        return bs > rs ? Outcome::IMPOSSIBLE : Outcome::RED_WINS;
-    }
-}
-
 enum class PlayerPosition { NEUTRAL, IMPOSSIBLE, POTENTIAL_WIN };
-
-string player_position_literal(const PlayerPosition x) {
-    switch (x) {
-    case PlayerPosition::NEUTRAL:
-        return "Neutral";
-    case PlayerPosition::IMPOSSIBLE:
-        return "Impossible";
-    case PlayerPosition::POTENTIAL_WIN:
-    default:
-        return "Potential win";
-    }
-}
 
 bool is_bridging_source(const vector<string> &grid, const RoCo source,
                         const function<bool(RoCo)> is_destination) {
@@ -337,6 +226,47 @@ evaluate_standalone_player_position(const vector<string> &grid,
                : PlayerPosition::IMPOSSIBLE;
 }
 
+Outcome solve(const vector<string> &grid) {
+    const auto N = sz(grid);
+    const auto [bs, rs] = blue_red_num(grid);
+    if (abs(bs - rs) > 1) return Outcome::IMPOSSIBLE;
+
+    const auto position_of_blue = evaluate_standalone_player_position(
+        grid, blue_sources(grid), make_is_blue_source(N),
+        make_is_blue_destiation(N));
+
+    if (position_of_blue == PlayerPosition::IMPOSSIBLE) {
+        return Outcome::IMPOSSIBLE;
+    }
+
+    const auto position_of_red = evaluate_standalone_player_position(
+        grid, red_sources(grid), make_is_red_source(N),
+        make_is_red_destiation(N));
+
+    if (position_of_red == PlayerPosition::IMPOSSIBLE) {
+        return Outcome::IMPOSSIBLE;
+    }
+
+    if (position_of_blue == PlayerPosition::POTENTIAL_WIN &&
+        position_of_red == PlayerPosition::POTENTIAL_WIN) {
+        return Outcome::IMPOSSIBLE;
+    }
+
+    if (position_of_blue == PlayerPosition::NEUTRAL &&
+        position_of_red == PlayerPosition::NEUTRAL) {
+        return Outcome::NEUTRAL;
+    }
+
+    if (position_of_blue == PlayerPosition::POTENTIAL_WIN) {
+        assert(position_of_red == PlayerPosition::NEUTRAL);
+        return rs > bs ? Outcome::IMPOSSIBLE : Outcome::BLUE_WINS;
+    } else {
+        assert(position_of_red == PlayerPosition::POTENTIAL_WIN);
+        assert(position_of_blue == PlayerPosition::NEUTRAL);
+        return bs > rs ? Outcome::IMPOSSIBLE : Outcome::RED_WINS;
+    }
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -351,22 +281,6 @@ int main() {
         for (auto &row : grid) {
             cin >> row;
         }
-
-        // const auto bcs = connections_num(grid, blue_sources(grid),
-        //                                  make_is_blue_destiation(sz(grid)));
-        // cerr << "BCS:" << bcs << endl;
-
-        cerr << "B: "
-             << player_position_literal(evaluate_standalone_player_position(
-                    grid, blue_sources(grid), make_is_blue_source(N),
-                    make_is_blue_destiation(N)))
-             << endl;
-
-        cerr << "R: "
-             << player_position_literal(evaluate_standalone_player_position(
-                    grid, red_sources(grid), make_is_red_source(N),
-                    make_is_red_destiation(N)))
-             << endl;
 
         cout << "Case #" << i << ": " << outcome_literal(solve(grid)) << '\n';
     }
