@@ -6,6 +6,16 @@
 #include <vector>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -63,6 +73,7 @@ int min_complaints(const vector<string> &preferences,
     const auto N = sz(preferences);
     const auto P = sz(preferences[0]);
     const auto fq1 = freqs_of_ones(preferences);
+    cerr << "fq1: " << fq1 << endl;
 
     vector<int> idx_by_flip_cost(P);
     iota(begin(idx_by_flip_cost), end(idx_by_flip_cost), 0);
@@ -75,6 +86,8 @@ int min_complaints(const vector<string> &preferences,
          [&](const int i, const int j) -> bool {
              return flip_cost(i) < flip_cost(j);
          });
+
+    cerr << "idx: " << idx_by_flip_cost << endl;
 
     const auto proto_result = gather_proto_result(N, fq1);
     cerr << "PR: " << proto_result << endl;
