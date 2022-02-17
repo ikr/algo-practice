@@ -254,6 +254,7 @@ Outcome solve(const vector<string> &grid) {
 
     if (position_of_blue == PlayerPosition::NEUTRAL &&
         position_of_red == PlayerPosition::NEUTRAL) {
+        assert(bs + rs < N * N);
         return Outcome::NEUTRAL;
     }
 
