@@ -213,9 +213,6 @@ evaluate_standalone_player_position(const vector<string> &grid,
         }
     }
 
-    assert(count_if(cbegin(bridge), cend(bridge), is_source) > 0);
-    assert(count_if(cbegin(bridge), cend(bridge), is_destination) > 0);
-
     if (count_if(cbegin(bridge), cend(bridge), is_source) == 1 ||
         count_if(cbegin(bridge), cend(bridge), is_destination) == 1) {
         return PlayerPosition::POTENTIAL_WIN;
