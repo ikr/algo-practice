@@ -182,8 +182,10 @@ bool is_1_connected(const vector<string> &grid, const set<RoCo> &component,
 
     for (const auto punctured : component) {
         if (is_source(punctured) || is_destination(punctured)) continue;
+        const auto c = component_of(grid, *src_it, punctured);
 
-        if (sz(component_of(grid, *src_it, punctured)) != sz(component) - 1) {
+        if (sz(c) != sz(component) - 1 &&
+            none_of(cbegin(c), cend(c), is_destination)) {
             return true;
         }
     }
