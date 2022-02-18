@@ -7,6 +7,12 @@
 #include <vector>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 using RoCo = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -183,9 +189,8 @@ bool is_1_connected(const vector<string> &grid, const set<RoCo> &component,
     for (const auto punctured : component) {
         if (is_source(punctured) || is_destination(punctured)) continue;
         const auto c = component_of(grid, *src_it, punctured);
-
-        if (sz(c) != sz(component) - 1 &&
-            none_of(cbegin(c), cend(c), is_destination)) {
+        if (none_of(cbegin(c), cend(c), is_destination)) {
+            // cerr << "key stone: " << punctured << endl;
             return true;
         }
     }
@@ -243,11 +248,6 @@ Outcome solve(const vector<string> &grid) {
         make_is_red_destiation(N));
 
     if (position_of_red == PlayerPosition::IMPOSSIBLE) {
-        return Outcome::IMPOSSIBLE;
-    }
-
-    if (position_of_blue == PlayerPosition::POTENTIAL_WIN &&
-        position_of_red == PlayerPosition::POTENTIAL_WIN) {
         return Outcome::IMPOSSIBLE;
     }
 
