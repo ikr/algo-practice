@@ -161,12 +161,8 @@ bool is_bridging_source(const vector<string> &grid, const RoCo source,
     return dfs(dfs, source);
 }
 
-set<RoCo> component_of(const vector<string> &grid, const RoCo roco,
+set<RoCo> component_of(const vector<string> &grid, const vector<RoCo> rocos,
                        const optional<RoCo> punctured) {
-    if (punctured) {
-        assert(*punctured != roco);
-    }
-
     set<RoCo> result;
 
     const auto dfs = [&](const auto &self, const RoCo u) -> void {
@@ -177,7 +173,12 @@ set<RoCo> component_of(const vector<string> &grid, const RoCo roco,
         }
     };
 
-    dfs(dfs, roco);
+    for (const auto roco : rocos) {
+        if (punctured) {
+            assert(*punctured != roco);
+        }
+        dfs(dfs, roco);
+    }
     return result;
 }
 
@@ -189,22 +190,19 @@ bool is_1_connected(const vector<string> &grid, const set<RoCo> &component,
             back_inserter(component_sources), is_source);
     assert(!component_sources.empty());
 
-    return all_of(cbegin(component_sources), cend(component_sources),
-                  [&](const RoCo src) {
-                      for (const auto punctured : component) {
-                          if (is_source(punctured) ||
-                              is_destination(punctured)) {
-                              continue;
-                          }
-                          const auto c = component_of(grid, src, punctured);
-                          if (none_of(cbegin(c), cend(c), is_destination)) {
-                              cerr << "key stone: " << punctured << endl;
-                              return true;
-                          }
-                      }
+    for (const auto punctured : component) {
+        if (is_source(punctured) || is_destination(punctured)) {
+            continue;
+        }
+        const auto c = component_of(grid, component_sources, punctured);
+        if (none_of(cbegin(c), cend(c), is_destination)) {
+            // cerr << "src: " << src
+            //      << " key stone: " << punctured << endl;
+            return true;
+        }
+    }
 
-                      return false;
-                  });
+    return false;
 }
 
 PlayerPosition
@@ -219,7 +217,7 @@ evaluate_standalone_player_position(const vector<string> &grid,
 
     if (b_src_it == cend(sources)) return PlayerPosition::NEUTRAL;
 
-    const auto bridge = component_of(grid, *b_src_it, nullopt);
+    const auto bridge = component_of(grid, {*b_src_it}, nullopt);
 
     for (auto it = next(b_src_it); it != cend(sources); ++it) {
         if (bridge.count(*it)) continue;
