@@ -2,6 +2,7 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <utility>
 #include <vector>
@@ -183,19 +184,27 @@ set<RoCo> component_of(const vector<string> &grid, const RoCo roco,
 bool is_1_connected(const vector<string> &grid, const set<RoCo> &component,
                     const function<bool(RoCo)> is_source,
                     const function<bool(RoCo)> is_destination) {
-    const auto src_it = find_if(cbegin(component), cend(component), is_source);
-    assert(src_it != cend(component));
+    vector<RoCo> component_sources;
+    copy_if(cbegin(component), cend(component),
+            back_inserter(component_sources), is_source);
+    assert(!component_sources.empty());
 
-    for (const auto punctured : component) {
-        if (is_source(punctured) || is_destination(punctured)) continue;
-        const auto c = component_of(grid, *src_it, punctured);
-        if (none_of(cbegin(c), cend(c), is_destination)) {
-            // cerr << "key stone: " << punctured << endl;
-            return true;
-        }
-    }
+    return all_of(cbegin(component_sources), cend(component_sources),
+                  [&](const RoCo src) {
+                      for (const auto punctured : component) {
+                          if (is_source(punctured) ||
+                              is_destination(punctured)) {
+                              continue;
+                          }
+                          const auto c = component_of(grid, src, punctured);
+                          if (none_of(cbegin(c), cend(c), is_destination)) {
+                              cerr << "key stone: " << punctured << endl;
+                              return true;
+                          }
+                      }
 
-    return false;
+                      return false;
+                  });
 }
 
 PlayerPosition
