@@ -7,6 +7,16 @@
 #include <vector>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -54,6 +64,7 @@ int diffs_num(const vector<string> &xss, const string &ys) {
     for (const auto &xs : xss) {
         result += diffs_num(xs, ys);
     }
+    // cerr << "diffs_num on " << ys << " is " << result << endl;
     return result;
 }
 
@@ -83,12 +94,28 @@ vector<string> prepare_variations(const int M,
         result.push_back(curr);
     }
 
+    for (int i = 0; i < sz(proto); ++i) {
+        string curr = proto;
+        flip_at(curr, i);
+        result.push_back(curr);
+    }
+
+    for (int i = 0; i < sz(proto) - 1; ++i) {
+        for (int j = i + 1; j < sz(proto); ++j) {
+            string curr = proto;
+            flip_at(curr, i);
+            flip_at(curr, j);
+            result.push_back(curr);
+        }
+    }
+
     return result;
 }
 
 int min_complaints(const vector<string> &preferences,
                    const set<string> &forbidden) {
     const auto N = sz(preferences);
+    const auto M = sz(forbidden);
     const auto P = sz(preferences[0]);
     const auto fq1 = freqs_of_ones(preferences);
 
@@ -105,14 +132,20 @@ int min_complaints(const vector<string> &preferences,
          });
 
     const auto proto = gather_proto_result(N, fq1);
-    auto vs = prepare_variations(sz(forbidden), idx_by_flip_cost, proto);
+    auto vs = prepare_variations(M, idx_by_flip_cost, proto);
+    assert(sz(vs) > M);
 
     sort(begin(vs), end(vs), [&](const auto &lhs, const auto &rhs) {
         return diffs_num(preferences, lhs) < diffs_num(preferences, rhs);
     });
 
+    // cerr << "proto: " << proto << " vs: " << vs << endl;
+
     for (const auto &v : vs) {
-        if (!forbidden.count(v)) return diffs_num(preferences, v);
+        if (!forbidden.count(v)) {
+            // cerr << "settle on v: " << v << endl;
+            return diffs_num(preferences, v);
+        }
     }
 
     return numeric_limits<int>::max();
