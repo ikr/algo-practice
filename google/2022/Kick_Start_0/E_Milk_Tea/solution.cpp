@@ -1,20 +1,11 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <limits>
 #include <numeric>
 #include <set>
 #include <vector>
 using namespace std;
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -68,12 +59,38 @@ int diffs_num(const vector<string> &xss, const string &ys) {
 
 void flip_at(string &xs, const int i) { xs[i] = xs[i] == '1' ? '0' : '1'; }
 
+constexpr int mlog2(const unsigned int x) {
+    return 8 * sizeof(unsigned int) - __builtin_clz(x) - 1;
+}
+
+vector<string> prepare_variations(const int M,
+                                  const vector<int> &idx_by_flip_cost,
+                                  const string &proto) {
+    const auto lim = mlog2(M) + 2;
+    assert(lim < 10);
+
+    vector<string> result;
+
+    for (int bits = 0; sz(result) <= M && bits < (1 << lim) - 1; ++bits) {
+        string curr = proto;
+
+        for (int i = 0; i < min(10, sz(idx_by_flip_cost)); ++i) {
+            if ((1 << i) & bits) {
+                flip_at(curr, idx_by_flip_cost[i]);
+            }
+        }
+
+        result.push_back(curr);
+    }
+
+    return result;
+}
+
 int min_complaints(const vector<string> &preferences,
                    const set<string> &forbidden) {
     const auto N = sz(preferences);
     const auto P = sz(preferences[0]);
     const auto fq1 = freqs_of_ones(preferences);
-    cerr << "fq1: " << fq1 << endl;
 
     vector<int> idx_by_flip_cost(P);
     iota(begin(idx_by_flip_cost), end(idx_by_flip_cost), 0);
@@ -87,24 +104,18 @@ int min_complaints(const vector<string> &preferences,
              return flip_cost(i) < flip_cost(j);
          });
 
-    cerr << "idx: " << idx_by_flip_cost << endl;
+    const auto proto = gather_proto_result(N, fq1);
+    auto vs = prepare_variations(sz(forbidden), idx_by_flip_cost, proto);
 
-    const auto proto_result = gather_proto_result(N, fq1);
-    cerr << "PR: " << proto_result << endl;
-    if (!forbidden.count(proto_result)) {
-        return diffs_num(preferences, proto_result);
+    sort(begin(vs), end(vs), [&](const auto &lhs, const auto &rhs) {
+        return diffs_num(preferences, lhs) < diffs_num(preferences, rhs);
+    });
+
+    for (const auto &v : vs) {
+        if (!forbidden.count(v)) return diffs_num(preferences, v);
     }
 
-    for (int flips = 1;; ++flips) {
-        string result = proto_result;
-
-        for (int i = 0; i < flips; ++i) {
-            flip_at(result, idx_by_flip_cost[i]);
-        }
-
-        cerr << "R: " << result << endl;
-        if (!forbidden.count(result)) return diffs_num(preferences, result);
-    }
+    return numeric_limits<int>::max();
 }
 
 int main() {
