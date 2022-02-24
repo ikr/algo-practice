@@ -1,15 +1,12 @@
-fun arithmSeriesLength(arithmeticSeriesSum: Int) : Int {
-    return (1..55).find { n -> (n * (n + 1) / 2) == arithmeticSeriesSum } ?:
-        error("n not found")
-}
-
 fun decode(xs : String) : String {
     var i = 0
+    var d = 1
     val result = mutableListOf<Char>()
 
     while (i < xs.length) {
         result.add(xs[i])
-        i += (i + 1)
+        i += d
+        ++d
     }
 
     return result.joinToString("")
