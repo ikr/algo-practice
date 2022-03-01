@@ -32,17 +32,49 @@ fun maxTeamSizeBruteForce(xs : List<Int>) : Int {
     return result
 }
 
+data class NumFreq(val x : Int, val k : Int)
+
+fun sortedNumFreqs(xs : List<Int>) : List<NumFreq> {
+    val m = sortedMapOf<Int, Int>()
+    for (x in xs) {
+        if (!m.containsKey(x)) m.put(x, 0)
+        m.put(x, m[x]!! + 1)
+    }
+
+    val result = mutableListOf<NumFreq>()
+    for ((k, v) in m) {
+        result += NumFreq(k, v)
+    }
+    return result
+}
+
+data class State(
+    val keepAll : Int,
+    val decLeft : Int,
+    val incRight : Int,
+    val decLeftIncRight : Int
+) {
+    fun best() : Int =
+        max(max(keepAll, decLeft), max(incRight, decLeftIncRight))
+}
+
+fun maxTeamSize(xs : List<Int>) : Int {
+    val fs = sortedNumFreqs(xs)
+    val n = fs.size
+    val dp = Array<State>(n, { State(0, 0, 0, 0) })
+    return dp.last().best()
+}
+
 fun main() {
     val n = readInt()
     val xs = readInts()
     assert(xs.size == n)
 
-    println(maxTeamSizeBruteForce(xs))
+    assert(maxTeamSize(xs) == maxTeamSizeBruteForce(xs), { "WA" })
+    println(maxTeamSize(xs))
 }
 
 private fun readLn() = readLine()!!
 private fun readInt() = readLn().toInt()
-private fun readLong() = readLn().toLong()
 private fun readStrings() = readLn().split(" ")
 private fun readInts() = readStrings().map(String::toInt)
-private fun readLongs() = readStrings().map(String::toLong)
