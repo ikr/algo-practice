@@ -32,7 +32,12 @@ fun maxTeamSizeBruteForce(xs : List<Int>) : Int {
     return result
 }
 
-data class NumFreq(val x : Int, val k : Int)
+data class NumFreq(val x : Int, val k : Int) {
+    init {
+        require(x > 0)
+        require(k > 0)
+    }
+}
 
 fun sortedNumFreqs(xs : List<Int>) : List<NumFreq> {
     val m = sortedMapOf<Int, Int>()
@@ -54,6 +59,13 @@ data class State(
     val incRight : Int,
     val decLeftIncRight : Int
 ) {
+    init {
+        require(keepAll >= 0)
+        require(decLeft >= 0)
+        require(incRight >= 0)
+        require(decLeftIncRight >= 0)
+    }
+
     fun best() : Int =
         max(max(keepAll, decLeft), max(incRight, decLeftIncRight))
 }
@@ -62,6 +74,43 @@ fun maxTeamSize(xs : List<Int>) : Int {
     val fs = sortedNumFreqs(xs)
     val n = fs.size
     val dp = Array<State>(n, { State(0, 0, 0, 0) })
+
+    dp[0] = State(
+        keepAll = 1,
+        decLeft = if (fs[0].x == 1) 0 else (if (fs[0].k == 1) 1 else 2),
+        incRight = if (fs[0].k == 1) 1 else 2,
+        decLeftIncRight = when {
+            fs[0].x == 1 -> 0
+            fs[0].k == 1 -> 0
+            fs[0].k == 2 -> 2
+            else -> 3
+        }
+    )
+
+    if (n == 1) return dp.last().best()
+
+    dp[1] = State(
+        keepAll = listOf(
+            dp[0].keepAll + 1,
+            if (dp[0].decLeft == 0) 0 else dp[0].decLeft + 1,
+            if (dp[0].incRight == 0) 0 else (
+                if (fs[0].x + 1 == fs[1].x) dp[0].incRight else dp[0].incRight + 1
+            ),
+            if (dp[0].decLeftIncRight == 0) 0 else (
+                if (fs[0].x + 1 == fs[1].x) dp[0].decLeftIncRight else dp[0].decLeftIncRight + 1
+            )
+        ).maxOrNull() ?: 0,
+        decLeft = listOf(
+            if (fs[0].x == fs[1].x - 1) (
+                dp[0].keepAll + (if (fs[1].k == 1) 0 else 1)
+            ) else (
+                dp[0].keepAll + (if (fs[1].k == 1) 1 else 2)
+            )
+        ).maxOrNull() ?: 0,
+        incRight = 0,
+        decLeftIncRight = 0
+    )
+
     return dp.last().best()
 }
 
