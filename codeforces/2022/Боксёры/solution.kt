@@ -87,29 +87,79 @@ fun maxTeamSize(xs : List<Int>) : Int {
         }
     )
 
-    if (n == 1) return dp.last().best()
+    for (i in 1..(n - 1)) {
+        dp[i] = State(
+            keepAll = listOf(
+                dp[i - 1].keepAll + 1,
+                if (dp[i - 1].decLeft == 0) 0 else dp[i - 1].decLeft + 1,
+                if (dp[i - 1].incRight == 0) 0 else (
+                    if (fs[i - 1].x + 1 == fs[i].x) dp[i - 1].incRight else dp[i - 1].incRight + 1
+                ),
+                if (dp[i - 1].decLeftIncRight == 0) 0 else (
+                    if (fs[i - 1].x + 1 == fs[i].x) dp[i - 1].decLeftIncRight else dp[i - 1].decLeftIncRight + 1
+                )
+            ).maxOrNull() ?: 0,
 
-    dp[1] = State(
-        keepAll = listOf(
-            dp[0].keepAll + 1,
-            if (dp[0].decLeft == 0) 0 else dp[0].decLeft + 1,
-            if (dp[0].incRight == 0) 0 else (
-                if (fs[0].x + 1 == fs[1].x) dp[0].incRight else dp[0].incRight + 1
-            ),
-            if (dp[0].decLeftIncRight == 0) 0 else (
-                if (fs[0].x + 1 == fs[1].x) dp[0].decLeftIncRight else dp[0].decLeftIncRight + 1
+            decLeft = listOf(
+                if (fs[i - 1].x == fs[i].x - 1) (
+                    dp[i - 1].keepAll + (if (fs[i].k == 1) 0 else 1)
+                ) else (
+                    dp[i - 1].keepAll + (if (fs[i].k == 1) 1 else 2)
+                ),
+                when {
+                    dp[i - 1].decLeft == 0 -> 0
+                    fs[i - 1].x == fs[i].x - 1 && fs[i - 1].k > 1 -> (
+                        dp[i - 1].decLeft + (if (fs[i].k == 1) 0 else 1)
+                    )
+                    else -> dp[i - 1].decLeft + (if (fs[i].k == 1) 1 else 2)
+                },
+                dp[i - 1].incRight + (if (fs[i].k == 1) 0 else 1),
+                if (dp[i - 1].decLeftIncRight == 0) 0 else (
+                    dp[i - 1].decLeftIncRight + (if (fs[i].k == 1) 0 else 1)
+                )
+            ).maxOrNull() ?: 0,
+
+            incRight = listOf(
+                dp[i - 1].keepAll + (if (fs[i].k == 1) 1 else 2),
+                if (dp[i - 1].decLeft == 0) 0 else (
+                    dp[i - 1].decLeft + (if (fs[i].k == 1) 1 else 2)
+                ),
+                if (fs[i - 1].x + 1 == fs[i].x) (
+                   dp[i - 1].incRight + 1
+                ) else (
+                   dp[i - 1].incRight + (if (fs[i].k == 1) 1 else 2)
+                ),
+                if (dp[i - 1].decLeftIncRight == 0) 0 else (
+                    if (fs[i - 1].x + 1 == fs[i].x) (
+                        dp[i - 1].decLeftIncRight + 1
+                    ) else (
+                        dp[i - 1].decLeftIncRight + (if (fs[i].k == 1) 1 else 2)
+                    )
+                )
+            ).maxOrNull() ?: 0,
+
+            decLeftIncRight = if (fs[i].k == 1) 0 else(
+                listOf(
+                    dp[i - 1].keepAll + (
+                        if (fs[i - 1].x == fs[i].x - 1) (
+                            if (fs[i].k == 2) 1 else 2
+                        ) else (
+                            if (fs[i].k == 2) 2 else 3
+                        )
+                    ),
+                    if (dp[i - 1].decLeft == 0) 0 else (
+                        dp[i - 1].decLeft + (
+                            if (fs[i - 1].x == fs[i].x - 1 && fs[i - 1].k > 1) (
+                                if (fs[i].k == 2) 1 else 2
+                            ) else (
+                                if (fs[i].k == 2) 2 else 3
+                            )
+                        )
+                    )
+                ).maxOrNull() ?: 0
             )
-        ).maxOrNull() ?: 0,
-        decLeft = listOf(
-            if (fs[0].x == fs[1].x - 1) (
-                dp[0].keepAll + (if (fs[1].k == 1) 0 else 1)
-            ) else (
-                dp[0].keepAll + (if (fs[1].k == 1) 1 else 2)
-            )
-        ).maxOrNull() ?: 0,
-        incRight = 0,
-        decLeftIncRight = 0
-    )
+        )
+    }
 
     return dp.last().best()
 }
