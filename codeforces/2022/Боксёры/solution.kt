@@ -155,6 +155,10 @@ fun maxTeamSize(xs : List<Int>) : Int {
                                 if (fs[i].k == 2) 2 else 3
                             )
                         )
+                    ),
+                    dp[i - i].incRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0),
+                    if (dp[i - 1].decLeftIncRight == 0) 0 else (
+                        dp[i - i].decLeftIncRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0)
                     )
                 ).maxOrNull() ?: 0
             )
@@ -169,7 +173,10 @@ fun main() {
     val xs = readInts()
     assert(xs.size == n)
 
-    assert(maxTeamSize(xs) == maxTeamSizeBruteForce(xs), { "WA" })
+    val result = maxTeamSize(xs)
+    val expected = maxTeamSizeBruteForce(xs)
+
+    assert(result == expected, { "WA: $result ≠ $expected" })
     println(maxTeamSize(xs))
 }
 
