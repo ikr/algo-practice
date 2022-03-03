@@ -113,9 +113,9 @@ fun maxTeamSize(xs : List<Int>) : Int {
                     )
                     else -> dp[i - 1].decLeft + (if (fs[i].k == 1) 1 else 2)
                 },
-                dp[i - 1].incRight + (if (fs[i].k == 1) 0 else 1),
+                dp[i - 1].incRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0),
                 if (dp[i - 1].decLeftIncRight == 0) 0 else (
-                    dp[i - 1].decLeftIncRight + (if (fs[i].k == 1) 0 else 1)
+                    dp[i - 1].decLeftIncRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0)
                 )
             ).maxOrNull() ?: 0,
 
