@@ -188,3 +188,5 @@ private fun readLn() = readLine()!!
 private fun readInt() = readLn().toInt()
 private fun readStrings() = readLn().split(" ")
 private fun readInts() = readStrings().map(String::toInt)
+
+// AJN 2022-03-05 https://codeforces.com/contest/1645/problem/F
