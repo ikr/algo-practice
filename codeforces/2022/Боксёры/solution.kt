@@ -1,4 +1,5 @@
 import kotlin.math.max
+import kotlin.math.min
 
 fun variationOf(xs : List<Int>, opCodes : String) : Set<Int> {
     assert(xs.size == opCodes.length)
@@ -26,7 +27,9 @@ fun maxTeamSizeBruteForce(xs : List<Int>) : Int {
 
     for (x in 0..hi) {
         val opCodes = Integer.toString(x, 3).padStart(n, '0')
-        result = max(result, variationOf(xs, opCodes).size)
+        val vs = variationOf(xs, opCodes)
+        if (vs.size > result) println(vs)
+        result = max(result, vs.size)
     }
 
     return result
@@ -92,9 +95,7 @@ fun maxTeamSize(xs : List<Int>) : Int {
             keepAll = listOf(
                 dp[i - 1].keepAll + 1,
                 if (dp[i - 1].decLeft == 0) 0 else dp[i - 1].decLeft + 1,
-                if (dp[i - 1].incRight == 0) 0 else (
-                    if (fs[i - 1].x + 1 == fs[i].x) dp[i - 1].incRight else dp[i - 1].incRight + 1
-                ),
+                if (fs[i - 1].x + 1 == fs[i].x) dp[i - 1].incRight else dp[i - 1].incRight + 1,
                 if (dp[i - 1].decLeftIncRight == 0) 0 else (
                     if (fs[i - 1].x + 1 == fs[i].x) dp[i - 1].decLeftIncRight else dp[i - 1].decLeftIncRight + 1
                 )
@@ -104,36 +105,34 @@ fun maxTeamSize(xs : List<Int>) : Int {
                 if (fs[i - 1].x == fs[i].x - 1) (
                     dp[i - 1].keepAll + (if (fs[i].k == 1) 0 else 1)
                 ) else (
-                    dp[i - 1].keepAll + (if (fs[i].k == 1) 1 else 2)
+                    dp[i - 1].keepAll + min(fs[i].k, 2)
                 ),
                 when {
                     dp[i - 1].decLeft == 0 -> 0
                     fs[i - 1].x == fs[i].x - 1 && fs[i - 1].k > 1 -> (
                         dp[i - 1].decLeft + (if (fs[i].k == 1) 0 else 1)
                     )
-                    else -> dp[i - 1].decLeft + (if (fs[i].k == 1) 1 else 2)
+                    else -> dp[i - 1].decLeft + min(fs[i].k, 2)
                 },
-                dp[i - 1].incRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0),
+                dp[i - 1].incRight + min(fs[i].k, 3) - (if (fs[i].x - fs[i - 1].x <= 2) 1 else 0),
                 if (dp[i - 1].decLeftIncRight == 0) 0 else (
-                    dp[i - 1].decLeftIncRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0)
+                    dp[i - 1].decLeftIncRight + min(fs[i].k, 3) - (if (fs[i].x - fs[i - 1].x <= 2) 1 else 0)
                 )
             ).maxOrNull() ?: 0,
 
             incRight = listOf(
-                dp[i - 1].keepAll + (if (fs[i].k == 1) 1 else 2),
-                if (dp[i - 1].decLeft == 0) 0 else (
-                    dp[i - 1].decLeft + (if (fs[i].k == 1) 1 else 2)
-                ),
+                dp[i - 1].keepAll + min(fs[i].k, 2),
+                if (dp[i - 1].decLeft == 0) 0 else (dp[i - 1].decLeft + min(fs[i].k, 2)),
                 if (fs[i - 1].x + 1 == fs[i].x) (
                    dp[i - 1].incRight + 1
                 ) else (
-                   dp[i - 1].incRight + (if (fs[i].k == 1) 1 else 2)
+                   dp[i - 1].incRight + min(fs[i].k, 2)
                 ),
                 if (dp[i - 1].decLeftIncRight == 0) 0 else (
                     if (fs[i - 1].x + 1 == fs[i].x) (
                         dp[i - 1].decLeftIncRight + 1
                     ) else (
-                        dp[i - 1].decLeftIncRight + (if (fs[i].k == 1) 1 else 2)
+                        dp[i - 1].decLeftIncRight + min(fs[i].k, 2)
                     )
                 )
             ).maxOrNull() ?: 0,
@@ -156,15 +155,20 @@ fun maxTeamSize(xs : List<Int>) : Int {
                             )
                         )
                     ),
-                    dp[i - i].incRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0),
+                    dp[i - i].incRight + fs[i].k - (if (fs[i].x - fs[i - 1].x <= 2) 1 else 0),
                     if (dp[i - 1].decLeftIncRight == 0) 0 else (
-                        dp[i - i].decLeftIncRight + fs[i].k - (if (fs[i].x - fs[i - 1].x == 2) 1 else 0)
+                        dp[i - i].decLeftIncRight + min(fs[i].k, 3) - (if (fs[i].x - fs[i - 1].x <= 2) 1 else 0)
                     )
                 ).maxOrNull() ?: 0
             )
         )
     }
 
+    println("---")
+    for (s in dp) {
+        println(s)
+        println("---")
+    }
     return dp.last().best()
 }
 
