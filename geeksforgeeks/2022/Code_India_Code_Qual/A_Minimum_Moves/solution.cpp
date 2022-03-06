@@ -3,21 +3,53 @@
 using namespace std;
 using ull = unsigned long long;
 
+constexpr int BIT_MAX = 61;
+
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+
 ull min_moves(const ull A, const ull B) {
     if (A >= B) return A - B;
 
-    bitset<64> bits_A(A);
-    bitset<64> bits_X(A ^ B);
+    bitset<BIT_MAX + 1> bits_a(A);
+    bitset<BIT_MAX + 1> bits_b(B);
 
-    int orable{};
-    for (int i = 0; i < 64; ++i) {
-        if (bits_X[i] && !bits_A[i]) {
-            ++orable;
-            bits_X[i] = false;
+    ull incs_num{};
+    bool need_or = false;
+
+    for (int i = 0; i <= BIT_MAX; ++i) {
+        if (bits_b[i] && !bits_a[i]) {
+            const auto o_xor_inc = [&]() -> ull {
+                const ull mask = (1ULL << i) - 1ULL;
+                return mask & (bits_a.to_ullong() ^ bits_b.to_ullong());
+            }();
+
+            const auto o_inc = [&]() -> ull {
+                const ull mask = (1ULL << (i + 1)) - 1ULL;
+                return (mask & bits_b.to_ullong()) -
+                       (mask & bits_a.to_ullong());
+            }();
+
+            if (o_xor_inc < o_inc) {
+                need_or = true;
+                incs_num += o_xor_inc;
+
+                bits_a[i] = true;
+                for (int j = i - 1; j >= 0; --j) {
+                    bits_b[j] = bits_a[j];
+                }
+            } else {
+                incs_num += o_inc;
+
+                for (int j = i; j >= 0; --j) {
+                    bits_a[j] = bits_b[j];
+                }
+            }
         }
     }
 
-    return bits_X.to_ullong() + (orable > 0 ? 1 : 0);
+    return incs_num + need_or;
 }
 
 int main() {
