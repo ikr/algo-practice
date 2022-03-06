@@ -15,14 +15,14 @@ ull min_moves(const ull A, const ull B) {
     bitset<BIT_MAX + 1> bits_a(A);
     bitset<BIT_MAX + 1> bits_b(B);
 
-    ull incs_num{};
-    bool need_or = false;
+    ull ops_num{};
 
     for (int i = 0; i <= BIT_MAX; ++i) {
         if (bits_b[i] && !bits_a[i]) {
             const auto o_xor_inc = [&]() -> ull {
                 const ull mask = (1ULL << i) - 1ULL;
-                return mask & (bits_a.to_ullong() ^ bits_b.to_ullong());
+                return 1ULL +
+                       (mask & (bits_a.to_ullong() ^ bits_b.to_ullong()));
             }();
 
             const auto o_inc = [&]() -> ull {
@@ -32,15 +32,14 @@ ull min_moves(const ull A, const ull B) {
             }();
 
             if (o_xor_inc < o_inc) {
-                need_or = true;
-                incs_num += o_xor_inc;
+                ops_num += o_xor_inc;
 
                 bits_a[i] = true;
                 for (int j = i - 1; j >= 0; --j) {
                     bits_b[j] = bits_a[j];
                 }
             } else {
-                incs_num += o_inc;
+                ops_num += o_inc;
 
                 for (int j = i; j >= 0; --j) {
                     bits_a[j] = bits_b[j];
@@ -49,7 +48,7 @@ ull min_moves(const ull A, const ull B) {
         }
     }
 
-    return incs_num + need_or;
+    return ops_num;
 }
 
 int main() {
