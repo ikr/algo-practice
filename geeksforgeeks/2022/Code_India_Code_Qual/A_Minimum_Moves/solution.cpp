@@ -1,4 +1,5 @@
 #include <bitset>
+#include <cassert>
 #include <iostream>
 using namespace std;
 using ull = unsigned long long;
@@ -11,44 +12,22 @@ template <typename T> constexpr int inof(const T x) {
 
 ull min_moves(const ull A, const ull B) {
     if (A >= B) return A - B;
+    if ((A | B) == B) return 1;
+    if (((A + 1) | B) == B) return 2;
 
-    bitset<BIT_MAX + 1> bits_a(A);
-    bitset<BIT_MAX + 1> bits_b(B);
+    const auto hi = [&]() -> int {
+        const bitset<BIT_MAX + 1> bits_a(A);
+        const bitset<BIT_MAX + 1> bits_b(B);
 
-    ull ops_num{};
-
-    for (int i = 0; i <= BIT_MAX; ++i) {
-        if (bits_b[i] && !bits_a[i]) {
-            const auto o_xor_inc = [&]() -> ull {
-                const ull mask = (1ULL << i) - 1ULL;
-                return 1ULL +
-                       (mask & (bits_a.to_ullong() ^ bits_b.to_ullong()));
-            }();
-
-            const auto o_inc = [&]() -> ull {
-                const ull mask = (1ULL << (i + 1)) - 1ULL;
-                return (mask & bits_b.to_ullong()) -
-                       (mask & bits_a.to_ullong());
-            }();
-
-            if (o_xor_inc < o_inc) {
-                ops_num += o_xor_inc;
-
-                bits_a[i] = true;
-                for (int j = i - 1; j >= 0; --j) {
-                    bits_b[j] = bits_a[j];
-                }
-            } else {
-                ops_num += o_inc;
-
-                for (int j = i; j >= 0; --j) {
-                    bits_a[j] = bits_b[j];
-                }
-            }
+        for (int i = BIT_MAX; i >= 0; --i) {
+            if (bits_b[i] && !bits_a[i]) return i;
         }
-    }
+        assert(false && "hi not found");
+        return -1;
+    }();
 
-    return ops_num;
+    const auto A_ = (A | ((1ULL << hi) - 1ULL)) + 1ULL;
+    return A_ == B ? 2 : 3;
 }
 
 int main() {
@@ -65,6 +44,3 @@ int main() {
 
     return 0;
 }
-
-// AJN 2022-03-06
-// https://practice.geeksforgeeks.org/contest/gfg-mega-contest-qualification-round/problems/
