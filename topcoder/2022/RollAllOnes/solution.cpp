@@ -24,22 +24,19 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
 
 struct RollAllOnes final {
     double solve(const int N, const int D) const {
-        const auto batch_sz = [&]() -> int {
-            for (int i = N; i >= 1; --i) {
-                if (doof(i * D) > pow(doof(D), doof(i))) return i;
-            }
+        double result = N * D;
+        cerr << "result0: " << result << endl;
 
-            return 1;
-        }();
+        for (int i = N; i >= 1; --i) {
+            const auto q = N / i;
+            const auto r = N % i;
 
-        cerr << "batch_sz: " << batch_sz << endl;
+            const auto candidate = q * pow(doof(D), i) + r * doof(D);
+            cerr << "candidate: " << candidate << endl;
+            result = min(result, candidate);
+        }
 
-        if (batch_sz == 1) return N * D;
-
-        const auto q = N / batch_sz;
-        const auto r = N % batch_sz;
-
-        return doof(q) * pow(doof(D), doof(batch_sz)) + doof(r) * doof(D);
+        return result;
     }
 };
 
