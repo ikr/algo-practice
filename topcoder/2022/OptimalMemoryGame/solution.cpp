@@ -1,9 +1,9 @@
 #include "lest.hpp"
-#include <algorithm>
+#include <array>
+#include <cassert>
 #include <iostream>
 #include <map>
 #include <string>
-#include <vector>
 using namespace std;
 
 template <typename T> constexpr int inof(const T x) {
@@ -22,24 +22,27 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
 
 struct OptimalMemoryGame final {
     int findPairs(const string &xs) const {
-        map<char, int> fs_m;
-        for (const auto x : xs) ++fs_m[x];
+        const auto fs = [&]() {
+            map<char, int> result{{'-', 0}};
+            for (const auto x : xs) ++result[x];
+            return result;
+        }();
 
-        const int unkn = fs_m['-'];
-        vector<int> fs;
-        for (const auto kv : fs_m) {
-            if (kv.first == '-') continue;
-            fs.push_back(kv.second);
+        const auto stat = [&]() {
+            array<int, 3> result{fs.at('-'), 0, 0};
+            for (const auto kv : fs) {
+                if (kv.first == '-') continue;
+                assert(kv.second == 1 || kv.second == 2);
+                ++result[kv.second];
+            }
+            return result;
+        }();
+
+        if (stat[1] == 1 || (stat[1] == 0 && stat[0] == 2) ||
+            stat[1] == stat[0]) {
+            return sz(xs) / 2;
         }
-
-        if (unkn == 1) return sz(fs);
-
-        if (unkn == 2 &&
-            all_of(xbegin(fs), xend(fs), [](const int f) { return f == 2; })) {
-            return sz(fs) + 1;
-        }
-
-        return inof(count(xbegin(fs), xend(fs), 2));
+        return stat[2];
     }
 };
 
@@ -72,12 +75,32 @@ const lest::test tests[] = {
     },
     CASE("Example C") {
         const auto actual = OptimalMemoryGame{}.findPairs("A-B-");
-        const auto expected = 0;
+        const auto expected = 2;
         EXPECT(actual == expected);
     },
     CASE("Example D") {
         const auto actual = OptimalMemoryGame{}.findPairs("A-BBCC");
         const auto expected = 3;
+        EXPECT(actual == expected);
+    },
+    CASE("Example E") {
+        const auto actual = OptimalMemoryGame{}.findPairs("AABBCC");
+        const auto expected = 3;
+        EXPECT(actual == expected);
+    },
+    CASE("Example F") {
+        const auto actual = OptimalMemoryGame{}.findPairs("A-B-C-");
+        const auto expected = 3;
+        EXPECT(actual == expected);
+    },
+    CASE("Example G") {
+        const auto actual = OptimalMemoryGame{}.findPairs("ABC-----");
+        const auto expected = 0;
+        EXPECT(actual == expected);
+    },
+    CASE("Example H") {
+        const auto actual = OptimalMemoryGame{}.findPairs("ABC---ZZ");
+        const auto expected = 4;
         EXPECT(actual == expected);
     },
 };
