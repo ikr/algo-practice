@@ -44,3 +44,6 @@ int main() {
 
     return 0;
 }
+
+// AJN 2022-03-18
+// https://practice.geeksforgeeks.org/contest/gfg-mega-contest-qualification-round/problems/
