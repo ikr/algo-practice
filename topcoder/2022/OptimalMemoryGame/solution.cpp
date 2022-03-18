@@ -38,7 +38,7 @@ struct OptimalMemoryGame final {
             return result;
         }();
 
-        if (stat[1] == 1 || (stat[1] == 0 && stat[0] == 2) ||
+        if ((stat[1] == 1 && stat[0] == 0) || (stat[1] == 0 && stat[0] == 2) ||
             stat[1] == stat[0]) {
             return sz(xs) / 2;
         }
@@ -59,6 +59,7 @@ const lest::test tests[] = {
         EXPECT(actual == expected);
     },
     CASE("Example 2") {
+
         const auto actual = OptimalMemoryGame{}.findPairs("-X");
         const auto expected = 1;
         EXPECT(actual == expected);
@@ -88,6 +89,11 @@ const lest::test tests[] = {
         const auto expected = 3;
         EXPECT(actual == expected);
     },
+    CASE("Example EE") {
+        const auto actual = OptimalMemoryGame{}.findPairs("AA");
+        const auto expected = 1;
+        EXPECT(actual == expected);
+    },
     CASE("Example F") {
         const auto actual = OptimalMemoryGame{}.findPairs("A-B-C-");
         const auto expected = 3;
@@ -101,6 +107,11 @@ const lest::test tests[] = {
     CASE("Example H") {
         const auto actual = OptimalMemoryGame{}.findPairs("ABC---ZZ");
         const auto expected = 4;
+        EXPECT(actual == expected);
+    },
+    CASE("Example I") {
+        const auto actual = OptimalMemoryGame{}.findPairs("--A-");
+        const auto expected = 0;
         EXPECT(actual == expected);
     },
 };
