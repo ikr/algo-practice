@@ -79,29 +79,15 @@ vvi build_graph(const vector<string> &evs) {
 }
 
 bool is_possible(const string &s, const string &t) {
-    const auto evs = encode_verices();
-    const auto sv = v_index(evs, s);
-    const auto tv = v_index(evs, t);
-    const auto g = build_graph(evs);
-
-    set<int> ds;
-    const auto L_MAX = 7;
-
-    function<void(int, int)> recur;
-    recur = [&](const int curr_d, const int u) {
-        if (curr_d == L_MAX) return;
-        if (u == tv && curr_d) ds.insert(curr_d);
-
-        for (const auto v : g[u]) {
-            recur(curr_d + 1, v);
+    for (int i = 0; i <= 1; ++i) {
+        for (int j = i + 1; j <= 2; ++j) {
+            string buf = s;
+            swap(buf[i], buf[j]);
+            if (buf == t) return false;
         }
-    };
+    }
 
-    recur(0, sv);
-    cerr << ds << endl;
-
-    const auto lo = *cbegin(ds);
-    return (lo % 2) == 0;
+    return true;
 }
 
 int main() {
