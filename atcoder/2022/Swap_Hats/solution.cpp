@@ -90,7 +90,7 @@ bool is_possible(const string &s, const string &t) {
     function<void(int, int)> recur;
     recur = [&](const int curr_d, const int u) {
         if (curr_d == L_MAX) return;
-        if (u == tv) ds.insert(curr_d);
+        if (u == tv && curr_d) ds.insert(curr_d);
 
         for (const auto v : g[u]) {
             recur(curr_d + 1, v);
@@ -98,7 +98,10 @@ bool is_possible(const string &s, const string &t) {
     };
 
     recur(0, sv);
-    return *cbegin(ds) == 0;
+    cerr << ds << endl;
+
+    const auto lo = *cbegin(ds);
+    return (lo % 2) == 0;
 }
 
 int main() {
