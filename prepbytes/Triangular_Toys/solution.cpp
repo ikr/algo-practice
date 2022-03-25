@@ -30,7 +30,7 @@ int main() {
     sort(begin(xs), end(xs));
 
     deque<int> q(xbegin(xs), xend(xs));
-    int ans{};
+    long long ans{};
 
     while (!q.empty()) {
         q.pop_back();
