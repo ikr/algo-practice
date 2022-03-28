@@ -7,11 +7,6 @@
 #include <vector>
 using namespace std;
 
-ostream &operator<<(ostream &os, const vector<string> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -93,7 +88,7 @@ int min_ops_brute_force(const vector<string> &grid) {
     int result = S;
 
     bool met_self = false;
-    for (int bits = 0; bits < LIM; ++bits) {
+    for (int bits = 0; bits <= LIM; ++bits) {
         const auto curr = grid_for(N, bits);
         if (curr == grid) met_self = true;
 
