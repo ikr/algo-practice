@@ -4,6 +4,7 @@
 #include <iostream>
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
 using namespace std;
 
@@ -42,13 +43,12 @@ int diff_num(const vector<string> &xss, const vector<string> &yss) {
                          str_diff_num);
 }
 
+int ones_num(const string &xs, __attribute__((unused)) const string &_) {
+    return inof(count(cbegin(xs), cend(xs), 'I'));
+}
+
 bool is_proper_horz(const vector<string> &grid) {
     const int N = sz(grid) / 2;
-    const auto ones_num = [](const string &xs,
-                             __attribute__((unused)) const string &_) -> int {
-        return inof(count(cbegin(xs), cend(xs), 'I'));
-    };
-
     const auto t = inner_product(cbegin(grid), cbegin(grid) + N, cbegin(grid),
                                  0, plus<int>{}, ones_num);
     const auto b = inner_product(cbegin(grid) + N, cend(grid), cbegin(grid), 0,
@@ -101,6 +101,27 @@ int min_ops_brute_force(const vector<string> &grid) {
     return result;
 }
 
+int min_ops(const vector<string> &grid) {
+    const int N = sz(grid) / 2;
+
+    const auto sum_up = [&](const pair<int, int> iiro,
+                            const pair<int, int> iico) -> int {
+        int result{};
+        for (int ro = iiro.first; ro < iiro.second; ++ro) {
+            for (int co = iico.first; co < iico.second; co++) {
+                result += grid[ro][co] == 'I';
+            }
+        }
+        return result;
+    };
+
+    const auto A = sum_up({0, N}, {0, N});
+    const auto B = sum_up({0, N}, {N, 2 * N});
+    const auto C = sum_up({N, 2 * N}, {0, N});
+    const auto D = sum_up({N, 2 * N}, {N, 2 * N});
+    return abs(A - D) + abs(B - C);
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -114,7 +135,14 @@ int main() {
         vector<string> grid(2 * N);
         for (auto &row : grid) cin >> row;
 
-        cout << "Case #" << i << ": " << min_ops_brute_force(grid) << '\n';
+        const auto result = min_ops(grid);
+        // const auto bf_result = min_ops_brute_force(grid);
+        // if (result != bf_result) {
+        //     cerr << "ANS:" << result << " BF:" << bf_result << endl;
+        // }
+        // assert(result == bf_result);
+
+        cout << "Case #" << i << ": " << result << '\n';
     }
 
     return 0;
