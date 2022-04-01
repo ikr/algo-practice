@@ -41,13 +41,15 @@ vector<ll> capacity(const vector<Delivery> &ds, const vector<int> &os) {
     return result;
 }
 
-int solve(const ll U, const vector<Delivery> &ds, const vector<int> &os) {
+int solve(const int U, const vector<Delivery> &ds, const vector<int> &os) {
     const auto cap = capacity(ds, os);
     int result{};
+    int consumed{};
 
     for (const auto c : cap) {
-        if (c < U) break;
+        if (c - consumed < U) break;
         ++result;
+        consumed += U;
     }
 
     return result;
