@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cassert>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -34,7 +33,6 @@ vector<ll> capacity(const vector<Delivery> &ds, const vector<int> &os) {
 
         const auto i0 = inof(distance(cbegin(os), it));
         const auto i1 = inof(distance(cbegin(os), jt));
-        cerr << "M:" << d.M << " i0:" << i0 << " i1:" << i1 << endl;
         for (int i = i0; i <= i1; ++i) {
             result[i] += d.L;
         }
@@ -45,7 +43,6 @@ vector<ll> capacity(const vector<Delivery> &ds, const vector<int> &os) {
 
 int solve(const ll U, const vector<Delivery> &ds, const vector<int> &os) {
     const auto cap = capacity(ds, os);
-    assert(sz(cap) == sz(os));
     int result{};
 
     for (const auto c : cap) {
