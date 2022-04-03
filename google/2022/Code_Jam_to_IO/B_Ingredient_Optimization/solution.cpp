@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -63,8 +64,22 @@ vector<vector<int>> coverage(const vector<Delivery> &ds,
 //
 int solve(const int U, vector<Delivery> ds, const vector<int> &os) {
     const auto cov = coverage(ds, os);
-    int result{};
-    return result;
+    assert(sz(cov) == sz(os));
+
+    for (int k = 0; k < sz(os); ++k) {
+        int curr{};
+
+        for (const int i : cov[k]) {
+            if (curr == U) break;
+            const auto d = min(U - curr, ds[i].L);
+            curr += d;
+            ds[i].L -= d;
+        }
+
+        if (curr < U) return k;
+    }
+
+    return sz(os);
 }
 
 int main() {
