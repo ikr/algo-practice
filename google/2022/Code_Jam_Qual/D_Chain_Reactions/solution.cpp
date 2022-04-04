@@ -1,9 +1,8 @@
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <vector>
 using namespace std;
-
-using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -11,31 +10,20 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<int> initiators(const vector<int> &P) {
-    vector<bool> yes(sz(P), true);
-    for (const auto u : P) {
-        if (u < 0) continue;
-        yes[u] = false;
-    }
-
-    vector<int> result;
-    for (int u = 0; u < sz(yes); ++u) {
-        if (yes[u]) result.push_back(u);
-    }
-    return result;
-}
-
 vector<vector<int>> children_sorted(const vector<int> &F,
                                     const vector<int> &P) {
     vector<vector<int>> result(sz(P));
-    for (int u = 0; u < sz(P); ++u) result[P[u]].push_back(u);
-    for (auto &ch : result)
+    for (int u = 0; u < sz(P); ++u) {
+        if (P[u] >= 0) result[P[u]].push_back(u);
+    }
+    for (auto &ch : result) {
         sort(begin(ch), end(ch),
              [&](const int u, const int v) { return F[u] < F[v]; });
+    }
     return result;
 }
 
-ll max_fun(const vector<int> &F, const vector<int> &P) {
+int max_fun(const vector<int> &F, const vector<int> &P) {
     const auto ch = children_sorted(F, P);
     vector<int> ordering;
     vector<bool> visited(sz(P), false);
@@ -51,9 +39,21 @@ ll max_fun(const vector<int> &F, const vector<int> &P) {
         if (!visited[u]) dfs(dfs, u);
     }
 
-    ll result{};
+    int result{};
     vector<bool> used(sz(P), false);
+    for (const auto u : ordering) {
+        assert(!used[u]);
+        int hi = F[u];
+        auto v = u;
 
+        while (v >= 0 && !used[v]) {
+            used[v] = true;
+            hi = max(hi, F[v]);
+            v = P[v];
+        }
+
+        result += hi;
+    }
     return result;
 }
 
