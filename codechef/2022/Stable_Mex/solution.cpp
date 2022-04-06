@@ -3,6 +3,16 @@
 #include <vector>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -23,9 +33,11 @@ vector<int> span_lengths(const vector<int>::const_iterator &first,
                          const vector<int>::const_iterator &last) {
     vector<int> result;
 
+    // cerr << "first:" << *first << endl;
+
     for (auto it = first; it != last;) {
         auto jt = next(it);
-        while (jt != last && (*it) + 1 == *jt) ++jt;
+        while (jt != last && (*prev(jt)) + 1 == *jt) ++jt;
         result.push_back(inof(distance(it, jt)));
         it = jt;
     }
@@ -41,6 +53,8 @@ int ks_num(const vector<int> &A) {
     if (m == 1) return -1;
 
     const auto ls = span_lengths(lower_bound(cbegin(A), cend(A), m), cend(A));
+
+    // cerr << "ls: " << ls << endl;
 
     return inof(count_if(cbegin(ls), cend(ls),
                          [m](const int l) { return l >= m - 1; }));
