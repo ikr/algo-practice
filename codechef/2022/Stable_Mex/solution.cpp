@@ -40,8 +40,7 @@ int ks_num(const vector<int> &A) {
     if (m == 0) return 0;
     if (m == 1) return -1;
 
-    const auto ls =
-        span_lengths(next(lower_bound(cbegin(A), cend(A), m)), cend(A));
+    const auto ls = span_lengths(lower_bound(cbegin(A), cend(A), m), cend(A));
 
     return inof(count_if(cbegin(ls), cend(ls),
                          [m](const int l) { return l >= m - 1; }));
