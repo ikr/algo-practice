@@ -32,17 +32,16 @@ ll max_fun(const vector<int> &F, const vector<int> &P) {
     const auto recur = [&](const auto self, const int u) -> void {
         if (ch[u].empty()) {
             fun[u] = F[u];
-        } else {
-            for (const auto v : ch[u]) self(self, v);
+            return;
+        }
 
-            const auto s = accumulate(
-                cbegin(ch[u]), cend(ch[u]), 0LL,
-                [&](const ll agg, const int i) { return agg + fun[i]; });
-
-            for (int i = 0; i < sz(ch[u]); ++i) {
-                fun[u] = max(fun[u], max(fun[ch[u][i]], llof(F[u])) + s -
-                                         fun[ch[u][i]]);
-            }
+        for (const auto v : ch[u]) self(self, v);
+        const auto s =
+            accumulate(cbegin(ch[u]), cend(ch[u]), 0LL,
+                       [&](const ll agg, const int i) { return agg + fun[i]; });
+        for (int i = 0; i < sz(ch[u]); ++i) {
+            fun[u] =
+                max(fun[u], max(fun[ch[u][i]], llof(F[u])) + s - fun[ch[u][i]]);
         }
     };
 
