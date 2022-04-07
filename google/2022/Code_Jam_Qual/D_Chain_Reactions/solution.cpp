@@ -35,20 +35,14 @@ ll max_fun(const vector<int> &F, const vector<int> &P) {
         } else {
             for (const auto v : ch[u]) self(self, v);
 
-            const auto it = min_element(
-                cbegin(ch[u]), cend(ch[u]),
-                [&](const int a, const int b) { return F[a] < F[b]; });
-            assert(it != cend(ch[u]));
+            const auto s = accumulate(
+                cbegin(ch[u]), cend(ch[u]), 0LL,
+                [&](const ll agg, const int i) { return agg + fun[i]; });
 
-            fun[u] = max(fun[*it], llof(F[u])) +
-                     accumulate(cbegin(ch[u]), it, 0LL,
-                                [&](const ll agg, const int i) {
-                                    return agg + fun[i];
-                                }) +
-                     accumulate(next(it), cend(ch[u]), 0LL,
-                                [&](const ll agg, const int i) {
-                                    return agg + fun[i];
-                                });
+            for (int i = 0; i < sz(ch[u]); ++i) {
+                fun[u] = max(fun[u], max(fun[ch[u][i]], llof(F[u])) + s -
+                                         fun[ch[u][i]]);
+            }
         }
     };
 
