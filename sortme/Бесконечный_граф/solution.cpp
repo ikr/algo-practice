@@ -99,6 +99,8 @@ ull min_distance(const int a, const int b) {
     const auto da = distances_from(a);
     const auto db = distances_from(b);
 
+    cerr << "da:" << da << " db:" << db << endl;
+
     for (auto it = crbegin(da); it != crend(da); ++it) {
         const auto jt = db.find(it->first);
         if (jt == cend(db)) continue;
