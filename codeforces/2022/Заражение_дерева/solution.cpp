@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include <set>
 #include <vector>
 using namespace std;
@@ -23,18 +24,20 @@ int min_time(const vector<int> &P) {
     for (int u = 0; u < sz(P); ++u) just_inject.insert(u);
 
     int hi_chain{};
+    map<int, int> ch_f;
     int num_chains{};
 
     for (const auto &vs : ch) {
         if (sz(vs) > 1) {
             for (const auto v : vs) just_inject.erase(v);
             hi_chain = max(hi_chain, sz(vs));
+            ++ch_f[sz(vs)];
             ++num_chains;
         }
     }
 
     const auto req_injects = num_chains + sz(just_inject);
-    return max(req_injects, hi_chain - 1);
+    return max(req_injects, (ch_f[hi_chain] / 2) * (hi_chain - 1));
 }
 
 int main() {
