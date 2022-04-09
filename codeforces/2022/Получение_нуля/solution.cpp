@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -19,60 +18,24 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 static constexpr int M = 32768;
-
-int trailing_ones_num(const int x) {
-    assert(0 <= x && x < M);
-    int i = 0;
-    while (i < 15 && (1 << i) & x) {
-        ++i;
-    }
-    return i;
-}
-
-int trailing_zeros_num(const int x) {
-    assert(0 <= x && x < M);
-    int i = 0;
-    while (i < 15 && !((1 << i) & x)) {
-        ++i;
-    }
-    return i;
-}
-
-int min_ops(const int x) {
-    if (!x) return 0;
-
-    vector<int> os{M - x};
-
-    const auto tos = trailing_ones_num(x);
-    if (tos > 1) {
-        os.push_back(1 + 15 - tos);
-
-        const auto y = x + 1;
-        for (int i = 2; i <= 15; ++i) {
-            const auto m = (1 << i) - 1;
-            if (m > y) {
-                os.push_back(m - y + 15 - i + 1 + 1);
-            }
-        }
-    }
-
-    const int tzs = trailing_zeros_num(x);
-    os.push_back(15 - tzs);
-
-    for (int i = 2; i <= 15; ++i) {
-        const auto m = (1 << i) - 1;
-        if (m > x) {
-            os.push_back(m - x + 15 - i + 1);
-        }
-    }
-
-    return *min_element(cbegin(os), cend(os));
-}
+static constexpr int INF = 1'000'000'000;
 
 vector<int> solve(const vector<int> &A) {
+    vector<int> memo(M, INF);
+    memo[0] = 0;
+    memo[M - 1] = 1;
+    for (int i = 0; i < 15; ++i) {
+        memo[1 << i] = 15 - i;
+    }
+
+    for (int x = 1; x < M; ++x) {
+        memo[(x + 1) % M] = min(memo[(x + 1) % M], memo[x] + 1);
+        memo[(x * 2) % M] = min(memo[(x * 2) % M], memo[x] + 1);
+    }
+
     vector<int> result(sz(A), -1);
     for (int i = 0; i < sz(A); ++i) {
-        result[i] = min_ops(A[i]);
+        result[i] = memo[A[i]];
     }
     return result;
 }
