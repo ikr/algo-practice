@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <numeric>
 #include <string>
 #include <vector>
 using namespace std;
@@ -27,21 +28,68 @@ char flip_char(const char x) {
     return x;
 }
 
-string flip_str(string xs) {
+void flip_str(string &xs) {
     transform(xbegin(xs), xend(xs), begin(xs), flip_char);
-    return xs;
 }
 
-vector<string> flip_row(vector<string> grid, const int ro) {
+void flip_row(vector<string> &grid, const int ro) {
     assert(0 <= ro && ro < sz(grid));
-    grid[ro] = flip_str(grid[ro]);
-    return grid;
+    flip_str(grid[ro]);
+}
+
+void flip_col(vector<string> &grid, const int co) {
+    assert(0 <= co && co < sz(grid[0]));
+    for (int ro = 0; ro < sz(grid); ++ro) {
+        grid[ro][co] = flip_char(grid[ro][co]);
+    }
+}
+
+int total_heads(const vector<string> &grid) {
+    return accumulate(xbegin(grid), xend(grid), 0,
+                      [](const int agg, const auto &row) {
+                          return agg + inof(count(xbegin(row), xend(row), 'H'));
+                      });
+}
+
+int count_in_col(const char x, const vector<string> &grid, const int co) {
+    int result{};
+    for (int ro = 0; ro < sz(grid); ++ro) {
+        result += grid[ro][co] == x;
+    }
+    return result;
 }
 
 struct CoinFlipping final {
     int mostHeads(const vector<string> &grid) const {
-        assert(!grid.empty());
-        return 42;
+        const auto H = sz(grid);
+        const auto W = sz(grid[0]);
+        int result{};
+
+        for (int ro_bits = 0; ro_bits < (1 << H); ++ro_bits) {
+            auto g = grid;
+            for (int ro = 0; ro < H; ++ro) {
+                if ((1 << ro) & ro_bits) {
+                    flip_row(g, ro);
+                }
+            }
+            const auto baseline = total_heads(g);
+            result = max(result, baseline);
+
+            for (int co = 0; co < W; ++co) {
+                flip_col(g, co);
+
+                const auto H = count_in_col('H', g, co);
+                const auto T = count_in_col('T', g, co);
+
+                if (T > H) {
+                    // TODO
+                }
+
+                flip_col(g, co);
+            }
+        }
+
+        return result;
     }
 };
 
