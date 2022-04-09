@@ -70,3 +70,6 @@ int main() {
 
     return 0;
 }
+
+
+// AJN 2022-04-09 https://codeforces.com/contest/1665/problem/C
