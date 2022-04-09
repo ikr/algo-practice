@@ -46,6 +46,14 @@ int min_ops(const int x) {
     const auto tos = trailing_ones_num(x);
     if (tos > 1) {
         os.push_back(1 + 15 - tos);
+
+        const auto y = x + 1;
+        for (int i = 2; i <= 15; ++i) {
+            const auto m = (1 << i) - 1;
+            if (m > y) {
+                os.push_back(m - y + 15 - i + 1 + 1);
+            }
+        }
     }
 
     const int tzs = trailing_zeros_num(x);
