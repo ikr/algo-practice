@@ -18,9 +18,9 @@ vector<vector<int>> children(const vector<int> &P) {
 }
 
 int min_time(const int inject_only, const vector<int> &sibs) {
-    const auto total_inj_time = sz(sibs);
-
+    const auto total_inj_time = sz(sibs) + inject_only;
     int extra_burn_down_time{};
+
     for (const auto x : sibs) {
         if (x - 1 > total_inj_time) {
             extra_burn_down_time =
@@ -28,7 +28,7 @@ int min_time(const int inject_only, const vector<int> &sibs) {
         }
     }
 
-    return total_inj_time + max(inject_only, extra_burn_down_time);
+    return total_inj_time + extra_burn_down_time;
 }
 
 int min_time(const vector<int> &P) {
