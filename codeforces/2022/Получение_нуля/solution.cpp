@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -39,13 +40,25 @@ int trailing_zeros_num(const int x) {
 
 int min_ops(const int x) {
     if (!x) return 0;
+
+    vector<int> os{M - x};
+
     const auto tos = trailing_ones_num(x);
     if (tos > 1) {
-        return min(1 + 15 - tos, M - x);
+        os.push_back(1 + 15 - tos);
     }
 
     const int tzs = trailing_zeros_num(x);
-    return min(15 - tzs, M - x);
+    os.push_back(15 - tzs);
+
+    for (int i = 2; i <= 15; ++i) {
+        const auto m = (1 << i) - 1;
+        if (m > x) {
+            os.push_back(m - x + 15 - i + 1);
+        }
+    }
+
+    return *min_element(cbegin(os), cend(os));
 }
 
 vector<int> solve(const vector<int> &A) {
