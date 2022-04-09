@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -18,41 +19,39 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 static constexpr int M = 32768;
 
+int trailing_ones_num(const int x) {
+    assert(0 <= x && x < M);
+    int i = 0;
+    while (i < 15 && (1 << i) & x) {
+        ++i;
+    }
+    return i;
+}
+
+int trailing_zeros_num(const int x) {
+    assert(0 <= x && x < M);
+    int i = 0;
+    while (i < 15 && !((1 << i) & x)) {
+        ++i;
+    }
+    return i;
+}
+
+int min_ops(const int x) {
+    if (!x) return 0;
+    const auto tos = trailing_ones_num(x);
+    if (tos > 1) {
+        return min(1 + 15 - tos, M - x);
+    }
+
+    const int tzs = trailing_zeros_num(x);
+    return min(15 - tzs, M - x);
+}
+
 vector<int> solve(const vector<int> &A) {
-    vector<int> memo(M, -1);
-    memo[0] = 0;
-    memo[19] = 14;
-    memo[32764] = 4;
-    memo[10240] = 4;
-    memo[49] = 15;
-    memo[1] = 15;
-    memo[1 << 1] = 14;
-    memo[1 << 2] = 13;
-    memo[1 << 3] = 12;
-    memo[1 << 4] = 11;
-    memo[1 << 5] = 10;
-    memo[1 << 6] = 9;
-    memo[1 << 7] = 8;
-    memo[1 << 8] = 7;
-    memo[1 << 9] = 6;
-    memo[1 << 10] = 5;
-    memo[1 << 11] = 4;
-    memo[1 << 12] = 3;
-    memo[1 << 13] = 2;
-    memo[1 << 14] = 1;
-    memo[M - 2] = 2;
-    memo[M - 1] = 1;
-
-    const auto recur = [&](const auto self, const int x) -> int {
-        cerr << memo << endl;
-        if (memo[x] >= 0) return memo[x];
-
-        return memo[x] = min(self(self, (x + 1) % M), self(self, (x * 2) % M));
-    };
-
     vector<int> result(sz(A), -1);
     for (int i = 0; i < sz(A); ++i) {
-        result[i] = recur(recur, A[i]);
+        result[i] = min_ops(A[i]);
     }
     return result;
 }
