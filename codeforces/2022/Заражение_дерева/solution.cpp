@@ -1,6 +1,5 @@
+#include <algorithm>
 #include <iostream>
-#include <map>
-#include <set>
 #include <vector>
 using namespace std;
 
@@ -18,26 +17,36 @@ vector<vector<int>> children(const vector<int> &P) {
     return result;
 }
 
-int min_time(const vector<int> &P) {
-    const auto ch = children(P);
-    set<int> just_inject;
-    for (int u = 0; u < sz(P); ++u) just_inject.insert(u);
+int min_time(const int inject_only, const vector<int> &sibs) {
+    const auto total_inj_time = sz(sibs);
 
-    int hi_chain{};
-    map<int, int> ch_f;
-    int num_chains{};
-
-    for (const auto &vs : ch) {
-        if (sz(vs) > 1) {
-            for (const auto v : vs) just_inject.erase(v);
-            hi_chain = max(hi_chain, sz(vs));
-            ++ch_f[sz(vs)];
-            ++num_chains;
+    int extra_burn_down_time{};
+    for (const auto x : sibs) {
+        if (x - 1 > total_inj_time) {
+            extra_burn_down_time =
+                max(extra_burn_down_time, x - 1 - total_inj_time);
         }
     }
 
-    const auto req_injects = num_chains + sz(just_inject);
-    return max(req_injects, (ch_f[hi_chain] / 2) * (hi_chain - 1));
+    return total_inj_time + max(inject_only, extra_burn_down_time);
+}
+
+int min_time(const vector<int> &P) {
+    const auto ch = children(P);
+    vector<bool> inject_only(sz(P), true);
+    vector<int> sibs;
+
+    for (const auto &vs : ch) {
+        if (sz(vs) > 1) {
+            for (const auto v : vs) inject_only[v] = false;
+            sibs.push_back(sz(vs));
+        }
+    }
+
+    sort(rbegin(sibs), rend(sibs));
+
+    return min_time(inof(count(cbegin(inject_only), cend(inject_only), true)),
+                    sibs);
 }
 
 int main() {
