@@ -37,16 +37,9 @@ void flip_row(vector<string> &grid, const int ro) {
     flip_str(grid[ro]);
 }
 
-void flip_col(vector<string> &grid, const int co) {
-    assert(0 <= co && co < sz(grid[0]));
-    for (int ro = 0; ro < sz(grid); ++ro) {
-        grid[ro][co] = flip_char(grid[ro][co]);
-    }
-}
-
 int total_heads(const vector<string> &grid) {
     return accumulate(xbegin(grid), xend(grid), 0,
-                      [](const int agg, const auto &row) {
+                      [](const int agg, const string &row) {
                           return agg + inof(count(xbegin(row), xend(row), 'H'));
                       });
 }
@@ -72,21 +65,19 @@ struct CoinFlipping final {
                     flip_row(g, ro);
                 }
             }
-            const auto baseline = total_heads(g);
-            result = max(result, baseline);
 
+            int challenge = total_heads(g);
             for (int co = 0; co < W; ++co) {
-                flip_col(g, co);
+                const auto hs = count_in_col('H', g, co);
+                const auto ts = count_in_col('T', g, co);
+                assert(hs + ts <= H);
 
-                const auto H = count_in_col('H', g, co);
-                const auto T = count_in_col('T', g, co);
-
-                if (T > H) {
-                    // TODO
+                if (ts > hs) {
+                    challenge -= hs;
+                    challenge += ts;
                 }
-
-                flip_col(g, co);
             }
+            result = max(result, challenge);
         }
 
         return result;
