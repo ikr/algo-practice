@@ -1,4 +1,4 @@
-#include <cassert>
+#include <algorithm>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -18,26 +18,22 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 static constexpr int M = 32768;
-static constexpr int INF = 1'000'000'000;
 
-vector<int> solve(const vector<int> &A) {
-    vector<int> memo(M, INF);
+vector<int> solve(vector<int> A) {
+    vector<int> memo(M, 15);
     memo[0] = 0;
-    memo[M - 1] = 1;
-    for (int i = 0; i < 15; ++i) {
-        memo[1 << i] = 15 - i;
-    }
 
     for (int x = 1; x < M; ++x) {
-        memo[(x + 1) % M] = min(memo[(x + 1) % M], memo[x] + 1);
-        memo[(x * 2) % M] = min(memo[(x * 2) % M], memo[x] + 1);
+        for (int i = 0; i < 15; ++i) {
+            int p = 0;
+            while (((x + i) << p) % M != 0) ++p;
+            memo[x] = min(memo[x], i + p);
+        }
     }
 
-    vector<int> result(sz(A), -1);
-    for (int i = 0; i < sz(A); ++i) {
-        result[i] = memo[A[i]];
-    }
-    return result;
+    transform(cbegin(A), cend(A), begin(A),
+              [&memo](const int a) { return memo[a]; });
+    return A;
 }
 
 int main() {
@@ -52,6 +48,6 @@ int main() {
         cin >> a;
     }
 
-    cout << solve(A) << '\n';
+    cout << solve(move(A)) << '\n';
     return 0;
 }
