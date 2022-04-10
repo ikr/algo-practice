@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <iostream>
-#include <map>
+#include <iterator>
+#include <numeric>
 #include <vector>
 using namespace std;
 
@@ -9,28 +11,27 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-map<int, int> lowest_indices_by_x(const int lo, const vector<int> &xs) {
-    map<int, int> result;
-    for (int i = lo; i < sz(xs); ++i) {
-        if (result.count(xs[i])) continue;
-        result.emplace(xs[i], i);
-    }
-    return result;
-}
-
 static constexpr int INF = 1'000'000'000;
 
+template <typename T> struct mmax final {
+    constexpr T operator()(const T &a, const T &b) const {
+        return std::max(a, b);
+    }
+};
+
 int min_ops(const vector<int> &A, const int K) {
-    const auto idx = lowest_indices_by_x(K, A);
+    vector<int> hi(sz(A), -1);
+    partial_sum(cbegin(A) + K, cend(A), begin(hi) + K, mmax<int>{});
     int result = INF;
 
     for (int i = 0; i < K; ++i) {
-        const auto it = idx.upper_bound(A[i]);
-        if (it == cend(idx)) continue;
-        result = min(result, it->second - i);
+        const auto jt = upper_bound(cbegin(hi), cend(hi), A[i]);
+        if (jt == cend(hi)) continue;
+        const auto j = inof(distance(cbegin(hi), jt));
+        result = min(result, j - i);
     }
 
-    return result >= INF ? -1 : result;
+    return result == INF ? -1 : result;
 }
 
 int main() {
@@ -44,6 +45,5 @@ int main() {
     for (auto &a : A) cin >> a;
 
     cout << min_ops(A, K) << '\n';
-
     return 0;
 }
