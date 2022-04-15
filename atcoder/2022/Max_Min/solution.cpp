@@ -4,13 +4,15 @@
 #include <vector>
 using namespace std;
 
+using ll = long long;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int proper_intervals_num(const vector<int> &A, const int HI, const int LO) {
+ll proper_intervals_num(const vector<int> &A, const int HI, const int LO) {
     const auto N = sz(A);
     vector<int> his;
     vector<int> los;
@@ -22,7 +24,7 @@ int proper_intervals_num(const vector<int> &A, const int HI, const int LO) {
         if (A[i] < LO || A[i] > HI) sep.push_back(i);
     }
 
-    int result{};
+    ll result{};
 
     const auto algo = [N, &result](const vector<int> &ss, const vector<int> &xs,
                                    const vector<int> &ys) {
@@ -67,6 +69,31 @@ int proper_intervals_num(const vector<int> &A, const int HI, const int LO) {
     return HI == LO ? (result / 2 + sz(los)) : result;
 }
 
+ll oracle(const vector<int> &a, const int X, const int Y) {
+    const int n = sz(a);
+
+    const auto f = [&](const int x, const int y) -> ll {
+        if (x > y) {
+            return 0;
+        }
+        ll ans{};
+        for (int i = 0; i < n;) {
+            if (x <= a[i] && a[i] <= y) {
+                int pos = i;
+                while (i < n && x <= a[i] && a[i] <= y) {
+                    ++i;
+                }
+                ans += 1LL * (i - pos) * (i - pos + 1) / 2;
+            } else {
+                ++i;
+            }
+        }
+        return ans;
+    };
+
+    return f(Y, X) - f(Y + 1, X) - f(Y, X - 1) + f(Y + 1, X - 1);
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -76,6 +103,12 @@ int main() {
 
     vector<int> A(N);
     for (auto &a : A) cin >> a;
+
+    if (oracle(A, X, Y) != proper_intervals_num(A, X, Y)) {
+        cerr << "expected:" << oracle(A, X, Y)
+             << " actual:" << proper_intervals_num(A, X, Y) << endl;
+        return 1;
+    }
 
     cout << proper_intervals_num(A, X, Y) << '\n';
     return 0;
