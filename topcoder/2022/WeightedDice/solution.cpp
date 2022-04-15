@@ -72,6 +72,16 @@ const lest::test tests[] = {
         const auto expected = 0.24;
         EXPECT(abs(actual - expected) < EPS);
     },
+    CASE("Example 2") {
+        const auto actual = WeightedDice{}.winChance({ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, 5);
+        const auto expected = 1.0;
+        EXPECT(abs(actual - expected) < EPS);
+    },
+    CASE("Example 3") {
+        const auto actual = WeightedDice{}.winChance({ 0.5, 0.5, 0.0, 0.0, 0.0, 0.0 }, 3);
+        const auto expected = 0.625;
+        EXPECT(abs(actual - expected) < EPS);
+    },
 };
 // clang-format on
 
