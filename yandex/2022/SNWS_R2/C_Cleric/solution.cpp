@@ -33,8 +33,8 @@ int min_fights(const int n, const Real p, const vector<int> &sfs) {
 
         for (int i = 0; i < sz(dp); ++i) {
             for (int j = 1; j <= 6; ++j) {
-                const auto new_level = sfs[j] == j ? (i + j) : sfs[j];
-                if (new_level >= sz(dp)) continue;
+                const auto new_level =
+                    min(sz(dp) - 1, sfs[j] == j ? (i + j) : sfs[j]);
 
                 dp_[new_level] += dp[i] / 6.0;
             }
