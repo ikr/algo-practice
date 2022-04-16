@@ -1,6 +1,4 @@
 #include "lest.hpp"
-#include <array>
-#include <cmath>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -25,38 +23,23 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
 
 static constexpr double EPS = 0.000001;
 
-using Game = array<int, 7>;
-
-int exact_games_num(const int T) {
-    const auto recur = [&](const auto self, const int d, const int t) -> int {
-        if (t < 0) return 0;
-        if (t == 0) return 1;
-        if (d < 1) return 0;
-
-        return self(self, d, t - d) + self(self, d - 1, t);
-    };
-
-    return recur(recur, 6, T);
-}
-
 struct WeightedDice final {
-    double winChance(const vector<double> &P, const int T) const {
-        const double A = exact_games_num(T);
-        double B = exact_games_num(T - 1) + P[1] + P[2] + P[3] + P[4] + P[5];
-        if (exact_games_num(T - 2)) {
-            B += exact_games_num(T - 2) + P[2] + P[3] + P[4] + P[5];
-        }
-        if (exact_games_num(T - 3)) {
-            B += exact_games_num(T - 3) + P[3] + P[4] + P[5];
-        }
-        if (exact_games_num(T - 4)) {
-            B += exact_games_num(T - 4) + P[4] + P[5];
-        }
-        if (exact_games_num(T - 5)) {
-            B += exact_games_num(T - 5) + P[5];
+    double winChance(const vector<double> &dist, const int T) const {
+        vector<double> dp(T + 1, 0.0);
+        dp[0] = 1.0;
+
+        for (int i = 0; i < T; ++i) {
+            for (int j = 0; j < sz(dist); ++j) {
+                const auto delta = j + 1;
+                const auto p = dist[j];
+
+                if (i + delta <= T) {
+                    dp[i + delta] += dp[i] * p;
+                }
+            }
         }
 
-        return A / B;
+        return dp.back();
     }
 };
 
