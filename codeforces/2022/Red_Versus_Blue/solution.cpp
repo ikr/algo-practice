@@ -9,11 +9,22 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
 
 string spect_seq(int r, int b) {
     string result;
-    const auto span = div_ceil(r, b + 1);
+    const auto span = r / (b + 1);
+    int extra = r % (b + 1);
 
     while (r || b) {
         if (r) {
-            const auto d = min(r, span);
+            const auto d = [&]() -> int {
+                if (r <= span) return r;
+
+                if (extra) {
+                    --extra;
+                    return span + 1;
+                }
+
+                return span;
+            }();
+
             result += string(d, 'R');
             r -= d;
         }
