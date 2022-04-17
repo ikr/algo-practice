@@ -24,6 +24,7 @@ ll min_cost(const ll a, const ll b, const vector<int> &xs) {
         if (icap == iedg) {
             result += b * (xs[iedg + 1] - xs[icap]);
             ++iedg;
+            // cerr << "take" << endl;
             continue;
         }
 
@@ -34,9 +35,11 @@ ll min_cost(const ll a, const ll b, const vector<int> &xs) {
             immediate_conquer_cost) {
             result += a * (xs[icap + 1] - xs[icap]);
             ++icap;
+            // cerr << "move" << endl;
         } else {
             result += immediate_conquer_cost;
             ++iedg;
+            // cerr << "take" << endl;
         }
     }
 
