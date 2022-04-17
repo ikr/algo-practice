@@ -33,10 +33,8 @@ int min_fights(const int n, const Real p, const vector<int> &sfs) {
 
         for (int i = 0; i < sz(dp); ++i) {
             for (int j = 1; j <= 6; ++j) {
-                const auto new_level =
-                    min(sz(dp) - 1, sfs[j] == j ? (i + j) : sfs[j]);
-
-                dp_[new_level] += dp[i] / 6.0;
+                const auto new_level = min(sz(dp) - 1, i + j);
+                dp_[sfs[new_level]] += dp[i] / 6.0;
             }
         }
 
@@ -57,7 +55,7 @@ int main() {
     Real p;
     cin >> p;
 
-    vector<int> sfs(n + 1);
+    vector<int> sfs(n + 5 + 1);
     iota(begin(sfs), end(sfs), 0);
 
     for (int i = 0; i < k; ++i) {
