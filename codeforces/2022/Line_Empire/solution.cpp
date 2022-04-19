@@ -21,26 +21,34 @@ ll min_cost(const ll a, const ll b, const vector<int> &xs) {
     ll result{};
 
     while (iedg != sz(xs) - 1) {
+        // cerr << "UP icap:" << icap << " iedg:" << iedg << endl;
+
         if (icap == iedg) {
-            result += b * (xs[iedg + 1] - xs[icap]);
+            result += b * (xs[icap + 1] - xs[icap]);
             ++iedg;
             // cerr << "take" << endl;
-            continue;
-        }
-
-        assert(iedg > icap);
-        const auto immediate_conquer_cost = b * (xs[iedg + 1] - xs[icap]);
-
-        if (a * (xs[icap + 1] - xs[icap]) + b * (xs[iedg + 1] - xs[icap + 1]) <=
-            immediate_conquer_cost) {
-            result += a * (xs[icap + 1] - xs[icap]);
-            ++icap;
-            // cerr << "move" << endl;
         } else {
-            result += immediate_conquer_cost;
-            ++iedg;
-            // cerr << "take" << endl;
+            assert(iedg > icap);
+            const auto re = sz(xs) - iedg - 1;
+            const auto cost_from = [&](const int j) -> ll {
+                return a * (xs[j] - xs[icap]) + b * (xs.back() - xs[iedg + 1]) +
+                       b * re * (xs[iedg + 1] - xs[j]);
+            };
+
+            if (cost_from(icap + 1) <= cost_from(icap)) {
+                result += a * (xs[icap + 1] - xs[icap]);
+                ++icap;
+                // cerr << "move" << endl;
+            } else {
+                result += b * (xs[iedg + 1] - xs[icap]);
+                ++iedg;
+                // cerr << "take" << endl;
+            }
         }
+
+        // cerr << "DN icap:" << icap << " iedg:" << iedg << " result:" <<
+        // result
+        //      << endl;
     }
 
     return result;
