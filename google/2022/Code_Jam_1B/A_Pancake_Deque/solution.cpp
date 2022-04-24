@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <queue>
 #include <vector>
@@ -10,44 +11,44 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int solve(const vector<int> &xs) {
-    deque<int> q(cbegin(xs), cend(xs));
-    int hi{};
+    const auto n = sz(xs);
+    assert(n <= 20);
     int result{};
 
-    const auto use_front = [&]() {
-        hi = max(hi, q.front());
-        q.pop_front();
-    };
+    for (int bits = 0; bits < (1 << n); ++bits) {
+        vector<bool> frts(n, false);
+        for (int j = 0; j < n; ++j) {
+            if (bits & (1 << j)) frts[j] = true;
+        }
 
-    const auto use_back = [&]() {
-        hi = max(hi, q.back());
-        q.pop_back();
-    };
+        int candidate{};
+        deque<int> q(cbegin(xs), cend(xs));
+        int hi{};
 
-    while (!q.empty()) {
-        const auto a = q.front();
-        const auto b = q.back();
+        const auto use_front = [&]() {
+            hi = max(hi, q.front());
+            q.pop_front();
+        };
 
-        if (a >= hi && b >= hi) {
-            if (a <= b) {
+        const auto use_back = [&]() {
+            hi = max(hi, q.back());
+            q.pop_back();
+        };
+
+        for (const auto f : frts) {
+            assert(!q.empty());
+
+            if (f) {
+                if (q.front() >= hi) ++candidate;
                 use_front();
             } else {
-                use_back();
-            }
-            ++result;
-        } else if (a >= hi) {
-            use_front();
-            ++result;
-        } else if (b >= hi) {
-            use_back();
-            ++result;
-        } else {
-            if (a <= b) {
-                use_front();
-            } else {
+                if (q.back() >= hi) ++candidate;
                 use_back();
             }
         }
+
+        result = max(result, candidate);
+        assert(q.empty());
     }
 
     return result;
