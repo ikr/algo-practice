@@ -36,26 +36,36 @@ ll solve(const vector<vector<int>> &xss) {
     iota(begin(ord), end(ord), 0);
 
     do {
-        vector<ll> up(P, INF);
-        up[0] = xss[ord[0]].back();
-        vector<ll> dn(P, INF);
-        dn[0] = xss[ord[0]].back() + xss[ord[0]].back() - xss[ord[0]][0];
+        vector<vector<ll>> dp(N, vector<ll>(P, INF));
 
-        for (int i = 1; i < P; ++i) {
-            up[i] =
-                min(up[i - 1] + abs(xss[ord[i - 1]].back() - xss[ord[i]][0]) +
-                        xss[ord[i]].back() - xss[ord[i]][0],
-                    dn[i - 1] + abs(xss[ord[i - 1]][0] - xss[ord[i]][0]) +
-                        xss[ord[i]].back() - xss[ord[i]][0]);
-
-            dn[i] = min(
-                up[i - 1] + abs(xss[ord[i - 1]].back() - xss[ord[i]].back()) +
-                    xss[ord[i]].back() - xss[ord[i]][0],
-                dn[i - 1] + abs(xss[ord[i - 1]][0] - xss[ord[i]].back()) +
-                    xss[ord[i]].back() - xss[ord[i]][0]);
+        for (int j = 0; j < P; ++j) {
+            dp[0][j] = xss[ord[0]].back() + xss[ord[0]].back() - xss[ord[0]][j];
         }
 
-        result = min(result, min(up.back(), dn.back()));
+        for (int i = 1; i < N; ++i) {
+            for (int j = 0; j < P; ++j) {
+                for (int k = 0; k < P; ++k) {
+                    if (abs(xss[ord[i - 1]][k] - xss[ord[i]][0]) <=
+                        abs(xss[ord[i - 1]][k] - xss[ord[i]].back())) {
+                        dp[i][j] =
+                            min(dp[i][j],
+                                dp[i - 1][k] +
+                                    abs(xss[ord[i - 1]][k] - xss[ord[i]][0]) +
+                                    xss[ord[i]].back() - xss[ord[i]][0] +
+                                    xss[ord[i]].back() - xss[ord[i]][j]);
+                    } else {
+                        dp[i][j] = min(
+                            dp[i][j],
+                            dp[i - 1][k] +
+                                abs(xss[ord[i - 1]][k] - xss[ord[i]].back()) +
+                                xss[ord[i]].back() - xss[ord[i]][0] +
+                                xss[ord[i]][j] - xss[ord[i]][0]);
+                    }
+                }
+            }
+        }
+
+        result = min(result, *min_element(cbegin(dp.back()), cend(dp.back())));
     } while (next_permutation(begin(ord), end(ord)));
 
     return result;
