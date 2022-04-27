@@ -1,8 +1,18 @@
+#include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <queue>
 #include <vector>
 using namespace std;
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -11,47 +21,56 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int solve(const vector<int> &xs) {
-    const auto n = sz(xs);
-    assert(n <= 20);
-    int result{};
+    vector<int> tl;
+    int i = 0, j = sz(xs) - 1;
 
-    for (int bits = 0; bits < (1 << n); ++bits) {
-        vector<bool> frts(n, false);
-        for (int j = 0; j < n; ++j) {
-            if (bits & (1 << j)) frts[j] = true;
+    const auto accommodate = [&](const int x) {
+        if (tl.empty()) {
+            tl.push_back(x);
+            return;
         }
 
-        int candidate{};
-        deque<int> q(cbegin(xs), cend(xs));
-        int hi{};
+        if (tl[0] > x) {
+            tl[0] = x;
+            return;
+        }
 
-        const auto use_front = [&]() {
-            hi = max(hi, q.front());
-            q.pop_front();
-        };
+        const auto it = lower_bound(begin(tl), end(tl), x);
 
-        const auto use_back = [&]() {
-            hi = max(hi, q.back());
-            q.pop_back();
-        };
+        if (it == end(tl)) {
+            tl.push_back(x);
+            return;
+        }
 
-        for (const auto f : frts) {
-            assert(!q.empty());
+        if (*it == x) {
+            const auto jt = upper_bound(it, end(tl), x);
 
-            if (f) {
-                if (q.front() >= hi) ++candidate;
-                use_front();
+            if (jt == end(tl)) {
+                tl.push_back(x);
             } else {
-                if (q.back() >= hi) ++candidate;
-                use_back();
+                *jt = x;
             }
+
+            return;
         }
 
-        result = max(result, candidate);
-        assert(q.empty());
+        assert(it != begin(tl));
+        *it = x;
+    };
+
+    while (i <= j) {
+        if (xs[i] <= xs[j]) {
+            accommodate(xs[i]);
+            cerr << "acc " << i << " tl: " << tl << endl;
+            ++i;
+        } else {
+            accommodate(xs[j]);
+            cerr << "acc " << j << " tl: " << tl << endl;
+            --j;
+        }
     }
 
-    return result;
+    return sz(tl);
 }
 
 int main() {
