@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <queue>
 #include <vector>
 using namespace std;
 
@@ -19,6 +20,50 @@ template <typename T> constexpr int inof(const T x) {
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+int bruteforce(const vector<int> &xs) {
+    const auto n = sz(xs);
+    assert(n <= 20);
+    int result{};
+
+    for (int bits = 0; bits < (1 << n); ++bits) {
+        vector<bool> frts(n, false);
+        for (int j = 0; j < n; ++j) {
+            if (bits & (1 << j)) frts[j] = true;
+        }
+
+        int candidate{};
+        deque<int> q(cbegin(xs), cend(xs));
+        int hi{};
+
+        const auto use_front = [&]() {
+            hi = max(hi, q.front());
+            q.pop_front();
+        };
+
+        const auto use_back = [&]() {
+            hi = max(hi, q.back());
+            q.pop_back();
+        };
+
+        for (const auto f : frts) {
+            assert(!q.empty());
+
+            if (f) {
+                if (q.front() >= hi) ++candidate;
+                use_front();
+            } else {
+                if (q.back() >= hi) ++candidate;
+                use_back();
+            }
+        }
+
+        result = max(result, candidate);
+        assert(q.empty());
+    }
+
+    return result;
+}
 
 int solve(const vector<int> &xs) {
     vector<int> tl;
@@ -61,11 +106,9 @@ int solve(const vector<int> &xs) {
     while (i <= j) {
         if (xs[i] <= xs[j]) {
             accommodate(xs[i]);
-            cerr << "acc " << i << " tl: " << tl << endl;
             ++i;
         } else {
             accommodate(xs[j]);
-            cerr << "acc " << j << " tl: " << tl << endl;
             --j;
         }
     }
@@ -85,6 +128,16 @@ int main() {
 
         vector<int> xs(N);
         for (auto &x : xs) cin >> x;
+
+        const auto oracle_test = [&]() {
+            const auto expected = bruteforce(xs);
+            const auto actual = solve(xs);
+            if (expected != actual) {
+                cerr << "Discrepancy: " << actual << " ≠ " << expected << endl;
+                assert(false);
+            }
+        };
+        oracle_test();
 
         cout << "Case #" << i << ": " << solve(xs) << '\n';
     }
