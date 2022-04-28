@@ -66,41 +66,15 @@ int bruteforce(const vector<int> &xs) {
 }
 
 int solve(const vector<int> &xs) {
-    vector<int> tl;
+    int result{};
+    int hi{};
     int i = 0, j = sz(xs) - 1;
 
     const auto accommodate = [&](const int x) {
-        if (tl.empty()) {
-            tl.push_back(x);
-            return;
+        if (x >= hi) {
+            ++result;
+            hi = x;
         }
-
-        if (tl[0] > x) {
-            tl[0] = x;
-            return;
-        }
-
-        const auto it = lower_bound(begin(tl), end(tl), x);
-
-        if (it == end(tl)) {
-            tl.push_back(x);
-            return;
-        }
-
-        if (*it == x) {
-            const auto jt = upper_bound(it, end(tl), x);
-
-            if (jt == end(tl)) {
-                tl.push_back(x);
-            } else {
-                *jt = x;
-            }
-
-            return;
-        }
-
-        assert(it != begin(tl));
-        *it = x;
     };
 
     while (i <= j) {
@@ -113,7 +87,7 @@ int solve(const vector<int> &xs) {
         }
     }
 
-    return sz(tl);
+    return result;
 }
 
 int main() {
@@ -137,7 +111,7 @@ int main() {
                 assert(false);
             }
         };
-        oracle_test();
+        // oracle_test();
 
         cout << "Case #" << i << ": " << solve(xs) << '\n';
     }
