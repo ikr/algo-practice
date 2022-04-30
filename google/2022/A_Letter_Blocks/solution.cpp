@@ -88,11 +88,15 @@ optional<Graph> build_graph(const vector<vector<Seq>> &ss) {
     map<char, int> tail_idx;
 
     for (int i = 0; i < sz(ss); ++i) {
-        if (head_idx.count(ss[i][0].first)) return nullopt;
-        head_idx[ss[i][0].first] = i;
+        const auto h = ss[i][0].first;
+        if (head_idx.count(h)) return nullopt;
+        head_idx[h] = i;
 
-        if (tail_idx.count(ss[i].back().first)) return nullopt;
-        tail_idx[ss[i].back().first] = i;
+        const auto t = ss[i].back().first;
+        if (tail_idx.count(t)) return nullopt;
+        tail_idx[t] = i;
+
+        if (sz(ss[i]) > 1 && h == t) return nullopt;
     }
 
     set<int> inner;
