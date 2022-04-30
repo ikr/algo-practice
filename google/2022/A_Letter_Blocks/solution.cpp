@@ -2,44 +2,12 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
 using namespace std;
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto xs : xss) os << xs << '\n';
-    return os;
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -112,48 +80,73 @@ string decode(const vector<vector<Seq>> &ss) {
     return result;
 }
 
-bool is_showstopper(const vector<Seq> &xs) {
-    set<char> seen;
-    for (const auto [c, _] : xs) {
-        if (seen.count(c)) return true;
-        seen.insert(c);
-    }
-    return false;
-}
+static const string NO{"IMPOSSIBLE"};
+using Graph = vector<vector<int>>;
 
-string solve(const vector<string> &xs) {
-    const auto ss = encode(xs);
-
-    if (any_of(cbegin(ss), cend(ss), is_showstopper)) {
-        return "IMPOSSIBLE";
-    }
-
+optional<Graph> build_graph(const vector<vector<Seq>> &ss) {
     map<char, int> head_idx;
     map<char, int> tail_idx;
 
     for (int i = 0; i < sz(ss); ++i) {
-        if (head_idx.count(ss[i][0].first)) return "IMPOSSIBLE";
+        if (head_idx.count(ss[i][0].first)) return nullopt;
         head_idx[ss[i][0].first] = i;
 
-        if (tail_idx.count(ss[i].back().first)) return "IMPOSSIBLE";
+        if (tail_idx.count(ss[i].back().first)) return nullopt;
         tail_idx[ss[i].back().first] = i;
     }
 
-    vector<vector<Seq>> result;
-    vector<bool> visited(sz(ss), false);
+    set<int> inner;
+    for (const auto &s : ss) {
+        for (int i = 1; i < sz(s) - 1; ++i) {
+            const auto c = s[i].first;
 
-    const auto dfs = [&](const auto self, const int u) -> void {
-        visited[u] = true;
+            if (inner.count(c) || head_idx.count(c) || tail_idx.count(c)) {
+                return nullopt;
+            }
+
+            inner.insert(c);
+        }
+    }
+
+    Graph g(sz(ss));
+    for (int u = 0; u < sz(ss); ++u) {
+        const auto c = ss[u].back().first;
+        if (head_idx.count(c) && head_idx.at(c) != u) {
+            g[u].push_back(head_idx.at(c));
+        }
+    }
+    return g;
+}
+
+enum class Color { WHITE, GREY, BLACK };
+
+string solve(const vector<string> &xs) {
+    const auto ss = encode(xs);
+    const auto pg = build_graph(ss);
+    if (!pg) return NO;
+    const auto g = *pg;
+
+    vector<Color> cs(sz(ss), Color::WHITE);
+    vector<vector<Seq>> result;
+
+    const auto dfs = [&](const auto self, const int u) -> bool {
+        cs[u] = Color::GREY;
         result.push_back(ss[u]);
 
-        const auto v = ss[u].back().first;
-        if (head_idx.count(v) && !visited[head_idx.at(v)]) {
-            self(self, head_idx.at(v));
+        for (const auto v : g[u]) {
+            if (cs[v] == Color::GREY) return false;
+            if (cs[v] == Color::BLACK) continue;
+            if (!self(self, v)) return false;
         }
+
+        cs[u] = Color::BLACK;
+        return true;
     };
 
-    for (int u = 0; u < sz(ss); ++u) {
-        if (!visited[u]) dfs(dfs, u);
+    for (int u = 0; u < sz(g); ++u) {
+        if (cs[u] == Color::WHITE) {
+            if (!dfs(dfs, u)) return NO;
+        }
     }
 
     return decode(result);
@@ -171,7 +164,6 @@ int main() {
 
         vector<string> xs(N);
         for (auto &x : xs) cin >> x;
-        sort(begin(xs), end(xs));
 
         cout << "Case #" << i << ": " << solve(xs) << '\n';
     }
