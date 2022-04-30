@@ -41,16 +41,6 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     return os;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -67,6 +57,39 @@ vector<Seq> encode(const string &xs) {
             ++(result.back().second);
         } else {
             result.emplace_back(x, 1);
+        }
+    }
+
+    return result;
+}
+
+vector<vector<Seq>> encode(const vector<string> &xs) {
+    vector<vector<Seq>> result;
+    map<char, int> head_idx;
+    map<char, int> tail_idx;
+    map<char, int> rep_lengths;
+
+    for (const auto &x : xs) {
+        const auto ps = encode(x);
+
+        if (sz(ps) == 1) {
+            rep_lengths[ps[0].first] += ps[0].second;
+        } else {
+            head_idx[ps[0].first] = sz(result);
+            tail_idx[ps.back().first] = sz(result);
+            result.push_back(ps);
+        }
+    }
+
+    for (const auto [c, l] : rep_lengths) {
+        if (head_idx.count(c)) {
+            const auto i = head_idx.at(c);
+            result[i][0].second += l;
+        } else if (tail_idx.count(c)) {
+            const auto i = tail_idx.at(c);
+            result[i].back().second += l;
+        } else {
+            result.push_back(vector{Seq{c, l}});
         }
     }
 
@@ -99,70 +122,41 @@ bool is_showstopper(const vector<Seq> &xs) {
 }
 
 string solve(const vector<string> &xs) {
-    const auto ss = [&]() -> vector<vector<Seq>> {
-        vector<vector<Seq>> result(sz(xs));
-        transform(cbegin(xs), cend(xs), begin(result), encode);
-        return result;
-    }();
+    const auto ss = encode(xs);
 
     if (any_of(cbegin(ss), cend(ss), is_showstopper)) {
-        cerr << "showstopper" << endl;
         return "IMPOSSIBLE";
     }
 
-    const auto proto = [&]() -> set<int> {
-        set<int> result;
-        for (int i = 0; i < sz(xs); ++i) result.insert(i);
-        return result;
-    }();
-
-    const auto mids = [&]() -> map<char, vector<int>> {
-        map<char, vector<int>> result;
-        for (int i = 0; i < sz(ss); ++i) {
-            if (sz(ss[i]) == 1) {
-                result[ss[i][0].first].push_back(i);
-            }
-        }
-        return result;
-    }();
-
-    map<char, int> heads;
-    map<char, int> tails;
+    map<char, int> head_idx;
+    map<char, int> tail_idx;
 
     for (int i = 0; i < sz(ss); ++i) {
-        if (sz(ss[i]) > 1) {
-            heads[ss[i][0].first] = i;
-            tails[ss[i].back().first] = i;
-        }
+        if (head_idx.count(ss[i][0].first)) return "IMPOSSIBLE";
+        head_idx[ss[i][0].first] = i;
+
+        if (tail_idx.count(ss[i].back().first)) return "IMPOSSIBLE";
+        tail_idx[ss[i].back().first] = i;
     }
 
-    for (int first = 0; first < sz(xs); ++first) {
-        vector<vector<Seq>> result{ss[first]};
-        auto rem = proto;
-        rem.erase(first);
+    vector<vector<Seq>> result;
+    vector<bool> visited(sz(ss), false);
 
-        char cur = ss[first].back().first;
-        for (;;) {
-            if (mids.count(cur)) {
-                for (const auto j : mids.at(cur)) {
-                    result.push_back(ss[j]);
-                    rem.erase(j);
-                }
-            }
+    const auto dfs = [&](const auto self, const int u) -> void {
+        visited[u] = true;
+        result.push_back(ss[u]);
 
-            if (!heads.count(cur)) break;
-            result.push_back(ss[heads.at(cur)]);
-            rem.erase(heads.at(cur));
-            cur = ss[heads.at(cur)].back().first;
+        const auto v = ss[u].back().first;
+        if (head_idx.count(v) && !visited[head_idx.at(v)]) {
+            self(self, head_idx.at(v));
         }
+    };
 
-        cerr << "first:" << first << " result:" << result << " rem:" << rem
-             << endl;
-
-        if (rem.empty()) return decode(result);
+    for (int u = 0; u < sz(ss); ++u) {
+        if (!visited[u]) dfs(dfs, u);
     }
 
-    return "IMPOSSIBLE";
+    return decode(result);
 }
 
 int main() {
@@ -177,6 +171,7 @@ int main() {
 
         vector<string> xs(N);
         for (auto &x : xs) cin >> x;
+        sort(begin(xs), end(xs));
 
         cout << "Case #" << i << ": " << solve(xs) << '\n';
     }
