@@ -29,12 +29,7 @@ int num_suspects(string xs) {
     xs.back() = '0';
 
     const auto [zs, os] = index_zos(xs);
-    if (sz(zs) == 1 && sz(os) == 1) return sz(xs);
-    if (sz(zs) > 1 && sz(os) > 1) return zs[0] - os.back() + 1;
-    if (sz(os) == 1) return zs[0] + 1;
-    if (sz(zs) == 1) return os.back() + 1;
-
-    return 0;
+    return zs[0] - os.back() + 1;
 }
 
 int main() {
