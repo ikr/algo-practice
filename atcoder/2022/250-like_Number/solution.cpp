@@ -17,11 +17,13 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+static const __uint128_t N_MAX = 1000000000000000000ULL;
+
 // source
 // https://github.com/kth-competitive-programming/kactl/blob/main/content/number-theory/Eratosthenes.h
 #define rep(i, a, b) for (int i = a; i < (b); ++i)
 using vi = vector<int>;
-const int MAX_PR = 40000;
+const int MAX_PR = 170'000;
 bitset<MAX_PR> isprime;
 vi eratosthenesSieve(int lim) {
     isprime.set();
@@ -43,9 +45,22 @@ ll num_similar_within(const ll N) {
 
     vector<ll> xs;
     for (int i = 0; i < sz(ps) - 1; ++i) {
+        {
+            __uint128_t y = ps[i];
+            y *= ps[i + 1];
+            if (y > N_MAX) continue;
+        }
+
         for (int j = i + 1; j < sz(ps); ++j) {
-            const auto y = llof(ps[i]) * llof(ps[j]) * ps[j] * ps[j];
-            if (y > 0LL) xs.push_back(y);
+            __uint128_t y = ps[i];
+            y *= ps[j];
+            if (y > N_MAX) continue;
+            y *= ps[j];
+            if (y > N_MAX) continue;
+            y *= ps[j];
+            if (y > N_MAX) continue;
+
+            xs.push_back(llof(ps[i]) * llof(ps[j]) * llof(ps[j]) * llof(ps[j]));
         }
     }
 
