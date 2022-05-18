@@ -66,7 +66,7 @@ int main() {
         cin >> N;
 
         const auto [A, B] = construct_A_and_B(N);
-        cout << A << "\n\n\n\n\n\n\n\n\n\n\n\n" << B << '\n';
+        cout << A << '\n' << B << '\n';
     }
 
     return 0;
