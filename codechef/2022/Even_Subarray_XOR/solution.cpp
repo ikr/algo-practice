@@ -35,8 +35,8 @@ pair<vector<int>, vector<int>> construct_A_and_B(const int N) {
     }
 
     if (sz(A) < N) {
-        A.push_back(299'999);
-        B.push_back(300'000);
+        A.push_back(gray_code(x++));
+        B.push_back(gray_code(x++));
     }
 
     return {A, B};
