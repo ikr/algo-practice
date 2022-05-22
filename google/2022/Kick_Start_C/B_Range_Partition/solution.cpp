@@ -29,16 +29,23 @@ optional<vi> alans_subset(const int N, const ll X, const ll Y) {
     const int total = (N * (N + 1)) / 2;
 
     for (int bits = 1; bits < (1 << N) - 1; ++bits) {
-        vi ans;
+        int s1{};
 
         for (int i = 0; i < N; ++i) {
-            if (bits & i) ans.push_back(xs[i]);
+            if (bits & (1 << i)) {
+                s1 += i + 1;
+            }
         }
 
-        const auto s1 = accumulate(cbegin(ans), cend(ans), 0);
         const auto s2 = total - s1;
 
-        if (Y * s1 == X * s2) return ans;
+        if (Y * s1 == X * s2) {
+            vi ans;
+            for (int i = 0; i < N; ++i) {
+                if (bits & (1 << i)) ans.push_back(i + 1);
+            }
+            return ans;
+        }
     }
 
     return nullopt;
