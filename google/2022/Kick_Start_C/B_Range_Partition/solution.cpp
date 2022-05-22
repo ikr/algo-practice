@@ -16,6 +16,10 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -23,32 +27,37 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 optional<vi> alans_subset(const int N, const ll X, const ll Y) {
-    assert(N <= 15);
+    const ll T = llof(N) * llof(N + 1) / 2LL;
+    const ll P = X * T;
+    const ll Q = X + Y;
+    if (P % Q != 0LL) return nullopt;
+    const ll S = P / Q;
+
+    if (S <= N) return vi{inof(S)};
+
     vi xs(N);
     iota(begin(xs), end(xs), 1);
-    const int total = (N * (N + 1)) / 2;
 
-    for (int bits = 1; bits < (1 << N) - 1; ++bits) {
-        int s1{};
+    int lo = 0;
+    int hi = sz(xs) - 1;
+    ll s = T;
+    if (s < S) return nullopt;
 
-        for (int i = 0; i < N; ++i) {
-            if (bits & (1 << i)) {
-                s1 += i + 1;
-            }
+    while (hi - lo > 1) {
+        if (s - xs[hi] >= S) {
+            s -= xs[hi];
+            --hi;
+        } else if (s - xs[lo] >= S) {
+            s -= xs[lo];
+            ++lo;
+        } else {
+            return nullopt;
         }
 
-        const auto s2 = total - s1;
-
-        if (Y * s1 == X * s2) {
-            vi ans;
-            for (int i = 0; i < N; ++i) {
-                if (bits & (1 << i)) ans.push_back(i + 1);
-            }
-            return ans;
-        }
+        if (s == S) break;
     }
 
-    return nullopt;
+    return vi(cbegin(xs) + lo, cbegin(xs) + hi + 1);
 }
 
 int main() {
