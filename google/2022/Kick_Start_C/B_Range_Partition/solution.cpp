@@ -3,6 +3,7 @@
 #include <iterator>
 #include <numeric>
 #include <optional>
+#include <set>
 #include <vector>
 using namespace std;
 using ll = long long;
@@ -35,29 +36,21 @@ optional<vi> alans_subset(const int N, const ll X, const ll Y) {
 
     if (S <= N) return vi{inof(S)};
 
-    vi xs(N);
-    iota(begin(xs), end(xs), 1);
+    int s = S;
+    vi result;
+    set<int> src;
+    for (int i = 1; i <= N; ++i) src.insert(i);
 
-    int lo = 0;
-    int hi = sz(xs) - 1;
-    ll s = T;
-    if (s < S) return nullopt;
+    while (!src.empty() && *crbegin(src) < s) {
+        s -= *crbegin(src);
+        result.push_back(*crbegin(src));
 
-    while (hi - lo > 1) {
-        if (s - xs[hi] >= S) {
-            s -= xs[hi];
-            --hi;
-        } else if (s - xs[lo] >= S) {
-            s -= xs[lo];
-            ++lo;
-        } else {
-            return nullopt;
-        }
-
-        if (s == S) break;
+        src.erase(prev(cend(src)));
     }
 
-    return vi(cbegin(xs) + lo, cbegin(xs) + hi + 1);
+    if (src.empty()) return nullopt;
+    result.push_back(s);
+    return result;
 }
 
 int main() {
