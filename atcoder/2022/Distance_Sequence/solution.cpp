@@ -12,7 +12,7 @@ mint mint_plus(const mint a, const mint b) { return a + b; }
 mint solve(const int N, const int M, const int K) {
     if (!K) return M;
 
-    // dp(j) is the number of sequences ending with j
+    // At step i, dp(j) is the number of sequences of length i, ending with j
     vector<mint> dp(M + 1, 1);
     dp[0] = 0;
 
