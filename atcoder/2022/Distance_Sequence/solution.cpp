@@ -33,7 +33,7 @@ mint solve(const int N, const int M, const int K) {
                 dp_[j] += sum_up(1, j - K);
             }
 
-            if (j + K <= M) {
+            if (j - K != j + K && j + K <= M) {
                 dp_[j] += sum_up(j + K, M);
             }
         }
