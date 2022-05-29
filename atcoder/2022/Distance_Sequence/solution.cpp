@@ -1,5 +1,6 @@
 #include <atcoder/modint>
 #include <iostream>
+#include <numeric>
 #include <vector>
 using namespace std;
 
@@ -11,37 +12,36 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-mint solve(const int N, const int M, const int K) {
-    // dp(i, j) is the number of sequences of length i, ending with j
-    vector<vector<mint>> dp(N + 1, vector<mint>(M + 1, 0));
+mint mint_plus(const mint a, const mint b) { return a + b; }
 
-    for (int j = 1; j <= M; ++j) {
-        dp[1][j] = 1;
-    }
+mint solve(const int N, const int M, const int K) {
+    // dp(j) is the number of sequences ending with j
+    vector<mint> dp(M + 1, 1);
+    dp[0] = 0;
 
     for (int i = 2; i <= N; ++i) {
+        vector<mint> ss(M + 1, 0);
+        partial_sum(cbegin(dp), cend(dp), begin(ss), mint_plus);
+
+        const auto sum_up = [&ss](const int a, const int b) -> mint {
+            return ss[b] - ss[a - 1];
+        };
+
+        vector<mint> dp_(M + 1, 0);
         for (int j = 1; j <= M; ++j) {
-            for (int k = K; k <= M; ++k) {
-                if (j - k < 1 && j + k > M) break;
+            if (j - K >= 1) {
+                dp_[j] += sum_up(1, j - K);
+            }
 
-                if (j - k >= 0) {
-                    dp[i][j] += dp[i - 1][j - k];
-                }
-
-                if (j + k != j - k && j + k <= M) {
-                    dp[i][j] += dp[i - 1][j + k];
-                }
+            if (j + K <= M) {
+                dp_[j] += sum_up(j + K, M);
             }
         }
+
+        swap(dp, dp_);
     }
 
-    mint result{};
-
-    for (const auto x : dp.back()) {
-        result += x;
-    }
-
-    return result;
+    return accumulate(cbegin(dp), cend(dp), mint{0}, mint_plus);
 }
 
 int main() {
