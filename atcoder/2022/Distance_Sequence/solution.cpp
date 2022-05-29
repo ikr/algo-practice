@@ -37,6 +37,7 @@ mint solve(const int N, const int M, const int K) {
         }
 
         swap(dp, dp_);
+        assert(dp[0] == mint{0});
     }
 
     return accumulate(cbegin(dp), cend(dp), mint{0}, mint_plus);
