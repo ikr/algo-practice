@@ -10,8 +10,6 @@ using mint = atcoder::modint998244353;
 mint mint_plus(const mint a, const mint b) { return a + b; }
 
 mint solve(const int N, const int M, const int K) {
-    if (!K) return M;
-
     // At step i, dp(j) is the number of sequences of length i, ending with j
     vector<mint> dp(M + 1, 1);
     dp[0] = 0;
@@ -27,6 +25,11 @@ mint solve(const int N, const int M, const int K) {
 
         vector<mint> dp_(M + 1, 0);
         for (int j = 1; j <= M; ++j) {
+            if (!K) {
+                dp_[j] = ss.back();
+                continue;
+            }
+
             if (j - K >= 1) {
                 dp_[j] += sum_up(1, j - K);
             }
