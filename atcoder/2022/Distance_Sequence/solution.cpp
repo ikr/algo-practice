@@ -1,4 +1,5 @@
 #include <atcoder/modint>
+#include <cassert>
 #include <iostream>
 #include <numeric>
 #include <vector>
@@ -6,15 +7,11 @@ using namespace std;
 
 using mint = atcoder::modint998244353;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 mint mint_plus(const mint a, const mint b) { return a + b; }
 
 mint solve(const int N, const int M, const int K) {
+    if (!K) return M;
+
     // dp(j) is the number of sequences ending with j
     vector<mint> dp(M + 1, 1);
     dp[0] = 0;
@@ -24,6 +21,7 @@ mint solve(const int N, const int M, const int K) {
         partial_sum(cbegin(dp), cend(dp), begin(ss), mint_plus);
 
         const auto sum_up = [&ss](const int a, const int b) -> mint {
+            assert(a > 0);
             return ss[b] - ss[a - 1];
         };
 
@@ -33,7 +31,7 @@ mint solve(const int N, const int M, const int K) {
                 dp_[j] += sum_up(1, j - K);
             }
 
-            if (j - K != j + K && j + K <= M) {
+            if (j + K <= M) {
                 dp_[j] += sum_up(j + K, M);
             }
         }
