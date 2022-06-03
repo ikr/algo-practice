@@ -29,13 +29,13 @@ int min_ops(const vector<int> &xs) {
     if (evs.empty()) return 0;
     if (ods) return sz(evs);
 
-    if (any_of(cbegin(evs), cend(evs),
-               [](const auto x) { return __builtin_ctzll(x) == 1; })) {
-        return sz(evs);
-    }
+    vector<int> rds(sz(evs));
+    transform(cbegin(xs), cend(xs), begin(rds),
+              [](const auto x) -> int { return __builtin_ctzll(x); });
+    const auto lo = *min_element(cbegin(rds), cend(rds));
 
     const auto s = accumulate(cbegin(evs), cend(evs), 0LL);
-    return sz(evs) - 1 + __builtin_ctzll(s);
+    return min(sz(evs) - 1 + __builtin_ctzll(s), lo + sz(evs) - 1);
 }
 
 int main() {
