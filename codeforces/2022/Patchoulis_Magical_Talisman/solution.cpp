@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <iterator>
@@ -27,6 +28,11 @@ int min_ops(const vector<int> &xs) {
 
     if (evs.empty()) return 0;
     if (ods) return sz(evs);
+
+    if (any_of(cbegin(evs), cend(evs),
+               [](const auto x) { return __builtin_ctzll(x) == 1; })) {
+        return sz(evs);
+    }
 
     const auto s = accumulate(cbegin(evs), cend(evs), 0LL);
     return sz(evs) - 1 + __builtin_ctzll(s);
