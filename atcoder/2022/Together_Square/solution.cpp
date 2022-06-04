@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -64,6 +65,7 @@ vector<ull> factor(ull n) {
     ull x = pollard(n);
     auto l = factor(x), r = factor(n / x);
     l.insert(l.end(), all(r));
+    sort(begin(l), end(l));
     return l;
 }
 
@@ -81,17 +83,27 @@ vector<int> alphas(const ll x) {
 }
 
 ll num_pairs(const ll N) {
-    ll result = 1;
+    ll result{};
 
-    for (ll i = 2; i <= N; ++i) {
-        const auto A = alphas(i * i);
-        cerr << "i²:" << (i * i) << " A:" << A << endl;
+    for (ll i = 1; i <= N; ++i) {
+        const auto t = i * i;
+        const auto fs = factor(t);
+        // cerr << "fs:" << fs << endl;
 
         ll P = 1;
-        for (const auto a : A) {
-            P *= a + 1;
+        if (t <= N) {
+            // cerr << '(' << 1 << ' ' << t << ')' << endl;
+            ++result;
         }
-        result += P;
+
+        for (const auto f : fs) {
+            P *= f;
+            if (P > N) break;
+            if (t / P <= N) {
+                // cerr << '(' << P << ' ' << (t / P) << ')' << endl;
+                ++result;
+            }
+        }
     }
 
     return result;
