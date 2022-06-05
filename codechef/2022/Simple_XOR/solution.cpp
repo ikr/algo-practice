@@ -23,35 +23,13 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-pair<ll, ll> first_z_indeices(const ll x) {
-    vector<ll> result;
-
-    for (ll i = 0; i < 33LL; ++i) {
-        if (!((1LL << i) & x)) {
-            result.push_back(i);
-            if (sz(result) == 2) break;
-        }
+optional<array<ll, 4>> find_quad(const ll L, const ll R) {
+    if (L % 2 == 0) {
+        return array{L, L + 1, L + 2, L + 3};
     }
 
-    assert(sz(result) == 2);
-    return {result[0], result[1]};
-}
-
-optional<array<ll, 4>> find_quad(const ll L, const ll R) {
-    array<ll, 4> result{};
-    result[0] = L;
-
-    const auto [i, j] = first_z_indeices(L);
-    result[1] = result[0] | (1LL << i);
-    if (result[1] >= R) return nullopt;
-
-    result[2] = result[0] | (1LL << j);
-    if (result[2] >= R) return nullopt;
-
-    result[3] = result[0] | (1LL << i) | (1LL << j);
-    if (result[3] >= R) return nullopt;
-
-    return result;
+    if (L + 4 > R) return nullopt;
+    return array{L + 1, L + 2, L + 3, L + 4};
 }
 
 int main() {
