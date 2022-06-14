@@ -1,10 +1,19 @@
 #include <algorithm>
-#include <deque>
 #include <iostream>
 #include <iterator>
 #include <numeric>
 #include <vector>
 using namespace std;
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -12,32 +21,46 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-using pii = pair<int, int>;
-
-deque<pii> runlength_encode(const vector<int> &xs) {
-    deque<pii> result{{xs[0], 1}};
-
-    for (int i = 1; i < sz(xs); ++i) {
-        if (xs[i] == result.back().first) {
-            ++(result.back().second);
-        } else {
-            result.emplace_back(xs[i], 1);
-        }
-    }
-
-    return result;
-}
-
 int min_ops(const vector<int> &xs, const int s) {
     const auto total = accumulate(cbegin(xs), cend(xs), 0);
     if (total < s) return -1;
+    if (total == s) return 0;
 
-    auto q = runlength_encode(xs);
+    vector<int> suf(sz(xs));
+    partial_sum(crbegin(xs), crend(xs), begin(suf));
 
-    int result{};
-    auto cur = total;
-    while (cur > s) {
+    vector<int> pre(sz(xs));
+    partial_sum(cbegin(xs), cend(xs), begin(pre));
+
+    // cerr << "pre:" << pre << " suf:" << suf << endl;
+
+    const auto target = total - s;
+    int result = inof(distance(cbegin(pre),
+                               lower_bound(cbegin(pre), cend(pre), target))) +
+                 1;
+
+    // cerr << "result0:" << result << " target:" << target << endl;
+
+    for (int i = 0; i < sz(suf); ++i) {
+        const auto d = i + 1;
+        const auto tail = suf[i];
+
+        // cerr << "d:" << d << " tail:" << tail << endl;
+
+        if (tail == target) {
+            result = min(result, d);
+            // cerr << "a) set result:" << result << endl;
+            break;
+        }
+
+        const auto it = lower_bound(cbegin(pre), cend(pre), target - tail);
+        const auto dd = inof(distance(cbegin(pre), it)) + 1;
+
+        // cerr << "dd:" << dd << endl;
+        result = min(result, d + dd);
+        // cerr << "b) set result:" << result << endl;
     }
+
     return result;
 }
 
