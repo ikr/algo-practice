@@ -27,8 +27,35 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+pair<vector<int>, vector<int>> brute_force(const int N) {
+    if (N == 1) return pair{vector<int>{1}, vector<int>{1}};
+    if (N % 2) return pair{vector<int>{}, vector<int>{}};
+
+    vector<int> xs(N);
+    iota(begin(xs), end(xs), 1);
+
+    auto ys = xs;
+    do {
+        const auto t = xs[0] & ys[0];
+        bool ok = true;
+        for (int i = 1; i < sz(xs); ++i) {
+            if ((xs[i] & ys[i]) != t) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) {
+            return {xs, ys};
+        }
+    } while (next_permutation(begin(ys), end(ys)));
+
+    assert(false && "brute_force");
+    return pair{vector<int>{}, vector<int>{}};
+}
+
 pair<vector<int>, vector<int>> two_perms(const int N) {
     if (N == 1) return pair{vector<int>{1}, vector<int>{1}};
+    if (N == 2) return pair{vector<int>{1, 2}, vector<int>{2, 1}};
     if (N % 2) return pair{vector<int>{}, vector<int>{}};
 
     vector<int> xs(N);
@@ -38,10 +65,15 @@ pair<vector<int>, vector<int>> two_perms(const int N) {
     reverse(begin(ys), end(ys));
 
     const auto edge = [&]() -> int {
-        if ((N & 1) == (2 & (N - 1))) return 0;
+        if ((N & 1) == (2 & (N - 1)) && (N & 1) == (3 & (N - 2))) return 0;
 
         for (int i = 1; i < N; ++i) {
-            if ((N & (i + 1)) == (1 & i)) {
+            const auto t = (N & (i + 1));
+
+            if (t == (1 & i)) {
+                if (i > 1 && t != (2 & (i - 1))) continue;
+                if (i < N - 1 && t != ((N - 1) & (i + 2))) continue;
+
                 return N - i;
             }
         }
@@ -52,10 +84,10 @@ pair<vector<int>, vector<int>> two_perms(const int N) {
 
     rotate(begin(ys), next(begin(ys), edge), end(ys));
 
-    const auto t = xs[0] & ys[0];
-    for (int i = 1; i < sz(xs); ++i) {
-        assert((xs[i] & ys[i]) == t);
-    }
+    // const auto t = xs[0] & ys[0];
+    // for (int i = 1; i < sz(xs); ++i) {
+    //     assert((xs[i] & ys[i]) == t);
+    // }
 
     return {xs, ys};
 }
@@ -69,6 +101,8 @@ int main() {
     while (t--) {
         int N;
         cin >> N;
+
+        cerr << brute_force(N) << endl;
 
         const auto [xs, ys] = two_perms(N);
         if (xs.empty()) {
