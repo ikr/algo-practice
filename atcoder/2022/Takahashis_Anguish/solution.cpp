@@ -1,9 +1,35 @@
+#include <algorithm>
 #include <atcoder/dsu>
 #include <cassert>
 #include <iostream>
+#include <map>
+#include <queue>
+#include <set>
+#include <tuple>
 #include <utility>
 #include <vector>
 using namespace std;
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
 
 using ll = long long;
 using pii = pair<int, int>;
@@ -40,8 +66,73 @@ vector<vector<int>> all_components(const vector<vector<pii>> &G) {
     return d.groups();
 }
 
+using tri = tuple<int, int, int>;
+
+map<int, int> indices_by_value(const vector<int> &xs) {
+    map<int, int> result;
+    for (int i = 0; i < sz(xs); ++i) {
+        result[xs[i]] = i;
+    }
+    return result;
+}
+
+vector<int> topo_sort(const vector<int> &vs, const multimap<int, int> &g) {
+    set<int> done;
+    vector<int> result;
+
+    const auto recur = [&](const auto self, const int u) -> void {
+        assert(!done.count(u));
+        const auto [first, last] = g.equal_range(u);
+
+        for (auto it = first; it != last; ++it) {
+            const auto v = it->second;
+            if (done.count(v)) continue;
+            self(self, v);
+        }
+
+        result.push_back(u);
+        done.insert(u);
+    };
+
+    for (const auto u : vs) {
+        if (!done.count(u)) {
+            recur(recur, u);
+        }
+    }
+
+    reverse(begin(result), end(result));
+    return result;
+}
+
 ll min_total_frustration_of_component(const vector<vector<pii>> &G,
                                       const vector<int> &com) {
+    assert(!com.empty());
+
+    priority_queue<tri> q;
+    for (const auto u : com) {
+        for (const auto &[v, c] : G[u]) {
+            q.emplace(c, u, v);
+        }
+    }
+
+    const auto idx = indices_by_value(com);
+    multimap<int, int> g;
+    atcoder::dsu d(sz(com));
+
+    while (d.size(idx.at(com[0])) != sz(com)) {
+        assert(!q.empty());
+
+        const auto [_, u, v] = q.top();
+        q.pop();
+        if (d.same(idx.at(u), idx.at(v))) continue;
+
+        d.merge(idx.at(u), idx.at(v));
+        g.emplace(v, u);
+    }
+
+    const auto ord = topo_sort(com, g);
+    cerr << "ord: " << ord << endl;
+
     return 1;
 }
 
