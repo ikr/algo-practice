@@ -10,27 +10,6 @@
 #include <vector>
 using namespace std;
 
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
 using pii = pair<int, int>;
 
@@ -131,9 +110,15 @@ ll min_total_frustration_of_component(const vector<vector<pii>> &G,
     }
 
     const auto ord = topo_sort(com, g);
-    cerr << "ord: " << ord << endl;
+    const auto ord_idx = indices_by_value(ord);
 
-    return 1;
+    ll result{};
+    for (const auto u : com) {
+        for (const auto &[v, c] : G[u]) {
+            if (ord_idx.at(u) < ord_idx.at(v)) result += c;
+        }
+    }
+    return result;
 }
 
 ll min_total_frustration(const vector<int> &X, const vector<int> &C) {
