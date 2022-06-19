@@ -19,11 +19,20 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<int> recover_A(const vector<int> &B) {
-    const auto xor_b =
-        accumulate(cbegin(B), cend(B), 0,
-                   [](const int agg, const int b) { return agg ^ b; });
+    const int N = sz(B) - 1;
+    vector<int> C;
+    C.reserve(N - 1);
 
-    const auto all_a = xor_b ^ xor_b ^ xor_b;
+    for (int i = 1; i < sz(B); ++i) {
+        C.push_back(B[0] ^ B[i]);
+    }
+
+    const auto all_a =
+        (N % 2)
+            ? accumulate(cbegin(B), cend(B), 0,
+                         [](const int agg, const int b) { return agg ^ b; })
+            : accumulate(cbegin(C), cend(C), 0,
+                         [](const int agg, const int b) { return agg ^ b; });
 
     vector<int> A;
     A.reserve(sz(B) - 1);
