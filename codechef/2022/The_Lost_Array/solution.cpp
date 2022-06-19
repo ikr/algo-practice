@@ -19,9 +19,11 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<int> recover_A(const vector<int> &B) {
-    const auto all_a =
+    const auto xor_b =
         accumulate(cbegin(B), cend(B), 0,
                    [](const int agg, const int b) { return agg ^ b; });
+
+    const auto all_a = xor_b ^ xor_b ^ xor_b;
 
     vector<int> A;
     A.reserve(sz(B) - 1);
