@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <set>
+#include <tuple>
 #include <vector>
 using namespace std;
 
@@ -11,8 +12,10 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<vector<int>> possible_summands(const int s) {
-    vector<vector<int>> result;
+using tri = tuple<int, int, int>;
+
+vector<tri> possible_summands(const int s) {
+    vector<tri> result;
 
     for (int i = 1; i <= s; ++i) {
         for (int j = 1; j <= s; ++j) {
@@ -20,7 +23,7 @@ vector<vector<int>> possible_summands(const int s) {
 
             for (int k = 1; k <= s; ++k) {
                 if (i + j + k > s) break;
-                if (i + j + k == s) result.push_back(vector{i, j, k});
+                if (i + j + k == s) result.emplace_back(i, j, k);
             }
         }
     }
@@ -37,59 +40,29 @@ int main() {
     int h1, h2, h3, w1, w2, w3;
     cin >> h1 >> h2 >> h3 >> w1 >> w2 >> w3;
 
-    vector<vector<set<int>>> h_opt(3, vector(3, set<int>{}));
+    const auto h1s = possible_summands(h1);
+    const auto h2s = possible_summands(h2);
+    const auto h3s = possible_summands(h3);
 
-    {
-        for (const auto &ijk : possible_summands(h1)) {
-            for (int co = 0; co < 3; ++co) {
-                h_opt[0][co].insert(ijk[co]);
+    int result{};
+
+    for (const auto &row1 : h1s) {
+        if (get<0>(row1) >= w1) continue;
+        if (get<1>(row1) >= w2) continue;
+        if (get<2>(row1) >= w3) continue;
+
+        for (const auto &row2 : h2s) {
+            if (get<0>(row1) + get<0>(row2) >= w1) continue;
+            if (get<1>(row1) + get<1>(row2) >= w2) continue;
+            if (get<2>(row1) + get<2>(row2) >= w3) continue;
+
+            for (const auto &row3 : h3s) {
+                if (get<0>(row1) + get<0>(row2) + get<0>(row3) == w1 &&
+                    get<1>(row1) + get<1>(row2) + get<1>(row3) == w2 &&
+                    get<2>(row1) + get<2>(row2) + get<2>(row3) == w3) {
+                    ++result;
+                }
             }
-        }
-
-        for (const auto &ijk : possible_summands(h2)) {
-            for (int co = 0; co < 3; ++co) {
-                h_opt[1][co].insert(ijk[co]);
-            }
-        }
-
-        for (const auto &ijk : possible_summands(h3)) {
-            for (int co = 0; co < 3; ++co) {
-                h_opt[2][co].insert(ijk[co]);
-            }
-        }
-    }
-
-    vector<vector<set<int>>> w_opt(3, vector(3, set<int>{}));
-
-    {
-        for (const auto &ijk : possible_summands(w1)) {
-            for (int ro = 0; ro < 3; ++ro) {
-                w_opt[ro][0].insert(ijk[ro]);
-            }
-        }
-
-        for (const auto &ijk : possible_summands(w2)) {
-            for (int ro = 0; ro < 3; ++ro) {
-                w_opt[ro][1].insert(ijk[ro]);
-            }
-        }
-
-        for (const auto &ijk : possible_summands(w3)) {
-            for (int ro = 0; ro < 3; ++ro) {
-                w_opt[ro][2].insert(ijk[ro]);
-            }
-        }
-    }
-
-    ll result = 1;
-
-    for (int ro = 0; ro < 3; ++ro) {
-        for (int co = 0; co < 3; ++co) {
-            vector<int> X;
-            set_intersection(cbegin(h_opt[ro][co]), cend(h_opt[ro][co]),
-                             cbegin(w_opt[ro][co]), cend(w_opt[ro][co]),
-                             back_inserter(X));
-            result *= sz(X);
         }
     }
 
