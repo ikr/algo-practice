@@ -7,40 +7,8 @@
 #include <vector>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T, typename P>
-ostream &operator<<(ostream &os, const set<T, P> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 using pii = pair<int, int>;
+static constexpr int INF = 1e9;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -48,21 +16,18 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-pair<set<pii>, set<pii>> partition_rotated(const vector<string> &grid) {
+pair<vector<pii>, vector<pii>> spaces_and_offices(const vector<string> &grid) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
-    set<pii> spaces;
-    set<pii> offices;
+    vector<pii> spaces;
+    vector<pii> offices;
 
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
-            // const auto x = ro - co;
-            // const auto y = ro + co;
-
             if (grid[ro][co] == '1') {
-                offices.emplace(ro, co);
+                offices.emplace_back(ro, co);
             } else {
-                spaces.emplace(ro, co);
+                spaces.emplace_back(ro, co);
             }
         }
     }
@@ -70,75 +35,55 @@ pair<set<pii>, set<pii>> partition_rotated(const vector<string> &grid) {
     return {spaces, offices};
 }
 
-template <typename T> constexpr pair<T, T> flip(const pair<T, T> &x) {
-    return {x.second, x.first};
-}
-
-struct FlippedLess final {
-    bool operator()(const pii &a, const pii &b) const {
-        return flip(a) < flip(b);
-    }
-};
-
-constexpr int cheb(const pii ab, const pii xy) {
-    const auto [a, b] = ab;
-    const auto [x, y] = xy;
-    return max(abs(a - x), abs(b - y));
-}
-
 constexpr int manh(const pii ab, const pii xy) {
-    const auto [a, b] = ab;
-    const auto [x, y] = xy;
-    return abs(a - x) + abs(b - y);
+    return abs(ab.first - xy.first) + abs(ab.second - xy.second);
 }
 
-template <typename T> pii nearest_by_cheb(const T &dests, const pii src) {
-    auto it = dests.lower_bound(src);
-    if (it == cend(dests)) it = prev(cend(dests));
-
-    const auto jt = it == cbegin(dests) ? it : prev(it);
-
-    return cheb(src, *jt) < cheb(src, *it) ? (*jt) : (*it);
+int min_manh_dist(const vector<pii> &dests, const pii src) {
+    int result = INF;
+    for (const auto &t : dests) {
+        result = min(result, manh(src, t));
+    }
+    return result;
 }
 
-static constexpr int INF = 1e9;
+pair<multiset<int>, vector<vector<int>>>
+delivery_times_for(const int H, const int W, const vector<pii> &spaces,
+                   const vector<pii> &offices) {
+    multiset<int> T;
+    vector<vector<int>> D(H, vector(W, 0));
 
-int best_delivery_time(const set<pii> &offices,
-                       const set<pii, FlippedLess> &offices_, const pii src) {
-    const auto ab = nearest_by_cheb(offices, {src.first, -INF});
-    const auto ab_ = nearest_by_cheb(offices_, {-INF, src.second});
-    return min(cheb(src, ab), cheb(src, ab_));
+    for (const auto &sp : spaces) {
+        const auto d = min_manh_dist(offices, sp);
+        D[sp.first][sp.second] = d;
+        T.insert(d);
+    }
+    return {T, D};
 }
 
 int overall_delivery_time(const vector<string> &grid) {
-    auto [spaces, offices] = partition_rotated(grid);
+    const auto [spaces, offices] = spaces_and_offices(grid);
     if (sz(spaces) < 2) return 0;
-    set<pii, FlippedLess> offices_(cbegin(offices), cend(offices));
 
-    int result = INF;
-    const vector<pii> opts(cbegin(spaces), cend(spaces));
+    const auto [T0, D] =
+        delivery_times_for(sz(grid), sz(grid[0]), spaces, offices);
 
-    for (const auto &o : opts) {
-        spaces.erase(o);
-        assert(!spaces.empty());
-        offices.insert(o);
-        offices_.insert(o);
+    int result = T0.empty() ? INF : *crbegin(T0);
 
-        int cur{};
+    for (const auto &o : spaces) {
+        auto T = T0;
+        T.erase(T.find(D[o.first][o.second]));
+
         for (const auto &sp : spaces) {
-            // cur = max(cur, best_delivery_time(offices, offices_, sp));
+            if (sp == o) continue;
+            const auto d = manh(sp, o);
+            if (d >= D[sp.first][sp.second]) continue;
 
-            int best = INF;
-            for (const auto &of : offices) {
-                best = min(best, manh(sp, of));
-            }
-            cur = max(cur, best);
+            T.erase(T.find(D[sp.first][sp.second]));
+            T.insert(d);
         }
-        result = min(result, cur);
 
-        spaces.insert(o);
-        offices.erase(o);
-        offices_.erase(o);
+        result = min(result, *crbegin(T));
     }
 
     return result;
