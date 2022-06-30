@@ -7,6 +7,12 @@
 #include <vector>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -20,6 +26,17 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 template <typename T>
 ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
+template <typename T, typename P>
+ostream &operator<<(ostream &os, const set<T, P> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
     return os;
 }
 
@@ -78,14 +95,14 @@ template <typename T> pii nearest_by_cheb(const T &dests, const pii src) {
     return cheb(src, *jt) < cheb(src, *it) ? (*jt) : (*it);
 }
 
+static constexpr int INF = 1e9;
+
 int best_delivery_time(const set<pii> &offices,
                        const set<pii, FlippedLess> &offices_, const pii src) {
-    const auto ab = nearest_by_cheb(offices, src);
-    const auto ab_ = nearest_by_cheb(offices_, src);
+    const auto ab = nearest_by_cheb(offices, {src.first, -INF});
+    const auto ab_ = nearest_by_cheb(offices_, {-INF, src.second});
     return min(cheb(src, ab), cheb(src, ab_));
 }
-
-static constexpr int INF = 1e9;
 
 int overall_delivery_time(const vector<string> &grid) {
     auto [spaces, offices] = partition_rotated(grid);
@@ -96,6 +113,7 @@ int overall_delivery_time(const vector<string> &grid) {
     const vector<pii> opts(cbegin(spaces), cend(spaces));
 
     for (const auto &o : opts) {
+        spaces.erase(o);
         assert(!spaces.empty());
         offices.insert(o);
         offices_.insert(o);
@@ -105,14 +123,18 @@ int overall_delivery_time(const vector<string> &grid) {
         vector<vector<int>> D(H, vector(W, 0));
         for (int ro = 0; ro < H; ++ro) {
             for (int co = 0; co < W; ++co) {
-                if (grid[ro][co] == '1' || pii{ro, co} == o) continue;
                 const auto x = ro - co;
                 const auto y = ro + co;
+                if (grid[ro][co] == '1' || pii{x, y} == o) continue;
 
                 D[ro][co] = best_delivery_time(offices, offices_, {x, y});
             }
         }
-        cerr << endl << D << endl;
+        if (o == pii{0, 4}) {
+            cerr << endl
+                 << D << " offices:" << offices << " offices_:" << offices_
+                 << endl;
+        }
 
         int cur{};
         for (const auto &sp : spaces) {
@@ -120,6 +142,7 @@ int overall_delivery_time(const vector<string> &grid) {
         }
         result = min(result, cur);
 
+        spaces.insert(o);
         offices.erase(o);
         offices_.erase(o);
     }
