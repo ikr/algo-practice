@@ -96,10 +96,23 @@ int overall_delivery_time(const vector<string> &grid) {
     const vector<pii> opts(cbegin(spaces), cend(spaces));
 
     for (const auto &o : opts) {
-        spaces.erase(o);
         assert(!spaces.empty());
         offices.insert(o);
         offices_.insert(o);
+
+        const auto H = sz(grid);
+        const auto W = sz(grid[0]);
+        vector<vector<int>> D(H, vector(W, 0));
+        for (int ro = 0; ro < H; ++ro) {
+            for (int co = 0; co < W; ++co) {
+                if (grid[ro][co] == '1' || pii{ro, co} == o) continue;
+                const auto x = ro - co;
+                const auto y = ro + co;
+
+                D[ro][co] = best_delivery_time(offices, offices_, {x, y});
+            }
+        }
+        cerr << endl << D << endl;
 
         int cur{};
         for (const auto &sp : spaces) {
@@ -107,7 +120,6 @@ int overall_delivery_time(const vector<string> &grid) {
         }
         result = min(result, cur);
 
-        spaces.insert(o);
         offices.erase(o);
         offices_.erase(o);
     }
