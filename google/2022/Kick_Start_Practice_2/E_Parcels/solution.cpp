@@ -56,13 +56,13 @@ pair<set<pii>, set<pii>> partition_rotated(const vector<string> &grid) {
 
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
-            const auto x = ro - co;
-            const auto y = ro + co;
+            // const auto x = ro - co;
+            // const auto y = ro + co;
 
             if (grid[ro][co] == '1') {
-                offices.emplace(x, y);
+                offices.emplace(ro, co);
             } else {
-                spaces.emplace(x, y);
+                spaces.emplace(ro, co);
             }
         }
     }
@@ -84,6 +84,12 @@ constexpr int cheb(const pii ab, const pii xy) {
     const auto [a, b] = ab;
     const auto [x, y] = xy;
     return max(abs(a - x), abs(b - y));
+}
+
+constexpr int manh(const pii ab, const pii xy) {
+    const auto [a, b] = ab;
+    const auto [x, y] = xy;
+    return abs(a - x) + abs(b - y);
 }
 
 template <typename T> pii nearest_by_cheb(const T &dests, const pii src) {
@@ -118,27 +124,15 @@ int overall_delivery_time(const vector<string> &grid) {
         offices.insert(o);
         offices_.insert(o);
 
-        const auto H = sz(grid);
-        const auto W = sz(grid[0]);
-        vector<vector<int>> D(H, vector(W, 0));
-        for (int ro = 0; ro < H; ++ro) {
-            for (int co = 0; co < W; ++co) {
-                const auto x = ro - co;
-                const auto y = ro + co;
-                if (grid[ro][co] == '1' || pii{x, y} == o) continue;
-
-                D[ro][co] = best_delivery_time(offices, offices_, {x, y});
-            }
-        }
-        if (o == pii{0, 4}) {
-            cerr << endl
-                 << D << " offices:" << offices << " offices_:" << offices_
-                 << endl;
-        }
-
         int cur{};
         for (const auto &sp : spaces) {
-            cur = max(cur, best_delivery_time(offices, offices_, sp));
+            // cur = max(cur, best_delivery_time(offices, offices_, sp));
+
+            int best = INF;
+            for (const auto &of : offices) {
+                best = min(best, manh(sp, of));
+            }
+            cur = max(cur, best);
         }
         result = min(result, cur);
 
