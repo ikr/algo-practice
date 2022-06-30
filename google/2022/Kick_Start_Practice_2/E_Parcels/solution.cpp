@@ -1,7 +1,6 @@
 #include <cassert>
 #include <iostream>
-#include <iterator>
-#include <set>
+#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -16,77 +15,105 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-pair<vector<pii>, vector<pii>> spaces_and_offices(const vector<string> &grid) {
+vector<vector<int>> distances_for(const vector<string> &grid) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
-    vector<pii> spaces;
-    vector<pii> offices;
+    vector<vector<int>> D(H, vector(W, INF));
+    queue<pii> q;
 
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
             if (grid[ro][co] == '1') {
-                offices.emplace_back(ro, co);
-            } else {
-                spaces.emplace_back(ro, co);
+                q.emplace(ro, co);
+                D[ro][co] = 0;
+            }
+        }
+    }
+    assert(!q.empty());
+
+    while (!q.empty()) {
+        const auto [ro, co] = q.front();
+        q.pop();
+
+        if (ro && D[ro - 1][co] == INF) {
+            D[ro - 1][co] = D[ro][co] + 1;
+            q.emplace(ro - 1, co);
+        }
+
+        if (ro < H - 1 && D[ro + 1][co] == INF) {
+            D[ro + 1][co] = D[ro][co] + 1;
+            q.emplace(ro + 1, co);
+        }
+
+        if (co && D[ro][co - 1] == INF) {
+            D[ro][co - 1] = D[ro][co] + 1;
+            q.emplace(ro, co - 1);
+        }
+
+        if (co < W - 1 && D[ro][co + 1] == INF) {
+            D[ro][co + 1] = D[ro][co] + 1;
+            q.emplace(ro, co + 1);
+        }
+    }
+
+    return D;
+}
+
+pii roco_of_max(const vector<vector<int>> &grid) {
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+    int a{}, b{};
+
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            if (grid[ro][co] > grid[a][b]) {
+                a = ro;
+                b = co;
             }
         }
     }
 
-    return {spaces, offices};
-}
-
-constexpr int manh(const pii ab, const pii xy) {
-    return abs(ab.first - xy.first) + abs(ab.second - xy.second);
-}
-
-int min_manh_dist(const vector<pii> &dests, const pii src) {
-    int result = INF;
-    for (const auto &t : dests) {
-        result = min(result, manh(src, t));
-    }
-    return result;
-}
-
-pair<multiset<int>, vector<vector<int>>>
-delivery_times_for(const int H, const int W, const vector<pii> &spaces,
-                   const vector<pii> &offices) {
-    multiset<int> T;
-    vector<vector<int>> D(H, vector(W, 0));
-
-    for (const auto &sp : spaces) {
-        const auto d = min_manh_dist(offices, sp);
-        D[sp.first][sp.second] = d;
-        T.insert(d);
-    }
-    return {T, D};
+    return {a, b};
 }
 
 int overall_delivery_time(const vector<string> &grid) {
-    const auto [spaces, offices] = spaces_and_offices(grid);
-    if (sz(spaces) < 2) return 0;
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+    auto D = distances_for(grid);
+    const auto [a, b] = roco_of_max(D);
+    if (D[a][b] == 0) return 0;
 
-    const auto [T0, D] =
-        delivery_times_for(sz(grid), sz(grid[0]), spaces, offices);
+    D[a][b] = 0;
+    queue<pii> q;
+    q.emplace(a, b);
 
-    int result = T0.empty() ? INF : *crbegin(T0);
+    while (!q.empty()) {
+        const auto [ro, co] = q.front();
+        q.pop();
 
-    for (const auto &o : spaces) {
-        auto T = T0;
-        T.erase(T.find(D[o.first][o.second]));
-
-        for (const auto &sp : spaces) {
-            if (sp == o) continue;
-            const auto d = manh(sp, o);
-            if (d >= D[sp.first][sp.second]) continue;
-
-            T.erase(T.find(D[sp.first][sp.second]));
-            T.insert(d);
+        if (ro && D[ro - 1][co] > D[ro][co] + 1) {
+            D[ro - 1][co] = D[ro][co] + 1;
+            q.emplace(ro - 1, co);
         }
 
-        result = min(result, *crbegin(T));
+        if (ro < H - 1 && D[ro + 1][co] > D[ro][co] + 1) {
+            D[ro + 1][co] = D[ro][co] + 1;
+            q.emplace(ro + 1, co);
+        }
+
+        if (co && D[ro][co - 1] > D[ro][co] + 1) {
+            D[ro][co - 1] = D[ro][co] + 1;
+            q.emplace(ro, co - 1);
+        }
+
+        if (co < W - 1 && D[ro][co + 1] > D[ro][co] + 1) {
+            D[ro][co + 1] = D[ro][co] + 1;
+            q.emplace(ro, co + 1);
+        }
     }
 
-    return result;
+    const auto [x, y] = roco_of_max(D);
+    return D[x][y];
 }
 
 int main() {
