@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <iterator>
 #include <set>
@@ -84,27 +85,33 @@ int best_delivery_time(const set<pii> &offices,
     return min(cheb(src, ab), cheb(src, ab_));
 }
 
+static constexpr int INF = 1e9;
+
 int overall_delivery_time(const vector<string> &grid) {
     auto [spaces, offices] = partition_rotated(grid);
+    if (sz(spaces) < 2) return 0;
     set<pii, FlippedLess> offices_(cbegin(offices), cend(offices));
 
-    const auto H = sz(grid);
-    const auto W = sz(grid[0]);
+    int result = INF;
+    const vector<pii> opts(cbegin(spaces), cend(spaces));
 
-    vector<vector<int>> D(H, vector(W, 0));
+    for (const auto &o : opts) {
+        spaces.erase(o);
+        assert(!spaces.empty());
+        offices.insert(o);
+        offices_.insert(o);
 
-    for (int ro = 0; ro < H; ++ro) {
-        for (int co = 0; co < W; ++co) {
-            if (grid[ro][co] == '1') continue;
-            const auto x = ro - co;
-            const auto y = ro + co;
-
-            D[ro][co] = best_delivery_time(offices, offices_, {x, y});
+        int cur{};
+        for (const auto &sp : spaces) {
+            cur = max(cur, best_delivery_time(offices, offices_, sp));
         }
-    }
-    cerr << D << endl;
+        result = min(result, cur);
 
-    int result{};
+        spaces.insert(o);
+        offices.erase(o);
+        offices_.erase(o);
+    }
+
     return result;
 }
 
