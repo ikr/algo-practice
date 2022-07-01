@@ -114,12 +114,13 @@ int overall_delivery_time(const vector<string> &grid) {
 
                     const auto d = max({abs(x - x_hi), abs(x - x_lo),
                                         abs(y - y_hi), abs(y - y_lo)});
-                    if (d > mid) return false;
+                    if (d <= mid) return true;
                 }
             }
 
-            return true;
+            return false;
         }();
+
         if (fulfilled) {
             hi = mid;
         } else {
