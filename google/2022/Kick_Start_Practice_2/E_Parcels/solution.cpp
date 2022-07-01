@@ -113,7 +113,7 @@ int overall_delivery_time(const vector<string> &grid) {
                     const auto y = ro - co;
 
                     const auto d = max({abs(x - x_hi), abs(x - x_lo),
-                                        abs(x - x_hi), abs(y - y_lo)});
+                                        abs(y - y_hi), abs(y - y_lo)});
                     if (d > mid) return false;
                 }
             }
