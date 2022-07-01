@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <queue>
@@ -79,41 +80,54 @@ pii roco_of_max(const vector<vector<int>> &grid) {
 int overall_delivery_time(const vector<string> &grid) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
+
     auto D = distances_for(grid);
     const auto [a, b] = roco_of_max(D);
     if (D[a][b] == 0) return 0;
 
-    D[a][b] = 0;
-    queue<pii> q;
-    q.emplace(a, b);
+    int lo = 0;
+    int hi = D[a][b];
+    while (hi - lo > 1) {
+        const auto mid = lo + (hi - lo) / 2;
+        auto x_lo = INF, y_lo = INF, x_hi = -INF, y_hi = -INF;
 
-    while (!q.empty()) {
-        const auto [ro, co] = q.front();
-        q.pop();
+        for (int ro = 0; ro < H; ++ro) {
+            for (int co = 0; co < W; ++co) {
+                if (D[ro][co] > mid) {
+                    const auto x = ro + co;
+                    const auto y = ro - co;
 
-        if (ro && D[ro - 1][co] > D[ro][co] + 1) {
-            D[ro - 1][co] = D[ro][co] + 1;
-            q.emplace(ro - 1, co);
+                    x_lo = min(x_lo, x);
+                    y_lo = min(y_lo, y);
+                    x_hi = max(x_hi, x);
+                    y_hi = max(y_hi, y);
+                }
+            }
         }
 
-        if (ro < H - 1 && D[ro + 1][co] > D[ro][co] + 1) {
-            D[ro + 1][co] = D[ro][co] + 1;
-            q.emplace(ro + 1, co);
-        }
+        const auto fulfilled = [&]() -> bool {
+            for (int ro = 0; ro < H; ++ro) {
+                for (int co = 0; co < W; ++co) {
+                    if (D[ro][co] <= mid) continue;
+                    const auto x = ro + co;
+                    const auto y = ro - co;
 
-        if (co && D[ro][co - 1] > D[ro][co] + 1) {
-            D[ro][co - 1] = D[ro][co] + 1;
-            q.emplace(ro, co - 1);
-        }
+                    const auto d = max({abs(x - x_hi), abs(x - x_lo),
+                                        abs(x - x_hi), abs(y - y_lo)});
+                    if (d > mid) return false;
+                }
+            }
 
-        if (co < W - 1 && D[ro][co + 1] > D[ro][co] + 1) {
-            D[ro][co + 1] = D[ro][co] + 1;
-            q.emplace(ro, co + 1);
+            return true;
+        }();
+        if (fulfilled) {
+            hi = mid;
+        } else {
+            lo = mid;
         }
     }
 
-    const auto [x, y] = roco_of_max(D);
-    return D[x][y];
+    return hi;
 }
 
 int main() {
