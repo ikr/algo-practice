@@ -87,7 +87,7 @@ int overall_delivery_time(const vector<string> &grid) {
 
     int lo = 0;
     int hi = D[a][b];
-    while (hi - lo > 1) {
+    for (;;) {
         const auto mid = lo + (hi - lo) / 2;
         auto x_lo = INF, y_lo = INF, x_hi = -INF, y_hi = -INF;
 
@@ -108,7 +108,6 @@ int overall_delivery_time(const vector<string> &grid) {
         const auto fulfilled = [&]() -> bool {
             for (int ro = 0; ro < H; ++ro) {
                 for (int co = 0; co < W; ++co) {
-                    if (D[ro][co] <= mid) continue;
                     const auto x = ro + co;
                     const auto y = ro - co;
 
@@ -122,8 +121,10 @@ int overall_delivery_time(const vector<string> &grid) {
         }();
 
         if (fulfilled) {
+            if (hi == mid) break;
             hi = mid;
         } else {
+            if (lo == mid) break;
             lo = mid;
         }
     }
