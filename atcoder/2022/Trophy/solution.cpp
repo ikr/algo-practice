@@ -14,7 +14,7 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 using ll = long long;
 
-static constexpr ll INF = 1e18;
+static constexpr ll INF = 2000000000LL * 1000000000LL;
 
 vector<ll> pref_sums(const vector<ll> &xs) {
     vector<ll> ss(sz(xs));
@@ -47,8 +47,8 @@ int main() {
     ll X;
     cin >> N >> X;
 
-    vector<ll> A(N);
-    vector<ll> B(N);
+    vector<ll> A(N, 0);
+    vector<ll> B(N, 0);
 
     for (int i = 0; i < N; ++i) {
         cin >> A[i] >> B[i];
