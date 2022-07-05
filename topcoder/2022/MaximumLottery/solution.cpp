@@ -1,12 +1,9 @@
 #include "lest.hpp"
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <vector>
 using namespace std;
-
-template <typename T> constexpr double doof(const T x) {
-    return static_cast<double>(x);
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -14,23 +11,32 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
-    return xs.cbegin();
-}
+template <typename T> vector<vector<T>> precompute_binomials(const int maxn) {
+    vector<vector<T>> C(maxn + 1, vector<T>(maxn + 1, 0));
+    C[0][0] = 1;
 
-template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
-    return xs.cend();
+    for (int n = 1; n <= maxn; ++n) {
+        C[n][0] = 1;
+        C[n][n] = 1;
+        for (int k = 1; k < n; ++k) {
+            C[n][k] = C[n - 1][k - 1] + C[n - 1][k];
+        }
+    }
+
+    return C;
 }
 
 struct MaximumLottery final {
-    double ticketPrice(const vector<int> &xs, const int k) const {
+    double ticketPrice(vector<int> xs, const int k) const {
         const auto n = sz(xs);
-        auto ys = xs;
-        sort(begin(ys), end(ys));
-        const auto coef = doof(k) / doof(n);
-        const auto d = ys.back() - ys[k - 1];
+        const auto C = precompute_binomials<long double>(n);
+        sort(begin(xs), end(xs));
 
-        return doof(ys[k - 1]) + d * coef;
+        long double result = 0;
+        for (int i = k; i <= n; ++i) {
+            result += 1.0 * xs[i - 1] * C[i - 1][k - 1];
+        }
+        return static_cast<double>(result / C[n][k]);
     }
 };
 
