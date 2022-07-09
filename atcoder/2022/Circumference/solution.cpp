@@ -41,7 +41,7 @@ bool circles_touch(const tll a, const tll b) {
     const auto [xb, yb, rb] = b;
     const auto d2 = square(xa - xb) + square(ya - yb);
 
-    return square(ra + rb) <= d2;
+    return square(ra + rb) >= d2;
 }
 
 int index_of(const vector<tll> &cs, const pll a) {
