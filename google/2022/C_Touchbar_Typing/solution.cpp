@@ -1,9 +1,14 @@
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <vector>
 using namespace std;
 
 using ll = long long;
+using pii = pair<int, int>;
+
+static constexpr ll INF = 1e18;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -12,19 +17,32 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll min_time(const vector<int> &S, const vector<int> &K) {
-    map<int, int> idx;
+    const auto N = sz(S);
+    const auto M = sz(K);
+
+    map<int, vector<int>> idx;
     for (int i = 0; i < sz(K); ++i) {
-        idx[K[i]] = i;
+        idx[K[i]].push_back(i);
     }
 
-    ll result{};
-
-    for (int cur = idx[S[0]], i = 1; i < sz(S); ++i) {
-        result += abs(cur - idx[S[i]]);
-        cur = idx[S[i]];
+    vector<vector<ll>> dp(N, vector(M, INF));
+    for (int j = 0; j < sz(idx[S[0]]); ++j) {
+        dp[0][j] = 0;
     }
 
-    return result;
+    for (int i = 1; i < N; ++i) {
+        const vector<int> &sources = idx.at(S[i - 1]);
+        const vector<int> &targets = idx.at(S[i]);
+
+        for (int j0 = 0; j0 < sz(sources); ++j0) {
+            for (int j1 = 0; j1 < sz(targets); ++j1) {
+                dp[i][j1] = min(dp[i][j1],
+                                dp[i - 1][j0] + abs(sources[j0] - targets[j1]));
+            }
+        }
+    }
+
+    return *min_element(cbegin(dp.back()), cend(dp.back()));
 }
 
 int main() {
