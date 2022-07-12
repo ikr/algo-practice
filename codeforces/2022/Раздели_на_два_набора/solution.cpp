@@ -25,7 +25,7 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<vector<int>> graph(const vector<pii> &ab) {
+vector<set<int>> graph(const vector<pii> &ab) {
     const auto n = sz(ab);
     map<int, vector<int>> idx;
 
@@ -35,28 +35,23 @@ vector<vector<int>> graph(const vector<pii> &ab) {
         idx[b].push_back(i);
     }
 
-    vector<vector<int>> g(n);
+    vector<set<int>> g(n);
     for (int i = 0; i < n; ++i) {
         const auto [a, b] = ab[i];
 
         for (const auto j : idx[a]) {
             if (j != i) {
-                g[i].push_back(j);
-                g[j].push_back(i);
+                g[i].insert(j);
+                g[j].insert(i);
             }
         }
 
         for (const auto j : idx[b]) {
             if (j != i) {
-                g[i].push_back(j);
-                g[j].push_back(i);
+                g[i].insert(j);
+                g[j].insert(i);
             }
         }
-    }
-
-    for (auto &vs : g) {
-        sort(begin(vs), end(vs));
-        vs.erase(unique(begin(vs), end(vs)), end(vs));
     }
 
     return g;
@@ -71,7 +66,7 @@ constexpr Side opposite(const Side x) {
 // Reference:
 // https://cp-algorithms.com/graph/bipartite-check.html#implementation
 //
-bool is_bipartite(const vector<vector<int>> &g) {
+bool is_bipartite(const vector<set<int>> &g) {
     const auto n = sz(g);
     vector<optional<Side>> side(n, nullopt);
 
