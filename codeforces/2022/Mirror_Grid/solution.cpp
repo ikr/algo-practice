@@ -1,24 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-using pii = pair<int, int>;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -29,38 +11,57 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
     return x ? (1 + (x - 1) / y) : 0;
 }
 
-int min_ops_in_a_circle(const string &xs) {
-    const auto ones = count(cbegin(xs), cend(xs), '1');
-    const auto zeros = count(cbegin(xs), cend(xs), '0');
-    if (!ones || !zeros) return 0;
-    return inof(min(ones, zeros));
-}
+vector<string> transpose(const vector<string> &grid) {
+    vector<string> result = grid;
 
-int min_ops(const vector<string> &grid) {
-    const auto n = sz(grid);
-    int result{};
+    for (int ro = 0; ro < sz(grid); ++ro) {
+        assert(sz(result) == sz(result[ro]));
 
-    for (int i = 0; i < div_ceil(n, 2); ++i) {
-        const auto d = n - 2 * i;
-        set<pii> coord;
-
-        for (int j = 0; j < d; ++j) {
-            coord.emplace(i, i + j);
-            coord.emplace(i + j, i);
-            coord.emplace(i + d - 1, i + j);
-            coord.emplace(i + j, i + d - 1);
+        for (int co = 0; co < sz(grid); ++co) {
+            result[ro][co] = grid[co][ro];
         }
-
-        cerr << "i:" << i << "coord:" << coord << endl;
-
-        string xs;
-        for (const auto &[ro, co] : coord) {
-            xs += grid[ro][co];
-        }
-        result += min_ops_in_a_circle(xs);
     }
 
     return result;
+}
+
+vector<string> flip_rows(vector<string> grid) {
+    const auto n = sz(grid);
+
+    for (int i = 0; i < n / 2; ++i) {
+        swap(grid[i], grid[n - 1 - i]);
+    }
+
+    return grid;
+}
+
+pair<vector<string>, int> top_down_overwrite_ops(vector<string> grid) {
+    const auto n = sz(grid);
+
+    int ops{};
+
+    for (int i = 0; i < n / 2; ++i) {
+        const bitset<100> hi(grid[i]);
+        const bitset<100> lo(grid[n - 1 - i]);
+        ops += inof((hi ^ lo).count());
+
+        grid[n - 1 - i] = grid[i];
+    }
+
+    return {grid, ops};
+}
+
+int min_ops(const vector<string> &grid) {
+    if (sz(grid) == 1) return 0;
+    set<int> opt;
+
+    {
+        auto [g, a] = top_down_overwrite_ops(grid);
+        auto [_, b] = top_down_overwrite_ops(transpose(g));
+        opt.insert(a + b);
+    }
+
+    return *cbegin(opt);
 }
 
 int main() {
