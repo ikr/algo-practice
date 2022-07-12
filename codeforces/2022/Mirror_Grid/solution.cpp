@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -25,7 +41,7 @@ int min_ops(const vector<string> &grid) {
     int result{};
 
     for (int i = 0; i < div_ceil(n, 2); ++i) {
-        const auto d = i + 1;
+        const auto d = n - 2 * i;
         set<pii> coord;
 
         for (int j = 0; j < d; ++j) {
@@ -34,6 +50,8 @@ int min_ops(const vector<string> &grid) {
             coord.emplace(i + d - 1, i + j);
             coord.emplace(i + j, i + d - 1);
         }
+
+        cerr << "i:" << i << "coord:" << coord << endl;
 
         string xs;
         for (const auto &[ro, co] : coord) {
