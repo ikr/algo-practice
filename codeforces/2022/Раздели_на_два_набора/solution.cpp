@@ -1,21 +1,10 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <map>
+#include <optional>
+#include <queue>
+#include <set>
+#include <vector>
 using namespace std;
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
 
 using pii = pair<int, int>;
 
@@ -69,8 +58,6 @@ constexpr Side opposite(const Side x) {
 bool is_bipartite(const vector<set<int>> &g) {
     const auto n = sz(g);
     vector<optional<Side>> side(n, nullopt);
-
-    bool result = true;
     queue<int> q;
 
     for (int st = 0; st < n; ++st) {
@@ -88,13 +75,13 @@ bool is_bipartite(const vector<set<int>> &g) {
                     side[v] = opposite(*side[u]);
                     q.push(v);
                 } else if (*side[v] == *side[u]) {
-                    result = false;
+                    return false;
                 }
             }
         }
     }
 
-    return result;
+    return true;
 }
 
 bool is_possible(const vector<pii> &ab) {
