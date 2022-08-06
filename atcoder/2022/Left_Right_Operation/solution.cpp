@@ -27,19 +27,44 @@ int optimal_prefix_replacements_num(const ll T, const vector<ll> &xs) {
     return result;
 }
 
-ll min_post_ops_sum(const ll L, const ll R, vector<ll> A) {
-    const auto k1 = optimal_prefix_replacements_num(L, A);
-    for (int i = 1; i <= k1; ++i) {
-        A[i - 1] = L;
-    }
+ll min_post_ops_sum(const ll L, const ll R, const vector<ll> &xs) {
+    const auto o1 = [&]() -> ll {
+        auto A = xs;
+        const auto k1 = optimal_prefix_replacements_num(L, A);
+        for (int i = 1; i <= k1; ++i) {
+            A[i - 1] = L;
+        }
 
-    reverse(begin(A), end(A));
-    const auto k2 = optimal_prefix_replacements_num(R, A);
-    for (int i = 1; i <= k2; ++i) {
-        A[i - 1] = R;
-    }
+        reverse(begin(A), end(A));
+        const auto k2 = optimal_prefix_replacements_num(R, A);
+        for (int i = 1; i <= k2; ++i) {
+            A[i - 1] = R;
+        }
 
-    return accumulate(cbegin(A), cend(A), 0LL);
+        return accumulate(cbegin(A), cend(A), 0LL);
+    }();
+
+    const auto o2 = [&]() -> ll {
+        auto A = xs;
+        const auto k1 = optimal_prefix_replacements_num(L, A);
+        for (int i = 1; i <= k1; ++i) {
+            A[i - 1] = L;
+        }
+        return accumulate(cbegin(A), cend(A), 0LL);
+    }();
+
+    const auto o3 = [&]() -> ll {
+        auto A = xs;
+        reverse(begin(A), end(A));
+        const auto k2 = optimal_prefix_replacements_num(R, A);
+        for (int i = 1; i <= k2; ++i) {
+            A[i - 1] = R;
+        }
+
+        return accumulate(cbegin(A), cend(A), 0LL);
+    }();
+
+    return min({o1, o2, o3});
 }
 
 int main() {
@@ -52,6 +77,6 @@ int main() {
     vector<ll> A(N);
     for (auto &a : A) cin >> a;
 
-    cout << min_post_ops_sum(L, R, move(A)) << '\n';
+    cout << min_post_ops_sum(L, R, A) << '\n';
     return 0;
 }
