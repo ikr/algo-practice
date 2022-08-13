@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -27,6 +43,9 @@ void remove_row(vector<vector<int>> &grid, const int ro) {
 vector<vector<int>> num_indices(const int n, const int k) {
     assert(n <= 10);
     assert(k < n);
+
+    if (k == 0) return {vector<int>{}};
+
     vector<vector<int>> result;
 
     for (int bits = 1; bits < (1 << n); ++bits) {
@@ -37,7 +56,7 @@ vector<vector<int>> num_indices(const int n, const int k) {
             if (bits & (1 << i)) x.push_back(i);
         }
         assert(sz(x) == k);
-        result.push_back(move(x));
+        result.push_back(x);
     }
 
     return result;
@@ -49,7 +68,7 @@ bool is_possible(const vector<vector<int>> &A, const vector<vector<int>> &B) {
     const auto Hb = sz(B);
     const auto Wb = sz(B[0]);
     if (Ha < Hb || Wa < Wb) return false;
-    if (Ha == Hb || Wa == Wb) return A == B;
+    if (Ha == Hb && Wa == Wb) return A == B;
 
     for (const auto &iro : num_indices(Ha, Ha - Hb)) {
         for (const auto &ico : num_indices(Wa, Wa - Wb)) {
