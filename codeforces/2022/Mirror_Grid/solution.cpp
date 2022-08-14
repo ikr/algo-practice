@@ -7,79 +7,63 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
-}
+using Grid = vector<string>;
 
-vector<string> transpose(const vector<string> &grid) {
-    vector<string> result = grid;
+Grid rotate_right(const Grid &grid) {
+    const auto n = sz(grid);
+    Grid result(n, string(n, ' '));
 
-    for (int ro = 0; ro < sz(grid); ++ro) {
-        assert(sz(result) == sz(result[ro]));
-
-        for (int co = 0; co < sz(grid); ++co) {
-            result[ro][co] = grid[co][ro];
+    for (int ro = 0; ro < n; ++ro) {
+        for (int co = 0; co < n; ++co) {
+            result[co][n - 1 - ro] = grid[ro][co];
         }
     }
 
     return result;
 }
 
-vector<string> flip_rows(vector<string> grid) {
-    const auto n = sz(grid);
+array<Grid, 4> all_rotrations(const Grid &grid) {
+    array<Grid, 4> result;
+    result[0] = grid;
 
-    for (int i = 0; i < n / 2; ++i) {
-        swap(grid[i], grid[n - 1 - i]);
+    for (int i = 1; i < sz(result); ++i) {
+        result[i] = rotate_right(result[i - 1]);
     }
 
-    return grid;
+    return result;
 }
 
-int min_ops_in_a_circle(const string &xs) {
-    const auto ones = count(cbegin(xs), cend(xs), '1');
-    const auto zeros = count(cbegin(xs), cend(xs), '0');
-    if (!ones || !zeros) return 0;
-    return inof(min(ones, zeros));
-}
-
-int min_ops(const vector<string> &grid) {
+int min_ops(const Grid &grid) {
     const auto n = sz(grid);
+    auto rs = all_rotrations(grid);
     int result{};
 
-    for (int i = 0; i < div_ceil(n, 2); ++i) {
-        const auto d = n - 2 * i;
-        cerr << "i:" << i << " d:" << d << endl;
-        if (d == 1) continue;
+    for (int ro = 0; ro < n; ++ro) {
+        for (int co = 0; co < n; ++co) {
+            int zeros{};
+            int ones{};
 
-        const string rect{grid[i][i], grid[i][i + d - 1],
-                          grid[i + d - 1][i + d - 1], grid[i + d - 1][i]};
-        result += min_ops_in_a_circle(rect);
-        cerr << "rect:" << rect << endl;
+            for (int i = 0; i < sz(rs); ++i) {
+                zeros += rs[i][ro][co] == '0';
+                ones += rs[i][ro][co] == '1';
+            }
 
-        if (d % 2) {
-            const string cross{grid[i][i + d / 2], grid[i + d / 2][i + d - 1],
-                               grid[i + d - 1][i + d / 2], grid[i + d / 2][i]};
-            result += min_ops_in_a_circle(cross);
-            cerr << "cross:" << cross << endl;
-        }
+            if (min(zeros, ones) == 0) continue;
 
-        for (int j = 1; j < d / 2; ++j) {
-            string xs;
+            result += min(zeros, ones);
+            const auto val = zeros < ones ? '1' : '0';
 
-            xs += grid[i][i + j];
-            xs += grid[i][i + d - 1 - j];
+            const auto ro1 = co;
+            const auto co1 = n - 1 - ro;
+            rs[1][ro1][co1] = val;
 
-            xs += grid[i + j][i + d - 1];
-            xs += grid[i + d - 1 - j][i + d - 1];
+            const auto ro2 = co1;
+            const auto co2 = n - 1 - ro1;
+            rs[2][ro2][co2] = val;
 
-            xs += grid[i + d - 1][i + j];
-            xs += grid[i + d - 1][i + d - 1 - j];
-
-            xs += grid[i + j][i];
-            xs += grid[i + d - 1 - j][i];
-
-            result += min_ops_in_a_circle(xs);
-            cerr << "j:" << j << " xs:" << xs << endl;
+            const auto ro3 = co2;
+            const auto co3 = n - 1 - ro2;
+            rs[3][ro3][co3] = val;
         }
     }
 
@@ -96,7 +80,7 @@ int main() {
         int n;
         cin >> n;
 
-        vector<string> grid(n);
+        Grid grid(n);
         for (auto &row : grid) {
             cin >> row;
             assert(sz(row) == n);
