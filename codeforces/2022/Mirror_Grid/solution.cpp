@@ -7,63 +7,42 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-using Grid = vector<string>;
+using pii = pair<int, int>;
 
-Grid rotate_right(const Grid &grid) {
+int min_ops(const vector<string> &grid) {
     const auto n = sz(grid);
-    Grid result(n, string(n, ' '));
-
-    for (int ro = 0; ro < n; ++ro) {
-        for (int co = 0; co < n; ++co) {
-            result[co][n - 1 - ro] = grid[ro][co];
-        }
-    }
-
-    return result;
-}
-
-array<Grid, 4> all_rotrations(const Grid &grid) {
-    array<Grid, 4> result;
-    result[0] = grid;
-
-    for (int i = 1; i < sz(result); ++i) {
-        result[i] = rotate_right(result[i - 1]);
-    }
-
-    return result;
-}
-
-int min_ops(const Grid &grid) {
-    const auto n = sz(grid);
-    auto rs = all_rotrations(grid);
     int result{};
 
+    set<pii> done;
+
     for (int ro = 0; ro < n; ++ro) {
         for (int co = 0; co < n; ++co) {
+            if (done.count(pii{ro, co})) continue;
+
             int zeros{};
             int ones{};
-
-            for (int i = 0; i < sz(rs); ++i) {
-                zeros += rs[i][ro][co] == '0';
-                ones += rs[i][ro][co] == '1';
-            }
-
-            if (min(zeros, ones) == 0) continue;
-
-            result += min(zeros, ones);
-            const auto val = zeros < ones ? '1' : '0';
+            zeros += grid[ro][co] == '0';
+            ones += grid[ro][co] == '1';
 
             const auto ro1 = co;
             const auto co1 = n - 1 - ro;
-            rs[1][ro1][co1] = val;
+            zeros += grid[ro1][co1] == '0';
+            ones += grid[ro1][co1] == '1';
+            done.emplace(ro1, co1);
 
             const auto ro2 = co1;
             const auto co2 = n - 1 - ro1;
-            rs[2][ro2][co2] = val;
+            zeros += grid[ro2][co2] == '0';
+            ones += grid[ro2][co2] == '1';
+            done.emplace(ro2, co2);
 
             const auto ro3 = co2;
             const auto co3 = n - 1 - ro2;
-            rs[3][ro3][co3] = val;
+            zeros += grid[ro3][co3] == '0';
+            ones += grid[ro3][co3] == '1';
+            done.emplace(ro3, co3);
+
+            result += min(zeros, ones);
         }
     }
 
@@ -80,7 +59,7 @@ int main() {
         int n;
         cin >> n;
 
-        Grid grid(n);
+        vector<string> grid(n);
         for (auto &row : grid) {
             cin >> row;
             assert(sz(row) == n);
