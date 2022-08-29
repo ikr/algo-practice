@@ -4,45 +4,7 @@ using namespace std;
 using pii = pair<int, int>;
 enum class Dir { L, R };
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const Dir x) {
-    os << (x == Dir::L ? 'L' : 'R');
-    return os;
-}
-
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 int simulate_move_get_new_index(set<pii> &xs, const int i, const Dir dir) {
-    // cerr << "At " << i << " within " << xs << " and moving " << dir << endl;
     assert(!xs.empty());
     const auto it = xs.lower_bound(pii{i, INT_MIN});
 
@@ -55,7 +17,6 @@ int simulate_move_get_new_index(set<pii> &xs, const int i, const Dir dir) {
         xs.erase(jt);
 
         if (a < b) xs.emplace(a, b - 1);
-        // cerr << "New xs:" << xs << " - returning " << b << endl;
         return b;
     } else {
         const auto [a, b] = *it;
@@ -63,13 +24,11 @@ int simulate_move_get_new_index(set<pii> &xs, const int i, const Dir dir) {
         xs.erase(it);
 
         if (a < b) xs.emplace(a + 1, b);
-        // cerr << "New xs:" << xs << " - returning " << a << endl;
         return a;
     }
 }
 
 void erase_at(set<pii> &xs, const int i) {
-    // cerr << "Will erase " << i << " from " << xs << endl;
     if (xs.empty()) return;
 
     const auto it = [&]() -> set<pii>::const_iterator {
@@ -85,32 +44,27 @@ void erase_at(set<pii> &xs, const int i) {
 
     if (a == b) {
         assert(i == a);
-        // cerr << "New version of xs: " << xs << endl;
         return;
     }
 
     if (i == a) {
         xs.emplace(a + 1, b);
-        // cerr << "New version of xs: " << xs << endl;
         return;
     }
 
     if (i == b) {
         xs.emplace(a, b - 1);
-        // cerr << "New version of xs: " << xs << endl;
         return;
     }
 
     xs.emplace(a, i - 1);
     xs.emplace(i + 1, b);
-    // cerr << "New version of xs: " << xs << endl;
 }
 
 pii simulate_moves_get_destination(const pii dim, const pii src,
                                    const string &commands) {
     const auto [H, W] = dim;
     const auto [ro0, co0] = src;
-    // cerr << "Starting at " << src << endl;
 
     vector<set<pii>> horz(H, set{pii{0, W - 1}});
     horz[ro0] = set<pii>{};
@@ -121,8 +75,6 @@ pii simulate_moves_get_destination(const pii dim, const pii src,
     vert[co0] = set<pii>{};
     if (0 < ro0) vert[co0].emplace(0, ro0 - 1);
     if (ro0 < H - 1) vert[co0].emplace(ro0 + 1, H - 1);
-
-    // cerr << "horz: " << horz << " vert: " << vert << endl;
 
     int ro = ro0, co = co0;
     for (const auto cmd : commands) {
@@ -150,7 +102,6 @@ pii simulate_moves_get_destination(const pii dim, const pii src,
         default:
             assert(false && "Unknown command");
         }
-        // cerr << "horz: " << horz << " vert: " << vert << endl;
     }
     return {ro, co};
 }
@@ -172,7 +123,6 @@ int main() {
 
         string commands;
         cin >> commands;
-        assert(sz(commands) == N);
 
         const auto [ro, co] =
             simulate_moves_get_destination({H, W}, {ro0, co0}, commands);
