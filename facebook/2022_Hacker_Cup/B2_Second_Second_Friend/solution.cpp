@@ -73,54 +73,22 @@ set<pii> unhappy_trees(const vector<string> &grid) {
     return result;
 }
 
-optional<vector<pii>> happiness_path(const vector<string> &grid,
-                                     const set<pii> &uts, const pii src) {
-    assert(uts.contains(src));
+bool in_bounds(const vector<string> &grid, const pii roco) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
+    const auto [ro, co] = roco;
+    return 0 <= ro && ro < H && 0 <= co && co < W;
+}
 
-    const auto in_bounds = [&](const pii roco) -> bool {
-        const auto [ro, co] = roco;
-        return 0 <= ro && ro < H && 0 <= co && co < W;
-    };
-
-    const auto adjacent_unhappy = [&](const pii roco) -> optional<pii> {
-        const auto [ro, co] = roco;
-
-        for (const auto &adj : {pii{ro - 1, co}, pii{ro, co + 1},
-                                pii{ro + 1, co}, pii{ro, co - 1}}) {
-            if (in_bounds(adj) && uts.contains(adj)) return adj;
-        }
-
-        return nullopt;
-    };
+optional<vector<pii>> happiness_path(const vector<string> &grid,
+                                     const pii unhappy, const pii src,
+                                     const set<pii> &dst) {
 
     map<pii, pii> pre;
     queue<pii> q;
-    set<pii> visited{src};
-
-    {
-        const auto [ro, co] = src;
-        vector<pii> to_enq;
-
-        for (const auto &adj : {pii{ro - 1, co}, pii{ro, co + 1},
-                                pii{ro + 1, co}, pii{ro, co - 1}}) {
-            if (in_bounds(adj) && grid[adj.first][adj.second] == '.') {
-                to_enq.push_back(adj);
-            }
-        }
-
-        if (to_enq.empty()) return nullopt;
-        for (const auto &u : to_enq) {
-            q.push(u);
-            visited.insert(u);
-            pre[u] = src;
-        }
-
-        cerr << "src:" << src << " to_enq:" << to_enq << endl;
-    }
-
-    optional<pii> dst;
+    q.push(src);
+    set<pii> visited{unhappy, src};
+    optional<pii> concrete_dst;
 
     while (!q.empty()) {
         const auto [ro, co] = q.front();
@@ -128,35 +96,30 @@ optional<vector<pii>> happiness_path(const vector<string> &grid,
 
         for (const auto &adj : {pii{ro - 1, co}, pii{ro, co + 1},
                                 pii{ro + 1, co}, pii{ro, co - 1}}) {
-            if (!in_bounds(adj)) continue;
+            if (!in_bounds(grid, adj)) continue;
             const auto [aro, aco] = adj;
-            if (grid[aro][aco] == '#') continue;
-
-            if (grid[ro][co] == '.') {
-                const auto unh = adjacent_unhappy(adj);
-                if (unh) {
-                    pre[*unh] = adj;
-                    dst = *unh;
-                    q = queue<pii>{};
-                    pre[adj] = pii{ro, co};
-                    break;
-                }
-            }
-
-            if (visited.count(adj)) continue;
+            if (grid[aro][aco] == '#' || visited.contains(adj)) continue;
 
             pre[adj] = pii{ro, co};
             visited.emplace(aro, aco);
+
+            if (dst.contains(adj)) {
+                concrete_dst = adj;
+                q = queue<pii>{};
+                break;
+            }
+
+            q.push(adj);
         }
     }
 
-    if (!dst) return nullopt;
+    if (!concrete_dst) return nullopt;
 
-    vector<pii> result{*dst};
+    vector<pii> result{*concrete_dst};
     result.reserve(sz(pre) + 1);
 
-    auto u = *dst;
-    while (pre.count(u)) {
+    auto u = *concrete_dst;
+    while (pre.contains(u)) {
         result.push_back(pre.at(u));
         u = pre.at(u);
     }
@@ -165,31 +128,62 @@ optional<vector<pii>> happiness_path(const vector<string> &grid,
     return result;
 }
 
+vector<pii> src_bridges(const vector<string> &grid, const pii roco) {
+    vector<pii> result;
+    const auto [ro, co] = roco;
+
+    for (const auto &adj :
+         {pii{ro - 1, co}, pii{ro, co + 1}, pii{ro + 1, co}, pii{ro, co - 1}}) {
+        if (in_bounds(grid, adj) && grid[adj.first][adj.second] == '.') {
+            result.push_back(adj);
+        }
+    }
+
+    return result;
+}
+
+set<pii> dst_bridges(const vector<string> &grid, const pii roco) {
+    set<pii> result;
+    const auto [ro, co] = roco;
+
+    for (const auto &adj :
+         {pii{ro - 1, co}, pii{ro, co + 1}, pii{ro + 1, co}, pii{ro, co - 1}}) {
+        if (in_bounds(grid, adj) && grid[adj.first][adj.second] != '#') {
+            result.insert(adj);
+        }
+    }
+
+    return result;
+}
+
 optional<vector<string>> perfect_garden(vector<string> grid) {
     auto uts = unhappy_trees(grid);
-    cerr << "uts:" << uts << endl;
     if (uts.empty()) return grid;
 
     while (!uts.empty()) {
-        const auto path = happiness_path(grid, uts, *cbegin(uts));
-        if (!path) return nullopt;
+        const auto u = *cbegin(uts);
+        uts.erase(cbegin(uts));
 
-        cerr << "path:" << path << endl;
+        optional<vector<pii>> path;
+        const auto dst_proto = dst_bridges(grid, u);
 
-        const auto src = path->front();
-        const auto dst = path->back();
-        assert(grid[src.first][src.second] == '^');
-        assert(grid[dst.first][dst.second] == '^');
+        for (const auto &src : src_bridges(grid, u)) {
+            auto dst = dst_proto;
+            dst.erase(src);
+            if (dst.empty()) continue;
 
-        for (int i = 1; i < sz(*path) - 1; ++i) {
-            const auto [ro, co] = (*path)[i];
-            grid[ro][co] = '^';
+            path = happiness_path(grid, u, src, dst);
+            if (path) break;
         }
 
-        for (const auto &u : *path) {
-            if (neighs(grid, u) >= 2) {
-                uts.erase(u);
-            }
+        if (!path) return nullopt;
+
+        for (const auto &v : *path) {
+            grid[v.first][v.second] = '^';
+        }
+
+        for (const auto &v : *path) {
+            if (neighs(grid, v) >= 2) uts.erase(v);
         }
     }
 
