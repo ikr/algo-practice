@@ -28,16 +28,20 @@ vector<ll> total_areas_of_slices(const vector<pii> &rs,
 
     vector<ll> result(sz(qs), 0);
 
-    for (int i = 0; i < sz(qs); ++i) {
-        const auto &[lo, hi] = qs[i];
+    for (int k = 0; k < sz(qs); ++k) {
+        const auto &[lo, hi] = qs[k];
         const auto [lo_a, lo_b] = lo;
         const auto it =
             lower_bound(cbegin(rs), cend(rs), pii{lo_a + 1, lo_b + 1});
         if (it == cend(rs)) continue;
 
         const auto [hi_a, hi_b] = hi;
-        const auto jt =
-            lower_bound(cbegin(rs), cend(rs), pii{hi_a, hi_b});
+        const auto jt = lower_bound(cbegin(rs), cend(rs), pii{hi_a, hi_b});
+
+        const auto i = inof(distance(cbegin(rs), it));
+        const auto j = inof(distance(cbegin(rs), jt));
+
+        result[k] = ss[j - 1] - (i ? ss[i - 1] : 0LL);
     }
 
     return result;
@@ -62,7 +66,9 @@ int main() {
             cin >> lo.first >> lo.second >> hi.first >> hi.second;
         }
 
-        const auto sqs = total_areas_of_slices(rs, qs);
+        for (const auto s : total_areas_of_slices(rs, qs)) {
+            cout << s << '\n';
+        }
     }
 
     return 0;
