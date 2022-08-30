@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include <climits>
 using namespace std;
 
 using ll = long long;
@@ -22,26 +23,55 @@ vector<ll> partial_sums_of_areas(const vector<pii> &rs) {
     return result;
 }
 
+constexpr pii flip(const pii ab) {
+    const auto [a, b] = ab;
+    return {b, a};
+}
+
 vector<ll> total_areas_of_slices(const vector<pii> &rs,
                                  const vector<pair<pii, pii>> &qs) {
+    vector<pii> frs(sz(rs));
+    transform(cbegin(rs), cend(rs), begin(frs), flip);
+    sort(begin(frs), end(frs));
+    const auto fss = partial_sums_of_areas(frs);
+
     const auto ss = partial_sums_of_areas(rs);
 
     vector<ll> result(sz(qs), 0);
 
     for (int k = 0; k < sz(qs); ++k) {
         const auto &[lo, hi] = qs[k];
-        const auto [lo_a, lo_b] = lo;
-        const auto it =
-            lower_bound(cbegin(rs), cend(rs), pii{lo_a + 1, lo_b + 1});
-        if (it == cend(rs)) continue;
+
+        {
+            const auto [lo_a, lo_b] = lo;
+            const auto it =
+                lower_bound(cbegin(rs), cend(rs), pii{lo_a + 1, lo_b + 1});
+            if (it == cend(rs)) continue;
+            const auto i = inof(distance(cbegin(rs), it));
+            result[k] = ss.back() - (i ? ss[i - 1] : 0LL);
+        }
 
         const auto [hi_a, hi_b] = hi;
-        const auto jt = lower_bound(cbegin(rs), cend(rs), pii{hi_a, hi_b});
 
-        const auto i = inof(distance(cbegin(rs), it));
-        const auto j = inof(distance(cbegin(rs), jt));
+        {
+            const auto it =
+                lower_bound(cbegin(rs), cend(rs), pii{hi_a, INT_MIN});
 
-        result[k] = ss[j - 1] - (i ? ss[i - 1] : 0LL);
+            if (it != cend(rs)) {
+                const auto i = inof(distance(cbegin(rs), it));
+                result[k] -= ss.back() - (i ? ss[i - 1] : 0LL);
+            }
+        }
+
+        {
+            const auto it =
+                lower_bound(cbegin(frs), cend(frs), pii{hi_b, INT_MIN});
+
+            if (it != cend(frs)) {
+                const auto i = inof(distance(cbegin(frs), it));
+                result[k] -= fss.back() - (i ? fss[i - 1] : 0LL);
+            }
+        }
     }
 
     return result;
