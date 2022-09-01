@@ -143,7 +143,13 @@ optional<vector<string>> perfect_garden(vector<string> grid) {
             if (path) break;
         }
 
-        if (!path) return nullopt;
+        if (!path) {
+            grid[u.first][u.second] = 'X';
+            for (const auto &row : grid) {
+                cout << row << '\n';
+            }
+            return nullopt;
+        }
 
         for (const auto &v : *path) {
             grid[v.first][v.second] = '^';
