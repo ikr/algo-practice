@@ -127,7 +127,9 @@ optional<vector<string>> perfect_garden(vector<string> grid) {
 
     while (!uts.empty()) {
         const auto u = *cbegin(uts);
+        assert(grid[u.first][u.second] == '^');
         uts.erase(cbegin(uts));
+        if (neighs(grid, u) >= 2) continue;
 
         optional<vector<pii>> path;
         const auto dst_proto = dst_bridges(grid, u);
