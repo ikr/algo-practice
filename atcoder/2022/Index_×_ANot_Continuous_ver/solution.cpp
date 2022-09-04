@@ -27,30 +27,19 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll max_value(const vector<ll> &xs, const int M) {
+ll max_value(const vector<int> &xs, const int M) {
     const auto N = sz(xs);
     assert(M <= N);
 
-    vector<ll> ss(N, 0);
-    partial_sum(cbegin(xs), cend(xs), begin(ss));
+    // D[i][j] — max sought value up to index i on sub-sequences of length j
+    vector<vector<ll>> D(N, vector(M + 1, -INF));
 
-    // dp[i][j] is the max value up to index i on sub-sequences of length j
-    vector<vector<ll>> dp(N, vector(M + 1, -INF));
-    for (int i = 0; i < N; ++i) dp[i][0] = 0;
+    // S[i][j] — sum of elements of xs on which the D[i][j] value is reached
+    vector<vector<ll>> S(N, vector(M + 1, 0LL));
 
-    for (int i = 0; i < N; ++i) {
-        for (int j = 1; j <= M && i - j + 1 >= 0; ++j) {
-            dp[i][j] = dp[i][j - 1] + j * xs[i];
-
-            for (int k = 0; k < i && k - j + 1 >= 0; ++k) {
-                dp[i][j] = max(dp[i][j], dp[k][j]);
-            }
-        }
-    }
-
-    cerr << dp << endl;
-
-    return dp.back().back();
+    cerr << "D:\n" << D << endl;
+    cerr << "S:\n" << S << endl;
+    return D.back().back();
 }
 
 int main() {
@@ -60,7 +49,7 @@ int main() {
     int N, M;
     cin >> N >> M;
 
-    vector<ll> xs(N);
+    vector<int> xs(N);
     for (auto &x : xs) cin >> x;
 
     cout << max_value(xs, M) << '\n';
