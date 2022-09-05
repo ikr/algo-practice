@@ -37,8 +37,34 @@ ll max_value(const vector<int> &xs, const int M) {
     // S[i][j] — sum of elements of xs on which the D[i][j] value is reached
     vector<vector<ll>> S(N, vector(M + 1, 0LL));
 
-    cerr << "D:\n" << D << endl;
-    cerr << "S:\n" << S << endl;
+    for (int i = 0; i < N; ++i) {
+        D[i][0] = 0;
+        D[i][1] = xs[i];
+        S[i][1] = xs[i];
+    }
+
+    for (int i = 1; i < N; ++i) {
+        for (int j = 1; j <= M; ++j) {
+            const auto o1 = D[i - 1][j - 1] + 1LL * j * xs[i];
+
+            auto o2 = -INF;
+            for (int k = 0; k < i; ++k) o2 = max(o2, D[k][j]);
+
+            if (o1 > o2) {
+                D[i][j] = o1;
+                S[i][j] = S[i - 1][j - 1] + xs[i];
+            } else {
+                D[i][j] = o2;
+                S[i][j] = S[i - 1][j];
+            }
+
+            // cerr << "i:" << i << " j:" << j << " o1:" << o1 << " o2:" << o2
+            //      << " D:" << D[i][j] << " S:" << S[i][j] << endl;
+        }
+    }
+
+    // cerr << "D:\n" << D << endl;
+    // cerr << "S:\n" << S << endl;
     return D.back().back();
 }
 
