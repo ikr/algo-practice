@@ -10,16 +10,12 @@ ll max_value(const vector<int> &xs, const int M) {
     // D[i][j] — max sought value up to index i on sub-sequences of length j
     vector<vector<ll>> D(N, vector(M + 1, -INF));
 
-    // S[i][j] — sum of elements of xs on which the D[i][j] value is reached
-    vector<vector<ll>> S(N, vector(M + 1, 0LL));
-
     vector<ll> D_hi(M + 1, -INF);
     D_hi[1] = xs[0];
 
     for (int i = 0; i < N; ++i) {
         D[i][0] = 0;
         D[i][1] = xs[i];
-        S[i][1] = xs[i];
     }
 
     for (int i = 1; i < N; ++i) {
@@ -29,10 +25,8 @@ ll max_value(const vector<int> &xs, const int M) {
 
             if (o1 > o2) {
                 D[i][j] = o1;
-                S[i][j] = S[i - 1][j - 1] + xs[i];
             } else {
                 D[i][j] = o2;
-                S[i][j] = S[i - 1][j];
             }
 
             if (j <= i + 1) D_hi[j] = max(D_hi[j], D[i][j]);
