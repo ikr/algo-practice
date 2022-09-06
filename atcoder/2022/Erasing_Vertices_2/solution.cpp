@@ -10,7 +10,40 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll min_ops_cost(const vector<vector<int>> &g, const vector<int> &A) {
-    return -1;
+    set<pair<ll, int>> q;
+
+    for (int u = 0; u < sz(A); ++u) {
+        q.emplace(accumulate(cbegin(g[u]), cend(g[u]), 0LL,
+                             [&A](const ll agg, const int v) -> ll {
+                                 return agg + A[v];
+                             }),
+                  u);
+    }
+
+    vector<ll> idx(sz(A), -1);
+    for (const auto &[c, u] : q) idx[u] = c;
+
+    ll result{};
+
+    while (!q.empty()) {
+        const auto [cu, u] = *cbegin(q);
+        q.erase(cbegin(q));
+        idx[u] = -1;
+        result = max(result, cu);
+
+        for (const auto v : g[u]) {
+            if (idx[v] == -1) continue;
+
+            const auto it = q.find(pair{idx[v], v});
+            assert(it != cend(q));
+            q.erase(it);
+
+            q.emplace(idx[v] - A[u], v);
+            idx[v] -= A[u];
+        }
+    }
+
+    return result;
 }
 
 int main() {
