@@ -18,63 +18,31 @@ ostream &operator<<(ostream &os, const Op x) {
     return os;
 }
 
-pair<vector<int>, vector<int>> even_odd_split(const vector<int> &xs) {
-    vector<int> ev;
-    ev.reserve(sz(xs) / 2);
-    vector<int> od;
-    od.reserve(sz(xs) / 2);
-
-    for (int i = 0; i < sz(xs); ++i) {
-        if (i % 2 == 0) {
-            ev.push_back(xs[i]);
-        } else {
-            od.push_back(xs[i]);
-        }
-    }
-
-    return {ev, od};
+constexpr pair<Op, int> zero_based_to_one_based(const pair<Op, int> &command) {
+    const auto [op, x] = command;
+    return {op, x + 1};
 }
 
-vector<int> pebble_sort_indices(vector<int> &xs) {
-    vector<int> result;
+vector<pair<Op, int>> sorting_program(vector<int> xs) {
+    vector<pair<Op, int>> result;
 
     for (int i = 0; i < sz(xs); ++i) {
         const auto jt = min_element(cbegin(xs) + i, cend(xs));
-        const auto j = inof(distance(cbegin(xs), jt));
+        auto j = inof(distance(cbegin(xs), jt));
 
-        for (int k = j - 1; k >= i; --k) {
-            result.push_back(k);
-            swap(xs[k], xs[k + 1]);
+        if ((j % 2) != (i % 2)) {
+            result.emplace_back(Op::A, j - 1);
+            swap(xs[j - 1], xs[j]);
+        }
+
+        for (int k = j - 2; k >= i; k -= 2) {
+            result.emplace_back(Op::B, k);
+            swap(xs[k], xs[k + 2]);
         }
     }
 
-    return result;
-}
-
-vector<pair<Op, int>> sorting_program(const vector<int> &xs) {
-    auto [ev, od] = even_odd_split(xs);
-
-    vector<pair<Op, int>> result;
-
-    for (const auto i : pebble_sort_indices(ev)) {
-        result.emplace_back(Op::B, 2 * i + 1);
-    }
-
-    for (const auto i : pebble_sort_indices(od)) {
-        result.emplace_back(Op::B, 2 * i + 1 + 1);
-    }
-
-    if (sz(od) != sz(ev)) {
-        assert(sz(od) < sz(ev));
-        od.push_back(INT_MAX);
-    }
-
-    for (int i = 0; i < sz(ev); ++i) {
-        if (ev[i] > od[i]) {
-            result.emplace_back(Op::A, 2 * i + 1);
-        }
-    }
-
+    transform(cbegin(result), cend(result), begin(result),
+              zero_based_to_one_based);
     return result;
 }
 
@@ -88,7 +56,7 @@ int main() {
     vector<int> xs(N);
     for (auto &x : xs) cin >> x;
 
-    const auto ans = sorting_program(xs);
+    const auto ans = sorting_program(move(xs));
     cout << sz(ans) << '\n';
 
     for (const auto &[op, x] : ans) cout << op << ' ' << x << '\n';
