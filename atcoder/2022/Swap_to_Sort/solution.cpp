@@ -33,6 +33,7 @@ vector<pair<Op, int>> sorting_program(vector<int> xs) {
         if ((j % 2) != (i % 2)) {
             result.emplace_back(Op::A, j - 1);
             swap(xs[j - 1], xs[j]);
+            --j;
         }
 
         for (int k = j - 2; k >= i; k -= 2) {
