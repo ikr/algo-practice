@@ -23,24 +23,36 @@ constexpr pair<Op, int> zero_based_to_one_based(const pair<Op, int> &command) {
     return {op, x + 1};
 }
 
+vector<int> indices_sorted(const vector<int> &xs) {
+    vector<int> result(sz(xs));
+    iota(begin(result), end(result), 0);
+    sort(begin(result), end(result),
+         [&xs](const int i, const int j) { return xs[i] < xs[j]; });
+    return result;
+}
+
 vector<pair<Op, int>> sorting_program(vector<int> xs) {
+    const auto idx = indices_sorted(xs);
+    vector<int> flipped_evs;
+    vector<int> flipped_ods;
+
     vector<pair<Op, int>> result;
 
-    for (int i = 0; i < sz(xs); ++i) {
-        const auto jt = min_element(cbegin(xs) + i, cend(xs));
-        auto j = inof(distance(cbegin(xs), jt));
+    // for (int i = 0; i < sz(xs); ++i) {
+    //     const auto jt = min_element(cbegin(xs) + i, cend(xs));
+    //     auto j = inof(distance(cbegin(xs), jt));
 
-        if ((j % 2) != (i % 2)) {
-            result.emplace_back(Op::A, j - 1);
-            swap(xs[j - 1], xs[j]);
-            --j;
-        }
+    //     if ((j % 2) != (i % 2)) {
+    //         result.emplace_back(Op::A, j - 1);
+    //         swap(xs[j - 1], xs[j]);
+    //         --j;
+    //     }
 
-        for (int k = j - 2; k >= i; k -= 2) {
-            result.emplace_back(Op::B, k);
-            swap(xs[k], xs[k + 2]);
-        }
-    }
+    //     for (int k = j - 2; k >= i; k -= 2) {
+    //         result.emplace_back(Op::B, k);
+    //         swap(xs[k], xs[k + 2]);
+    //     }
+    // }
 
     transform(cbegin(result), cend(result), begin(result),
               zero_based_to_one_based);
@@ -55,12 +67,17 @@ int main() {
     cin >> N;
 
     vector<int> xs(N);
-    for (auto &x : xs) cin >> x;
+    for (auto &x : xs) {
+        cin >> x;
+        --x;
+    }
 
     const auto ans = sorting_program(move(xs));
     cout << sz(ans) << '\n';
 
-    for (const auto &[op, x] : ans) cout << op << ' ' << x << '\n';
+    for (const auto &[op, x] : ans) {
+        cout << op << ' ' << x << '\n';
+    }
 
     return 0;
 }
