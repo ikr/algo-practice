@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -112,11 +96,7 @@ vector<pair<Op, int>> sorting_program(vector<int> xs) {
         k = a + 2;
     }
 
-    // cerr << "Post-clustering xs: " << xs << endl;
-
     auto [ev, od] = even_odd_split(xs);
-    // cerr << "ev: " << ev << " ev-idx:" << pebble_sort_indices(ev)
-    //      << " od: " << od << " od-idx:" << pebble_sort_indices(od) << endl;
 
     for (const auto i : pebble_sort_indices(move(ev))) {
         result.emplace_back(Op::B, 2 * i);
