@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -23,36 +39,92 @@ constexpr pair<Op, int> zero_based_to_one_based(const pair<Op, int> &command) {
     return {op, x + 1};
 }
 
-vector<int> indices_sorted(const vector<int> &xs) {
-    vector<int> result(sz(xs));
-    iota(begin(result), end(result), 0);
-    sort(begin(result), end(result),
-         [&xs](const int i, const int j) { return xs[i] < xs[j]; });
+int find_index(const vector<int> &xs, const int i0,
+               const function<bool(int, int)> i_x_pred) {
+    assert(i0 >= 0);
+    assert(i0 < sz(xs));
+
+    for (int i = i0; i < sz(xs); ++i) {
+        if (i_x_pred(i, xs[i])) return i;
+    }
+
+    return -1;
+}
+
+pair<vector<int>, vector<int>> even_odd_split(const vector<int> &xs) {
+    vector<int> ev;
+    ev.reserve(sz(xs) / 2);
+    vector<int> od;
+    od.reserve(sz(xs) / 2);
+
+    for (int i = 0; i < sz(xs); ++i) {
+        if (i % 2 == 0) {
+            ev.push_back(xs[i]);
+        } else {
+            od.push_back(xs[i]);
+        }
+    }
+
+    return {ev, od};
+}
+
+vector<int> pebble_sort_indices(vector<int> xs) {
+    vector<int> result;
+
+    for (int i = 0; i < sz(xs); ++i) {
+        const auto jt = min_element(cbegin(xs) + i, cend(xs));
+        const auto j = inof(distance(cbegin(xs), jt));
+
+        for (int k = j - 1; k >= i; --k) {
+            result.push_back(k);
+            swap(xs[k], xs[k + 1]);
+        }
+    }
+
     return result;
 }
 
 vector<pair<Op, int>> sorting_program(vector<int> xs) {
-    const auto idx = indices_sorted(xs);
-    vector<int> flipped_evs;
-    vector<int> flipped_ods;
-
     vector<pair<Op, int>> result;
 
-    // for (int i = 0; i < sz(xs); ++i) {
-    //     const auto jt = min_element(cbegin(xs) + i, cend(xs));
-    //     auto j = inof(distance(cbegin(xs), jt));
+    for (int k = 0; k < sz(xs);) {
+        const auto a = find_index(xs, k, [](const int i, const int x) -> bool {
+            return (i % 2) != (x % 2);
+        });
 
-    //     if ((j % 2) != (i % 2)) {
-    //         result.emplace_back(Op::A, j - 1);
-    //         swap(xs[j - 1], xs[j]);
-    //         --j;
-    //     }
+        if (a == -1) break;
 
-    //     for (int k = j - 2; k >= i; k -= 2) {
-    //         result.emplace_back(Op::B, k);
-    //         swap(xs[k], xs[k + 2]);
-    //     }
-    // }
+        const auto b =
+            find_index(xs, a + 1, [&](const int i, const int x) -> bool {
+                return (i % 2) != (x % 2) && (x % 2) != (xs[a] % 2);
+            });
+        assert(b != -1);
+        const auto bx = xs[b];
+
+        for (int q = b - 2; q >= a + 1; q -= 2) {
+            result.emplace_back(Op::B, q);
+            swap(xs[q], xs[q + 2]);
+        }
+        assert(xs[a + 1] == bx);
+
+        result.emplace_back(Op::A, a);
+        swap(xs[a], xs[a + 1]);
+        k = a + 2;
+    }
+
+    // cerr << "Post-clustering xs: " << xs << endl;
+
+    auto [ev, od] = even_odd_split(xs);
+    // cerr << "ev: " << ev << " ev-idx:" << pebble_sort_indices(ev)
+    //      << " od: " << od << " od-idx:" << pebble_sort_indices(od) << endl;
+
+    for (const auto i : pebble_sort_indices(move(ev))) {
+        result.emplace_back(Op::B, 2 * i);
+    }
+
+    for (const auto i : pebble_sort_indices(move(od))) {
+        result.emplace_back(Op::B, 2 * i + 1);
+    }
 
     transform(cbegin(result), cend(result), begin(result),
               zero_based_to_one_based);
