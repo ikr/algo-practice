@@ -28,8 +28,8 @@ ll ma_pow(ll b, ll e) {
 
 struct CarryAOne final {
     ll count(const int B, const int D) const {
-        auto total_D_nums = (B - 1LL) * ma_pow(B, D - 1);
-        total_D_nums *= total_D_nums;
+        auto total_D_pairs = (B - 1LL) * ma_pow(B, D - 1);
+        total_D_pairs *= total_D_pairs;
 
         ll cell0{};
         for (ll i = 1LL; i <= B - 1LL; ++i) {
@@ -46,7 +46,7 @@ struct CarryAOne final {
             no_carry *= cell_;
         }
 
-        return total_D_nums - no_carry;
+        return total_D_pairs - no_carry;
     }
 };
 
