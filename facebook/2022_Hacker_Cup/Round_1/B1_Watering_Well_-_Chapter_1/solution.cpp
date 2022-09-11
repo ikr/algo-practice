@@ -12,8 +12,8 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 mint solution(const vector<pii> &trees, const vector<pii> &wells) {
-    map<int, int> a_fq;
-    map<int, int> b_fq;
+    unordered_map<int, int> a_fq;
+    unordered_map<int, int> b_fq;
     for (const auto &[a, b] : trees) {
         ++a_fq[a];
         ++b_fq[b];
