@@ -29,7 +29,7 @@ template <typename T> struct RndInt final {
 
 vector<pii> random_pairs(const int n) {
     vector<pii> result(n);
-    RndInt rnd(0, 3'000);
+    RndInt rnd(0, 1'000'000'000);
     for (int i = 0; i < n; ++i) {
         result[i] = pii{rnd.next(), rnd.next()};
     }
