@@ -11,15 +11,52 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-mint solution(const vector<pii> &trees, const vector<pii> &wells) {
-    mint result;
-
-    for (const auto &[a, b] : trees) {
-        for (const auto &[x, y] : wells) {
-            result += mint(a - x).pow(2) + mint(b - y).pow(2);
-        }
+mint component_solution(const vector<int> &A, const vector<int> &X) {
+    mint sa;
+    mint saa;
+    for (const auto a : A) {
+        sa += a;
+        saa += mint{a}.pow(2);
     }
 
+    mint sx;
+    mint sxx;
+    for (const auto x : X) {
+        sx += x;
+        sxx += mint{x}.pow(2);
+    }
+
+    mint result;
+    result += sxx * sz(A);
+    result += saa * sz(X);
+
+    mint axs;
+    for (const auto a : A) {
+        axs += sx * a;
+    }
+    result += mint{-2} * axs;
+
+    return result;
+}
+
+mint solution(const vector<pii> &trees, const vector<pii> &wells) {
+    vector<int> A(sz(trees));
+    vector<int> B(sz(trees));
+    for (int i = 0; i < sz(trees); ++i) {
+        A[i] = trees[i].first;
+        B[i] = trees[i].second;
+    }
+
+    vector<int> X(sz(wells));
+    vector<int> Y(sz(wells));
+    for (int i = 0; i < sz(wells); ++i) {
+        X[i] = wells[i].first;
+        Y[i] = wells[i].second;
+    }
+
+    mint result;
+    result += component_solution(A, X);
+    result += component_solution(B, Y);
     return result;
 }
 
