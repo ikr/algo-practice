@@ -19,16 +19,27 @@ mint solution(const vector<pii> &trees, const vector<pii> &wells) {
         ++b_fq[b];
     }
 
-    mint result;
+    unordered_map<int, int> x_fq;
+    unordered_map<int, int> y_fq;
     for (const auto &[x, y] : wells) {
-        for (const auto &[a, k] : a_fq) {
-            result += mint{x - a}.pow(2) * k;
-        }
+        ++x_fq[x];
+        ++y_fq[y];
+    }
 
-        for (const auto &[b, k] : b_fq) {
-            result += mint{y - b}.pow(2) * k;
+    mint result;
+
+    for (const auto &[x, n] : x_fq) {
+        for (const auto &[a, k] : a_fq) {
+            result += mint{x - a}.pow(2) * n * k;
         }
     }
+
+    for (const auto &[y, n] : y_fq) {
+        for (const auto &[b, k] : b_fq) {
+            result += mint{y - b}.pow(2) * n * k;
+        }
+    }
+
     return result;
 }
 
