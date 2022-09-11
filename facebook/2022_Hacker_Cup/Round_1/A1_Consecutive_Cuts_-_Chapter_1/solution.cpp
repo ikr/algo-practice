@@ -3,7 +3,6 @@ using namespace std;
 
 bool is_possible(const int K, vector<int> A, vector<int> B) {
     if (K == 0) return A == B;
-    if (A == B) return K != 1;
 
     if (A.size() == 2) {
         if (A == B) {
@@ -12,6 +11,8 @@ bool is_possible(const int K, vector<int> A, vector<int> B) {
             return K % 2 == 1;
         }
     }
+
+    if (A == B) return K != 1;
 
     const auto a0 = A[0];
     const auto i0 = distance(cbegin(B), find(cbegin(B), cend(B), a0));
