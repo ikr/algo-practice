@@ -29,7 +29,7 @@ template <typename T> struct RndInt final {
 
 vector<pii> random_pairs(const int n) {
     vector<pii> result(n);
-    RndInt rnd(0, 3000);
+    RndInt rnd(0, 3'000);
     for (int i = 0; i < n; ++i) {
         result[i] = pii{rnd.next(), rnd.next()};
     }
@@ -38,7 +38,7 @@ vector<pii> random_pairs(const int n) {
 
 int main() {
     const int T = 3;
-    const int HI = 500000;
+    const int HI = 500'000;
     cout << T << "\n\n";
 
     for (int i = 1; i <= T; ++i) {
