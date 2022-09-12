@@ -36,18 +36,23 @@ vector<pii> run_length_encoding(const deque<int> &xs) {
     return result;
 }
 
+template <typename T> bool has_one_unique_value(const T &xs) {
+    return all_of(cbegin(xs) + 1, cend(xs),
+                  [&](const auto a) { return a == xs.front(); });
+}
+
 bool is_possible(const int K, deque<int> A, deque<int> B) {
     if (K == 0) return A == B;
 
     if (A.size() == 2) {
         if (A == B) {
-            return K % 2 == 0;
+            return K % 2 == 0 || has_one_unique_value(A);
         } else {
             return K % 2 == 1;
         }
     }
 
-    if (A == B) return K != 1;
+    if (A == B) return K != 1 || has_one_unique_value(A);
 
     const auto AA = run_length_encoding(normalize(move(A)));
     auto BB = run_length_encoding(normalize(move(B)));
