@@ -3,41 +3,33 @@ using namespace std;
 
 using ll = long long;
 
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
+ll query(const ll a, const ll b) {
+    cout << "? " << a << ' ' << b << endl;
+    ll result;
+    cin >> result;
+    return result;
 }
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
+void answer(const ll n) { cout << "! " << n << endl; }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+void interact() {
+    for (ll i = 1; i <= 25; ++i) {
+        const auto a = query(i, i + 1);
 
-int main() {
-    ll res{};
-    ll lo = 3, hi = llof(1e18);
+        if (a == -1LL) {
+            answer(i);
+            return;
+        }
 
-    cout << "? 1 " << hi << endl;
-    cin >> res;
-
-    if (res != -1LL) {
-        cout << "! " << hi << endl;
-        return 0;
-    }
-
-    while (lo + 1 < hi) {
-        const auto mid = lo + (hi - lo) / 2LL;
-        cout << "? 1 " << mid << endl;
-
-        cin >> res;
-
-        if (res == -1LL) {
-            hi = mid;
-        } else {
-            lo = mid;
+        const auto b = query(i + 1, i);
+        if (a != b) {
+            answer(a + b);
+            return;
         }
     }
+}
 
-    cout << "! " << lo << endl;
+int main() {
+    interact();
     return 0;
 }
