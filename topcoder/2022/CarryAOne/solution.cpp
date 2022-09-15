@@ -31,15 +31,15 @@ struct CarryAOne final {
         auto total_D_pairs = (B - 1LL) * ma_pow(B, D - 1);
         total_D_pairs *= total_D_pairs;
 
-        ll cell0{};
-        for (ll i = 1LL; i <= B - 1LL; ++i) {
-            cell0 += B - 1LL - i;
-        }
+        ll cell0 = (B - 2LL) * (B - 1LL) / 2LL;
+        // for (ll i = 1LL; i <= B - 1LL; ++i) {
+        //     cell0 += B - 1LL - i;
+        // }
 
-        ll cell_{};
-        for (ll i = 0LL; i <= B - 1LL; ++i) {
-            cell_ += B - 1LL - i;
-        }
+        ll cell_ = B * (B + 1LL) / 2LL;
+        // for (ll i = 0LL; i <= B - 1LL; ++i) {
+        //     cell_ += B - 1LL - i;
+        // }
 
         ll no_carry = cell0;
         for (int i = 1; i < D; ++i) {
