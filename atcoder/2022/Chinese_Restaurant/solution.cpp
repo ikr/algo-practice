@@ -9,32 +9,17 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int max_happy(const vector<int> &xs) {
     const auto N = sz(xs);
-    deque<int> idx(N, 0);
-    iota(begin(idx), end(idx), 0);
+    const auto xsxs = [&]() -> vector<int> {
+        auto result = xs;
+        result.insert(cend(result), cbegin(xs), cend(xs));
+        return result;
+    }();
 
-    int result{};
-    int shift = 0;
+    // D[i][j] is the length of an iota starting at i
+    // from the number (xsxs[i] - 1 + j)
+    vector<array<int, 3>> D(2 * N, array{0, 0, 0});
 
-    do {
-        int cur{};
-        for (int i = 0; i < N; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                if (idx[(i + j + N) % N] == xs[i]) {
-                    ++cur;
-                    break;
-                }
-            }
-        }
-
-        result = max(result, cur);
-
-        const auto x = idx.back();
-        idx.pop_back();
-        idx.push_front(x);
-        ++shift;
-    } while (shift <= N);
-
-    return result;
+    return -1;
 }
 
 int main() {
