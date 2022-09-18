@@ -9,39 +9,44 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-deque<int> normalize(deque<int> xs) {
-    if (all_of(cbegin(xs), cend(xs),
-               [&](const auto a) { return a == xs[0]; })) {
-        return xs;
-    }
-
-    while (xs.front() == xs.back()) {
-        const auto x = xs.front();
-        xs.pop_front();
-        xs.push_back(x);
-    }
-
-    return xs;
-}
-
-vector<pii> run_length_encoding(const deque<int> &xs) {
-    vector<pii> result{{xs[0], 1}};
-    for (int i = 1; i < sz(xs); ++i) {
-        if (result.back().first == xs[i]) {
-            ++(result.back().second);
-        } else {
-            result.emplace_back(xs[i], 1);
-        }
-    }
-    return result;
-}
-
 template <typename T> bool has_one_unique_value(const T &xs) {
     return all_of(cbegin(xs) + 1, cend(xs),
                   [&](const auto a) { return a == xs.front(); });
 }
 
-bool is_possible(const int K, deque<int> A, deque<int> B) {
+// https://github.com/kth-competitive-programming/kactl/blob/main/content/strings/KMP.h
+namespace kactl {
+using vi = vector<int>;
+vi pi(const vi &s) {
+    vi p(sz(s));
+    for (int i = 1; i < sz(s); ++i) {
+        int g = p[i - 1];
+        while (g && s[i] != s[g]) g = p[g - 1];
+        p[i] = g + (s[i] == s[g]);
+    }
+    return p;
+}
+
+vi match(const vi &s, const vi &pat) {
+    vi p = pi([&]() -> vi {
+        auto result = pat;
+        result.push_back(INT_MIN);
+        result.insert(cend(result), cbegin(s), cend(s));
+        return result;
+    }());
+
+    vi res;
+
+    for (int i = sz(p) - sz(s); i < sz(p); ++i) {
+        if (p[i] == sz(pat)) {
+            res.push_back(i - 2 * sz(pat));
+        }
+    }
+    return res;
+}
+} // namespace kactl
+
+bool is_possible(const int K, vector<int> A, vector<int> B) {
     if (K == 0) return A == B;
 
     if (A.size() == 2) {
@@ -54,13 +59,9 @@ bool is_possible(const int K, deque<int> A, deque<int> B) {
 
     if (A == B) return K != 1 || has_one_unique_value(A);
 
-    const auto AA = run_length_encoding(normalize(move(A)));
-    auto BB = run_length_encoding(normalize(move(B)));
-
-    const auto a0 = AA[0];
-    const auto i0 = distance(cbegin(BB), find(cbegin(BB), cend(BB), a0));
-    rotate(begin(BB), begin(BB) + i0, end(BB));
-    return AA == BB;
+    auto BB = B;
+    BB.insert(cend(BB), cbegin(B), cend(B));
+    return !kactl::match(BB, A).empty();
 }
 
 int main() {
@@ -73,10 +74,10 @@ int main() {
         int N, K;
         cin >> N >> K;
 
-        deque<int> A(N);
+        vector<int> A(N);
         for (auto &a : A) cin >> a;
 
-        deque<int> B(N);
+        vector<int> B(N);
         for (auto &b : B) cin >> b;
 
         cout << "Case #" << i << ": "
