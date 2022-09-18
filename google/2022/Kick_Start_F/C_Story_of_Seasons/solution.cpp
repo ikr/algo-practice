@@ -2,7 +2,6 @@
 using namespace std;
 
 using ll = long long;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -17,35 +16,22 @@ struct Seedable final {
 };
 
 ll max_revenue(const int D, const int X, vector<Seedable> src) {
-    map<pii, int> idx;
-    for (const auto &[quantity, days_to_mature, price] : src) {
-        idx.emplace(pii{days_to_mature, -price}, quantity);
-    }
+    assert(X == 1);
+    sort(begin(src), end(src),
+         [](const auto &a, const auto &b) { return a.price > b.price; });
 
     ll result{};
-
-    for (int d = 1; d < D && !idx.empty(); ++d) {
-        int x = X;
-        while (x && !idx.empty()) {
-            auto it = idx.lower_bound(pii{D - d, INT_MIN});
-
-            if (it != cend(idx) && it->first.first == D - d) {
-                const auto [L, V_] = it->first;
-                const auto Q = it->second;
-                idx.erase(it);
-
-                const auto taking = min(x, Q);
-                x -= taking;
-                if (taking < Q) idx.emplace(pii{L, V_}, Q - taking);
-                result += 1LL * taking * (-1LL * V_);
-            } else if (it == cbegin(idx)) {
-                break;
-            } else {
-
-            }
+    for (int d = 1; d < D; ++d) {
+        cerr << "Day " << d << endl;
+        for (auto &[quantity, days_to_mature, price] : src) {
+            if (!quantity || days_to_mature > (D - d)) continue;
+            cerr << "Can yield $" << price << " in " << days_to_mature
+                 << " days" << endl;
+            --quantity;
+            result += price;
+            break;
         }
     }
-
     return result;
 }
 
