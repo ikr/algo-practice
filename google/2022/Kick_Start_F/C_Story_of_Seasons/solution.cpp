@@ -21,12 +21,9 @@ ll max_revenue(const int D, const int X, vector<Seedable> src) {
          [](const auto &a, const auto &b) { return a.price > b.price; });
 
     ll result{};
-    for (int d = 1; d < D; ++d) {
-        cerr << "Day " << d << endl;
+    for (int d = D - 1; d >= 1; --d) {
         for (auto &[quantity, days_to_mature, price] : src) {
             if (!quantity || days_to_mature > (D - d)) continue;
-            cerr << "Can yield $" << price << " in " << days_to_mature
-                 << " days" << endl;
             --quantity;
             result += price;
             break;
