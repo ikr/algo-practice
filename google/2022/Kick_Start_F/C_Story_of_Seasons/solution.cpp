@@ -10,27 +10,12 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 struct Seedable final {
-    int quantity;
-    int days_to_mature;
-    int price;
+    int Q;
+    ll L;
+    int V;
 };
 
-ll max_revenue(const int D, const int X, vector<Seedable> src) {
-    assert(X == 1);
-    sort(begin(src), end(src),
-         [](const auto &a, const auto &b) { return a.price > b.price; });
-
-    ll result{};
-    for (int d = D - 1; d >= 1; --d) {
-        for (auto &[quantity, days_to_mature, price] : src) {
-            if (!quantity || days_to_mature > (D - d)) continue;
-            --quantity;
-            result += price;
-            break;
-        }
-    }
-    return result;
-}
+ll max_revenue(const ll D, const int X, vector<Seedable> src) {}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -39,7 +24,8 @@ int main() {
     int t;
     cin >> t;
     for (int i = 1; i <= t; ++i) {
-        int D, N, X;
+        ll D;
+        int N, X;
         cin >> D >> N >> X;
 
         vector<Seedable> src(N);
