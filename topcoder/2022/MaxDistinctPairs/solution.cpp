@@ -19,34 +19,23 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
 }
 
 struct MaxDistinctPairs final {
-    string maximize(const int N, const string &xs) const {
+    string maximize(const int N, string xs) const {
         if (xs.empty()) return xs;
 
-        const auto recur = [&](const auto self, const int i,
-                               const int left) -> string {
-            if (i == sz(xs) - 1) {
-                if (xs.back() == '.') {
-                    return string{chof(((left + 1) % N) + inof('A'))};
-                }
-
-                return string{xs.back()}
-            }
+        const auto bump = [&](const char x) -> char {
+            return chof(inof('A') + ((inof(x) - inof('A') + 1) % N));
         };
 
-        // D[i][j] number of consecutive diffs up to index i, if we set letter j
-        // at index i
-        vector<vector<int>> D(sz(xs), vector<int>(N, -1));
+        for (int i = 0; i < sz(xs); ++i) {
+            if (xs[i] != '.') continue;
+            const auto l = (i == 0) ? chof(inof('A') - 1) : xs[i - 1];
+            const auto r = (i == sz(xs) - 1) ? '~' : xs[i + 1];
 
-        if (xs[0] == '.') {
-            for (int j = 0; j < N; ++j) {
-                D[0][j] = 0;
-            }
-        } else {
-            D[0][inof(xs[0]) - inof('A')] = 0;
+            xs[i] = bump(l);
+            if (xs[i] == r) xs[i] = bump(xs[i]);
         }
 
-        for (int i = 1; i < sz(xs); ++i) {
-        }
+        return xs;
     }
 };
 
