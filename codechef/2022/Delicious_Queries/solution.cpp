@@ -85,24 +85,96 @@ vector<int> intersection_of(const vector<int> &xs, const vector<int> &ys) {
 }
 
 vector<ll> top_total_flavours(const vector<int> &xs, const vector<pii> &qs) {
+    assert(!xs.empty());
     vector<ll> ss(sz(xs), xs[0]);
     for (int i = 1; i < sz(xs); ++i) ss[i] = ss[i - 1] + xs[i];
 
     const auto ps =
         intersection_of(relevant_primes(xs), extract_distinct_ps(qs));
 
+    map<int, int> ps_idx;
+    for (int j = 0; j < sz(ps); ++j) ps_idx[ps[j]] = j;
+
+    if (ps.empty()) {
+        vector<ll> result;
+        result.reserve(sz(qs));
+        for (const auto &[_, k] : qs) {
+            result.push_back(ss[k - 1]);
+        }
+        return result;
+    }
+
     vector<vector<int>> p_indices(sz(ps));
     vector<vector<int>> p_values(sz(ps));
-    vector<vector<int>> p_value_prefix_sums(sz(ps));
-    vector<vector<int>> p_values_sorted(sz(ps));
-    vector<vector<int>> p_value_sorted_prefix_sums(sz(ps));
 
     for (int i = 0; i < sz(xs); ++i) {
         for (int j = 0; j < sz(ps); ++j) {
+            if (xs[i] % ps[j]) continue;
+
+            p_indices[j].push_back(i);
+            p_values[j].push_back(xs[i]);
         }
     }
 
-    vector<ll> result(sz(qs), -1);
+    vector<vector<int>> p_values_sorted = p_values;
+    for (auto &row : p_values_sorted) sort(rbegin(row), rend(row));
+
+    vector<vector<ll>> p_value_prefix_sums(sz(ps));
+    for (int j = 0; j < sz(ps); ++j) {
+        assert(!p_values[j].empty());
+        p_value_prefix_sums[j] = vector<ll>(sz(p_values[j]));
+        p_value_prefix_sums[j][0] = p_values[j][0];
+    }
+
+    vector<vector<ll>> p_value_sorted_prefix_sums(sz(ps));
+    for (int j = 0; j < sz(ps); ++j) {
+        assert(!p_values_sorted[j].empty());
+        p_value_sorted_prefix_sums[j] = vector<ll>(sz(p_values_sorted[j]));
+        p_value_sorted_prefix_sums[j][0] = p_values_sorted[j][0];
+    }
+
+    for (int j = 0; j < sz(ps); ++j) {
+        for (int i = 1; i < sz(p_value_prefix_sums[j]); ++i) {
+            p_value_prefix_sums[j][i] =
+                p_value_prefix_sums[j][i - 1] + p_values[j][i];
+
+            p_value_sorted_prefix_sums[j][i] =
+                p_value_sorted_prefix_sums[j][i - 1] + p_values_sorted[j][i];
+        }
+    }
+
+    vector<ll> result;
+    result.reserve(sz(qs));
+    for (const auto &[p, k] : qs) {
+        assert(k - 1 < sz(ss));
+        auto S = ss[k - 1];
+
+        if (ps_idx.count(p)) {
+            const auto j = ps_idx.at(p);
+            auto it =
+                lower_bound(cbegin(p_indices[j]), cend(p_indices[j]), k - 1);
+            if (it != cend(p_indices[j]) && (*it) == k - 1) {
+            } else {
+                if (it == cbegin(p_indices[j])) {
+                    it = cend(p_indices[j]);
+                } else {
+                    it = prev(it);
+                }
+            }
+
+            if (it != cend(p_indices[j])) {
+                const auto ii = inof(distance(cbegin(p_indices[j]), it));
+                assert(ii < sz(p_indices[j]));
+                assert(ii < sz(p_value_prefix_sums[j]));
+                assert(ii < sz(p_value_sorted_prefix_sums[j]));
+
+                S -= p_value_prefix_sums[j][ii];
+                S += p_value_sorted_prefix_sums[j][ii];
+            }
+        }
+
+        result.push_back(S);
+    }
     return result;
 }
 
