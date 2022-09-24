@@ -16,51 +16,55 @@ struct Seedable final {
     int price;
 };
 
-struct Sowing final {
-    pair<ll, ll> days_interval;
-    int day_capacity;
-};
-
-ll max_revenue(const ll D, const int X, vector<Seedable> src) {
+ll max_revenue(const ll D, const int X, const vector<Seedable> &src) {
     // L -> (V Q)
-    map<ll, priority_queue<pii>> idx;
+    map<ll, vector<pii>> idx;
 
     for (const auto &[quantity, days_to_mature, price] : src) {
-        idx[days_to_mature].emplace(price, quantity);
+        idx[days_to_mature].emplace_back(price, quantity);
     }
 
     // (V Q)
     priority_queue<pii> stash;
 
     ll result{};
-    ll cur = D;
+    ll d = D;
 
-    while (cur > 0 && !(idx.empty() && stash.empty())) {
-        const auto cur_L = D - cur;
+    while (d > 0 && !(idx.empty() && stash.empty())) {
+        const auto cur_L = D - d;
 
         if (!idx.empty() && cbegin(idx)->first == cur_L) {
-            while (!(cbegin(idx)->second.empty())) {
-                stash.push(cbegin(idx)->second.top());
-                begin(idx)->second.pop();
+            for (const auto &[V, Q] : cbegin(idx)->second) {
+                stash.emplace(V, Q);
             }
             idx.erase(cbegin(idx));
         }
 
-        auto r_Q = X;
+        auto cap = X;
 
-        while (!stash.empty() && r_Q) {
+        while (!stash.empty() && cap > 0) {
             const auto [V, Q] = stash.top();
             stash.pop();
 
-            const auto utilized = min(r_Q, Q);
-            r_Q -= utilized;
+            const auto utilized = min(cap, Q);
+            cap -= utilized;
             result += 1LL * utilized * V;
 
             if (Q - utilized > 0) {
                 stash.emplace(V, Q - utilized);
-                assert(r_Q == 0);
+                assert(cap == 0);
             }
         }
+
+        if (stash.empty()) {
+            if (!idx.empty()) {
+                d = D - cbegin(idx)->first;
+            }
+            continue;
+        }
+
+        assert(cap == 0);
+        --d;
     }
 
     return result;
@@ -82,7 +86,7 @@ int main() {
             cin >> quantity >> days_to_mature >> price;
         }
 
-        cout << "Case #" << i << ": " << max_revenue(D, X, move(src)) << '\n';
+        cout << "Case #" << i << ": " << max_revenue(D, X, src) << '\n';
     }
 
     return 0;
