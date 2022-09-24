@@ -2,6 +2,7 @@
 using namespace std;
 
 using ll = long long;
+using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -21,12 +22,48 @@ struct Sowing final {
 };
 
 ll max_revenue(const ll D, const int X, vector<Seedable> src) {
-    sort(begin(src), end(src), [](const auto &a, const auto &b) {
-        return tuple{-a.days_to_mature, a.price, a.quantity} <
-               tuple{-b.days_to_mature, b.price, b.quantity};
-    });
+    // L -> (V Q)
+    map<ll, priority_queue<pii>> idx;
 
-    return -1;
+    for (const auto &[quantity, days_to_mature, price] : src) {
+        idx[days_to_mature].emplace(price, quantity);
+    }
+
+    // (V Q)
+    priority_queue<pii> stash;
+
+    ll result{};
+    ll cur = D;
+
+    while (cur > 0 && !(idx.empty() && stash.empty())) {
+        const auto cur_L = D - cur;
+
+        if (!idx.empty() && cbegin(idx)->first == cur_L) {
+            while (!(cbegin(idx)->second.empty())) {
+                stash.push(cbegin(idx)->second.top());
+                begin(idx)->second.pop();
+            }
+            idx.erase(cbegin(idx));
+        }
+
+        auto r_Q = X;
+
+        while (!stash.empty() && r_Q) {
+            const auto [V, Q] = stash.top();
+            stash.pop();
+
+            const auto utilized = min(r_Q, Q);
+            r_Q -= utilized;
+            result += 1LL * utilized * V;
+
+            if (Q - utilized > 0) {
+                stash.emplace(V, Q - utilized);
+                assert(r_Q == 0);
+            }
+        }
+    }
+
+    return result;
 }
 
 int main() {
