@@ -46,11 +46,11 @@ ll max_revenue(const ll D, const int X, const vector<Seedable> &src) {
             return (d - (D - cbegin(idx)->first)) * X;
         }();
 
-        while (!stash.empty() && cap > 0) {
+        while (!stash.empty() && cap > 0LL) {
             const auto [V, Q] = stash.top();
             stash.pop();
 
-            const auto utilized = min(cap, 0LL + Q);
+            const auto utilized = inof(min(cap, 0LL + Q));
             cap -= utilized;
             result += 1LL * utilized * V;
 
@@ -68,7 +68,11 @@ ll max_revenue(const ll D, const int X, const vector<Seedable> &src) {
         }
 
         assert(cap == 0);
-        --d;
+        if (!idx.empty()) {
+            d = (D - cbegin(idx)->first);
+        } else {
+            d = 0;
+        }
     }
 
     return result;
