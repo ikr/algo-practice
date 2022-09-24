@@ -28,7 +28,7 @@ ll max_revenue(const ll D, const int X, const vector<Seedable> &src) {
     priority_queue<pii> stash;
 
     ll result{};
-    ll d = D;
+    auto d = D;
 
     while (d > 0 && !(idx.empty() && stash.empty())) {
         const auto cur_L = D - d;
@@ -40,13 +40,17 @@ ll max_revenue(const ll D, const int X, const vector<Seedable> &src) {
             idx.erase(cbegin(idx));
         }
 
-        auto cap = X;
+        auto cap = [&]() -> ll {
+            if (idx.empty()) return d * X;
+            assert(d > D - cbegin(idx)->first);
+            return (d - (D - cbegin(idx)->first)) * X;
+        }();
 
         while (!stash.empty() && cap > 0) {
             const auto [V, Q] = stash.top();
             stash.pop();
 
-            const auto utilized = min(cap, Q);
+            const auto utilized = min(cap, 0LL + Q);
             cap -= utilized;
             result += 1LL * utilized * V;
 
