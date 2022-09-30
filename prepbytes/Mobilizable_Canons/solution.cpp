@@ -21,6 +21,13 @@ int max_hits(vector<ll> xs, vector<ll> ys) {
     sort(begin(xs), end(xs));
     sort(begin(ys), end(ys));
 
+    set<int> ds;
+    for (const auto x : xs) {
+        for (const auto y : ys) {
+            ds.insert(x - y);
+        }
+    }
+
     int result{};
 
     for (int i = 0; i < sz(xs); ++i) {
