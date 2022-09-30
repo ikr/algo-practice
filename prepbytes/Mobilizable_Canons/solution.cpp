@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -15,36 +17,18 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
     return xs.cend();
 }
 
-int max_hits(const vector<int> &xs, const vector<int> &ys) {
-    const set<int> xss(xbegin(xs), xend(xs));
-    const set<int> yss(xbegin(ys), cend(ys));
-
-    set<int> ds;
-
-    for (const auto x : xss) {
-        for (const auto y : yss) {
-            ds.insert(x - y);
-        }
-    }
-
-    map<int, int> fs0;
-    for (const auto &x : xs) ++fs0[x];
+int max_hits(vector<ll> xs, vector<ll> ys) {
+    sort(begin(xs), end(xs));
+    sort(begin(ys), end(ys));
 
     int result{};
 
-    for (const auto d : ds) {
-        auto fs = fs0;
-        int cur{};
+    for (int i = 0; i < sz(xs); ++i) {
+        const auto d = xs[i] - ys[0];
+        int cur = 1;
 
-        for (const auto y0 : ys) {
-            const auto y = y0 + d;
-            const auto it = fs.find(y);
-            if (it == xend(fs)) continue;
-
-            assert(it->second > 0);
-            --(it->second);
-            if (it->second == 0) fs.erase(it);
-            ++cur;
+        for (int j = 1; j < sz(ys) && i + j < sz(xs); ++j) {
+            cur += binary_search(xbegin(xs) + i + j, xend(xs), ys[j] + d);
         }
 
         result = max(result, cur);
@@ -60,12 +44,12 @@ int main() {
     int N, M;
     cin >> N >> M;
 
-    vector<int> xs(N);
+    vector<ll> xs(N);
     for (auto &x : xs) cin >> x;
 
-    vector<int> ys(M);
+    vector<ll> ys(M);
     for (auto &y : ys) cin >> y;
 
-    cout << max_hits(xs, ys) << '\n';
+    cout << max_hits(move(xs), move(ys)) << '\n';
     return 0;
 }
