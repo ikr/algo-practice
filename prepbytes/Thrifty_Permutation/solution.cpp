@@ -1,8 +1,16 @@
-#include <atcoder/modint>
 #include <bits/stdc++.h>
 using namespace std;
 
-using mint = atcoder::modint1000000007;
+using ll = long long;
+
+constexpr ll mod = 1'000'000'007;
+struct Mod {
+    ll x;
+    Mod(ll xx) : x(xx) {}
+    Mod operator+(Mod b) { return Mod((x + b.x) % mod); }
+    Mod operator-(Mod b) { return Mod((x - b.x + mod) % mod); }
+    Mod operator*(Mod b) { return Mod((x * b.x) % mod); }
+};
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -20,13 +28,13 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
 
 static constexpr int SZ = 100002;
 
-vector<mint> precompute_complimentary() {
-    vector<mint> result(SZ, 0);
+vector<Mod> precompute_complimentary() {
+    vector<Mod> result(SZ, 0);
     result[1] = 0;
     result[2] = 1;
 
     for (int i = 3; i < SZ; ++i) {
-        result[i] = (i - 1) * (result[i - 1] + result[i - 2]);
+        result[i] = Mod{i - 1} * (result[i - 1] + result[i - 2]);
     }
 
     return result;
@@ -36,7 +44,7 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    vector<mint> fact(SZ, 1);
+    vector<Mod> fact(SZ, 1);
     for (int i = 2; i < SZ; ++i) {
         fact[i] = fact[i - 1] * i;
     }
@@ -49,7 +57,7 @@ int main() {
         int N;
         cin >> N;
 
-        cout << (fact[N] - compli[N]).val() << '\n';
+        cout << (fact[N] - compli[N]).x << '\n';
     }
 
     return 0;
