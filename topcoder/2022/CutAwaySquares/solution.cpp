@@ -46,6 +46,11 @@ const lest::test tests[] = {
         const auto expected = 9LL;
         EXPECT(actual == expected);
     },
+    CASE("1 x 5") {
+        const auto actual = CutAwaySquares{}.countCuts(1, 5);
+        const auto expected = 4LL;
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
