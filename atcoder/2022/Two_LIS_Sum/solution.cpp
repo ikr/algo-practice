@@ -39,19 +39,16 @@ int max_target(const vector<int> &A, const vector<int> &B) {
     vector<int> idx(N, 0);
     iota(begin(idx), end(idx), 0);
 
-    sort(begin(idx), end(idx), [&](const int i, const int j) {
-        return min(A[i], B[i]) < min(A[j], B[j]);
-    });
+    sort(begin(idx), end(idx),
+         [&](const int i, const int j) { return A[i] < A[j]; });
 
-    vector<int> A_(N, 0);
     vector<int> B_(N, 0);
 
     for (int i = 0; i < N; ++i) {
-        A_[i] = A[idx[i]];
         B_[i] = B[idx[i]];
     }
 
-    return sz(kactl::lis(A_)) + sz(kactl::lis(B_));
+    return N + sz(kactl::lis(B_));
 }
 
 int main() {
