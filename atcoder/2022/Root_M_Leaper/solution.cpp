@@ -31,8 +31,8 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
 vector<pii> joining_squares(const int N, const int M) {
     vector<pii> result;
 
-    for (int i = 0; i < N - 1; ++i) {
-        for (int j = i + 1; j < N; ++j) {
+    for (int i = 0; i < N; ++i) {
+        for (int j = i; j < N; ++j) {
             if (i * i + j * j == M) {
                 result.emplace_back(i, j);
             }
@@ -53,15 +53,15 @@ vector<vector<int>> moves_matrix(const int N, const int M) {
         return in_bounds_scalar(roco.first) && in_bounds_scalar(roco.second);
     };
 
-    const auto adjacent = [&](const pii roco) -> vector<pii> {
-        vector<pii> result;
+    const auto adjacent = [&](const pii roco) -> set<pii> {
+        set<pii> result;
         for (const auto &[a, b] : jsq) {
-            const set<pii> ds{{-a, -b}, {a, -b}, {a, b}, {-a, b},
-                              {-b, -a}, {b, -a}, {b, a}, {-b, a}};
+            const vector<pii> ds{{-a, -b}, {a, -b}, {a, b}, {-a, b},
+                                 {-b, -a}, {b, -a}, {b, a}, {-b, a}};
             for (const auto &delta : ds) {
                 const auto u = roco + delta;
                 if (in_bounds(u)) {
-                    result.push_back(u);
+                    result.insert(u);
                 }
             }
         }
