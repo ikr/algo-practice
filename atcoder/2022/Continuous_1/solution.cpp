@@ -1,31 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
-    if (!o) {
-        os << "nullopt";
-    } else {
-        os << *o;
-    }
-    return os;
-}
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -33,31 +8,6 @@ template <typename T> constexpr int inof(const T x) {
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-bool is_statically_clustered(const string &xs) {
-    optional<int> lo1;
-    optional<int> hi1;
-
-    for (int i = 0; i < sz(xs); ++i) {
-        if (xs[i] == '1') {
-            if (!lo1) {
-                lo1 = i;
-                hi1 = i;
-            } else {
-                hi1 = i;
-            }
-        }
-    }
-    if (!lo1) return false;
-
-    for (int i = 0; i < sz(xs); ++i) {
-        if (xs[i] == '0' && !(i < *lo1 || *hi1 < i)) {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 vector<pii> candidate_ranges(const string &xs) {
     vector<pii> result;
@@ -108,27 +58,12 @@ int trailing_qs_num(const string &xs, int i) {
     return result;
 }
 
-bool is_possible(const string &xs, const int K) {
-    if (is_statically_clustered(xs)) return false;
-
-    const auto is_long_enough = [K](const pii &ab) {
-        return ab.second - ab.first + 1 >= K;
-    };
-
-    const auto rs = candidate_ranges(xs);
-    const auto long_enough_num = count_if(cbegin(rs), cend(rs), is_long_enough);
-
-    if (long_enough_num != 1) return false;
-    const auto it = find_if(cbegin(rs), cend(rs), is_long_enough);
-
-    const auto [a, b] = *it;
-    if (a == b) {
-        assert(K == 1);
-        return true;
-    }
-
+bool is_possible_on(const string &xs, const int K, const pii ab) {
+    const auto [a, b] = ab;
     const auto m = b - a + 1;
+    if (m < K) return false;
     if (m == K) return true;
+
     assert(m > K);
 
     const auto vl = leading_qs_num(xs, a);
@@ -146,6 +81,33 @@ bool is_possible(const string &xs, const int K) {
     if (m - vl - vr == K) return true;
 
     return vl == 0 || vr == 0;
+}
+
+bool is_possible(const string &xs, const int K) {
+    const auto is_long_enough = [K](const pii ab) {
+        return ab.second - ab.first + 1 >= K;
+    };
+
+    const auto contains_a_one = [&xs](const pii ab) {
+        return any_of(cbegin(xs) + ab.first, cbegin(xs) + ab.second + 1,
+                      [](const char x) { return x == '1'; });
+    };
+
+    const auto rs = candidate_ranges(xs);
+    const auto containing_one_num =
+        count_if(cbegin(rs), cend(rs), contains_a_one);
+
+    if (containing_one_num > 1) return false;
+    if (containing_one_num == 1) {
+        return is_possible_on(xs, K,
+                              *find_if(cbegin(rs), cend(rs), contains_a_one));
+    }
+
+    const auto long_enough_num = count_if(cbegin(rs), cend(rs), is_long_enough);
+
+    if (long_enough_num != 1) return false;
+    return is_possible_on(xs, K,
+                          *find_if(cbegin(rs), cend(rs), is_long_enough));
 }
 
 int main() {
