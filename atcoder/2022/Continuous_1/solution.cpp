@@ -51,7 +51,7 @@ bool is_statically_clustered(const string &xs) {
     if (!lo1) return false;
 
     for (int i = 0; i < sz(xs); ++i) {
-        if (xs[i] == '0' && !(i < *lo1 || hi1 < i)) {
+        if (xs[i] == '0' && !(i < *lo1 || *hi1 < i)) {
             return true;
         }
     }
@@ -139,6 +139,8 @@ bool is_possible(const string &xs, const int K) {
         assert(vr == m);
         return false;
     }
+
+    assert(vl + vr < m);
 
     if (m - vl - vr > K) return false;
     if (m - vl - vr == K) return true;
