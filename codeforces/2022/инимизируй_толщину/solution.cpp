@@ -31,13 +31,11 @@ int min_thickness_of_partitioning(const vector<int> &xs) {
             while (b < sz(xs) - 1 && range_sum(a, b) < T) ++b;
 
             if (range_sum(a, b) == T) {
-                // cerr << "T:" << T << " a:" << a << " b:" << b << endl;
                 cand = max(cand, b - a + 1);
 
                 if (b < sz(xs) - 1) {
                     a = b + 1;
                     b = a;
-                    // cerr << "new a:" << a << " b:" << b << endl;
                 }
             } else {
                 break;
@@ -45,14 +43,12 @@ int min_thickness_of_partitioning(const vector<int> &xs) {
 
             if (b == sz(xs) - 1) {
                 cand = max(cand, b - a + 1);
-                // cerr << "cand upd down here\nnm";
                 break;
             }
         }
 
         if (b == sz(xs) - 1 && range_sum(a, b) == T) {
             result = min(result, cand);
-            // cerr << "upd result against " << cand << endl;
         }
     }
 
