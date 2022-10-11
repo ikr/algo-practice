@@ -17,13 +17,14 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<int> funny_perm(const int n) {
     if (n == 3) return {-1};
+    if (n == 5) return {5, 4, 1, 2, 3};
 
     vector<int> result(n);
     iota(begin(result), end(result), 1);
     reverse(begin(result), end(result));
 
     if (n > 2 && (n % 2)) {
-        swap(result[(n - 1) / 2], result[(n - 1) / 2 + 1]);
+        swap(result[(n - 1) / 2 - 1], result[(n - 1) / 2]);
     }
 
     return result;
