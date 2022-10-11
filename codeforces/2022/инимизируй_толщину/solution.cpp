@@ -9,7 +9,6 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int min_thickness_of_partitioning(const vector<int> &xs) {
     const auto lo = *min_element(cbegin(xs), cend(xs));
-    const auto hi = accumulate(cbegin(xs), cend(xs), 0) - lo;
 
     vector<int> ss(sz(xs));
     partial_sum(cbegin(xs), cend(xs), begin(ss));
@@ -20,7 +19,7 @@ int min_thickness_of_partitioning(const vector<int> &xs) {
 
     int result = sz(xs);
 
-    for (int T = lo; T <= hi; ++T) {
+    for (const int T : ss) {
         if (xs[0] > T) continue;
 
         int cand = 1;
