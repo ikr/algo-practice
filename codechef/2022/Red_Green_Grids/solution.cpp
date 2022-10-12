@@ -42,7 +42,8 @@ mint sum_of_scores(const vector<vector<mint>> &nck,
     if (N == 1 && M == 1) return 0;
     if ((N + M - 1) % 2) return 0;
 
-    return pnum[N - 1][M - 1] * nck[N + M - 1][(N + M - 1) / 2];
+    return pnum[N - 1][M - 1] * nck[N + M - 1][(N + M - 1) / 2] *
+           mint{2}.pow(N * M - (N + M - 1));
 }
 
 int main() {
