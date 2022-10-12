@@ -11,13 +11,21 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+vector<mint> factorials() {
+    vector<mint> result(1000 * 1000 + 1, 1);
+    for (int i = 2; i < sz(result); ++i) {
+        result[i] = i * result[i - 1];
+    }
+    return result;
+}
+
 vector<vector<mint>> combinations(const int n, const int k) {
     assert(k <= n);
     vector<vector<mint>> ans(n + 1, vector<mint>(k + 1, 1));
 
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= min(i, k); ++j) {
-            ans[i][j] = i == j ? 1 : ans[i - 1][j - 1] + ans[i - 1][j];
+            ans[i][j] = (i == j) ? 1 : (ans[i - 1][j - 1] + ans[i - 1][j]);
         }
     }
 
@@ -37,7 +45,7 @@ vector<vector<mint>> valid_paths_num() {
     return D;
 }
 
-mint sum_of_scores(const vector<vector<mint>> &nck,
+mint sum_of_scores(const vector<mint> &fact, const vector<vector<mint>> &nck,
                    const vector<vector<mint>> &pnum, const int N, const int M) {
     if (N == 1 && M == 1) return 0;
     if ((N + M - 1) % 2) return 0;
@@ -49,6 +57,7 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
+    const auto fact = factorials();
     const auto nck = combinations(1999, 999);
     const auto pnum = valid_paths_num();
 
@@ -58,7 +67,7 @@ int main() {
         int N, M;
         cin >> N >> M;
 
-        cout << sum_of_scores(nck, pnum, N, M).val() << '\n';
+        cout << sum_of_scores(fact, nck, pnum, N, M).val() << '\n';
     }
 
     return 0;
