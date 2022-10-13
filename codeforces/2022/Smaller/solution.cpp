@@ -28,12 +28,36 @@ constexpr int az_to_i(const char c) {
     return static_cast<int>(c) - static_cast<int>('a');
 }
 
+constexpr int is_positive(const ll x) { return x > 0LL; }
+
+int first_positive_index(const array<ll, AZ> &xs) {
+    return inof(
+        distance(cbegin(xs), find_if(cbegin(xs), cend(xs), is_positive)));
+}
+
+int last_positive_index(array<ll, AZ> xs) {
+    reverse(begin(xs), end(xs));
+    return sz(xs) - 1 - first_positive_index(xs);
+}
+
 bool less_than(const array<ll, AZ> &xs, const array<ll, AZ> &ys) {
-    for (int i = 0; i < AZ; ++i) {
-        if (xs[i] == ys[i]) continue;
-        if (xs[i] < ys[i]) return true;
-        return false;
+    {
+        const auto i = first_positive_index(xs);
+        const auto j = last_positive_index(ys);
+
+        if (i < j) return true;
     }
+
+    {
+        const auto i = first_positive_index(ys);
+        const auto j = last_positive_index(xs);
+
+        if (i < j) return false;
+    }
+
+    const auto i = first_positive_index(xs);
+    const auto j = last_positive_index(ys);
+    if (i == j) return xs[i] < ys[i];
 
     return false;
 }
