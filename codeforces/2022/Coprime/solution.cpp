@@ -11,7 +11,7 @@ static constexpr int A_MAX = 1000;
 
 int solution(const vector<int> &xs) {
     vector<int> max_position(A_MAX + 1, -1);
-    for (int i = 1; i < sz(xs); ++i) {
+    for (int i = 0; i < sz(xs); ++i) {
         max_position[xs[i]] = i + 1;
     }
 
