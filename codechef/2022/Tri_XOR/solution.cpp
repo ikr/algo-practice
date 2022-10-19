@@ -49,6 +49,10 @@ vector<tri> find_program(multiset<int> xs) {
         if (stash.empty()) return true;
         if (sz(stash) % 3) return false;
 
+        sort(begin(stash), end(stash), [](const int a, const int b) {
+            return __builtin_popcount(a) > __builtin_popcount(b);
+        });
+
         for (auto i = 0; i < sz(stash); i += 3) {
             for (int j = 0; j < 3; ++j) {
                 assert(i + j < sz(stash));
