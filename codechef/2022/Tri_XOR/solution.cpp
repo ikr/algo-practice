@@ -58,10 +58,17 @@ vector<tri> find_program(multiset<int> xs) {
                 xs.erase(it);
             }
 
-            xs.insert(stash[i] ^ stash[i + 1]);
-            xs.insert(stash[i + 1] ^ stash[i + 2]);
-            xs.insert(stash[i] ^ stash[i + 2]);
             result.emplace_back(stash[i], stash[i + 1], stash[i + 2]);
+
+            if (stash[i] ^ stash[i + 1]) {
+                xs.insert(stash[i] ^ stash[i + 1]);
+            }
+            if (stash[i + 1] ^ stash[i + 2]) {
+                xs.insert(stash[i + 1] ^ stash[i + 2]);
+            }
+            if (stash[i] ^ stash[i + 2]) {
+                xs.insert(stash[i] ^ stash[i + 2]);
+            }
         }
 
         return true;
