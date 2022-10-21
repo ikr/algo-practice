@@ -1,33 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const multiset<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 using tri = tuple<int, int, int>;
-
-ostream &operator<<(ostream &os, const tri &x) {
-    const auto [a, b, c] = x;
-    os << '(' << a << ' ' << b << ' ' << c << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -35,56 +9,111 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+struct ThreeStash final {
+    void push(const int x) {
+        if (sz(xs) < 3) xs.push_back(x);
+    }
+
+    int pop() {
+        assert(!xs.empty());
+        const auto result = xs.back();
+        xs.pop_back();
+        return result;
+    }
+
+  private:
+    vector<int> xs;
+};
+
 vector<tri> find_program(multiset<int> xs) {
     vector<tri> result;
 
-    const auto zero_off_bit = [&](const int bit_shift) -> bool {
-        const int mask = 1 << bit_shift;
-        vector<int> stash;
+    const auto deal_with_zero_off_rest = [&](vector<int> one,
+                                             ThreeStash zer) -> void {
+        assert(!one.empty());
+        while (sz(one) < 3) {
+            const auto za = zer.pop();
+            const auto zb = zer.pop();
 
-        for (const auto x : xs) {
-            if (x & mask) stash.push_back(x);
+            const auto x = one.back();
+            one.pop_back();
+
+            for (const auto y : {za, zb, x}) {
+                const auto it = xs.find(y);
+                assert(it != cend(xs));
+                xs.erase(it);
+            }
+
+            xs.insert(x ^ za);
+            one.push_back(x ^ za);
+
+            xs.insert(x ^ zb);
+            one.push_back(x ^ zb);
+
+            xs.insert(za ^ zb);
+            zer.push(za ^ zb);
         }
 
-        if (stash.empty()) return true;
-        if (sz(stash) % 3) return false;
+        for (const auto y : one) {
+            const auto it = xs.find(y);
+            assert(it != cend(xs));
+            xs.erase(it);
+        }
 
-        sort(begin(stash), end(stash), [](const int a, const int b) {
-            return __builtin_popcount(a) > __builtin_popcount(b);
-        });
+        xs.insert(one[0] ^ one[1]);
+        xs.insert(one[1] ^ one[2]);
+        xs.insert(one[0] ^ one[2]);
+    };
 
-        for (auto i = 0; i < sz(stash); i += 3) {
+    const auto zero_off_bit = [&](const int bit_shift) -> void {
+        const int mask = 1 << bit_shift;
+        vector<int> one;
+        ThreeStash zer;
+
+        for (const auto x : xs) {
+            if (x & mask) {
+                one.push_back(x);
+            } else {
+                zer.push(x);
+            }
+        }
+
+        if (one.empty()) return;
+
+        vector<int> rest;
+        while (sz(one) % 3) {
+            rest.push_back(one.back());
+            one.pop_back();
+        }
+
+        for (auto i = 0; i < sz(one); i += 3) {
             for (int j = 0; j < 3; ++j) {
-                assert(i + j < sz(stash));
-                const auto it = xs.find(stash[i + j]);
+                assert(i + j < sz(one));
+                const auto it = xs.find(one[i + j]);
                 assert(it != cend(xs));
 
                 xs.erase(it);
             }
 
-            result.emplace_back(stash[i], stash[i + 1], stash[i + 2]);
+            result.emplace_back(one[i], one[i + 1], one[i + 2]);
 
-            if (stash[i] ^ stash[i + 1]) {
-                xs.insert(stash[i] ^ stash[i + 1]);
-            }
-            if (stash[i + 1] ^ stash[i + 2]) {
-                xs.insert(stash[i + 1] ^ stash[i + 2]);
-            }
-            if (stash[i] ^ stash[i + 2]) {
-                xs.insert(stash[i] ^ stash[i + 2]);
-            }
+            xs.insert(one[i] ^ one[i + 1]);
+            zer.push(one[i] ^ one[i + 1]);
+
+            xs.insert(one[i + 1] ^ one[i + 2]);
+            zer.push(one[i + 1] ^ one[i + 2]);
+
+            xs.insert(one[i] ^ one[i + 2]);
+            zer.push(one[i] ^ one[i + 2]);
         }
 
-        return true;
+        if (!rest.empty()) {
+            deal_with_zero_off_rest(move(rest), move(zer));
+        }
     };
 
     for (int bs = 31; bs >= 0; --bs) {
-        if (!zero_off_bit(bs)) {
-            // cerr << "On bs: " << bs << " rest: " << xs << " program: " <<
-            // result
-            //      << endl;
-            assert(false && "zero-off failed");
-        }
+        zero_off_bit(bs);
     }
 
     return result;
