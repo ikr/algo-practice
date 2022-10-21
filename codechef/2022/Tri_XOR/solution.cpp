@@ -44,6 +44,8 @@ vector<tri> find_program(multiset<int> xs) {
                 xs.erase(it);
             }
 
+            result.emplace_back(za, zb, x);
+
             xs.insert(x ^ za);
             one.push_back(x ^ za);
 
@@ -59,6 +61,8 @@ vector<tri> find_program(multiset<int> xs) {
             assert(it != cend(xs));
             xs.erase(it);
         }
+
+        result.emplace_back(one[0], one[1], one[2]);
 
         xs.insert(one[0] ^ one[1]);
         xs.insert(one[1] ^ one[2]);
