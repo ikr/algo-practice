@@ -60,10 +60,24 @@ tuple<Pers, Pers, Pers> locate_people(const array<vector<ll>, 3> &src) {
         }
     }
 
+    const auto surely_mike = [&]() -> optional<int> {
+        array<ll, 3> ts{};
+        transform(cbegin(src), cend(src), begin(ts), [](const auto &ys) {
+            return accumulate(cbegin(ys), cend(ys), 0LL);
+        });
+
+        if (ts[0] < ts[1] && ts[0] < ts[2]) return 0;
+        if (ts[1] < ts[0] && ts[1] < ts[2]) return 1;
+        if (ts[2] < ts[0] && ts[2] < ts[1]) return 2;
+        return nullopt;
+    }();
+
     array<ll, 3> sks{};
     for (int j = 0; j < 3; ++j) {
         sks[j] = left_skew(xss[j]);
     }
+
+    if (surely_mike) sks[*surely_mike] = 0;
 
     const auto lo =
         inof(distance(cbegin(sks), min_element(cbegin(sks), cend(sks))));
