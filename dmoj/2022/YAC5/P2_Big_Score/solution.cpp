@@ -72,26 +72,52 @@ tuple<Pers, Pers, Pers> locate_people(const array<vector<ll>, 3> &src) {
         return nullopt;
     }();
 
-    array<ll, 3> sks{};
-    for (int j = 0; j < 3; ++j) {
-        sks[j] = left_skew(xss[j]);
+    if (surely_mike) {
+        set<int> duet{0, 1, 2};
+        duet.erase(*surely_mike);
+
+        const auto a = *cbegin(duet);
+        const auto b = *crbegin(duet);
+
+        if (left_skew(xss[a]) >= left_skew(xss[b])) {
+            const auto person_at = [&](const int j) -> Pers {
+                if (j == a) return Pers::Josh;
+                if (j == b) return Pers::Nils;
+                return Pers::Mike;
+            };
+
+            return {person_at(0), person_at(1), person_at(2)};
+        } else {
+            const auto person_at = [&](const int j) -> Pers {
+                if (j == a) return Pers::Nils;
+                if (j == b) return Pers::Josh;
+                return Pers::Mike;
+            };
+
+            return {person_at(0), person_at(1), person_at(2)};
+        }
     }
 
-    if (surely_mike) sks[*surely_mike] = 0;
+    {
+        array<ll, 3> sks{};
+        for (int j = 0; j < 3; ++j) {
+            sks[j] = left_skew(xss[j]);
+        }
 
-    const auto lo =
-        inof(distance(cbegin(sks), min_element(cbegin(sks), cend(sks))));
+        const auto lo =
+            inof(distance(cbegin(sks), min_element(cbegin(sks), cend(sks))));
 
-    const auto hi =
-        inof(distance(cbegin(sks), max_element(cbegin(sks), cend(sks))));
+        const auto hi =
+            inof(distance(cbegin(sks), max_element(cbegin(sks), cend(sks))));
 
-    const auto person_at = [&](const int j) -> Pers {
-        if (hi == j) return Pers::Josh;
-        if (lo == j) return Pers::Nils;
-        return Pers::Mike;
-    };
+        const auto person_at = [&](const int j) -> Pers {
+            if (hi == j) return Pers::Josh;
+            if (lo == j) return Pers::Nils;
+            return Pers::Mike;
+        };
 
-    return {person_at(0), person_at(1), person_at(2)};
+        return {person_at(0), person_at(1), person_at(2)};
+    }
 }
 
 int main() {
