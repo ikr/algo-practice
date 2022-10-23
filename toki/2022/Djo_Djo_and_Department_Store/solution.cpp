@@ -9,46 +9,56 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll diff_of_paid_totals(vector<int> A, const int X, vector<int> B) {
+ll diff_of_paid_totals(const vector<int> &A, const int X,
+                       const vector<int> &B) {
+    const auto N = sz(A);
+
     const auto Djowen = [&]() -> ll {
-        vector<int> idx(sz(A));
-        iota(begin(idx), end(idx), 0);
-
-        sort(begin(idx), end(idx), [&](const int i, const int j) {
-            if (A[i] == A[j]) return B[i] < B[j];
-            return A[i] > A[j];
-        });
-
+        priority_queue<int, vector<int>, greater<int>> q;
+        int from_A{};
         ll result{};
 
-        for (int i = 0; i < X; ++i) {
-            result += A[idx[i]];
+        for (int i = 0; i < N; ++i) {
+            if (A[i] >= B[i]) {
+                result += A[i];
+                ++from_A;
+            } else {
+                result += B[i];
+                q.push(B[i] - A[i]);
+            }
         }
 
-        for (int i = X; i < sz(A); ++i) {
-            result += max(A[idx[i]], B[idx[i]]);
+        while (from_A < X) {
+            const auto x = q.top();
+            q.pop();
+            result -= x;
+            ++from_A;
         }
 
         return result;
     }();
 
     const auto Djonatan = [&]() -> ll {
-        vector<int> idx(sz(A));
-        iota(begin(idx), end(idx), 0);
-
-        sort(begin(idx), end(idx), [&](const int i, const int j) {
-            if (A[i] == A[j]) return B[i] > B[j];
-            return A[i] < A[j];
-        });
-
+        priority_queue<int> q;
+        int from_A{};
         ll result{};
 
-        for (int i = 0; i < X; ++i) {
-            result += A[idx[i]];
+        for (int i = 0; i < N; ++i) {
+            if (A[i] <= B[i]) {
+                result += A[i];
+                ++from_A;
+            } else {
+                result += B[i];
+                q.push(B[i] - A[i]);
+            }
         }
 
-        for (int i = X; i < sz(A); ++i) {
-            result += min(A[idx[i]], B[idx[i]]);
+        while (from_A < X) {
+            const auto x = q.top();
+            q.pop();
+
+            result -= x;
+            ++from_A;
         }
 
         return result;
@@ -70,6 +80,6 @@ int main() {
     vector<int> B(N);
     for (auto &b : B) cin >> b;
 
-    cout << diff_of_paid_totals(move(A), X, move(B)) << '\n';
+    cout << diff_of_paid_totals(A, X, B) << '\n';
     return 0;
 }
