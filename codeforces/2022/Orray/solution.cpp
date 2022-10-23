@@ -33,7 +33,9 @@ int snap_the_mask(const int x) {
 
 vector<int> optimal_order(vector<int> xs) {
     vector<int> result;
-    auto mask = ~0;
+
+    int cur = 0;
+    int mask = ~0;
 
     for (; !xs.empty();) {
         const auto it =
@@ -42,12 +44,13 @@ vector<int> optimal_order(vector<int> xs) {
             });
 
         const auto x = *it;
-        const auto mask_ = snap_the_mask(x) | (mask == ~0 ? 0 : mask);
+        const auto mask_ = snap_the_mask(x | cur);
         xs.erase(it);
         result.push_back(x);
 
         if (mask_ == mask) break;
         mask = mask_;
+        cur |= x;
     }
 
     result.insert(cend(result), cbegin(xs), cend(xs));
