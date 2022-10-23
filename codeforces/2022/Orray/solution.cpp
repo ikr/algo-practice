@@ -19,25 +19,40 @@ constexpr int mlog2(const int x) {
     return 8U * sizeof(int) - __builtin_clz(x) - 1;
 }
 
+int snap_the_mask(const int x) {
+    int result{};
+
+    for (auto i = mlog2(x); i >= 0; --i) {
+        if ((x & (1 << i)) == 0) {
+            result |= (1 << i);
+        }
+    }
+
+    return result;
+}
+
 vector<int> optimal_order(vector<int> xs) {
-    const auto it_max = max_element(cbegin(xs), cend(xs));
-    const auto head = *it_max;
-    xs.erase(it_max);
+    vector<int> result;
+    auto mask = ~0;
 
-    array<vector<int>, 32> by_hi_bit;
-    by_hi_bit.fill({});
+    for (;;) {
+        const auto it =
+            max_element(cbegin(xs), cend(xs), [mask](const int a, const int b) {
+                return (a & mask) < (b & mask);
+            });
+        if (it == cend(xs)) break;
 
-    for (const auto x : xs) {
-        by_hi_bit[mlog2(x)].push_back(x);
+        const auto x = *it;
+        const auto mask_ = snap_the_mask(x);
+        xs.erase(it);
+        result.push_back(x);
+
+        if (mask_ == mask) break;
+        mask = mask_;
     }
 
-    for (auto &row : by_hi_bit) {
-        sort(begin(row), end(row), [](const auto a, const auto b) {
-            return __builtin_popcount(a) > __builtin_popcount(b);
-        });
-    }
-
-    return xs;
+    result.insert(cend(result), cbegin(xs), cend(xs));
+    return result;
 }
 
 int main() {
