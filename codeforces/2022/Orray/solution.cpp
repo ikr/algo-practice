@@ -35,15 +35,14 @@ vector<int> optimal_order(vector<int> xs) {
     vector<int> result;
     auto mask = ~0;
 
-    for (;;) {
+    for (; !xs.empty();) {
         const auto it =
             max_element(cbegin(xs), cend(xs), [mask](const int a, const int b) {
                 return (a & mask) < (b & mask);
             });
-        if (it == cend(xs)) break;
 
         const auto x = *it;
-        const auto mask_ = snap_the_mask(x);
+        const auto mask_ = snap_the_mask(x) | (mask == ~0 ? 0 : mask);
         xs.erase(it);
         result.push_back(x);
 
