@@ -27,7 +27,7 @@ using tri = tuple<int, int, int>;
 
 pair<int, int> solution(const vector<tri> &src, const int U) {
     const auto N = sz(src);
-    vector<vector<int>> D(N, vector(U + 1, -1));
+    vector<vector<int>> D(N, vector(U + 1, 0));
 
     {
         const auto [a, b, x] = src[0];
@@ -57,22 +57,18 @@ pair<int, int> solution(const vector<tri> &src, const int U) {
             }
         }
 
-        for (int u0 = 0; u0 <= U; ++u0) {
-            if (D[i - 1][u0] >= 0 && u0 >= a) {
+        for (int j = i - 1; j >= 0; --j) {
+            for (int u0 = 0; u0 <= U; ++u0) {
+                if (D[j][u0]) {
+                    int u = u0;
+                    int k = 1;
 
-                int u = u0;
-                int k = 1;
-
-                while (u >= a) {
-                    cerr << "i:" << i << " u0:" << u0
-                         << " prev:" << D[i - 1][u0] << " k:" << k
-                         << " o1:" << D[i][u - a + b]
-                         << " o2:" << (D[i - 1][u0] + k * x) << endl;
-
-                    D[i][u - a + b] =
-                        max(D[i][u - a + b], D[i - 1][u0] + k * x);
-                    u = u - a + b;
-                    ++k;
+                    while (u >= a) {
+                        D[i][u - a + b] =
+                            max(D[i][u - a + b], D[j][u0] + k * x);
+                        u = u - a + b;
+                        ++k;
+                    }
                 }
             }
         }
