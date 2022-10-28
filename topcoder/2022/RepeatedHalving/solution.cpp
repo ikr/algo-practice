@@ -58,6 +58,11 @@ const lest::test tests[] = {
         const auto expected = vector<int>{0,0,0};
         EXPECT(actual == expected);
     },
+    CASE("hacking") {
+        const auto actual = RepeatedHalving{}.simulate({8, 8, 8}, 11);
+        const auto expected = vector<int>{0, 0, 1};
+        EXPECT(actual == expected);
+    },
 };
 // clang-format on
 
