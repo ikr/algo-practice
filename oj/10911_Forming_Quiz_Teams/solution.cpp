@@ -27,8 +27,39 @@ double sum_of_distances(const vector<int> &matching_d2s) {
 }
 
 double solve(const vector<pii> &xy) {
+    const auto d_between = [&](const int i, const int j) -> double {
+        const auto a = xy[i].first - xy[j].first;
+        const auto b = xy[i].second - xy[j].second;
+        return sqrt(0.0 + a * a + b * b);
+    };
+
     double result{INF};
-    function<void(vector<int>)> recur;
+    function<void(double, vector<int>)> recur;
+    recur = [&](const double cur, vector<int> indices_pool) -> void {
+        if (cur > result) return;
+
+        if (sz(indices_pool) == 2) {
+            result =
+                min(result, cur + d_between(indices_pool[0], indices_pool[1]));
+            return;
+        }
+
+        const auto i = indices_pool.back();
+        indices_pool.pop_back();
+
+        for (int jj = 0; jj < sz(indices_pool); ++jj) {
+            auto pool_ = indices_pool;
+            const auto jt = next(xbegin(pool_), jj);
+            const auto j = *jt;
+            pool_.erase(jt);
+
+            recur(cur + d_between(i, j), pool_);
+        }
+    };
+
+    vector<int> idx(sz(xy));
+    iota(begin(idx), end(idx), 0);
+    recur(0.0, idx);
 
     return result;
 }
