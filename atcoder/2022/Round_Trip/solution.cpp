@@ -109,27 +109,22 @@ bool four_plus_trail_exists(const vector<string> &grid) {
         return 0 <= ro && ro < H && 0 <= co && co < W;
     };
 
-    vector<vector<int>> D(H, vector(W, -1));
-    D[roco0.first][roco0.second] = 0;
+    const auto at = [&](const int ro, const int co) -> char {
+        return in_bounds({ro, co}) ? grid[ro][co] : '#';
+    };
 
-    queue<pii> q;
-    q.push(roco0);
+    const auto [ro, co] = roco0;
+    vector<pii> ports;
+    for (const auto &v :
+         {pii{ro - 1, co}, pii{ro, co + 1}, pii{ro + 1, co}, pii{ro, co - 1}}) {
+        if (at(v.first, v.second) == '.') {
+            ports.push_back(v);
+        }
+    }
 
-    while (!q.empty()) {
-        const auto [ro, co] = q.front();
-        q.pop();
-
-        for (const auto &v : {pii{ro - 1, co}, pii{ro, co + 1}, pii{ro + 1, co},
-                              pii{ro, co - 1}}) {
-            if (!in_bounds(v)) continue;
-            const auto [ro_, co_] = v;
-            if (grid[ro_][co_] == '#') continue;
-
-            if (grid[ro_][co_] == 'S' && D[ro][co] >= 3) return true;
-            if (D[ro_][co_] != -1) continue;
-
-            D[ro_][co_] = D[ro][co] + 1;
-            q.emplace(ro_, co_);
+    for (int i = 0; i < sz(ports) - 1; ++i) {
+        for (int j = i + 1; j < sz(ports); ++j) {
+            if (is_navigable(grid, ports[i], ports[j])) return true;
         }
     }
 
