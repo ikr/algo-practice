@@ -1,5 +1,8 @@
+#include <atcoder/dsu>
 #include <bits/stdc++.h>
 using namespace std;
+
+using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -7,102 +10,45 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-char next_base(const char x) {
-    switch (x) {
-    case 'A':
-        return 'C';
-    case 'C':
-        return 'G';
-    case 'G':
-        return 'T';
-    case 'T':
-        return 'A';
-    default:
-        assert(false && "next_base");
-        return '-';
-    }
+static const map<char, int> BASE_INDEX{{'A', 0}, {'C', 1}, {'G', 2}, {'T', 3}};
+
+int bases_distance(const char x, const char y) {
+    assert(BASE_INDEX.count(x));
+    assert(BASE_INDEX.count(y));
+
+    auto ix = BASE_INDEX.at(x);
+    auto iy = BASE_INDEX.at(y);
+    if (ix > iy) swap(ix, iy);
+
+    return min(iy - ix, ix + 4 - iy);
 }
 
-char prev_base(const char x) {
-    switch (x) {
-    case 'A':
-        return 'T';
-    case 'C':
-        return 'A';
-    case 'G':
-        return 'C';
-    case 'T':
-        return 'G';
-    default:
-        assert(false && "next_base");
-        return '-';
-    }
-}
+int strands_distance(const string &xs, const string &ys) {
+    assert(sz(xs) == sz(ys));
+    int result{};
 
-vector<string> adjacent(const string &xs) {
-    vector<string> result;
     for (int i = 0; i < sz(xs); ++i) {
-        auto ys = xs;
-
-        ys[i] = next_base(xs[i]);
-        result.push_back(ys);
-
-        ys[i] = prev_base(xs[i]);
-        result.push_back(ys);
+        result += bases_distance(xs[i], ys[i]);
     }
+
     return result;
 }
 
-pair<int, string> ops_to_any(const string &src, const set<string> &dst) {
-    assert(!dst.empty());
-    unordered_map<string, int> D;
-    D[src] = 0;
+vector<vector<pii>> build_graph(const vector<string> &dst) {
+    vector<vector<pii>> g(sz(dst));
 
-    queue<string> q;
-    q.push(src);
-
-    while (!q.empty()) {
-        const auto u = q.front();
-        q.pop();
-
-        for (const auto &v : adjacent(u)) {
-            if (D.count(v)) continue;
-
-            if (dst.count(v)) {
-                return {D.at(u) + 1, v};
-            }
-
-            D[v] = D.at(u) + 1;
-            q.push(v);
+    for (int u = 0; u < sz(dst) - 1; ++u) {
+        for (int v = u + 1; v < sz(dst); ++v) {
+            const auto d = strands_distance(dst[u], dst[v]);
+            g[u].emplace_back(v, d);
+            g[v].emplace_back(u, d);
         }
     }
 
-    assert(false && "ops_to_any");
-    return {1e9, ""};
+    return g;
 }
 
-int min_ops(const vector<string> &dst) {
-    const auto L = sz(dst[0]);
-    set<string> xs(cbegin(dst), cend(dst));
-
-    string src(L, 'A');
-
-    if (xs.count(src)) {
-        xs.erase(src);
-    }
-
-    int result{};
-
-    while (!xs.empty()) {
-        const auto [ops, x] = ops_to_any(src, xs);
-        result += ops;
-
-        src = x;
-        xs.erase(x);
-    }
-
-    return result;
-}
+int min_ops(const vector<string> &dst) { return -1; }
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -113,6 +59,7 @@ int main() {
 
     vector<string> dst(N);
     for (auto &xs : dst) cin >> xs;
+    dst.push_back(string(L, 'A'));
 
     cout << min_ops(dst) << '\n';
     return 0;
