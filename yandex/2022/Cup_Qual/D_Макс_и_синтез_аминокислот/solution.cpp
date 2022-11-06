@@ -77,6 +77,7 @@ pair<int, string> ops_to_any(const string &src, const set<string> &dst) {
         }
     }
 
+    assert(false && "ops_to_any");
     return {1e9, ""};
 }
 
