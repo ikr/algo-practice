@@ -55,7 +55,7 @@ vector<string> adjacent(const string &xs) {
 
 pair<int, string> ops_to_any(const string &src, const set<string> &dst) {
     assert(!dst.empty());
-    map<string, int> D;
+    unordered_map<string, int> D;
     D[src] = 0;
 
     queue<string> q;
