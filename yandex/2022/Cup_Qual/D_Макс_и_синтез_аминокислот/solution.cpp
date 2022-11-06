@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using pii = pair<int, int>;
+using tri = tuple<int, int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -34,21 +34,35 @@ int strands_distance(const string &xs, const string &ys) {
     return result;
 }
 
-vector<vector<pii>> build_graph(const vector<string> &dst) {
-    vector<vector<pii>> g(sz(dst));
+priority_queue<tri> edges_by_lightness(const vector<string> &dst) {
+    priority_queue<tri> q;
 
     for (int u = 0; u < sz(dst) - 1; ++u) {
         for (int v = u + 1; v < sz(dst); ++v) {
             const auto d = strands_distance(dst[u], dst[v]);
-            g[u].emplace_back(v, d);
-            g[v].emplace_back(u, d);
+            q.emplace(-d, u, v);
         }
     }
 
-    return g;
+    return q;
 }
 
-int min_ops(const vector<string> &dst) { return -1; }
+int min_ops(const vector<string> &dst) {
+    auto q = edges_by_lightness(dst);
+    atcoder::dsu cs(sz(dst));
+    int result{};
+
+    while (!q.empty()) {
+        const auto [d, u, v] = q.top();
+        q.pop();
+        if (cs.same(u, v)) continue;
+
+        cs.merge(u, v);
+        result += -d;
+    }
+
+    return result;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
