@@ -22,8 +22,8 @@ vector<mint> progressive_expected_max_of_two_pulls(const vector<int> &xs) {
 
     for (int i = 1; i < sz(result); ++i) {
         const auto K = i + 1;
-        const auto P =
-            ft_vl.sum(0, xs[i]) + mint{K - ft_fq.sum(0, xs[i])} * xs[i];
+        const auto P = mint{ft_fq.sum(0, xs[i] + 1)} * xs[i] * 2 + xs[i] +
+                       ft_vl.sum(xs[i] + 1, x_max + 1) * 2;
         const auto Q = mint{K} * mint{K};
 
         result[i] = P * Q.inv();
