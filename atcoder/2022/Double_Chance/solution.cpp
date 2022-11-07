@@ -16,22 +16,24 @@ vector<mint> progressive_expected_max_of_two_pulls(const vector<int> &xs) {
     atcoder::fenwick_tree<int> ft_fq(x_max + 1);
     atcoder::fenwick_tree<mint> ft_vl(x_max + 1);
 
-    vector<mint> result(sz(xs), xs[0]);
+    vector<mint> D(sz(xs), xs[0]);
     ft_fq.add(xs[0], 1);
     ft_vl.add(xs[0], xs[0]);
 
-    for (int i = 1; i < sz(result); ++i) {
-        const auto K = i + 1;
-        const auto P = mint{ft_fq.sum(0, xs[i] + 1)} * xs[i] * 2 + xs[i] +
-                       ft_vl.sum(xs[i] + 1, x_max + 1) * 2;
-        const auto Q = mint{K} * mint{K};
+    for (int i = 1; i < sz(D); ++i) {
+        const auto P = D[i - 1] + mint{ft_fq.sum(0, xs[i] + 1)} * xs[i] * 2 +
+                       xs[i] + ft_vl.sum(xs[i] + 1, x_max + 1) * 2;
 
-        result[i] = P * Q.inv();
+        D[i] = P;
         ft_fq.add(xs[i], 1);
         ft_vl.add(xs[i], xs[i]);
     }
 
-    return result;
+    for (int i = 0; i < sz(D); ++i) {
+        const auto K = i + 1;
+        D[i] = D[i] * (mint{K} * mint{K}).inv();
+    }
+    return D;
 }
 
 int main() {
