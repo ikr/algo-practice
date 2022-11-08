@@ -31,8 +31,7 @@ struct DhakaBanner final {
         int result{INT_MAX};
         for (int i0 = 0; i0 < N; ++i0) {
             for (int k = 1; k <= (N / 2 + 2); ++k) {
-                int cur = N_;
-                if (N_ < 5) cur = 5;
+                int cur = N_ + 5;
 
                 cur -= at(i0) == 'D';
                 cur -= at(i0 + k) == 'H';
@@ -59,14 +58,34 @@ const lest::test tests[] = {
         const auto expected = 19;
         EXPECT(actual == expected);
     },
+    CASE("Example 2") {
+        const auto actual = DhakaBanner{}.edit("DDHHAAKKAA");
+        const auto expected = 5;
+        EXPECT(actual == expected);
+    },
     CASE("Example 3") {
         const auto actual = DhakaBanner{}.edit("AA");
         const auto expected = 5;
         EXPECT(actual == expected);
     },
+    CASE("Example 4") {
+        const auto actual = DhakaBanner{}.edit("ABBA");
+        const auto expected = 5;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 5") {
+        const auto actual = DhakaBanner{}.edit("RIYADH");
+        const auto expected = 7;
+        EXPECT(actual == expected);
+    },
     CASE("Example 6") {
         const auto actual = DhakaBanner{}.edit("TOPCODER");
         const auto expected = 11;
+        EXPECT(actual == expected);
+    },
+    CASE("AZKZA") {
+        const auto actual = DhakaBanner{}.edit("AZKZA");
+        const auto expected = 4;
         EXPECT(actual == expected);
     },
 };
