@@ -1,33 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
 using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
@@ -91,33 +64,44 @@ ll min_remaining_sum(const vector<int> &A, const int M) {
         }
     }
 
-    const auto is_adj = [&](const int u, const int v) -> bool {
-        return find(cbegin(g[u]), cend(g[u]), v) != cend(g[u]);
+    const auto topo = topo_sort(g);
+
+    vector<int> sink(sz(topo), -1);
+    const auto recur = [&](const auto self, const int u) -> int {
+        if (g[u].empty()) {
+            sink[u] = u;
+            return u;
+        }
+        if (sink[u] != -1) return sink[u];
+
+        for (const auto v : g[u]) {
+            sink[u] = self(self, v);
+        }
+
+        return sink[u];
     };
 
-    const auto topo = topo_sort(g);
-    cerr << "fs: " << fs << " vert: " << vert << " g: " << g
-         << " topo: " << topo << '\n';
+    for (const auto u : topo) {
+        sink[u] = recur(recur, u);
+    }
 
-    vector<vector<int>> par(1, vector<int>{topo[0]});
+    map<int, set<int>> vs_by_sink;
+    for (int u = 0; u < sz(sink); ++u) {
+        vs_by_sink[sink[u]].insert(u);
+    }
 
-    for (int i = 1; i < sz(topo); ++i) {
-        if (is_adj(topo[i - 1], topo[i])) {
-            par.back().push_back(topo[i]);
-        } else {
-            par.push_back(vector<int>{topo[i]});
-        }
+    ll S{};
+    for (const auto a : A) {
+        S += a;
     }
 
     ll result = LONG_LONG_MAX;
-    for (const auto &us : par) {
+    for (const auto &[_, us] : vs_by_sink) {
         ll cur{};
-
         for (const auto u : us) {
-            cur += 1LL * vert[u] * fs.at(vert[u]);
+            cur += vert[u] * fs.at(vert[u]);
         }
-
-        result = min(result, cur);
+        result = min(result, S - cur);
     }
     return result;
 }
