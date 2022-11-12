@@ -18,55 +18,82 @@ int max_score(vector<int> xs, vector<int> ys) {
     sort(begin(xs), end(xs));
     sort(begin(ys), end(ys));
 
-    const auto hi_x_idx = [&xs](const int i0, const int y) -> optional<int> {
-        const auto it = upper_bound(cbegin(xs) + i0, cend(xs), y);
-        if (it == cend(xs)) return nullopt;
-        return inof(distance(cbegin(xs), it));
-    };
+    vector<array<int, 3>> score(sz(ys));
+    for (auto &row : score) row.fill(-INF);
 
-    const auto eq_x_idx = [&xs](const int i0, const int y) -> optional<int> {
-        const auto it = lower_bound(cbegin(xs) + i0, cend(xs), y);
-        if (it == cend(xs) || *it != y) return nullopt;
-        return inof(distance(cbegin(xs), it));
-    };
+    vector<array<multiset<int>, 3>> xss(sz(ys));
+    for (auto &row : xss) row.fill({});
 
-    const auto lo_x_idx = [&xs](const int i0, const int y) -> optional<int> {
-        if (xs.empty()) return nullopt;
-        const auto it = lower_bound(cbegin(xs) + i0, cend(xs), y);
-        if (it == cbegin(xs)) return nullopt;
-
-        const auto jt = lower_bound(cbegin(xs) + i0, cend(xs), *prev(it));
-        if (jt == cend(xs) || *jt != *prev(it)) return nullopt;
-
-        return inof(distance(cbegin(xs), jt));
-    };
-
-    vector<array<optional<pii>, 3>> D(sz(ys));
-    for (auto &row : D) row.fill(nullopt);
-
-    if (hi_x_idx(0, ys[0])) {
-        D[0][WIN] = pii{1, *hi_x_idx(0, ys[0])};
-    }
-
-    if (eq_x_idx(0, ys[0])) {
-        D[0][TIE] = pii{0, *eq_x_idx(0, ys[0])};
-    }
-
-    if (lo_x_idx(0, ys[0])) {
-        D[0][LOS] = pii{-1, *lo_x_idx(0, ys[0])};
-    }
-
-    for (int i = 1; i < sz(D); ++i) {
-        if (D[i - 1][WIN]) {
-            const auto [s0, i0] = *D[i - 1][WIN];
+    { // WIN
+        const auto it = upper_bound(cbegin(xs), cend(xs), ys[0]);
+        if (it != cend(xs)) {
+            score[0][WIN] = 1;
+            xss[0][WIN] = multiset<int>(cbegin(xs), cend(xs));
+            xss[0][WIN].erase(xss[0][WIN].find(*it));
         }
     }
 
-    int result = -INF;
-    if (D.back()[WIN]) result += D.back()[WIN]->first;
-    if (D.back()[TIE]) result += D.back()[TIE]->first;
-    if (D.back()[LOS]) result += D.back()[LOS]->first;
-    return result;
+    { // TIE
+        const auto it = lower_bound(cbegin(xs), cend(xs), ys[0]);
+        if (it != cend(xs) && *it == ys[0]) {
+            score[0][TIE] = 0;
+            xss[0][TIE] = multiset<int>(cbegin(xs), cend(xs));
+            xss[0][TIE].erase(xss[0][TIE].find(*it));
+        }
+    }
+
+    { // LOS
+        auto it = lower_bound(cbegin(xs), cend(xs), ys[0]);
+        if (it != cbegin(xs)) {
+            const auto jt = lower_bound(cbegin(xs), cend(xs), *prev(it));
+            assert(jt != cend(xs));
+
+            score[0][LOS] = -1;
+            xss[0][LOS] = multiset<int>(cbegin(xs), cend(xs));
+            xss[0][LOS].erase(xss[0][LOS].find(*jt));
+        }
+    }
+
+    for (int i = 1; i < sz(score); ++i) {
+        for (int j = 0; j < 3; ++j) {
+            if (score[i - 1][j] == -INF) continue;
+            auto cur = xss[i - 1][j];
+
+            { // WIN
+                const auto it = upper_bound(cbegin(cur), cend(cur), ys[i]);
+                if (it != cend(cur) && score[i - 1][j] + 1 > score[i][WIN]) {
+                    score[i][WIN] = score[i - 1][j] + 1;
+                    xss[i][WIN] = cur;
+                    xss[i][WIN].erase(xss[i][WIN].find(*it));
+                }
+            }
+
+            { // TIE
+                const auto it = lower_bound(cbegin(cur), cend(cur), ys[i]);
+                if (it != cend(cur) && *it == ys[i] &&
+                    score[i - 1][j] > score[i][TIE]) {
+                    score[i][TIE] = score[i - 1][j];
+                    xss[i][TIE] = cur;
+                    xss[i][TIE].erase(xss[i][TIE].find(*it));
+                }
+            }
+
+            { // LOS
+                auto it = lower_bound(cbegin(cur), cend(cur), ys[i]);
+                if (it != cbegin(cur) && score[i - 1][j] - 1 > score[i][LOS]) {
+                    const auto jt =
+                        lower_bound(cbegin(cur), cend(cur), *prev(it));
+                    assert(jt != cend(cur));
+
+                    score[i][LOS] = score[i - 1][j] - 1;
+                    xss[i][LOS] = cur;
+                    xss[i][LOS].erase(xss[i][LOS].find(*jt));
+                }
+            }
+        }
+    }
+
+    return *max_element(cbegin(score.back()), cend(score.back()));
 }
 
 int main() {
