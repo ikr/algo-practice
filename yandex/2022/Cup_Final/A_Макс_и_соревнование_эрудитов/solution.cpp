@@ -21,6 +21,7 @@ int max_score(vector<int> xs, const vector<int> &ys) {
             }
         }
         swap(xs_, xs);
+        reverse(begin(xs), end(xs));
     }
 
     for (const auto x : xs) {
