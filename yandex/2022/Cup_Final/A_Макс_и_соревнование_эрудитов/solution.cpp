@@ -2,7 +2,7 @@
 using namespace std;
 
 int max_score(vector<int> xs, const vector<int> &ys) {
-    sort(begin(xs), end(xs));
+    sort(rbegin(xs), rend(xs));
     multiset<int> opp(cbegin(ys), cend(ys));
     int result{};
 
@@ -21,7 +21,6 @@ int max_score(vector<int> xs, const vector<int> &ys) {
             }
         }
         swap(xs_, xs);
-        reverse(begin(xs), end(xs));
     }
 
     for (const auto x : xs) {
