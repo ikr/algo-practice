@@ -15,8 +15,16 @@ map<int, int> gather_freqs(const vector<int> &xs) {
     return result;
 }
 
+vector<int> keys_of(const map<int, int> &xs) {
+    vector<int> result(sz(xs));
+    transform(cbegin(xs), cend(xs), begin(result),
+              [](const auto kv) { return kv.first; });
+    return result;
+}
+
 ll min_remaining_sum(const vector<int> &A, const int M) {
     const auto fs = gather_freqs(A);
+    const auto ks = keys_of(fs);
     return -1;
 }
 
