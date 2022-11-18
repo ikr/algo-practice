@@ -13,12 +13,13 @@ bool is_possible(const vector<int> &xs, int s) {
 
     {
         auto lo = *plo;
-        while (s && lo > 1) {
+        while (s > 0 && lo > 1) {
             if (s - (lo - 1) < 0) return false;
             --lo;
             s -= lo;
-            xss.insert(lo);
         }
+
+        if (lo > 1) return false;
     }
 
     for (int x = *plo; x <= *phi; ++x) {
@@ -29,7 +30,7 @@ bool is_possible(const vector<int> &xs, int s) {
         }
     }
 
-    for (int x = *phi + 1; !!s; ++x) {
+    for (int x = *phi + 1; s > 0; ++x) {
         if (s < x) return false;
         s -= x;
     }
