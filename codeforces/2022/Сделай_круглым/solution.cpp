@@ -10,7 +10,7 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll best_round(const ll n, const ll m) {
-    ll result = n;
+    ll result = n * m;
     ll B = 1;
 
     for (int e = 1; e <= 18; ++e) {
@@ -19,19 +19,8 @@ ll best_round(const ll n, const ll m) {
         const auto k = B / g;
 
         if (k <= m) {
-            ll lo = 1;
-            ll hi = m / k;
-
-            while (hi - lo > 1) {
-                const auto mid = lo + (hi - lo) / 2LL;
-                if (k * lo <= m) {
-                    lo = mid;
-                } else {
-                    hi = mid;
-                }
-            }
-
-            result = n * k * lo;
+            const ll hi = m / k;
+            result = n * k * hi;
         }
     }
 
