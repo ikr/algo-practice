@@ -22,6 +22,26 @@ vector<int> keys(const map<int, int> &xs) {
     return result;
 }
 
+ll max_subtotal(const map<int, int> &xs) {
+    const auto hi =
+        max_element(cbegin(xs), cend(xs), [](const auto a, const auto b) {
+            return 1LL * a.first * a.second < 1LL * b.first * b.second;
+        });
+
+    return 1LL * hi->first * hi->second;
+}
+
+ll max_subtotal(const map<int, int> &fs, const vector<int> &ks) {
+    assert(!ks.empty());
+
+    const auto hi =
+        *max_element(cbegin(ks), cend(ks), [&fs](const auto ka, const auto kb) {
+            return 1LL * ka * fs.at(ka) < 1LL * kb * fs.at(kb);
+        });
+
+    return 1LL * hi * fs.at(hi);
+}
+
 vector<int> interval_end_indices(const vector<int> &xs) {
     const auto n = sz(xs);
     vector<int> result(n);
@@ -39,26 +59,71 @@ vector<int> interval_end_indices(const vector<int> &xs) {
 }
 
 ll min_remaining_sum(const vector<int> &A, const int M) {
+    const auto SA = accumulate(cbegin(A), cend(A), 0LL, plus<ll>{});
     const auto fs = frequencies(A);
-    const auto ks = keys(fs);
-    const auto es = interval_end_indices(A);
+
+    const auto ksa_ksb = [&]() -> pair<vector<int>, vector<int>> {
+        auto xs = keys(fs);
+        const auto lim =
+            remove_if(begin(xs), end(xs), [M](const auto x) { return x >= M; });
+        return pair{vector<int>(begin(xs), lim), vector<int>(lim, end(xs))};
+    }();
+    const auto &ksa = ksa_ksb.first;
+    const auto &ksb = ksa_ksb.second;
+    if (ksa.empty()) return SA - max_subtotal(fs);
 
     const auto ss = [&]() -> vector<ll> {
-        assert(!ks.empty());
-        vector<ll> result(sz(ks));
+        vector<ll> result(sz(ksa));
 
         for (int i = 0; i < sz(result); ++i) {
-            result[i] = (i ? result[i - 1] : 0LL) + 1LL * fs.at(ks[i]) * ks[i];
+            result[i] =
+                (i ? result[i - 1] : 0LL) + 1LL * fs.at(ksa[i]) * ksa[i];
         }
 
         return result;
     }();
 
-    const auto range_sum = [&](const int a, const int b) -> ll {
-        return ss[b] - (a ? ss[a - 1] : 0LL);
-    };
+    const auto is_complete_ring = ksa[0] == 0 && sz(ksa) == M;
+    if (is_complete_ring) {
+        if (ksb.empty()) return SA - ss.back();
+        return SA - max_subtotal(fs, ksb) + ss.back();
+    } else {
+        const auto cycled = ksa[0] == 0 && ksa.back() == M - 1;
+        const auto es = interval_end_indices(ksa);
 
-    return -1;
+        const auto range_sum = [&ss](const int a, const int b) -> ll {
+            return ss[b] - (a ? ss[a - 1] : 0LL);
+        };
+
+        const auto universal_sum_from = [&](const int i0) -> ll {
+            auto result = range_sum(i0, es[i0]);
+            if (cycled && ksa[es[i0]] == M - 1) {
+                result += range_sum(0, es[0]);
+            }
+            return result;
+        };
+
+        map<int, int> idx;
+        for (int i = 0; i < sz(ksa); ++i) {
+            idx[ksa[i]] = i;
+        }
+
+        ll hi{};
+
+        for (int i0 = 0; i0 < sz(ksa); ++i0) {
+            hi = max(hi, universal_sum_from(i0));
+        }
+
+        for (const auto y : ksb) {
+            const auto x0 = (ksb[y] + 1) % M;
+            if (idx.count(x0)) {
+                hi = max(hi, 1LL * y * fs.at(ksb[y]) +
+                                 universal_sum_from(idx.at(x0)));
+            }
+        }
+
+        return SA - hi;
+    }
 }
 
 int main() {
