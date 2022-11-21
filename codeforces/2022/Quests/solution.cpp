@@ -39,6 +39,32 @@ ll max_k(const ll c, const ll d, const vector<ll> &xs) {
         }
     }
 
+    const auto S = ss.back();
+
+    ll lo = n;
+    ll hi = 1e16;
+    const auto total_cycles = c / S;
+
+    while (lo + 1 < hi) {
+        const auto mid = lo + (hi - lo) / 2LL;
+        const auto r = c % S;
+
+        const auto it = lower_bound(cbegin(ss), cend(ss), r);
+        if (it == cend(ss)) {
+            hi = mid;
+            continue;
+        }
+
+        if (total_cycles * (mid + 1) +
+                (r ? inof(distance(cbegin(ss), it)) + 1 : 0) <=
+            d) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+
+    result = max(result, lo);
     return result;
 }
 
