@@ -11,10 +11,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
-}
-
 ll max_k(const ll c, const ll d, const vector<ll> &xs) {
     if (xs[0] >= c) return INF;
     if (xs[0] * d < c) return -1;
@@ -23,49 +19,23 @@ ll max_k(const ll c, const ll d, const vector<ll> &xs) {
     vector<ll> ss(n);
     partial_sum(cbegin(xs), cend(xs), begin(ss));
 
-    ll result{};
-
-    for (int i = 1; i < n; ++i) {
-        const auto full_cycles = c / ss[i];
-        const auto r = c % ss[i];
-
-        const auto it = lower_bound(cbegin(ss), cbegin(ss) + i + 1, r);
-        if (it == cend(ss)) continue;
-
-        if (full_cycles * (i + 1) +
-                (r ? inof(distance(cbegin(ss), it)) + 1 : 0) <=
-            d) {
-            result = i;
-        }
-    }
-
-    const auto S = ss.back();
-
-    ll lo = n;
-    ll hi = 1e16;
-    const auto total_cycles = c / S;
-
+    ll lo = 0LL;
+    ll hi = d + 1;
     while (lo + 1 < hi) {
         const auto mid = lo + (hi - lo) / 2LL;
-        const auto r = c % S;
 
-        const auto it = lower_bound(cbegin(ss), cend(ss), r);
-        if (it == cend(ss)) {
-            hi = mid;
-            continue;
-        }
+        const auto [q, r] = lldiv(c, mid < n ? ss[mid] : ss.back());
+        const auto ri =
+            inof(distance(cbegin(ss), lower_bound(cbegin(ss), cend(ss), r)));
 
-        if (total_cycles * (mid + 1) +
-                (r ? inof(distance(cbegin(ss), it)) + 1 : 0) <=
-            d) {
+        if (q * (mid + 1) + (r ? (ri + 1) : 0) <= d) {
             lo = mid;
         } else {
             hi = mid;
         }
     }
 
-    result = max(result, lo);
-    return result;
+    return lo;
 }
 
 int main() {
