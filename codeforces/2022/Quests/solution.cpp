@@ -12,7 +12,6 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll max_k(const ll c, const ll d, const vector<ll> &xs) {
-    if (xs[0] >= c) return INF;
     if (xs[0] * d < c) return -1;
 
     const auto n = sz(xs);
@@ -24,6 +23,8 @@ ll max_k(const ll c, const ll d, const vector<ll> &xs) {
         if (i > n - 1LL) return ss.back();
         return ss[i];
     };
+
+    if (safe_sum(d - 1) >= c) return INF;
 
     ll lo = 0LL;
     ll hi = d + 1;
