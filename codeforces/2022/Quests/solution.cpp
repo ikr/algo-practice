@@ -19,19 +19,22 @@ ll max_k(const ll c, const ll d, const vector<ll> &xs) {
     vector<ll> ss(n);
     partial_sum(cbegin(xs), cend(xs), begin(ss));
 
+    const auto safe_sum = [&](const ll i) -> ll {
+        if (i < 0LL) return 0;
+        if (i > n - 1LL) return ss.back();
+        return ss[i];
+    };
+
     ll lo = 0LL;
     ll hi = d + 1;
     while (lo + 1 < hi) {
-        const auto mid = lo + (hi - lo) / 2LL;
+        const auto k = lo + (hi - lo) / 2LL;
+        const auto [q, r] = lldiv(d, k + 1);
 
-        const auto [q, r] = lldiv(c, mid < n ? ss[mid] : ss.back());
-        const auto ri =
-            inof(distance(cbegin(ss), lower_bound(cbegin(ss), cend(ss), r)));
-
-        if (q * (mid + 1) + (r ? (ri + 1) : 0) <= d) {
-            lo = mid;
+        if (q * safe_sum(k) + safe_sum(r - 1) >= c) {
+            lo = k;
         } else {
-            hi = mid;
+            hi = k;
         }
     }
 
