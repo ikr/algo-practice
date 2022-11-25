@@ -23,16 +23,16 @@ int unused_edges_count(const vector<vector<pii>> &g) {
     vector<vector<int>> D(n, vector<int>(n, INF));
     for (int u = 0; u < n; ++u) D[u][u] = 0;
 
+    set<pii> used;
     for (int u = 0; u < n; ++u) {
         for (const auto &vw : g[u]) {
             const auto v = vw.first;
             const auto w = vw.second;
             D[u][v] = w;
             D[v][u] = w;
+            used.insert(canonical({u, v}));
         }
     }
-
-    set<pii> used;
 
     for (int k = 0; k < n; ++k) {
         for (int i = 0; i < n; ++i) {
