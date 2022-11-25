@@ -33,6 +33,7 @@ int main() {
             --v;
 
             g[u].emplace_back(v, w);
+            g[v].emplace_back(u, w);
         }
 
         cout << (is_possible(g, a, b) ? "YES" : "NO") << '\n';
