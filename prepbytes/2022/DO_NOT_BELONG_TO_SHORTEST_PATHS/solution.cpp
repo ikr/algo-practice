@@ -39,6 +39,7 @@ int unused_edges_count(const vector<vector<pii>> &g) {
             for (int j = 0; j < n; ++j) {
                 if (D[i][k] + D[k][j] < D[i][j]) {
                     D[i][j] = D[i][k] + D[k][j];
+                    used.erase(canonical({i, j}));
                     used.insert(canonical({i, k}));
                     used.insert(canonical({k, j}));
                 }
