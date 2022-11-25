@@ -18,19 +18,25 @@ pii canonical(const pii xy) {
     return {min(x, y), max(x, y)};
 }
 
-int unused_edges_count(const vector<vector<pii>> &g) {
+vector<int> vconcat(vector<int> xs, const vector<int> &ys) {
+    xs.insert(xs.cend(), ys.cbegin(), ys.cend());
+    return xs;
+}
+
+int unused_edges_count(const int M, const vector<vector<pii>> &g) {
     const auto n = sz(g);
+
     vector<vector<int>> D(n, vector<int>(n, INF));
     for (int u = 0; u < n; ++u) D[u][u] = 0;
 
-    set<pii> used;
+    vector<vector<int>> P(n, vector<int>(n, -1));
+
     for (int u = 0; u < n; ++u) {
         for (const auto &vw : g[u]) {
             const auto v = vw.first;
             const auto w = vw.second;
             D[u][v] = w;
             D[v][u] = w;
-            used.insert(canonical({u, v}));
         }
     }
 
@@ -39,25 +45,34 @@ int unused_edges_count(const vector<vector<pii>> &g) {
             for (int j = 0; j < n; ++j) {
                 if (D[i][k] + D[k][j] < D[i][j]) {
                     D[i][j] = D[i][k] + D[k][j];
-                    used.erase(canonical({i, j}));
-                    used.insert(canonical({i, k}));
-                    used.insert(canonical({k, j}));
+                    P[i][j] = k;
                 }
             }
         }
     }
 
-    set<pii> unused;
+    const auto path_between = [&](const auto self, const int src,
+                                  const int dst) -> vector<int> {
+        assert(src != dst);
+        if (P[src][dst] == -1) return {src, dst};
+        auto result =
+            vconcat(self(self, src, P[src][dst]), self(self, P[src][dst], dst));
+        result.erase(unique(result.begin(), result.end()), end(result));
+        return result;
+    };
 
-    for (int u = 0; u < n; ++u) {
-        for (const auto &vw : g[u]) {
-            const auto v = vw.first;
-            if (used.count(canonical({u, v}))) continue;
-            unused.insert(canonical({u, v}));
+    set<pii> used;
+
+    for (int u = 0; u < n - 1; ++u) {
+        for (int v = u + 1; v < n; ++v) {
+            const auto path = path_between(path_between, u, v);
+            for (int i = 1; i < sz(path); ++i) {
+                used.insert(canonical({path[i - 1], path[i]}));
+            }
         }
     }
 
-    return sz(unused);
+    return M - sz(used);
 }
 
 int main() {
@@ -79,6 +94,6 @@ int main() {
         g[v].emplace_back(u, w);
     }
 
-    cout << unused_edges_count(g) << '\n';
+    cout << unused_edges_count(M, g) << '\n';
     return 0;
 }
