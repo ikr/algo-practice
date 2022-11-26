@@ -11,28 +11,18 @@ template <typename T> constexpr double doof(const T x) {
     return static_cast<double>(x);
 }
 
-constexpr double time(const ll A, const ll B, const double k) {
-    return doof(B) * k + doof(A) / sqrt(1.0 + k);
+constexpr double time(const ll A, const ll B, const ll k) {
+    return doof(B) * doof(k) + doof(A) / sqrt(1.0 + doof(k));
 }
 
 double shortest_time(const ll A, const ll B) {
-    double lo = 0.0;
-    double hi = doof(A);
+    const auto x =
+        pow(doof(A) * doof(A) / (4.0 * doof(B) * doof(B)), 1.0 / 3.0);
+    const auto k = x - 1;
+    const auto o1 = llof(k);
+    const auto o2 = o1 + 1;
 
-    for (int i = 1; i <= 10000; ++i) {
-        const auto mid = lo + (hi - lo) / 2.0;
-        if (time(A, B, mid) >= time(A, B, lo)) {
-            hi = mid;
-        } else {
-            lo = mid;
-        }
-    }
-
-    if (time(A, B, doof(llof(lo))) <= time(A, B, doof(llof(lo)) + 1.0)) {
-        return time(A, B, doof(llof(lo)));
-    }
-
-    return time(A, B, doof(llof(lo)) + 1.0);
+    return min(time(A, B, o1), time(A, B, o2));
 }
 
 int main() {
