@@ -10,6 +10,32 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 bool is_possible(const vector<vector<pii>> &g, const int a, const int b) {
+    const auto yields_from_x = [&](const int x, const int skip) -> set<int> {
+        set<int> result;
+
+        const auto dfs = [&](const auto self, const int cur,
+                             const pii uu) -> void {
+            const auto [u_, u] = uu;
+
+            for (const auto &[v, w] : g[u]) {
+                if (v == u_) continue;
+                if (v != skip) result.insert(cur ^ w);
+                self(self, cur ^ w, {u, v});
+            }
+        };
+
+        dfs(dfs, 0, {-1, x});
+
+        return result;
+    };
+
+    const auto yields_from_b = yields_from_x(b, -1);
+    if (yields_from_b.contains(0)) return true;
+
+    for (const auto x : yields_from_x(a, b)) {
+        if (yields_from_b.contains(x)) return true;
+    }
+
     return false;
 }
 
