@@ -18,8 +18,8 @@ bool is_possible(const vector<vector<pii>> &g, const int a, const int b) {
             const auto [u_, u] = uu;
 
             for (const auto &[v, w] : g[u]) {
-                if (v == u_) continue;
-                if (v != skip) result.insert(cur ^ w);
+                if (v == u_ || v == skip) continue;
+                result.insert(cur ^ w);
                 self(self, cur ^ w, {u, v});
             }
         };
