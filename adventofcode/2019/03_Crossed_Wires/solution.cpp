@@ -1,22 +1,5 @@
-#include <algorithm>
 #include <bits/stdc++.h>
 using namespace std;
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
 
 using pii = pair<int, int>;
 
@@ -47,32 +30,45 @@ vector<pair<char, int>> parse_comma_separated_commands(const string &line) {
     return result;
 }
 
-pii destination_coord(const pii source, const pair<char, int> command) {
-    const auto [ro, co] = source;
-    switch (command.first) {
-    case 'U':
-        return {ro - command.second, co};
+vector<pii> next_path_segment(const pii source, const pair<char, int> command) {
+    const auto [dir, arg] = command;
+    vector<pii> result;
 
-    case 'L':
-        return {ro, co - command.second};
+    for (int i = 1; i <= arg; ++i) {
+        const auto [ro, co] = result.empty() ? source : result.back();
 
-    case 'D':
-        return {ro + command.second, co};
+        switch (dir) {
+        case 'U':
+            result.emplace_back(ro - 1, co);
+            break;
 
-    case 'R':
-        return {ro, co + command.second};
+        case 'L':
+            result.emplace_back(ro, co - 1);
+            break;
 
-    default:
-        assert(false && "Invalid direction");
+        case 'D':
+            result.emplace_back(ro + 1, co);
+            break;
+
+        case 'R':
+            result.emplace_back(ro, co + 1);
+            break;
+
+        default:
+            assert(false && "Invalid direction");
+        }
     }
+
+    return result;
 }
 
 vector<pii> trace_with_origin_dropped(const vector<pair<char, int>> &commands) {
     vector<pii> result;
 
     for (const auto &command : commands) {
-        result.push_back(destination_coord(
-            result.empty() ? pii{0, 0} : result.back(), command));
+        const auto seg = next_path_segment(
+            result.empty() ? pii{0, 0} : result.back(), command);
+        result.insert(cend(result), cbegin(seg), cend(seg));
     }
 
     return result;
@@ -81,11 +77,9 @@ vector<pii> trace_with_origin_dropped(const vector<pair<char, int>> &commands) {
 pii closest_intersection(const vector<pair<char, int>> &commands_x,
                          const vector<pair<char, int>> &commands_y) {
     auto tx = trace_with_origin_dropped(commands_x);
-    cerr << tx << endl;
     sort(begin(tx), end(tx));
 
     auto ty = trace_with_origin_dropped(commands_y);
-    cerr << ty << endl;
     sort(begin(ty), end(ty));
 
     vector<pii> intersection;
@@ -108,7 +102,7 @@ int main() {
     cin >> line_y;
     const auto ys = parse_comma_separated_commands(line_y);
 
-    const auto [ro, co] = closest_intersection(xs, ys);
-    cout << (ro + co) << '\n';
+    const auto roco = closest_intersection(xs, ys);
+    cout << manhattan({0, 0}, roco) << '\n';
     return 0;
 }
