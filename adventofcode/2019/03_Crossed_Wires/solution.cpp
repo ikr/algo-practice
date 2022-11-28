@@ -74,23 +74,34 @@ vector<pii> trace_with_origin_dropped(const vector<pair<char, int>> &commands) {
     return result;
 }
 
-pii closest_intersection(const vector<pair<char, int>> &commands_x,
-                         const vector<pair<char, int>> &commands_y) {
-    auto tx = trace_with_origin_dropped(commands_x);
-    sort(begin(tx), end(tx));
+tuple<vector<pii>, vector<pii>, set<pii>>
+traces_and_all_intersections(const vector<pair<char, int>> &commands_x,
+                             const vector<pair<char, int>> &commands_y) {
+    const auto tx = trace_with_origin_dropped(commands_x);
+    auto tx_ = tx;
+    sort(begin(tx_), end(tx_));
 
-    auto ty = trace_with_origin_dropped(commands_y);
-    sort(begin(ty), end(ty));
+    const auto ty = trace_with_origin_dropped(commands_y);
+    auto ty_ = ty;
+    sort(begin(ty_), end(ty_));
 
     vector<pii> intersection;
-    set_intersection(cbegin(tx), cend(tx), cbegin(ty), cend(ty),
+    set_intersection(cbegin(tx_), cend(tx_), cbegin(ty_), cend(ty_),
                      back_inserter(intersection));
-    assert(!intersection.empty());
+    return {tx, ty, set(cbegin(intersection), cend(intersection))};
+}
 
-    return *min_element(cbegin(intersection), cend(intersection),
-                        [](const pii a, const pii b) {
-                            return manhattan({0, 0}, a) < manhattan({0, 0}, b);
-                        });
+map<pii, int> steps_by_intersection(const set<pii> &intersections,
+                                    const vector<pii> &trace) {
+    map<pii, int> result;
+
+    for (int i = 0; i < sz(trace); ++i) {
+        if (intersections.contains(trace[i])) {
+            result[trace[i]] = i + 1;
+        }
+    }
+
+    return result;
 }
 
 int main() {
@@ -102,7 +113,15 @@ int main() {
     cin >> line_y;
     const auto ys = parse_comma_separated_commands(line_y);
 
-    const auto roco = closest_intersection(xs, ys);
-    cout << manhattan({0, 0}, roco) << '\n';
+    const auto [tx, ty, intersections] = traces_and_all_intersections(xs, ys);
+    const auto sbi_x = steps_by_intersection(intersections, tx);
+    const auto sbi_y = steps_by_intersection(intersections, ty);
+
+    const auto roco = *min_element(cbegin(intersections), cend(intersections),
+                                   [&](const pii a, const pii b) {
+                                       return sbi_x.at(a) + sbi_y.at(a) <
+                                              sbi_x.at(b) + sbi_y.at(b);
+                                   });
+    cout << (sbi_x.at(roco) + sbi_y.at(roco)) << '\n';
     return 0;
 }
