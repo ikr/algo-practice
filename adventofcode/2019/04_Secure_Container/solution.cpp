@@ -30,18 +30,6 @@ template <typename T> vector<int> digits(T n) {
     return ans;
 }
 
-template <typename T> T number(const vector<int> &ds) {
-    if (ds.empty()) return 0;
-
-    T ans = 0;
-    T mul = 1;
-    for (auto it = ds.crbegin(); it != ds.crend(); ++it) {
-        ans += (*it) * mul;
-        mul *= static_cast<T>(10);
-    }
-    return ans;
-}
-
 bool is_monotonic(const vector<int> &xs) {
     for (int i = 1; i < sz(xs); ++i) {
         if (xs[i - 1] > xs[i]) return false;
@@ -49,9 +37,13 @@ bool is_monotonic(const vector<int> &xs) {
     return true;
 }
 
-bool has_equal_neighs(const vector<int> &xs) {
+bool has_strict_pair(const vector<int> &xs) {
     for (int i = 1; i < sz(xs); ++i) {
-        if (xs[i - 1] == xs[i]) return true;
+        const auto left = (i - 2 >= 0) ? xs[i - 2] : INT_MIN;
+        const auto right = (i + 1 < sz(xs)) ? xs[i + 1] : INT_MIN;
+        if (left != xs[i - 1] && xs[i - 1] == xs[i] && xs[i] != right) {
+            return true;
+        }
     }
     return false;
 }
@@ -60,7 +52,7 @@ int potential_passwords_count(const int A, const int B) {
     int result{};
     for (int x = A; x <= B; ++x) {
         const auto ds = digits(x);
-        result += is_monotonic(ds) && has_equal_neighs(ds);
+        result += is_monotonic(ds) && has_strict_pair(ds);
     }
     return result;
 }
