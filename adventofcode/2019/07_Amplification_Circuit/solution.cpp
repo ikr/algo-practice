@@ -49,8 +49,6 @@ optional<int> intcode_run(State &st) {
         return x;
     };
 
-    int result = INT_MIN;
-
     while (st.i < sz(st.xs)) {
         const auto [oc, m1, m2] = parse_op(st.xs[st.i++]);
 
@@ -114,6 +112,13 @@ int highest_output_signal(const vector<int> &xs) {
         for (int i = 0; i < 5; ++i) {
             auto inq = i ? q_of({phases[i]}) : q_of({cur, phases[i]});
             states[i] = State{xs, 0, inq};
+        }
+
+        for (int a = 0;; a = (a + 1) % sz(states)) {
+            const auto out = intcode_run(states[a]);
+            if (!out) break;
+            cur = *out;
+            states[(a + 1) % sz(states)].inq.push(cur);
         }
 
         result = max(result, cur);
