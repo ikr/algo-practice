@@ -18,10 +18,12 @@ int main() {
         xss.back().push_back(stoi(line));
     }
 
-    const auto result = transform_reduce(
-        cbegin(xss), cend(xss), 0, mmax<int>{},
-        [](const auto &xs) { return accumulate(cbegin(xs), cend(xs), 0); });
+    vector<int> xs(xss.size());
+    transform(cbegin(xss), cend(xss), begin(xs), [](const auto &ys) {
+        return accumulate(cbegin(ys), cend(ys), 0);
+    });
 
-    cout << result << '\n';
+    partial_sort(begin(xs), begin(xs) + 3, end(xs), greater<int>{});
+    cout << accumulate(cbegin(xs), cbegin(xs) + 3, 0) << '\n';
     return 0;
 }
