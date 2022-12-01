@@ -1,27 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 enum class Opcode {
     ADD = 1,
     MUL = 2,
@@ -114,31 +93,23 @@ int intcode_run(vector<int> xs, queue<int> input_queue) {
     return result;
 }
 
-array<int, 5> phases(int combo) {
-    array<int, 5> result;
-    for (int i = 0; i < 5; ++i) {
-        result[i] = combo % 5;
-        combo /= 5;
-    }
-    return result;
-}
-
 int highest_output_signal(const vector<int> &xs) {
     int result = INT_MIN;
 
-    for (int combo = 0; combo < 3125; ++combo) {
-        const auto ps = phases(combo);
+    array<int, 5> phases{0, 1, 2, 3, 4};
+    do {
         int last_output{};
 
-        for (int i = 0; i < sz(ps); ++i) {
+
+        for (int i = 0; i < sz(phases); ++i) {
             queue<int> input_queue;
-            input_queue.push(ps[i]);
+            input_queue.push(phases[i]);
             input_queue.push(last_output);
             last_output = intcode_run(xs, input_queue);
         }
 
         result = max(result, last_output);
-    }
+    } while (next_permutation(begin(phases), end(phases)));
 
     return result;
 }
