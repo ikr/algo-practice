@@ -32,57 +32,62 @@ tuple<Opcode, Mode, Mode> parse_op(const int op) {
             static_cast<Mode>((op / 1000) % 10)};
 }
 
-int intcode_run(vector<int> xs, queue<int> input_queue) {
-    const auto deref = [&xs](const Mode m, const int p) -> int {
-        return m == Mode::POS ? xs[p] : p;
+struct State final {
+    vector<int> xs;
+    int i;
+    queue<int> inq;
+};
+
+optional<int> intcode_run(State &st) {
+    const auto deref = [&](const Mode m, const int p) -> int {
+        return m == Mode::POS ? st.xs[p] : p;
     };
 
-    const auto input = [&input_queue]() -> int {
-        const auto ans = input_queue.front();
-        input_queue.pop();
-        return ans;
+    const auto input = [&]() -> int {
+        const auto x = st.inq.front();
+        st.inq.pop();
+        return x;
     };
 
     int result = INT_MIN;
 
-    for (int i = 0; i < sz(xs);) {
-        const auto [oc, m1, m2] = parse_op(xs[i++]);
+    while (st.i < sz(st.xs)) {
+        const auto [oc, m1, m2] = parse_op(st.xs[st.i++]);
 
         if (oc == Opcode::ADD) {
-            const auto p1 = xs[i++];
-            const auto p2 = xs[i++];
-            const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) + deref(m2, p2);
+            const auto p1 = st.xs[st.i++];
+            const auto p2 = st.xs[st.i++];
+            const auto p3 = st.xs[st.i++];
+            st.xs[p3] = deref(m1, p1) + deref(m2, p2);
         } else if (oc == Opcode::MUL) {
-            const auto p1 = xs[i++];
-            const auto p2 = xs[i++];
-            const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) * deref(m2, p2);
+            const auto p1 = st.xs[st.i++];
+            const auto p2 = st.xs[st.i++];
+            const auto p3 = st.xs[st.i++];
+            st.xs[p3] = deref(m1, p1) * deref(m2, p2);
         } else if (oc == Opcode::INP) {
-            xs[xs[i++]] = input();
+            st.xs[st.xs[st.i++]] = input();
         } else if (oc == Opcode::OUT) {
-            const auto p1 = xs[i++];
-            result = deref(m1, p1);
-            continue;
+            const auto p1 = st.xs[st.i++];
+            return deref(m1, p1);
         } else if (oc == Opcode::JPT) {
-            const auto p1 = xs[i++];
-            const auto p2 = xs[i++];
-            if (deref(m1, p1)) i = deref(m2, p2);
+            const auto p1 = st.xs[st.i++];
+            const auto p2 = st.xs[st.i++];
+            if (deref(m1, p1)) st.i = deref(m2, p2);
             continue;
         } else if (oc == Opcode::JPF) {
-            const auto p1 = xs[i++];
-            const auto p2 = xs[i++];
-            if (!deref(m1, p1)) i = deref(m2, p2);
+            const auto p1 = st.xs[st.i++];
+            const auto p2 = st.xs[st.i++];
+            if (!deref(m1, p1)) st.i = deref(m2, p2);
         } else if (oc == Opcode::LSS) {
-            const auto p1 = xs[i++];
-            const auto p2 = xs[i++];
-            const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) < deref(m2, p2);
+            const auto p1 = st.xs[st.i++];
+            const auto p2 = st.xs[st.i++];
+            const auto p3 = st.xs[st.i++];
+            st.xs[p3] = deref(m1, p1) < deref(m2, p2);
         } else if (oc == Opcode::EQL) {
-            const auto p1 = xs[i++];
-            const auto p2 = xs[i++];
-            const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) == deref(m2, p2);
+            const auto p1 = st.xs[st.i++];
+            const auto p2 = st.xs[st.i++];
+            const auto p3 = st.xs[st.i++];
+            st.xs[p3] = deref(m1, p1) == deref(m2, p2);
         } else if (oc == Opcode::HLT) {
             break;
         } else {
@@ -90,25 +95,28 @@ int intcode_run(vector<int> xs, queue<int> input_queue) {
         }
     }
 
+    return nullopt;
+}
+
+queue<int> q_of(const vector<int> &xs) {
+    queue<int> result;
+    for (const auto x : xs) result.push(x);
     return result;
 }
 
 int highest_output_signal(const vector<int> &xs) {
     int result = INT_MIN;
+    array<int, 5> phases{5, 6, 7, 8, 9};
 
-    array<int, 5> phases{0, 1, 2, 3, 4};
     do {
-        int last_output{};
-
-
-        for (int i = 0; i < sz(phases); ++i) {
-            queue<int> input_queue;
-            input_queue.push(phases[i]);
-            input_queue.push(last_output);
-            last_output = intcode_run(xs, input_queue);
+        int cur{};
+        array<State, 5> states;
+        for (int i = 0; i < 5; ++i) {
+            auto inq = i ? q_of({phases[i]}) : q_of({cur, phases[i]});
+            states[i] = State{xs, 0, inq};
         }
 
-        result = max(result, last_output);
+        result = max(result, cur);
     } while (next_permutation(begin(phases), end(phases)));
 
     return result;
