@@ -110,7 +110,7 @@ int highest_output_signal(const vector<int> &xs) {
         int cur{};
         array<State, 5> states;
         for (int i = 0; i < 5; ++i) {
-            auto inq = i ? q_of({phases[i]}) : q_of({cur, phases[i]});
+            auto inq = i ? q_of({phases[i]}) : q_of({phases[i], cur});
             states[i] = State{xs, 0, inq};
         }
 
