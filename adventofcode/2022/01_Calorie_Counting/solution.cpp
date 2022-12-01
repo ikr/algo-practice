@@ -1,12 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> struct mmax final {
-    constexpr T operator()(const T &a, const T &b) const {
-        return std::max(a, b);
-    }
-};
-
 int main() {
     vector<vector<int>> xss(1);
     for (string line; getline(cin, line);) {
