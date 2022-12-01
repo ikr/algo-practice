@@ -12,6 +12,16 @@ ostream &operator<<(ostream &os, const array<T, N> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 enum class Opcode {
     ADD = 1,
     MUL = 2,
@@ -118,17 +128,16 @@ int highest_output_signal(const vector<int> &xs) {
 
     for (int combo = 0; combo < 3125; ++combo) {
         const auto ps = phases(combo);
-        optional<int> last_output;
+        int last_output{};
 
         for (int i = 0; i < sz(ps); ++i) {
             queue<int> input_queue;
             input_queue.push(ps[i]);
-            input_queue.push(last_output ? *last_output : 0);
-
+            input_queue.push(last_output);
             last_output = intcode_run(xs, input_queue);
         }
 
-        result = max(result, *last_output);
+        result = max(result, last_output);
     }
 
     return result;
