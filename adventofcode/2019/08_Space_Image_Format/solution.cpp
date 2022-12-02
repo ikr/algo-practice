@@ -18,8 +18,33 @@ vector<vector<int>> cut_evenly(const vector<int> &xs, const int k) {
     return result;
 }
 
-int freq_of(const int x, const vector<int> &xs) {
-    return inof(count(cbegin(xs), cend(xs), x));
+vector<int> combine_slices(const vector<vector<int>> &xss) {
+    assert(!xss.empty());
+    const auto k = sz(xss[0]);
+    vector<int> result(k, 0);
+
+    for (int j = 0; j < k; ++j) {
+        for (int i = 0; i < sz(xss); ++i) {
+            if (xss[i][j] == 2) continue;
+            result[j] = xss[i][j];
+            break;
+        }
+    }
+
+    return result;
+}
+
+vector<string> raster_of_a_slice(const int W, const vector<int> &xs) {
+    const auto H = sz(xs) / W;
+    vector<string> result(H, string(W, ' '));
+
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            if (xs[ro * W + co]) result[ro][co] = '*';
+        }
+    }
+
+    return result;
 }
 
 int main() {
@@ -33,13 +58,9 @@ int main() {
     const int H = 6;
     const int W = 25;
 
-    const auto slices = cut_evenly(xs, H * W);
-    const auto fewest_zeros_slice = *min_element(
-        cbegin(slices), cend(slices), [](const auto &a, const auto &b) {
-            return freq_of(0, a) < freq_of(0, b);
-        });
-
-    cout << (freq_of(1, fewest_zeros_slice) * freq_of(2, fewest_zeros_slice))
-         << '\n';
+    const auto combined = combine_slices(cut_evenly(xs, H * W));
+    for (const auto &row : raster_of_a_slice(W, combined)) {
+        cout << row << '\n';
+    }
     return 0;
 }
