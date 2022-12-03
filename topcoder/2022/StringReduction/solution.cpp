@@ -22,22 +22,7 @@ map<char, vector<int>> options_by_letter(const vector<int> &X,
     map<char, vector<int>> result;
 
     for (int i = 0; i < sz(X); ++i) {
-        result[Y[i]].push_back(X[i]);
-    }
-
-    return result;
-}
-
-vector<pair<char, int>> run_length_encode(const string &xs) {
-    assert(!xs.empty());
-    vector<pair<char, int>> result{{xs[0], 1}};
-
-    for (int i = 1; i < sz(xs); ++i) {
-        if (result.back().first == xs[i]) {
-            ++(result.back().second);
-        } else {
-            result.emplace_back(xs[i], 1);
-        }
+        result[Y[i]].push_back(X[i] - 1);
     }
 
     return result;
@@ -76,12 +61,12 @@ struct StringReduction final {
 
         const auto fs = freqs(src);
         const auto os = options_by_letter(X, Y);
-        const auto rle = run_length_encode(src);
 
         int result = sz(src);
         for (const auto c : Y) {
             if (!fs.count(c)) continue;
             const auto total = fs.at(c);
+            result -= optimal_coverage(os.at(c), total - 1);
         }
         return result;
     }
