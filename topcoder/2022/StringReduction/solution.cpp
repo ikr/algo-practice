@@ -40,11 +40,15 @@ int optimal_coverage(const vector<int> &xs, const int N) {
         av[x] = true;
     }
 
-    for (int i = N; i >= 0; --i) {
-        if (av[i]) return i;
+    int result{};
+
+    for (int i = N; i >= 1; --i) {
+        if (av[i]) {
+            result = max(result, N - (N % i));
+        }
     }
 
-    return 0;
+    return result;
 }
 
 map<char, int> freqs(const string &xs) {
