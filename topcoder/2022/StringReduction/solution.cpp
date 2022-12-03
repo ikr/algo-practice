@@ -19,8 +19,6 @@ template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
 map<char, vector<int>> options_by_letter(const vector<int> &X,
                                          const string &Y) {
     assert(!X.empty());
-    assert(sz(X) == sz(Y));
-
     map<char, vector<int>> result;
 
     for (int i = 0; i < sz(X); ++i) {
@@ -51,6 +49,7 @@ vector<pair<char, int>> run_length_encode(const string &xs) {
 
 struct StringReduction final {
     int reduce(string src, const vector<int> &X, const string &Y) const {
+        assert(sz(X) == sz(Y));
         if (X.empty()) return sz(src);
         sort(begin(src), end(src));
 
@@ -71,6 +70,26 @@ const lest::test tests[] = {
     CASE("Example 1") {
         const auto actual = StringReduction{}.reduce("abba", {2, 3, 4, 5, 6}, "ccdef");
         const auto expected = 4;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 2") {
+        const auto actual = StringReduction{}.reduce("abcde", {1}, "c");
+        const auto expected = 5;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 3") {
+        const auto actual = StringReduction{}.reduce("aaaaa", {1, 2, 3, 4, 5}, "aaaaa");
+        const auto expected = 1;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 4") {
+        const auto actual = StringReduction{}.reduce("axbcxdefxgxh", {2, 2, 3}, "abx");
+        const auto expected = 10;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 5") {
+        const auto actual = StringReduction{}.reduce("bbbxbbbx", {3, 2, 1}, "bxx");
+        const auto expected = 3;
         EXPECT(actual == expected);
     },
 };
