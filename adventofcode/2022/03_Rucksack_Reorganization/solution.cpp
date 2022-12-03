@@ -14,31 +14,44 @@ int score(const char x) {
     return inof(x) - inof('A') + 27;
 }
 
-char intersection(string xs, string ys) {
+string intersection(string xs, string ys) {
     sort(begin(xs), end(xs));
+    xs.erase(unique(begin(xs), end(xs)), end(xs));
+
     sort(begin(ys), end(ys));
+    ys.erase(unique(begin(ys), end(ys)), end(ys));
+
     string zs;
 
     set_intersection(cbegin(xs), cend(xs), cbegin(ys), cend(ys),
                      back_inserter(zs));
-    return zs[0];
+    return zs;
 }
 
-int sum_of_prios_of_odd_items(const vector<pair<string, string>> &src) {
-    return transform_reduce(cbegin(src), cend(src), 0, plus<int>{},
-                            [](const auto ab) -> int {
-                                return score(intersection(ab.first, ab.second));
-                            });
+char intersection(const array<string, 3> &xss) {
+    return intersection(intersection(xss[0], xss[1]), xss[2])[0];
+}
+
+int sum_of_prios_of_group_badges(const vector<array<string, 3>> &groups) {
+    return transform_reduce(
+        cbegin(groups), cend(groups), 0, plus<int>{},
+        [](const auto &g) -> int { return score(intersection(g)); });
 }
 
 int main() {
-    vector<pair<string, string>> src;
+    vector<string> lines;
 
     for (string line; getline(cin, line);) {
-        src.emplace_back(line.substr(0, sz(line) / 2),
-                         line.substr(sz(line) / 2));
+        lines.emplace_back(line);
     }
 
-    cout << sum_of_prios_of_odd_items(src) << '\n';
+    vector<array<string, 3>> groups(sz(lines) / 3);
+    for (int i = 0; i < sz(groups); ++i) {
+        for (int j = 0; j < 3; ++j) {
+            groups[i][j] = lines[i * 3 + j];
+        }
+    }
+
+    cout << sum_of_prios_of_group_badges(groups) << '\n';
     return 0;
 }
