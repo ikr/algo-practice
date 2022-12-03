@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const multiset<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 using ll = long long;
 using ull = unsigned long long;
 
@@ -113,9 +103,9 @@ ull lowest_N(const ull K) {
         ull lo = p;
         ull hi = mpow(p, a);
 
-        while (lo + 1 < hi) {
-            const auto mid = lo + (hi - lo) / 2UL;
-            if (inof(num_present(p, mid)) >= a) {
+        while (lo + 1ULL < hi) {
+            const auto mid = lo + (hi - lo) / 2ULL;
+            if (num_present(p, mid) >= 0ULL + a) {
                 hi = mid;
             } else {
                 lo = mid;
