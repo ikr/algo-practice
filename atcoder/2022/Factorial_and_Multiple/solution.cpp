@@ -67,25 +67,65 @@ vector<ull> factor(ull n) {
 }
 } // namespace kactl
 
-ull lowest_N(const ull K) {
-    if (kactl::isPrime(K)) return K;
+ull mpow(const ull x, const int p) {
+    if (p == 0) return 1;
+    if (p % 2) return (x * mpow(x, p - 1));
+    const ull sq = mpow(x, p / 2);
+    return (sq * sq);
+}
 
-    const auto fs = kactl::factor(K);
-    multiset<ull> fss(cbegin(fs), cend(fs));
+ull num_present(const ull p, ull n) {
+    if (n < p) return 0;
 
-    for (int n = 2;; ++n) {
-        const auto xs = kactl::factor(n);
+    int hi = 1;
+    while (mpow(p, hi + 1) <= n) ++hi;
 
-        for (const auto x : xs) {
-            const auto it = fss.find(x);
-            if (it == cend(fss)) continue;
-            fss.erase(it);
-            if (fss.empty()) return n;
-        }
+    vector<ull> memo(hi + 1, 0);
+    memo[hi] = n / mpow(p, hi);
+    ull s = memo[hi];
+
+    for (int i = hi - 1; i >= 1; --i) {
+        memo[i] = n / mpow(p, i) - s;
+        s += memo[i];
     }
 
-    assert(false && "/o\\");
-    return 0;
+    ull result{};
+    for (int i = 1; i <= hi; ++i) {
+        result += i * memo[i];
+    }
+    return result;
+}
+
+ull lowest_N(const ull K) {
+    map<ull, int> fs;
+    for (const auto p : kactl::factor(K)) {
+        ++fs[p];
+    }
+
+    ull result{};
+
+    for (const auto &[p, a] : fs) {
+        if (a == 1) {
+            result = max(result, p);
+            continue;
+        }
+
+        ull lo = p;
+        ull hi = mpow(p, a);
+
+        while (lo + 1 < hi) {
+            const auto mid = lo + (hi - lo) / 2UL;
+            if (inof(num_present(p, mid)) >= a) {
+                hi = mid;
+            } else {
+                lo = mid;
+            }
+        }
+
+        result = max(result, hi);
+    }
+
+    return result;
 }
 
 int main() {
