@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const multiset<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 using ll = long long;
 using ull = unsigned long long;
 
@@ -58,6 +68,8 @@ vector<ull> factor(ull n) {
 } // namespace kactl
 
 ull lowest_N(const ull K) {
+    if (kactl::isPrime(K)) return K;
+
     const auto fs = kactl::factor(K);
     multiset<ull> fss(cbegin(fs), cend(fs));
 
