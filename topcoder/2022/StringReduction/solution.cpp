@@ -57,16 +57,15 @@ struct StringReduction final {
     int reduce(string src, const vector<int> &X, const string &Y) const {
         assert(sz(X) == sz(Y));
         if (X.empty()) return sz(src);
-        sort(begin(src), end(src));
 
         const auto fs = freqs(src);
         const auto os = options_by_letter(X, Y);
 
         int result = sz(src);
-        for (const auto c : Y) {
-            if (!fs.count(c)) continue;
-            const auto total = fs.at(c);
-            result -= optimal_coverage(os.at(c), total - 1);
+        for (const auto &kv : os) {
+            if (!fs.count(kv.first)) continue;
+            const auto total = fs.at(kv.first);
+            result -= optimal_coverage(kv.second, total - 1);
         }
         return result;
     }
