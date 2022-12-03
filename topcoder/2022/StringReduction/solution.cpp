@@ -25,10 +25,6 @@ map<char, vector<int>> options_by_letter(const vector<int> &X,
         result[Y[i]].push_back(X[i]);
     }
 
-    for (auto &kv : result) {
-        sort(begin(kv.second), end(kv.second));
-    }
-
     return result;
 }
 
@@ -47,16 +43,47 @@ vector<pair<char, int>> run_length_encode(const string &xs) {
     return result;
 }
 
+int optimal_coverage(const vector<int> &xs, const int N) {
+    vector<bool> av(N + 1, false);
+    for (const auto x : xs) {
+        if (x > N) continue;
+
+        for (const auto y : av) {
+            if (x + y <= N) av[x + y] = true;
+        }
+
+        av[x] = true;
+    }
+
+    for (int i = N; i >= 0; --i) {
+        if (av[i]) return i;
+    }
+
+    return 0;
+}
+
+map<char, int> freqs(const string &xs) {
+    map<char, int> result;
+    for (const auto x : xs) ++result[x];
+    return result;
+}
+
 struct StringReduction final {
     int reduce(string src, const vector<int> &X, const string &Y) const {
         assert(sz(X) == sz(Y));
         if (X.empty()) return sz(src);
         sort(begin(src), end(src));
 
+        const auto fs = freqs(src);
         const auto os = options_by_letter(X, Y);
         const auto rle = run_length_encode(src);
 
-        return 42;
+        int result = sz(src);
+        for (const auto c : Y) {
+            if (!fs.count(c)) continue;
+            const auto total = fs.at(c);
+        }
+        return result;
     }
 };
 
