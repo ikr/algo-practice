@@ -72,16 +72,15 @@ void intcode_run(vector<ll> xs) {
             const auto p3 = xs[i++];
             xs[p3] = deref(m1, p1) * deref(m2, p2);
         } else if (oc == Opcode::INP) {
-            xs[xs[i++]] = input();
+            const auto p1 = xs[i++];
+            xs[deref(m1, p1)] = input();
         } else if (oc == Opcode::OUT) {
             const auto p1 = xs[i++];
             output(deref(m1, p1));
-            continue;
         } else if (oc == Opcode::JPT) {
             const auto p1 = xs[i++];
             const auto p2 = xs[i++];
             if (deref(m1, p1)) i = inof(deref(m2, p2));
-            continue;
         } else if (oc == Opcode::JPF) {
             const auto p1 = xs[i++];
             const auto p2 = xs[i++];
@@ -98,7 +97,7 @@ void intcode_run(vector<ll> xs) {
             xs[p3] = deref(m1, p1) == deref(m2, p2);
         } else if (oc == Opcode::RBS) {
             const auto p1 = xs[i++];
-            rbase += inof(p1);
+            rbase += inof(deref(m1, p1));
         } else if (oc == Opcode::HLT) {
             break;
         } else {
