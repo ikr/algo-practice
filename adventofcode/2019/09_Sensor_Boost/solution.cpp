@@ -30,9 +30,10 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
-tuple<Opcode, Mode, Mode> parse_op(const int op) {
+tuple<Opcode, Mode, Mode, Mode> parse_op(const int op) {
     return {static_cast<Opcode>(op % 100), static_cast<Mode>((op / 100) % 10),
-            static_cast<Mode>((op / 1000) % 10)};
+            static_cast<Mode>((op / 1000) % 10),
+            static_cast<Mode>((op / 10000) % 10)};
 }
 
 ll input() { return 1; }
@@ -59,7 +60,7 @@ void intcode_run(vector<ll> xs) {
     };
 
     for (int i = 0; i < sz(xs);) {
-        const auto [oc, m1, m2] = parse_op(inof(xs[i++]));
+        const auto [oc, m1, m2, m3] = parse_op(inof(xs[i++]));
 
         if (oc == Opcode::ADD) {
             const auto p1 = xs[i++];
