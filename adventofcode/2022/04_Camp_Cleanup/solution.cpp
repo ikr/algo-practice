@@ -21,12 +21,12 @@ pii parse_range(const string &src) {
     return {stoi(ab[0]), stoi(ab[1])};
 }
 
-bool contains(const pii ab, const pii cd) {
+bool overlap(const pii ab, const pii cd) {
     const auto [a, b] = ab;
     assert(a <= b);
     const auto [c, d] = cd;
     assert(c <= d);
-    return a <= c && d <= b;
+    return !(b < c || d < a);
 }
 
 int main() {
@@ -38,7 +38,7 @@ int main() {
 
         const auto ab = parse_range(pairs[0]);
         const auto cd = parse_range(pairs[1]);
-        result += contains(ab, cd) || contains(cd, ab);
+        result += overlap(ab, cd);
     }
 
     cout << result << '\n';
