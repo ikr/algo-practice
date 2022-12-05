@@ -42,8 +42,6 @@ vector<Command> read_commands() {
 
 void exec_command(array<string, NUM_STACKS> &st, const Command &cmd) {
     auto x = st[cmd.src].substr(0, cmd.num);
-    reverse(begin(x), end(x));
-
     st[cmd.src] = st[cmd.src].substr(cmd.num);
     st[cmd.dst].insert(cbegin(st[cmd.dst]), cbegin(x), cend(x));
 }
