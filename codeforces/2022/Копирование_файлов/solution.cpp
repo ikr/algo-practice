@@ -42,9 +42,9 @@ vector<int> collision_points(const vector<ll> &xs) {
 
         for (int i = 0; i < sz(xs); ++i) {
             for (int k = 1; k <= 99; ++k) {
-                const auto lhs_k = k * B - (i ? ss[i - 1] : 0LL);
-                const auto lhs_k_ = lhs_k + B - (B ? 1LL : 0LL);
-                result[i][k] = intersection({lhs_k, lhs_k_}, {0LL, xs[i]});
+                const auto lk = k * B - (i ? ss[i - 1] : 0LL);
+                const auto lk_ = lk + B - (B ? 1LL : 0LL);
+                result[i][k] = intersection({lk, lk_}, {0LL, xs[i]});
             }
         }
 
@@ -57,9 +57,9 @@ vector<int> collision_points(const vector<ll> &xs) {
         const auto c = xs[i] / 100L;
 
         for (int k = 1; k <= 99; ++k) {
-            const auto lhs_k = k * c;
-            const auto lhs_k_ = lhs_k + c - (c ? 1LL : 0LL);
-            const auto ab = intersection({lhs_k, lhs_k_}, {0LL, xs[i]});
+            const auto lk = k * c;
+            const auto lk_ = lk + c - (c ? 1LL : 0LL);
+            const auto ab = intersection({lk, lk_}, {0LL, xs[i]});
             if (!ab) continue;
 
             for (int j = 0; j < sz(xs); ++j) {
