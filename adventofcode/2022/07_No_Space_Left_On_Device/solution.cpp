@@ -113,6 +113,13 @@ template <typename T1, typename T2> auto keys(const map<T1, T2> &xs) {
     return result;
 }
 
+template <typename T1, typename T2> auto values(const map<T1, T2> &xs) {
+    vector<T2> result(sz(xs));
+    transform(cbegin(xs), cend(xs), begin(result),
+              [](const auto &kv) { return kv.second; });
+    return result;
+}
+
 map<string, int> dir_sizes(const Dirs &dtree, const Files &ftree) {
     map<string, int> result;
     const auto recur = [&](const auto self, const string &k) -> int {
@@ -150,10 +157,16 @@ int main() {
     const auto [dtree, ftree] = read_filesystem(lines);
     const auto dir_sizes_by_key = dir_sizes(dtree, ftree);
 
-    int result{};
-    for (const auto &[_, x] : dir_sizes_by_key) {
-        if (x <= 100000) result += x;
-    }
+    const int capacity = 70000000;
+    const int lo = 30000000;
+
+    const auto cur_total = dir_sizes_by_key.at("/");
+    const auto rem = capacity - cur_total;
+    const auto need = lo - rem;
+
+    auto xs = values(dir_sizes_by_key);
+    sort(begin(xs), end(xs));
+    const auto result = *lower_bound(cbegin(xs), cend(xs), need);
     cout << result << '\n';
     return 0;
 }
