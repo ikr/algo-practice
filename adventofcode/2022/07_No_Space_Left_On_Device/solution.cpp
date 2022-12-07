@@ -96,7 +96,49 @@ pair<Dirs, Files> read_filesystem(const vector<string> &lines) {
         }
     }
 
+    if (listing) {
+        const auto [ds, fs] = parse_lisitng(output);
+        const auto k = path_key(cur);
+        dtree[k] = ds;
+        ftree[k] = fs;
+    }
+
     return {dtree, ftree};
+}
+
+template <typename T1, typename T2> auto keys(const map<T1, T2> &xs) {
+    vector<T1> result(sz(xs));
+    transform(cbegin(xs), cend(xs), begin(result),
+              [](const auto &kv) { return kv.first; });
+    return result;
+}
+
+map<string, int> dir_sizes(const Dirs &dtree, const Files &ftree) {
+    map<string, int> result;
+    const auto recur = [&](const auto self, const string &k) -> int {
+        if (result.contains(k)) return result.at(k);
+        return result[k] = [&]() -> int {
+            int s{};
+            if (ftree.contains(k)) {
+                s += accumulate(
+                    cbegin(ftree.at(k)), cend(ftree.at(k)), 0,
+                    [](const int agg, const File &f) { return agg + f.size; });
+            }
+
+            if (dtree.contains(k)) {
+                for (const auto &sub : dtree.at(k)) {
+                    s += self(self, k + ":" + sub);
+                }
+            }
+
+            return s;
+        }();
+    };
+
+    for (const auto &k : keys(ftree)) {
+        result[k] = recur(recur, k);
+    }
+    return result;
 }
 
 int main() {
@@ -105,6 +147,13 @@ int main() {
         lines.push_back(line);
     }
 
-    const auto df = read_filesystem(lines);
+    const auto [dtree, ftree] = read_filesystem(lines);
+    const auto dir_sizes_by_key = dir_sizes(dtree, ftree);
+
+    int result{};
+    for (const auto &[_, x] : dir_sizes_by_key) {
+        if (x <= 100000) result += x;
+    }
+    cout << result << '\n';
     return 0;
 }
