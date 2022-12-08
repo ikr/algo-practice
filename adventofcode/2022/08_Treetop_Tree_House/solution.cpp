@@ -37,12 +37,12 @@ int scenic_score(const Grid &grid, const pii m) {
 
         result *= [&]() -> int {
             if (line.empty()) return 0;
-            if (line[0] >= grid[m.first][m.second]) return 1;
+            if (line[0] > grid[m.first][m.second]) return 1;
 
-            int p{1};
-            for (int i = 1; i < sz(line); ++i) {
-                if (line[i] < line[i - 1]) break;
+            int p{};
+            for (int i = 0; i < sz(line); ++i) {
                 ++p;
+                if (line[i] >= grid[m.first][m.second]) break;
             }
             return p;
         }();
@@ -56,23 +56,16 @@ int num_visible(const Grid &grid) {
     const auto W = sz(grid[0]);
     int result{};
 
+    Grid xss(H, vector(W, 0));
+
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
+            xss[ro][co] = scenic_score(grid, {ro, co});
             result = max(result, scenic_score(grid, {ro, co}));
         }
     }
 
     return result;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
 }
 
 int main() {
