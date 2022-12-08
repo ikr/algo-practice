@@ -15,7 +15,7 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
-bool is_visible(const Grid &grid, const pii m) {
+int scenic_score(const Grid &grid, const pii m) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
 
@@ -23,6 +23,8 @@ bool is_visible(const Grid &grid, const pii m) {
         const auto [ro, co] = ab;
         return 0 <= ro && ro < H && 0 <= co && co < W;
     };
+
+    int result{1};
 
     for (const pii &dir : {pii{-1, 0}, pii{0, 1}, pii{1, 0}, pii{0, -1}}) {
         auto cur = m;
@@ -33,14 +35,20 @@ bool is_visible(const Grid &grid, const pii m) {
             line.push_back(grid[cur.first][cur.second]);
         }
 
-        if (all_of(cbegin(line), cend(line), [&](const auto x) -> bool {
-                return x < grid[m.first][m.second];
-            })) {
-            return true;
-        }
+        result *= [&]() -> int {
+            if (line.empty()) return 0;
+            if (line[0] >= grid[m.first][m.second]) return 1;
+
+            int p{1};
+            for (int i = 1; i < sz(line); ++i) {
+                if (line[i] < line[i - 1]) break;
+                ++p;
+            }
+            return p;
+        }();
     }
 
-    return false;
+    return result;
 }
 
 int num_visible(const Grid &grid) {
@@ -50,7 +58,7 @@ int num_visible(const Grid &grid) {
 
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
-            result += is_visible(grid, {ro, co});
+            result = max(result, scenic_score(grid, {ro, co}));
         }
     }
 
