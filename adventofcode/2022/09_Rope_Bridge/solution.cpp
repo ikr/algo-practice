@@ -60,15 +60,19 @@ constexpr pii new_tail_coord(const pii h, const pii t, const pii head_delta) {
 }
 
 vector<string> visualize(const array<pii, ROPE_SIZE> &rope) {
-    const int H{5};
-    const int W{6};
+    const int H{21};
+    const int W{26};
+    const int ORO = 16;
+    const int OCO = 12;
     vector<string> grid(H, string(W, '.'));
 
-    grid[rope[0].first + H - 1][rope[0].second] = 'H';
+    grid[ORO - 1][OCO - 1] = 's';
+
     for (int i = sz(rope) - 1; i >= 1; --i) {
-        grid[rope[i].first + H - 1][rope[i].second] =
+        grid[rope[i].first + ORO - 1][rope[i].second + OCO - 1] =
             static_cast<char>(inof('0') + i);
     }
+    grid[rope[0].first + ORO - 1][rope[0].second + OCO - 1] = 'H';
 
     return grid;
 }
@@ -113,10 +117,12 @@ int tail_areal_size(const vector<Cmd> &commands) {
             rope_[0] = rope[0] + parse_direction_delta(cmd.code);
             swap(rope, rope_);
             tail_areal.insert(rope.back());
-            // dbg(visualize(rope));
         }
+
+        dbg(visualize(rope));
     }
 
+    cerr << rope << endl;
     return sz(tail_areal);
 }
 
