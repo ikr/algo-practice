@@ -8,6 +8,8 @@ struct Cmd final {
     int arg;
 };
 
+static constexpr int ROPE_SIZE = 10;
+
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
@@ -48,32 +50,70 @@ constexpr pii diff(const pii a, const pii b) {
 }
 
 constexpr pii new_tail_coord(const pii h, const pii t, const pii head_delta) {
-    if (h == t) return t;
-
     const auto h_ = h + head_delta;
+
     if (cheb(h_, t) <= 1) return t;
-    if (manh(h_, t) >= 3) return h;
+    if (manh({0, 0}, head_delta) == 2) return t + head_delta;
+    if (manh(h_, t) == 3) return h;
 
     return t + head_delta;
 }
 
+vector<string> visualize(const array<pii, ROPE_SIZE> &rope) {
+    const int H{5};
+    const int W{6};
+    vector<string> grid(H, string(W, '.'));
+
+    grid[rope[0].first + H - 1][rope[0].second] = 'H';
+    for (int i = sz(rope) - 1; i >= 1; --i) {
+        grid[rope[i].first + H - 1][rope[i].second] =
+            static_cast<char>(inof('0') + i);
+    }
+
+    return grid;
+}
+
+void dbg(const vector<string> &grid) {
+    for (const auto &row : grid) cerr << row << '\n';
+    cerr << endl;
+}
+
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 int tail_areal_size(const vector<Cmd> &commands) {
-    array<pii, 10> rope;
+    array<pii, ROPE_SIZE> rope;
     rope.fill({0, 0});
-    set<pii> tail_areal{{0, 0}};
+    set<pii> tail_areal;
 
     for (const auto &cmd : commands) {
-        auto delta = parse_direction_delta(cmd.code);
-
         for (int k = 1; k <= cmd.arg; ++k) {
+            auto delta = parse_direction_delta(cmd.code);
+            auto rope_ = rope;
+
             for (int j = 1; j < sz(rope); ++j) {
-                const auto rj0 = rope[j];
-                rope[j] = new_tail_coord(rope[j - 1], rope[j], delta);
-                rope[j - 1] = rope[j - 1] + delta;
-                delta = diff(rj0, rope[j]);
+                rope_[j] = new_tail_coord(rope[j - 1], rope[j], delta);
+                delta = diff(rope[j], rope_[j]);
             }
 
+            rope_[0] = rope[0] + parse_direction_delta(cmd.code);
+            swap(rope, rope_);
             tail_areal.insert(rope.back());
+            // dbg(visualize(rope));
         }
     }
 
