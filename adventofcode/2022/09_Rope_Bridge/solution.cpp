@@ -43,30 +43,37 @@ constexpr int cheb(const pii a, const pii b) {
     return max(abs(a.first - b.first), abs(a.second - b.second));
 }
 
+constexpr pii diff(const pii a, const pii b) {
+    return {b.first - a.first, b.second - a.second};
+}
+
 constexpr pii new_tail_coord(const pii h, const pii t, const pii head_delta) {
     if (h == t) return t;
 
     const auto h_ = h + head_delta;
     if (cheb(h_, t) <= 1) return t;
-
-    assert(manh(h_, t) <= 3);
-    if (manh(h_, t) == 3) return h;
+    if (manh(h_, t) >= 3) return h;
 
     return t + head_delta;
 }
 
 int tail_areal_size(const vector<Cmd> &commands) {
-    pii h{0, 0};
-    pii t{0, 0};
+    array<pii, 10> rope;
+    rope.fill({0, 0});
     set<pii> tail_areal{{0, 0}};
 
     for (const auto &cmd : commands) {
-        const auto delta = parse_direction_delta(cmd.code);
+        auto delta = parse_direction_delta(cmd.code);
 
-        for (int i = 1; i <= cmd.arg; ++i) {
-            t = new_tail_coord(h, t, delta);
-            tail_areal.insert(t);
-            h = h + delta;
+        for (int k = 1; k <= cmd.arg; ++k) {
+            for (int j = 1; j < sz(rope); ++j) {
+                const auto rj0 = rope[j];
+                rope[j] = new_tail_coord(rope[j - 1], rope[j], delta);
+                rope[j - 1] = rope[j - 1] + delta;
+                delta = diff(rj0, rope[j]);
+            }
+
+            tail_areal.insert(rope.back());
         }
     }
 
