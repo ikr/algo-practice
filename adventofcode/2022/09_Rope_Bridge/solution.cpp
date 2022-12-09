@@ -9,6 +9,10 @@ struct Cmd final {
 };
 
 static constexpr int ROPE_SIZE = 10;
+static constexpr pii DU{-1, 0};
+static constexpr pii DR{0, 1};
+static constexpr pii DD{1, 0};
+static constexpr pii DL{0, -1};
 
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
@@ -24,13 +28,13 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 constexpr pii parse_direction_delta(const char x) {
     switch (x) {
     case 'U':
-        return {-1, 0};
+        return DU;
     case 'R':
-        return {0, 1};
+        return DR;
     case 'D':
-        return {1, 0};
+        return DD;
     case 'L':
-        return {0, -1};
+        return DL;
     default:
         assert(false && "Unknown direction code");
         return {0, 0};
@@ -45,18 +49,23 @@ constexpr int cheb(const pii a, const pii b) {
     return max(abs(a.first - b.first), abs(a.second - b.second));
 }
 
-constexpr pii diff(const pii a, const pii b) {
-    return {b.first - a.first, b.second - a.second};
-}
+constexpr bool touch(const pii a, const pii b) { return cheb(a, b) <= 1; }
 
-constexpr pii new_tail_coord(const pii h, const pii t, const pii head_delta) {
-    const auto h_ = h + head_delta;
+constexpr pii new_tail_coord(const pii moved_h, const pii t) {
+    if (touch(moved_h, t)) return t;
 
-    if (cheb(h_, t) <= 1) return t;
-    if (manh({0, 0}, head_delta) == 2) return t + head_delta;
-    if (manh(h_, t) == 3) return h;
+    if (cheb(moved_h, t) == manh(moved_h, t)) {
+        for (const auto &x : {t + DU, t + DR, t + DD, t + DL}) {
+            if (touch(moved_h, x)) return x;
+        }
+        assert(false && "Impossible straight disposition");
+    }
 
-    return t + head_delta;
+    for (const auto &x : {t + DU + DL, t + DU + DR, t + DD + DR, t + DD + DL}) {
+        if (touch(moved_h, x)) return x;
+    }
+    assert(false && "Impossible diagonal disposition");
+    return t;
 }
 
 vector<string> visualize(const array<pii, ROPE_SIZE> &rope) {
@@ -105,24 +114,22 @@ int tail_areal_size(const vector<Cmd> &commands) {
     set<pii> tail_areal;
 
     for (const auto &cmd : commands) {
+        const auto head_delta = parse_direction_delta(cmd.code);
+
         for (int k = 1; k <= cmd.arg; ++k) {
-            auto delta = parse_direction_delta(cmd.code);
-            auto rope_ = rope;
+            rope[0] = rope[0] + head_delta;
 
             for (int j = 1; j < sz(rope); ++j) {
-                rope_[j] = new_tail_coord(rope[j - 1], rope[j], delta);
-                delta = diff(rope[j], rope_[j]);
+                rope[j] = new_tail_coord(rope[j - 1], rope[j]);
             }
 
-            rope_[0] = rope[0] + parse_direction_delta(cmd.code);
-            swap(rope, rope_);
             tail_areal.insert(rope.back());
         }
 
-        dbg(visualize(rope));
+        // dbg(visualize(rope));
     }
 
-    cerr << rope << endl;
+    // cerr << rope << endl;
     return sz(tail_areal);
 }
 
