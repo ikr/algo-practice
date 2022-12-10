@@ -4,7 +4,6 @@ using namespace std;
 int main() {
     vector<int> xs{};
     int carry = 1;
-
     for (string line; getline(cin, line);) {
         xs.push_back(carry);
 
@@ -13,18 +12,18 @@ int main() {
             carry += stoi(line.substr(5));
         }
     }
-
     xs.push_back(carry);
 
-    const auto signal_strength = [&](const int cycle) -> int {
-        return cycle * xs[cycle - 1];
-    };
-
-    int result{};
-    for (int i = 20; i <= 220; i += 40) {
-        result += signal_strength(i);
+    vector<string> grid(6, string(40, '.'));
+    for (int ro = 0; ro < 6; ++ro) {
+        for (int co = 0; co < 40; ++co) {
+            const int cycle = ro * 40 + co;
+            if (abs(xs[cycle] - co) <= 1) {
+                grid[ro][co] = '#';
+            }
+        }
     }
-    cout << result << '\n';
 
+    for (const auto &row : grid) cout << row << '\n';
     return 0;
 }
