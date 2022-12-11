@@ -1,10 +1,13 @@
 #include <bits/stdc++.h>
+#include <gmpxx.h>
 using namespace std;
 
+using ll = mpz_class;
+
 struct Monkey final {
-    queue<int> q;
-    function<int(int)> op;
-    function<int(int)> route;
+    queue<ll> q;
+    function<ll(ll)> op;
+    function<int(ll)> route;
 };
 
 template <typename T> constexpr int inof(const T x) {
@@ -13,17 +16,18 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-function<int(int)> parse_op(const char op, const string &arg) {
-    if (op == '+') return [arg](const int x) { return stoi(arg) + x; };
+function<ll(ll)> parse_op(const char op, const string arg) {
+    if (op == '+') return [arg](const ll x) { return ll{arg} + x; };
 
     assert(op == '*');
-    return
-        [arg](const int x) { return arg == "old" ? (x * x) : (stoi(arg) * x); };
+    return [arg](const ll x) { return arg == "old" ? (x * x) : (ll{arg} * x); };
 }
 
-function<int(int)> make_routing_function(const int divisor, const int a,
-                                         const int b) {
-    return [divisor, a, b](const int x) { return (x % divisor == 0) ? a : b; };
+function<int(ll)> make_routing_function(const int divisor, const int a,
+                                        const int b) {
+    return [divisor, a, b](const ll x) {
+        return (x % ll{divisor} == ll{0}) ? a : b;
+    };
 }
 
 vector<string> split(const string &delim_regex, const string &s) {
@@ -39,8 +43,8 @@ auto strings_to_ints(const vector<string> &xs) {
     return result;
 }
 
-template <typename T> queue<T> q_of(const vector<T> &xs) {
-    queue<T> result;
+queue<ll> q_of(const vector<int> &xs) {
+    queue<ll> result;
     for (const auto x : xs) result.push(x);
     return result;
 }
@@ -84,7 +88,7 @@ auto simulate_counting_inspections(vector<Monkey> monkeys, const int rounds) {
                 monkeys[i].q.pop();
                 ++result[i];
 
-                const auto x_ = monkeys[i].op(x) / 3;
+                const auto x_ = monkeys[i].op(x);
                 const auto j = monkeys[i].route(x_);
                 monkeys[j].q.push(x_);
             }
@@ -116,6 +120,6 @@ int main() {
     cerr << inspections << endl;
 
     sort(rbegin(inspections), rend(inspections));
-    cout << (inspections[0] * inspections[1]) << '\n';
+    cout << (1LL * inspections[0] * inspections[1]) << '\n';
     return 0;
 }
