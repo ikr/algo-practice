@@ -1,8 +1,9 @@
 #include <bits/stdc++.h>
-#include <gmpxx.h>
 using namespace std;
 
-using ll = mpz_class;
+using ll = long long;
+static constexpr ll M =
+    2LL * 3LL * 5LL * 7LL * 11LL * 13LL * 17LL * 19LL * 23LL;
 
 struct Monkey final {
     queue<ll> q;
@@ -17,10 +18,12 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 function<ll(ll)> parse_op(const char op, const string arg) {
-    if (op == '+') return [arg](const ll x) { return ll{arg} + x; };
+    if (op == '+') return [arg](const ll x) { return (stoll(arg) + x) % M; };
 
     assert(op == '*');
-    return [arg](const ll x) { return arg == "old" ? (x * x) : (ll{arg} * x); };
+    return [arg](const ll x) {
+        return arg == "old" ? (x * x) % M : (stoll(arg) * x) % M;
+    };
 }
 
 function<int(ll)> make_routing_function(const int divisor, const int a,
@@ -109,6 +112,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 int main() {
+    cerr << "M: " << M << endl;
     vector<Monkey> monkeys;
     for (;;) {
         monkeys.push_back(read_monkey());
@@ -116,7 +120,7 @@ int main() {
         if (!getline(cin, line)) break;
     }
 
-    auto inspections = simulate_counting_inspections(move(monkeys), 20);
+    auto inspections = simulate_counting_inspections(move(monkeys), 10000);
     cerr << inspections << endl;
 
     sort(rbegin(inspections), rend(inspections));
