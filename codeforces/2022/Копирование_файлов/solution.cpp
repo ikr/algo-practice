@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 using ll = long long;
 using pll = pair<ll, ll>;
 
@@ -34,17 +40,23 @@ optional<pll> intersection(const pll &ab, const pll &cd) {
 
 vector<int> collision_points(const vector<ll> &xs) {
     const auto ss = prefix_sums(xs);
-    const auto B = ss.back() / 100LL;
+    const auto S = ss.back();
 
     const auto totals = [&]() {
         vector<array<optional<pll>, 100>> result(sz(xs),
                                                  percent_intervals_none());
 
         for (int i = 0; i < sz(xs); ++i) {
+            ll pre{};
+
             for (int k = 1; k <= 99; ++k) {
-                const auto lk = k * B - (i ? ss[i - 1] : 0LL);
-                const auto lk_ = lk + B - (B ? 1LL : 0LL);
-                result[i][k] = intersection({lk, lk_}, {0LL, xs[i]});
+                const auto lk_ =
+                    ((k - 1) * S - 100 * (i ? ss[i - 1] : 0LL)) / 100;
+                const auto lk = (k * S - 100 * (i ? ss[i - 1] : 0LL)) / 100;
+                if (lk == lk_) continue;
+
+                result[i][k] = pll{pre, lk_};
+                pre = lk;
             }
         }
 
@@ -54,17 +66,18 @@ vector<int> collision_points(const vector<ll> &xs) {
     set<int> result{0, 100};
 
     for (int i = 0; i < sz(xs); ++i) {
-        const auto c = xs[i] / 100L;
+        ll pre{};
 
         for (int k = 1; k <= 99; ++k) {
-            const auto lk = k * c;
-            const auto lk_ = lk + c - (c ? 1LL : 0LL);
-            const auto ab = intersection({lk, lk_}, {0LL, xs[i]});
-            if (!ab) continue;
+            const auto lk_ = (xs[i] * (k - 1)) / 100;
+            const auto lk = (xs[i] * k) / 100;
+            if (lk == lk_) continue;
+
+            const pll ab{pre, lk_};
 
             for (int j = 0; j < sz(xs); ++j) {
                 if (!totals[j][k]) continue;
-                if (intersection(*ab, *totals[j][k])) {
+                if (intersection(ab, *totals[j][k])) {
                     result.insert(k);
                     break;
                 }
