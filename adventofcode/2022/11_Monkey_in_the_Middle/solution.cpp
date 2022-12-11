@@ -1,15 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
+struct Monkey final {
+    queue<int> q;
+    function<int(int)> op;
+    function<int(int)> route;
+};
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -17,20 +13,35 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+function<int(int)> parse_op(const char op, const string &arg) {
+    if (op == '+') return [arg](const int x) { return stoi(arg) + x; };
+
+    assert(op == '*');
+    return
+        [arg](const int x) { return arg == "old" ? (x * x) : (stoi(arg) * x); };
+}
+
+function<int(int)> make_routing_function(const int divisor, const int a,
+                                         const int b) {
+    return [divisor, a, b](const int x) { return (x % divisor == 0) ? a : b; };
+}
+
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
                           sregex_token_iterator{});
 }
 
-struct Monkey final {
-    queue<int> q;
-};
-
 auto strings_to_ints(const vector<string> &xs) {
     vector<int> result(sz(xs));
     transform(cbegin(xs), cend(xs), begin(result),
               [](const auto &x) { return stoi(x); });
+    return result;
+}
+
+template <typename T> queue<T> q_of(const vector<T> &xs) {
+    queue<T> result;
+    for (const auto x : xs) result.push(x);
     return result;
 }
 
@@ -41,21 +52,70 @@ Monkey read_monkey() {
     getline(cin, line);
     const auto xs = strings_to_ints(
         split(", ", line.substr(sz(string{"  Starting items: "}))));
-    cerr << xs << endl;
 
-    getline(cin, line); // "  Operation: new = old "
-    getline(cin, line); // "  Test: divisible by "
-    getline(cin, line); // "    If true: throw to monkey "
-    getline(cin, line); // "    If false: throw to monkey "
+    getline(cin, line);
+    const auto op = [&]() {
+        const auto suf = line.substr(sz(string{"  Operation: new = old "}));
+        return parse_op(suf[0], suf.substr(2));
+    }();
 
-    return {{}};
+    getline(cin, line);
+    const auto divisor = stoi(line.substr(sz(string{"  Test: divisible by "})));
+
+    getline(cin, line);
+    const auto a =
+        stoi(line.substr(sz(string{"    If true: throw to monkey "})));
+
+    getline(cin, line);
+    const auto b =
+        stoi(line.substr(sz(string{"    If false: throw to monkey "})));
+    const auto route = make_routing_function(divisor, a, b);
+
+    return {q_of(xs), op, route};
+}
+
+auto simulate_counting_inspections(vector<Monkey> monkeys, const int rounds) {
+    vector<int> result(sz(monkeys), 0);
+
+    for (int round_num = 1; round_num <= rounds; ++round_num) {
+        for (int i = 0; i < sz(monkeys); ++i) {
+            while (!monkeys[i].q.empty()) {
+                const auto x = monkeys[i].q.front();
+                monkeys[i].q.pop();
+                ++result[i];
+
+                const auto x_ = monkeys[i].op(x) / 3;
+                const auto j = monkeys[i].route(x_);
+                monkeys[j].q.push(x_);
+            }
+        }
+    }
+
+    return result;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
 }
 
 int main() {
+    vector<Monkey> monkeys;
     for (;;) {
-        read_monkey();
+        monkeys.push_back(read_monkey());
         string line;
         if (!getline(cin, line)) break;
     }
+
+    auto inspections = simulate_counting_inspections(move(monkeys), 20);
+    cerr << inspections << endl;
+
+    sort(rbegin(inspections), rend(inspections));
+    cout << (inspections[0] * inspections[1]) << '\n';
     return 0;
 }
