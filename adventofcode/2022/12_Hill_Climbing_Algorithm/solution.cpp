@@ -37,11 +37,7 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
-int min_steps(vector<string> grid) {
-    const auto [start, finish] = start_and_finish(grid);
-    grid[start.first][start.second] = 'a';
-    grid[finish.first][finish.second] = 'z';
-
+int min_steps(const vector<string> &grid, const pii start, const pii finish) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
 
@@ -63,7 +59,7 @@ int min_steps(vector<string> grid) {
         return result;
     };
 
-    vector<vector<int>> D(H, vector(W, -1));
+    vector<vector<int>> D(H, vector(W, INT_MAX));
     D[start.first][start.second] = 0;
 
     queue<pii> q;
@@ -74,7 +70,7 @@ int min_steps(vector<string> grid) {
         q.pop();
 
         for (const auto &v : neighs(u)) {
-            if (D[v.first][v.second] >= 0 ||
+            if (D[v.first][v.second] < INT_MAX ||
                 climb(grid[u.first][u.second], grid[v.first][v.second]) > 1) {
                 continue;
             }
@@ -93,6 +89,21 @@ int main() {
         grid.push_back(line);
     }
 
-    cout << min_steps(move(grid)) << '\n';
+    const auto [start, finish] = start_and_finish(grid);
+    grid[start.first][start.second] = 'a';
+    grid[finish.first][finish.second] = 'z';
+
+    auto result = INT_MAX;
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            if (grid[ro][co] != 'a') continue;
+            result = min(result, min_steps(grid, {ro, co}, finish));
+        }
+    }
+
+    cout << result << '\n';
     return 0;
 }
