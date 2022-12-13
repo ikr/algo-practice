@@ -120,62 +120,6 @@ int main() {
         if (!getline(cin, line_b)) break;
     }
 
-    {
-        const auto a = Json::parse("[1,1,3,1,1]");
-        const auto b = Json::parse("[1,1,5,1,1]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
-    {
-        const auto a = Json::parse("[[1],[2,3,4]]");
-        const auto b = Json::parse("[[1],4]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
-    {
-        const auto a = Json::parse("[9]");
-        const auto b = Json::parse("[[8,7,6]]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(!less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
-    {
-        const auto a = Json::parse("[[4,4],4,4]");
-        const auto b = Json::parse("[[4,4],4,4,4]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
-    {
-        const auto a = Json::parse("[7,7,7,7]");
-        const auto b = Json::parse("[7,7,7]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(!less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
-    {
-        const auto a = Json::parse("[]");
-        const auto b = Json::parse("[3]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
-    {
-        const auto a = Json::parse("[[[]]]");
-        const auto b = Json::parse("[[]]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(!less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
-    {
-        const auto a = Json::parse("[1,[2,[3,[4,[5,6,7]]]],8,9]");
-        const auto b = Json::parse("[1,[2,[3,[4,[5,6,0]]]],8,9]");
-        assert(!equal({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-        assert(!less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)}));
-    }
-
     cout << pairs_in_right_order_positions_sum(ps) << '\n';
     return 0;
 }
