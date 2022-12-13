@@ -92,34 +92,27 @@ bool less_than(const pair<Iter, Iter> suf_a, const pair<Iter, Iter> suf_b) {
     return less_than({next(cur_a), end_a}, {next(cur_b), end_b});
 }
 
-int pairs_in_right_order_positions_sum(const vector<pair<Json, Json>> &ps) {
-    int result{};
-
-    for (int i = 0; i < sz(ps); ++i) {
-        if (less_than({cbegin(ps[i].first), cend(ps[i].first)},
-                      {cbegin(ps[i].second), cend(ps[i].second)})) {
-            result += (i + 1);
-        }
-    }
-
-    return result;
-}
-
 int main() {
-    vector<pair<Json, Json>> ps;
+    vector<Json> xs{Json::parse("[[2]]"), Json::parse("[[6]]")};
 
     for (;;) {
-        string line_a;
-        getline(cin, line_a);
+        string line;
+        getline(cin, line);
+        xs.push_back(Json::parse(line));
 
-        string line_b;
-        getline(cin, line_b);
+        getline(cin, line);
+        xs.push_back(Json::parse(line));
 
-        ps.emplace_back(Json::parse(line_a), Json::parse(line_b));
-
-        if (!getline(cin, line_b)) break;
+        if (!getline(cin, line)) break;
     }
 
-    cout << pairs_in_right_order_positions_sum(ps) << '\n';
+    sort(begin(xs), end(xs), [](const auto &a, const auto &b) {
+        return less_than({cbegin(a), cend(a)}, {cbegin(b), cend(b)});
+    });
+
+    for (const auto &x : xs) {
+        cout << x << '\n';
+    }
+
     return 0;
 }
