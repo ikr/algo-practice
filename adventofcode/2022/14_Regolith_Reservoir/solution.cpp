@@ -36,6 +36,7 @@ ostream &operator<<(ostream &os, const array<T, N> &xs) {
 
 using Coord = pair<int, int>;
 using Waypoints = vector<Coord>;
+using Grid = vector<string>;
 
 constexpr int X(const Coord c) { return c.first; }
 constexpr int Y(const Coord c) { return c.second; }
@@ -86,36 +87,87 @@ Coord dimensions(const vector<Waypoints> &wpss) {
     return {x_max, y_max};
 }
 
-pair<vector<string>, Coord> structural_grid(const vector<Waypoints> &wpss,
-                                            const Coord src_) {
+pair<Grid, Coord> structural_grid(const vector<Waypoints> &wpss,
+                                  const Coord src_) {
     const auto [x_max, y_max] = dimensions(wpss);
-    vector<string> result(y_max + 2, string(x_max + 3, '.'));
+    Grid grid(y_max + 2, string(x_max + 3, '.'));
 
     for (const auto &wps : wpss) {
         for (int i = 1; i < sz(wps); ++i) {
             const auto step = step_from_to(wps[i - 1], wps[i]);
 
             for (auto cur = wps[i - 1];; cur = cur + step) {
-                result[Y(cur)][X(cur) + 1] = '#';
+                grid[Y(cur)][X(cur) + 1] = '#';
                 if (cur == wps[i]) break;
             }
         }
     }
 
     const Coord src{X(src_) + 1, Y(src_)};
-    result[Y(src)][X(src)] = '+';
-    return {result, src};
+    grid[Y(src)][X(src)] = '+';
+    return {grid, src};
+}
+
+Coord simulate_one_unit_falling(const Grid &grid, const Coord &src) {
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+
+    const auto in_bounds = [&](const Coord xy) -> bool {
+        return 0 <= X(xy) && X(xy) < W && 0 <= Y(xy) && Y(xy) < H;
+    };
+
+    const auto at = [&](const Coord xy) -> char {
+        assert(in_bounds(xy));
+        return grid[Y(xy)][X(xy)];
+    };
+
+    const auto is_space = [&](const Coord xy) -> bool {
+        return in_bounds(xy) && at(xy) == '.';
+    };
+
+    auto cur = src;
+    for (;;) {
+        const auto cur_ = [&]() -> Coord {
+            for (const auto &d : vector<Coord>{{0, 1}, {-1, 1}, {1, 1}}) {
+                if (is_space(cur + d)) {
+                    return cur + d;
+                }
+            }
+
+            return cur;
+        }();
+
+        if (cur_ == cur) break;
+        cur = cur_;
+    }
+    return cur;
 }
 
 int simulation_steps_until_stable(const vector<Waypoints> &wpss,
                                   const Coord src_) {
     auto [grid, src] = structural_grid(wpss, src_);
-
     for (const auto &row : grid) {
-        cout << row << '\n';
+        // cerr << row << '\n';
     }
 
-    return -1;
+    const auto H = sz(grid);
+    const auto is_falling_into_abyss = [&](const Coord xy) -> bool {
+        return Y(xy) >= H - 1;
+    };
+
+    int result{};
+    for (;;) {
+        const auto xy = simulate_one_unit_falling(grid, src);
+        grid[Y(xy)][X(xy)] = 'o';
+        if (is_falling_into_abyss(xy)) break;
+        ++result;
+    }
+
+    // cerr << endl;
+    for (const auto &row : grid) {
+        // cerr << row << '\n';
+    }
+    return result;
 }
 
 int main() {
@@ -129,8 +181,8 @@ int main() {
         wpss.push_back(wps);
     }
 
-    cerr << wpss << endl;
+    // cerr << wpss << endl;
 
-    cout << simulation_steps_until_stable(wpss, {5, 0}) << '\n';
+    cout << simulation_steps_until_stable(wpss, {500, 0}) << '\n';
     return 0;
 }
