@@ -117,9 +117,6 @@ Coord simulate_one_unit_falling(const Grid &grid, const Coord &src) {
 int simulation_steps_until_stable(const vector<Waypoints> &wpss,
                                   const Coord src_) {
     auto [grid, src] = structural_grid(wpss, src_);
-    // for (const auto &row : grid) {
-    //     cerr << row << '\n';
-    // }
 
     int result{};
     for (;;) {
@@ -129,10 +126,6 @@ int simulation_steps_until_stable(const vector<Waypoints> &wpss,
         if (xy == src) break;
     }
 
-    // cerr << endl;
-    // for (const auto &row : grid) {
-    //     cerr << row << '\n';
-    // }
     return result;
 }
 
