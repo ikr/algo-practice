@@ -4,6 +4,8 @@ using namespace std;
 using Coord = pair<int, int>;
 using Intvl = pair<int, int>;
 
+constexpr int COORD_MAX = 4000000;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -26,8 +28,9 @@ constexpr Intvl union_of(const Intvl ab, const Intvl cd) {
     return {abcd[0], abcd.back()};
 }
 
-int excluded_positions_num_at_y0(const vector<pair<Coord, Coord>> &tathers,
-                                 const int y0) {
+vector<Intvl>
+excluded_positions_at_y0(const vector<pair<Coord, Coord>> &tathers,
+                         const int y0) {
     vector<Intvl> result;
 
     const auto new_intvl = [&](Intvl ab) -> void {
@@ -55,31 +58,24 @@ int excluded_positions_num_at_y0(const vector<pair<Coord, Coord>> &tathers,
         new_intvl({a, b});
     }
 
-    for (const auto &[_, beacon] : tathers) {
-        const auto [bx, by] = beacon;
-        if (by != y0) continue;
+    sort(begin(result), end(result));
+    return result;
+}
 
-        for (auto it = cbegin(result); it != cend(result); ++it) {
-            const auto [c, d] = *it;
-            if (bx < c || d < bx) continue;
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
 
-            it = result.erase(it);
-            if (bx == c) {
-                if (c != d) result.emplace_back(c + 1, d);
-            } else if (bx == d) {
-                result.emplace_back(c, d - 1);
-            } else {
-                assert(c < bx && bx < d);
-                result.emplace_back(c, bx - 1);
-                result.emplace_back(bx + 1, d);
-            }
-            break;
-        }
-        break;
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
     }
-
-    return transform_reduce(cbegin(result), cend(result), 0, plus<int>{},
-                            intvl_size);
+    os << ']';
+    return os;
 }
 
 int main() {
@@ -100,6 +96,23 @@ int main() {
         tathers.emplace_back(Coord{sx, sy}, Coord{bx, by});
     }
 
-    cout << excluded_positions_num_at_y0(tathers, 2000000) << '\n';
+    const auto [x0, y0] = [&]() -> Coord {
+        for (int y = 0; y <= COORD_MAX; ++y) {
+            const auto excl = excluded_positions_at_y0(tathers, y);
+
+            for (int i = 1; i < sz(excl); ++i) {
+                const auto mb_x = excl[i].first - 1;
+
+                if (excl[i - 1].second + 2 == excl[i].first && 0 <= mb_x &&
+                    mb_x <= COORD_MAX) {
+                    return {mb_x, y};
+                }
+            }
+        }
+
+        return {-1, -1};
+    }();
+
+    cout << (4000000LL * x0 + y0) << '\n';
     return 0;
 }
