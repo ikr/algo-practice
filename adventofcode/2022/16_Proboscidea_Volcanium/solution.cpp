@@ -48,6 +48,8 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
         if (sz(recent) > 7) recent.pop_front();
     };
 
+    set<tuple<int, int, int>> skip;
+
     const auto recur = [&](const auto self, const int t,
                            const deque<pii> &recent, const set<int> &closed,
                            const int u) -> int {
@@ -58,6 +60,18 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
         int result{};
         for (const auto v : g[u]) {
             if (is_recent(recent, {u, v})) continue;
+
+            const auto ab =
+                recent.empty() ? nullopt : optional<pii>(recent.back());
+
+            if (ab) {
+                const auto [a, b] = *ab;
+                assert(b == u);
+
+                if (skip.contains({a, b, v})) continue;
+                skip.emplace(a, b, v);
+            }
+
             auto recent_ = recent;
             traversed(recent_, u, v);
 
@@ -68,6 +82,10 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                 cl.erase(u);
                 result = max(result, rates[u] * (t - 1) +
                                          self(self, t - 2, recent_, cl, v));
+            }
+
+            if (ab) {
+                skip.erase({ab->first, ab->second, v});
             }
         }
         return result;
