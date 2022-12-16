@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using pii = pair<int, int>;
+
 constexpr int AZ = 26;
 constexpr int V_UP = AZ * AZ;
 
@@ -46,8 +48,27 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                   const int T, const int u0) {
-    set<int> skip;
     vector<int> path{u0};
+    deque<pii> recent;
+
+    const auto is_recent = [&](const pii uv) -> bool {
+        return find(cbegin(recent), cend(recent), uv) != cend(recent);
+    };
+
+    const auto traversed = [&](const int u, const int v) -> void {
+        recent.emplace_back(u, v);
+        if (sz(recent) > 7) recent.pop_front();
+    };
+
+    const auto untraversed = [&](const pii uv) -> void {
+        for (auto it = cbegin(recent); it != cend(recent);) {
+            if (*it == uv) {
+                it = recent.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    };
 
     const auto dbg_path = [&]() -> void {
         vector<string> cs(sz(path));
@@ -55,30 +76,34 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
         cerr << cs << endl;
     };
 
-    const auto recur = [&](const auto self, const int t, const int u) -> int {
-        dbg_path();
+    const auto recur = [&](const auto self, const int t, const set<int> &opened,
+                           const int u) -> int {
+        // dbg_path();
         if (t <= 1) {
             return 0;
         }
 
         int result{};
         for (const auto v : g[u]) {
-            if (skip.contains(v)) continue;
-            if (rates[v]) skip.insert(v);
-            path.push_back(v);
+            if (is_recent({u, v})) continue;
+            traversed(u, v);
+            // path.push_back(v);
 
-            result = max(result, self(self, t - 1, v));
+            result = max(result, self(self, t - 1, opened, v));
 
-            if (rates[u]) {
-                result = max(result, rates[u] * (t - 1) + self(self, t - 2, v));
+            if (rates[u] && !opened.contains(u)) {
+                auto o = opened;
+                o.insert(u);
+                result =
+                    max(result, rates[u] * (t - 1) + self(self, t - 2, o, v));
             }
 
-            skip.erase(v);
-            path.pop_back();
+            untraversed({u, v});
+            // path.pop_back();
         }
         return result;
     };
-    return recur(recur, T, u0);
+    return recur(recur, T, {}, u0);
 }
 
 int main() {
