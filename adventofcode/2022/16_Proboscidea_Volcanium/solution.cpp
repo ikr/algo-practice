@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 constexpr int AZ = 26;
 constexpr int V_UP = AZ * AZ;
 
@@ -44,9 +34,19 @@ template <typename T> constexpr T max(const pair<T, T> ab) {
     return max(ab.first, ab.second);
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                   const int T, const int u0) {
-    set skip{u0};
+    set<int> skip;
     vector<int> path{u0};
 
     const auto dbg_path = [&]() -> void {
@@ -56,16 +56,15 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
     };
 
     const auto recur = [&](const auto self, const int t, const int u) -> int {
+        dbg_path();
         if (t <= 1) {
-            dbg_path();
             return 0;
         }
 
-        dbg_path();
         int result{};
         for (const auto v : g[u]) {
             if (skip.contains(v)) continue;
-            skip.insert(v);
+            if (rates[v]) skip.insert(v);
             path.push_back(v);
 
             result = max(result, self(self, t - 1, v));
