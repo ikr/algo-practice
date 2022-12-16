@@ -36,20 +36,8 @@ template <typename T> constexpr T max(const pair<T, T> ab) {
     return max(ab.first, ab.second);
 }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                   const int T, const int u0) {
-    vector<int> path{u0};
-
     const auto is_recent = [&](const deque<pii> &recent, const pii uv) -> bool {
         return find(cbegin(recent), cend(recent), uv) != cend(recent);
     };
@@ -60,16 +48,9 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
         if (sz(recent) > 7) recent.pop_front();
     };
 
-    const auto dbg_path = [&]() -> void {
-        vector<string> cs(sz(path));
-        transform(cbegin(path), cend(path), begin(cs), vertex_code);
-        cerr << cs << endl;
-    };
-
     const auto recur = [&](const auto self, const int t,
                            const deque<pii> &recent, const set<int> &closed,
                            const int u) -> int {
-        // dbg_path();
         if (t <= 1) {
             return 0;
         }
@@ -79,7 +60,6 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
             if (is_recent(recent, {u, v})) continue;
             auto recent_ = recent;
             traversed(recent_, u, v);
-            // path.push_back(v);
 
             result = max(result, self(self, t - 1, recent_, closed, v));
 
@@ -89,8 +69,6 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                 result = max(result, rates[u] * (t - 1) +
                                          self(self, t - 2, recent_, cl, v));
             }
-
-            // path.pop_back();
         }
         return result;
     };
