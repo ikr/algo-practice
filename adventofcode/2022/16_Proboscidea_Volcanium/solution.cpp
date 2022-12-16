@@ -30,40 +30,36 @@ string vertex_code(const int i) {
     return result;
 }
 
-vector<int> distances(const vector<vector<int>> &g, const int u0) {
-    vector<int> result(sz(g), INT_MAX);
-    result[u0] = 0;
-
-    queue<int> q;
-    q.push(u0);
-
-    while (!q.empty()) {
-        const auto u = q.front();
-        q.pop();
-
-        for (const auto v : g[u]) {
-            if (result[v] != INT_MAX) continue;
-            result[v] = result[u] + 1;
-            q.push(v);
-
-            cerr << "D(" << vertex_code(u0) << ", " << vertex_code(v)
-                 << ") = " << result[v] << endl;
-        }
-    }
-
-    return result;
-}
-
-vector<vector<int>> distances(const vector<vector<int>> &g) {
-    vector<vector<int>> D(sz(g));
-    for (int u = 0; u < sz(g); ++u) D[u] = distances(g, u);
-    return D;
+template <typename T> constexpr T max(const pair<T, T> ab) {
+    return max(ab.first, ab.second);
 }
 
 int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
-                  const int T) {
-    const auto D = distances(g);
-    return 0;
+                  const int T, const int u0) {
+    set skip{u0};
+    const auto recur = [&](const auto self, const int t, const int u) -> int {
+        if (t <= 1) return 0;
+
+        int result = 0;
+        for (const auto v : g[u]) {
+            if (skip.contains(v)) continue;
+            skip.insert(v);
+
+            result = max(result, self(self, t - 1, v));
+
+            if (rates[u]) {
+                result = max(result, rates[u] * (t - 1) + self(self, t - 2, v));
+            }
+
+            cerr << "Yield " << result << " going from " << vertex_code(u)
+                 << " (rate " << rates[u] << ") to " << vertex_code(v) << " @ "
+                 << (T - t + 1) << endl;
+
+            skip.erase(v);
+        }
+        return result;
+    };
+    return recur(recur, T, u0);
 }
 
 int main() {
@@ -87,6 +83,6 @@ int main() {
         }
     }
 
-    cout << optimal_yield(rates, g, 30) << '\n';
+    cout << optimal_yield(rates, g, 30, 0) << '\n';
     return 0;
 }
