@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 constexpr int AZ = 26;
 constexpr int V_UP = AZ * AZ;
 
@@ -37,13 +47,26 @@ template <typename T> constexpr T max(const pair<T, T> ab) {
 int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                   const int T, const int u0) {
     set skip{u0};
-    const auto recur = [&](const auto self, const int t, const int u) -> int {
-        if (t <= 1) return 0;
+    vector<int> path{u0};
 
-        int result = 0;
+    const auto dbg_path = [&]() -> void {
+        vector<string> cs(sz(path));
+        transform(cbegin(path), cend(path), begin(cs), vertex_code);
+        cerr << cs << endl;
+    };
+
+    const auto recur = [&](const auto self, const int t, const int u) -> int {
+        if (t <= 1) {
+            dbg_path();
+            return 0;
+        }
+
+        dbg_path();
+        int result{};
         for (const auto v : g[u]) {
             if (skip.contains(v)) continue;
             skip.insert(v);
+            path.push_back(v);
 
             result = max(result, self(self, t - 1, v));
 
@@ -51,11 +74,8 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                 result = max(result, rates[u] * (t - 1) + self(self, t - 2, v));
             }
 
-            cerr << "Yield " << result << " going from " << vertex_code(u)
-                 << " (rate " << rates[u] << ") to " << vertex_code(v) << " @ "
-                 << (T - t + 1) << endl;
-
             skip.erase(v);
+            path.pop_back();
         }
         return result;
     };
@@ -83,6 +103,6 @@ int main() {
         }
     }
 
-    cout << optimal_yield(rates, g, 30, 0) << '\n';
+    cout << optimal_yield(rates, g, 30, vertex_index("AA")) << '\n';
     return 0;
 }
