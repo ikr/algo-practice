@@ -1,9 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-constexpr int AZ = 26;
-constexpr int V_UP = AZ * AZ;
-
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
 template <typename T> constexpr int inof(const T x) {
@@ -26,12 +23,7 @@ vector<int> indices_of_positive(const vector<int> &xs) {
     return result;
 }
 
-int vertex_id(const string &code) {
-    assert(sz(code) == 2);
-    return (inof(code[0]) - inof('A')) * AZ + inof(code[1]) - inof('A');
-}
-
-int optimal_yield(const vector<int> &rates, const vector<vector<int>> &src,
+int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                   const int T, const int u0) {
     const auto idx = indices_of_positive(rates);
     const auto states_num = (1 << sz(idx));
@@ -50,29 +42,12 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &src,
 
     // Y(t k b) is the yield when t minutes is left, and we stand at a vertex
     // with the id k, with the opened idx valves bits b.
-    vector<vector<vector<int>>> Y(T + 1,
-                                  vector(sz(src), vector(states_num, -1)));
-
-    const auto recur = [&](const auto self, const int t, const int k,
-                           const int state) -> int {
-        if (Y[t][k][state] != -1) return Y[t][k][state];
-        return Y[t][k][state] = [&]() -> int {
-            if (t == T) return 0;
-
-            // Stood still, did nothing
-            int result = self(self, t + 1, k, state) + yield_unit(state);
-
-            for (const auto u : src[k]) {
-            }
-
-            return result;
-        }();
-    };
+    vector<vector<vector<int>>> Y(T + 1, vector(sz(g), vector(states_num, -1)));
 
     int result{};
-    for (int k = 0; k < V_UP; ++k) {
+    for (int k = 0; k < sz(g); ++k) {
         for (int b = 0; b < states_num; ++b) {
-            result = max(result, recur(recur, 0, k, b));
+            result = max(result, Y[0][k][b]);
         }
     }
     return result;
@@ -82,22 +57,42 @@ int main() {
     const regex pattern{"Valve ([A-Z]{2}) has flow rate=([0-9]+); [a-z]{6,7} "
                         "[a-z]{4,5} to [a-z]{5,6} ([ ,A-Z]+)$"};
 
-    vector<int> rates(V_UP, 0);
-    vector<vector<int>> src(V_UP);
+    map<string, int> rates_by_code;
+    multimap<string, string> adjacent;
+    set<string> codes;
 
     for (string line; getline(cin, line);) {
         smatch m;
         regex_match(line, m, pattern);
 
-        const auto u = vertex_id(m[1]);
-        rates[u] = stoi(m[2]);
+        const auto u_code = m[1].str();
+        codes.insert(u_code);
+        rates_by_code[u_code] = stoi(m[2]);
 
         const auto v_codes = split(", ", m[3]);
-        for (const auto &code : v_codes) {
-            src[vertex_id(code)].push_back(u);
+        for (const auto &v_code : v_codes) {
+            adjacent.emplace(u_code, v_code);
+            codes.insert(v_code);
         }
     }
 
-    cout << optimal_yield(rates, src, 30, vertex_id("AA")) << '\n';
+    vector<string> cs(cbegin(codes), cend(codes));
+    const auto index_of = [&](const string &code) -> int {
+        return inof(distance(cbegin(cs), find(cbegin(cs), cend(cs), code)));
+    };
+
+    vector<vector<int>> g(sz(cs));
+
+    vector<int> rates(sz(cs));
+    for (int i = 0; i < sz(cs); ++i) {
+        rates[i] = rates_by_code.at(cs[i]);
+
+        const auto [A, B] = adjacent.equal_range(cs[i]);
+        for (auto it = A; it != B; ++it) {
+            g[index_of(it->first)].push_back(index_of(it->second));
+        }
+    }
+
+    cout << optimal_yield(rates, g, 30, index_of("AA")) << '\n';
     return 0;
 }
