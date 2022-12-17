@@ -28,8 +28,10 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
     const auto idx = indices_of_positive(rates);
     const auto states_num = (1 << sz(idx));
 
-    const auto is_fertile_vertex = [&](const int k) -> bool {
-        return find(cbegin(idx), cend(idx), k) != cend(idx);
+    const auto index_of_fertile_vertex = [&](const int k) -> int {
+        const auto it = find(cbegin(idx), cend(idx), k);
+        if (it == cend(idx)) return -1;
+        return inof(distance(cbegin(idx), it));
     };
 
     const auto yield_unit = [&](const int state) -> int {
@@ -43,6 +45,32 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
     // Y(t k b) is the yield when t minutes is left, and we stand at a vertex
     // with the id k, with the opened idx valves bits b.
     vector<vector<vector<int>>> Y(T + 1, vector(sz(g), vector(states_num, -1)));
+    Y[T][u0][0] = 0;
+
+    for (int t = T; t >= 1; --t) {
+        for (int k = 0; k < sz(g); ++k) {
+            for (int state = 0; state < states_num; ++state) {
+                if (Y[t][k][state] == -1) continue;
+
+                // Stand still, open nothing
+                Y[t - 1][k][state] =
+                    max(Y[t - 1][k][state], Y[t][k][state] + yield_unit(state));
+
+                // Open current valve k
+                if (const auto i_f = index_of_fertile_vertex(k);
+                    i_f >= 0 && !(state & (1 << i_f))) {
+                    Y[t - 1][k][state | (1 << i_f)] = max(
+                        Y[t - 1][k][state], Y[t][k][state] + yield_unit(state));
+                }
+
+                // Move to one of the adjacent valves
+                for (const auto v : g[k]) {
+                    Y[t - 1][v][state] = max(
+                        Y[t - 1][v][state], Y[t][k][state] + yield_unit(state));
+                }
+            }
+        }
+    }
 
     int result{};
     for (int k = 0; k < sz(g); ++k) {
