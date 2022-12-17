@@ -59,8 +59,9 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                 // Open current valve k
                 if (const auto i_f = index_of_fertile_vertex(k);
                     i_f >= 0 && !(state & (1 << i_f))) {
-                    Y[t - 1][k][state | (1 << i_f)] = max(
-                        Y[t - 1][k][state], Y[t][k][state] + yield_unit(state));
+                    Y[t - 1][k][state | (1 << i_f)] =
+                        max(Y[t - 1][k][state | (1 << i_f)],
+                            Y[t][k][state] + yield_unit(state));
                 }
 
                 // Move to one of the adjacent valves
