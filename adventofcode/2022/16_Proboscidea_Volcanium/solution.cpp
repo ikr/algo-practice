@@ -1,8 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using pii = pair<int, int>;
-
 constexpr int AZ = 26;
 constexpr int V_UP = AZ * AZ;
 
@@ -20,83 +18,64 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
-int vertex_index(const string &code) {
+vector<int> indices_of_positive(const vector<int> &xs) {
+    vector<int> result;
+    for (auto i = 0; i < sz(xs); ++i) {
+        if (xs[i] > 0) result.push_back(i);
+    }
+    return result;
+}
+
+int vertex_id(const string &code) {
     assert(sz(code) == 2);
     return (inof(code[0]) - inof('A')) * AZ + inof(code[1]) - inof('A');
 }
 
-string vertex_code(const int i) {
-    string result{"  "};
-    result[1] = chof(inof('A') + (i % AZ));
-    result[0] = chof(inof('A') + (i / AZ));
-    return result;
-}
-
-template <typename T> constexpr T max(const pair<T, T> ab) {
-    return max(ab.first, ab.second);
-}
-
-int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
+int optimal_yield(const vector<int> &rates, const vector<vector<int>> &src,
                   const int T, const int u0) {
-    const auto is_recent = [&](const deque<pii> &recent, const pii uv) -> bool {
-        return find(cbegin(recent), cend(recent), uv) != cend(recent);
+    const auto idx = indices_of_positive(rates);
+    const auto states_num = (1 << sz(idx));
+
+    const auto is_fertile_vertex = [&](const int k) -> bool {
+        return find(cbegin(idx), cend(idx), k) != cend(idx);
     };
 
-    const auto traversed = [&](deque<pii> &recent, const int u,
-                               const int v) -> void {
-        recent.emplace_back(u, v);
-        if (sz(recent) > 7) recent.pop_front();
-    };
-
-    set<tuple<int, int, int>> skip;
-
-    const auto recur = [&](const auto self, const int t,
-                           const deque<pii> &recent, const set<int> &closed,
-                           const int u) -> int {
-        if (t <= 1) {
-            return 0;
-        }
-
+    const auto yield_unit = [&](const int state) -> int {
         int result{};
-        for (const auto v : g[u]) {
-            if (is_recent(recent, {u, v})) continue;
-
-            const auto ab =
-                recent.empty() ? nullopt : optional<pii>(recent.back());
-
-            if (ab) {
-                const auto [a, b] = *ab;
-                assert(b == u);
-
-                if (skip.contains({a, b, v})) continue;
-                skip.emplace(a, b, v);
-            }
-
-            auto recent_ = recent;
-            traversed(recent_, u, v);
-
-            result = max(result, self(self, t - 1, recent_, closed, v));
-
-            if (closed.contains(u)) {
-                auto cl = closed;
-                cl.erase(u);
-                result = max(result, rates[u] * (t - 1) +
-                                         self(self, t - 2, recent_, cl, v));
-            }
-
-            if (ab) {
-                skip.erase({ab->first, ab->second, v});
-            }
+        for (int i = 0; i < sz(idx); ++i) {
+            if ((1 << i) & state) result += rates[idx[i]];
         }
         return result;
     };
 
-    set<int> closed;
-    for (int u = 0; u < V_UP; ++u) {
-        if (rates[u]) closed.insert(u);
-    }
+    // Y(t k b) is the yield when t minutes is left, and we stand at a vertex
+    // with the id k, with the opened idx valves bits b.
+    vector<vector<vector<int>>> Y(T + 1,
+                                  vector(sz(src), vector(states_num, -1)));
 
-    return recur(recur, T, {}, closed, u0);
+    const auto recur = [&](const auto self, const int t, const int k,
+                           const int state) -> int {
+        if (Y[t][k][state] != -1) return Y[t][k][state];
+        return Y[t][k][state] = [&]() -> int {
+            if (t == T) return 0;
+
+            // Stood still, did nothing
+            int result = self(self, t + 1, k, state) + yield_unit(state);
+
+            for (const auto u : src[k]) {
+            }
+
+            return result;
+        }();
+    };
+
+    int result{};
+    for (int k = 0; k < V_UP; ++k) {
+        for (int b = 0; b < states_num; ++b) {
+            result = max(result, recur(recur, 0, k, b));
+        }
+    }
+    return result;
 }
 
 int main() {
@@ -104,22 +83,21 @@ int main() {
                         "[a-z]{4,5} to [a-z]{5,6} ([ ,A-Z]+)$"};
 
     vector<int> rates(V_UP, 0);
-    vector<vector<int>> g(V_UP);
+    vector<vector<int>> src(V_UP);
 
     for (string line; getline(cin, line);) {
         smatch m;
         regex_match(line, m, pattern);
 
-        const auto u = vertex_index(m[1]);
-        assert(vertex_code(u) == m[1].str());
+        const auto u = vertex_id(m[1]);
         rates[u] = stoi(m[2]);
 
         const auto v_codes = split(", ", m[3]);
         for (const auto &code : v_codes) {
-            g[u].push_back(vertex_index(code));
+            src[vertex_id(code)].push_back(u);
         }
     }
 
-    cout << optimal_yield(rates, g, 30, vertex_index("AA")) << '\n';
+    cout << optimal_yield(rates, src, 30, vertex_id("AA")) << '\n';
     return 0;
 }
