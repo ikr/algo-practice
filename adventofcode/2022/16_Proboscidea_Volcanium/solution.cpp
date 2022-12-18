@@ -55,33 +55,43 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
                 for (int state = 0; state < states_num; ++state) {
                     if (Y[t][k1][k2][state] == -1) continue;
 
-                    // Only open *one* valve: k1 or k2, without moving
-                    for (const auto k : {k1, k2}) {
-                        if (const auto i_f = index_of_fertile_vertex(k);
-                            i_f >= 0 && !(state & (1 << i_f))) {
-                            Y[t - 1][k1][k2][state | (1 << i_f)] =
-                                max(Y[t - 1][k1][k2][state | (1 << i_f)],
-                                    Y[t][k1][k2][state] + yield_unit(state));
-                        }
-                    }
-
-                    // Both open their valves
-                    if (const auto i_f = index_of_fertile_vertex(k1),
-                        j_f = index_of_fertile_vertex(k2);
-                        i_f >= 0 && !(state & (1 << i_f)) && j_f >= 0 &&
-                        !(state & (1 << j_f))) {
-                        Y[t - 1][k1][k2][state | (1 << i_f) | (1 << j_f)] = max(
-                            Y[t - 1][k1][k2][state | (1 << i_f) | (1 << j_f)],
-                            Y[t][k1][k2][state] + yield_unit(state));
-                    }
-
-                    // Both move to one of the adjacent valves, without opening
-                    // anything
                     for (const auto v1 : g[k1]) {
                         for (const auto v2 : g[k2]) {
+                            const auto i_f = index_of_fertile_vertex(k1);
+                            const auto i_can_open =
+                                v1 == k1 && i_f >= 0 && !(state & (1 << i_f));
+
+                            const auto j_f = index_of_fertile_vertex(k2);
+                            const auto j_can_open =
+                                v2 == k2 && j_f >= 0 && !(state & (1 << j_f));
+
+                            // Both move or stand, open nothing
                             Y[t - 1][v1][v2][state] =
                                 max(Y[t - 1][v1][v2][state],
                                     Y[t][k1][k2][state] + yield_unit(state));
+
+                            // Both open
+                            if (i_can_open && j_can_open) {
+                                Y[t - 1][k1][k2]
+                                 [state | (1 << i_f) | (1 << j_f)] = max(
+                                     Y[t - 1][k1][k2]
+                                      [state | (1 << i_f) | (1 << j_f)],
+                                     Y[t][k1][k2][state] + yield_unit(state));
+                            }
+
+                            // Just the first opens
+                            if (i_can_open) {
+                                Y[t - 1][v1][v2][state | (1 << i_f)] = max(
+                                    Y[t - 1][v1][v2][state | (1 << i_f)],
+                                    Y[t][k1][k2][state] + yield_unit(state));
+                            }
+
+                            // Just the second opens
+                            if (j_can_open) {
+                                Y[t - 1][v1][v2][state | (1 << j_f)] = max(
+                                    Y[t - 1][v1][v2][state | (1 << j_f)],
+                                    Y[t][k1][k2][state] + yield_unit(state));
+                            }
                         }
                     }
                 }
