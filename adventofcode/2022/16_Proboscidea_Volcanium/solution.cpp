@@ -42,41 +42,59 @@ int optimal_yield(const vector<int> &rates, const vector<vector<int>> &g,
         return result;
     };
 
-    // Y(t k b) is the yield when t minutes is left, and we stand at a vertex
-    // with the id k, with the opened idx valves bits b.
-    vector<vector<vector<int>>> Y(T + 1, vector(sz(g), vector(states_num, -1)));
-    Y[T][u0][0] = 0;
+    // Y(t k1 k2 b) is the yield when t minutes is left, we stand at the vertex
+    // with the id k1, the elephant stands at the vertex with the id k2, and the
+    // currently opened idx valve bits are b.
+    vector<vector<vector<vector<int>>>> Y(
+        T + 1, vector(sz(g), vector(sz(g), vector(states_num, -1))));
+    Y[T][u0][u0][0] = 0;
 
     for (int t = T; t >= 1; --t) {
-        for (int k = 0; k < sz(g); ++k) {
-            for (int state = 0; state < states_num; ++state) {
-                if (Y[t][k][state] == -1) continue;
+        for (int k1 = 0; k1 < sz(g); ++k1) {
+            for (int k2 = 0; k2 < sz(g); ++k2) {
+                for (int state = 0; state < states_num; ++state) {
+                    if (Y[t][k1][k2][state] == -1) continue;
 
-                // Stand still, open nothing
-                Y[t - 1][k][state] =
-                    max(Y[t - 1][k][state], Y[t][k][state] + yield_unit(state));
+                    // Only open *one* valve: k1 or k2, without moving
+                    for (const auto k : {k1, k2}) {
+                        if (const auto i_f = index_of_fertile_vertex(k);
+                            i_f >= 0 && !(state & (1 << i_f))) {
+                            Y[t - 1][k1][k2][state | (1 << i_f)] =
+                                max(Y[t - 1][k1][k2][state | (1 << i_f)],
+                                    Y[t][k1][k2][state] + yield_unit(state));
+                        }
+                    }
 
-                // Open current valve k
-                if (const auto i_f = index_of_fertile_vertex(k);
-                    i_f >= 0 && !(state & (1 << i_f))) {
-                    Y[t - 1][k][state | (1 << i_f)] =
-                        max(Y[t - 1][k][state | (1 << i_f)],
-                            Y[t][k][state] + yield_unit(state));
-                }
+                    // Both open their valves
+                    if (const auto i_f = index_of_fertile_vertex(k1),
+                        j_f = index_of_fertile_vertex(k2);
+                        i_f >= 0 && !(state & (1 << i_f)) && j_f >= 0 &&
+                        !(state & (1 << j_f))) {
+                        Y[t - 1][k1][k2][state | (1 << i_f) | (1 << j_f)] = max(
+                            Y[t - 1][k1][k2][state | (1 << i_f) | (1 << j_f)],
+                            Y[t][k1][k2][state] + yield_unit(state));
+                    }
 
-                // Move to one of the adjacent valves
-                for (const auto v : g[k]) {
-                    Y[t - 1][v][state] = max(
-                        Y[t - 1][v][state], Y[t][k][state] + yield_unit(state));
+                    // Both move to one of the adjacent valves, without opening
+                    // anything
+                    for (const auto v1 : g[k1]) {
+                        for (const auto v2 : g[k2]) {
+                            Y[t - 1][v1][v2][state] =
+                                max(Y[t - 1][v1][v2][state],
+                                    Y[t][k1][k2][state] + yield_unit(state));
+                        }
+                    }
                 }
             }
         }
     }
 
     int result{};
-    for (int k = 0; k < sz(g); ++k) {
-        for (int b = 0; b < states_num; ++b) {
-            result = max(result, Y[0][k][b]);
+    for (int k1 = 0; k1 < sz(g); ++k1) {
+        for (int k2 = 0; k2 < sz(g); ++k2) {
+            for (int b = 0; b < states_num; ++b) {
+                result = max(result, Y[0][k1][k2][b]);
+            }
         }
     }
     return result;
@@ -97,6 +115,7 @@ int main() {
         const auto u_code = m[1].str();
         codes.insert(u_code);
         rates_by_code[u_code] = stoi(m[2]);
+        adjacent.emplace(u_code, u_code);
 
         const auto v_codes = split(", ", m[3]);
         for (const auto &v_code : v_codes) {
@@ -122,6 +141,6 @@ int main() {
         }
     }
 
-    cout << optimal_yield(rates, g, 30, index_of("AA")) << '\n';
+    cout << optimal_yield(rates, g, 26, index_of("AA")) << '\n';
     return 0;
 }
