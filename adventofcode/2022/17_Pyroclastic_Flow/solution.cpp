@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 using Coord = pair<int, int>;
 using Shape = vector<Coord>;
 using Rock = vector<Coord>;
@@ -16,6 +18,12 @@ static const Shape SQUARE_SHAPE{{1, 0}, {1, 1}, {0, 0}, {0, 1}};
 
 static const vector<Shape> SHAPES_SEQ{MINUS_SHAPE, PLUS_SHAPE, ANGLE_SHAPE,
                                       PIPE_SHAPE, SQUARE_SHAPE};
+
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
+
+constexpr char chof(const int x) { return static_cast<char>(x); }
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -54,15 +62,14 @@ bool collides(const Rock &rock, const Chamber &chamber) {
     });
 }
 
-int simulate_return_tower_height(const string &mvs, const int num_rocks) {
+int height(const Chamber &chamber) { return crbegin(chamber)->first + 1; }
+
+Chamber simulate(const string &mvs, const int num_rocks) {
     auto chamber = initial_chamber();
-    const auto chamber_height = [&chamber]() -> int {
-        return crbegin(chamber)->first + 1;
-    };
 
     for (int i_rock = 0, i_shape = 0, i_mv = 0; i_rock < num_rocks;
          ++i_rock, i_shape = (i_shape + 1) % sz(SHAPES_SEQ)) {
-        Rock cur = move_by(SHAPES_SEQ[i_shape], {chamber_height() + 3, 2});
+        Rock cur = move_by(SHAPES_SEQ[i_shape], {height(chamber) + 3, 2});
 
         for (;;) {
             {
@@ -83,12 +90,37 @@ int simulate_return_tower_height(const string &mvs, const int num_rocks) {
         }
     }
 
-    return chamber_height();
+    return chamber;
+}
+
+auto display(const Chamber &chamber) {
+    string result(height(chamber), chof(0));
+
+    for (const auto &[ro, co] : chamber) {
+        if (ro < 0) continue;
+        result[ro] = chof(inof(result[ro]) | (1 << co));
+    }
+
+    return result;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
 }
 
 int main() {
     string mvs;
     cin >> mvs;
-    cout << simulate_return_tower_height(mvs, 2022) << '\n';
+
+    const auto LIM = 100000;
+    const auto chamber = simulate(mvs, LIM);
+
+    cerr << display(chamber) << endl;
     return 0;
 }
