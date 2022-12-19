@@ -122,7 +122,7 @@ int tail_period(const vector<int> &xs) {
 
     for (int i = sz(xs) - marker_size - 1; i >= 0; --i) {
         if (is_at(xs, marker, i)) {
-            return sz(xs) - marker_size - i + 1;
+            return sz(xs) - marker_size - i;
         }
     }
 
@@ -138,7 +138,9 @@ int main() {
 
     const ll p = tail_period(ds);
     const vector period_elements(cend(ds) - p, cend(ds));
-    cerr << "Period elements " << period_elements << endl;
+    cerr << sz(period_elements) << " period elements " << period_elements
+         << endl;
+    assert(is_at(ds, period_elements, sz(ds) - 3 * inof(p)));
 
     const auto r = 1000000000000LL - LIM;
     const ll result = accumulate(cbegin(ds), cend(ds), 0LL, plus<ll>{}) +
