@@ -4,7 +4,7 @@ using namespace std;
 using Coord = tuple<int, int, int>;
 
 constexpr int SCALAR_MAX = 20;
-constexpr int VOLUME_MAX = 500;
+constexpr int VOLUME_MAX = 2000;
 
 constexpr int X(const Coord &a) { return get<0>(a); }
 constexpr int Y(const Coord &a) { return get<1>(a); }
