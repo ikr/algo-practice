@@ -108,6 +108,15 @@ int max_geodes_gathered(const RobotCosts &costs) {
         return memo[key] = [&]() -> int {
             if (!t) return res[GEODE];
 
+            if (costs.buy_geode_robot(res)) {
+                auto mb_res = costs.buy_geode_robot(res);
+                *mb_res = *mb_res + rob;
+
+                auto rob_ = rob;
+                ++rob_[GEODE];
+                return self(self, t - 1, *mb_res, rob_);
+            }
+
             const auto o_none = self(self, t - 1, res + rob, rob);
 
             const auto o_ore = [&]() -> int {
@@ -140,17 +149,7 @@ int max_geodes_gathered(const RobotCosts &costs) {
                 return self(self, t - 1, *mb_res, rob_);
             }();
 
-            const auto o_geode = [&]() -> int {
-                auto mb_res = costs.buy_geode_robot(res);
-                if (!mb_res) return INT_MIN;
-                *mb_res = *mb_res + rob;
-
-                auto rob_ = rob;
-                ++rob_[GEODE];
-                return self(self, t - 1, *mb_res, rob_);
-            }();
-
-            return max({o_none, o_ore, o_clay, o_obsidian, o_geode});
+            return max({o_none, o_ore, o_clay, o_obsidian});
         }();
     };
 
