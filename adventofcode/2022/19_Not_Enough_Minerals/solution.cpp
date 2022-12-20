@@ -1,5 +1,4 @@
 #include <bits/stdc++.h>
-#include <cstddef>
 using namespace std;
 
 using pii = pair<int, int>;
@@ -161,7 +160,9 @@ int max_geodes_gathered(const RobotCosts &costs) {
 int quality_level(const vector<RobotCosts> &blueprints) {
     int result{};
     for (int i = 0; i < sz(blueprints); ++i) {
-        result += (i + 1) * max_geodes_gathered(blueprints[i]);
+        const auto geodes = max_geodes_gathered(blueprints[i]);
+        cerr << "Blueprint " << (i + 1) << " — " << geodes << " geodes" << endl;
+        result += (i + 1) * geodes;
     }
     return result;
 }
