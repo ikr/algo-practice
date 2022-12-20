@@ -39,6 +39,7 @@ struct RobotCosts final {
             res[CLAY] >= obsidian_ore_clay.second) {
             res[ORE] -= obsidian_ore_clay.first;
             res[CLAY] -= obsidian_ore_clay.second;
+            return res;
         }
         return nullopt;
     }
@@ -48,6 +49,7 @@ struct RobotCosts final {
             res[OBSIDIAN] >= geode_ore_obsidian.second) {
             res[ORE] -= geode_ore_obsidian.first;
             res[OBSIDIAN] -= geode_ore_obsidian.second;
+            return res;
         }
         return nullopt;
     }
@@ -84,6 +86,17 @@ constexpr array<T, N> operator+(array<T, N> a, const array<T, N> &b) {
     transform(cbegin(a), cend(a), cbegin(b), begin(a),
               [](const T x, const T y) { return x + y; });
     return a;
+}
+
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
 }
 
 int max_geodes_gathered(const RobotCosts &costs) {
