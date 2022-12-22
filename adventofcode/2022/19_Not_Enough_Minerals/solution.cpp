@@ -2,7 +2,7 @@
 using namespace std;
 
 using pii = pair<int, int>;
-using Resources = array<int, 4>;
+using Resources = array<int, 3>;
 using Robots = array<int, 4>;
 
 static constexpr int ORE = 0;
@@ -80,8 +80,9 @@ size_t state_key(const int t, const Resources &res, const Robots &rob) {
         static_cast<size_t>(t), combine_hashes(res), combine_hashes(rob)});
 }
 
-template <typename T, size_t N>
-constexpr array<T, N> operator+(array<T, N> a, const array<T, N> &b) {
+template <typename T, size_t N, size_t M>
+constexpr array<T, N> operator+(array<T, N> a, const array<T, M> &b) {
+    assert(N <= M);
     transform(cbegin(a), cend(a), cbegin(b), begin(a),
               [](const T x, const T y) { return x + y; });
     return a;
@@ -106,54 +107,53 @@ int max_geodes_gathered(const RobotCosts &costs) {
         const auto key = state_key(t, res, rob);
         if (memo.contains(key)) return memo.at(key);
         return memo[key] = [&]() -> int {
-            if (!t) return res[GEODE];
+            if (!t) return 0;
 
-            if (costs.buy_geode_robot(res)) {
-                auto mb_res = costs.buy_geode_robot(res);
-                *mb_res = *mb_res + rob;
+            if (auto pres_ = costs.buy_geode_robot(res)) {
+                *pres_ = *pres_ + rob;
 
                 auto rob_ = rob;
                 ++rob_[GEODE];
-                return self(self, t - 1, *mb_res, rob_);
+                return rob[GEODE] + self(self, t - 1, *pres_, rob_);
             }
 
             const auto o_none = self(self, t - 1, res + rob, rob);
 
             const auto o_ore = [&]() -> int {
-                auto mb_res = costs.buy_ore_robot(res);
-                if (!mb_res) return INT_MIN;
-                *mb_res = *mb_res + rob;
+                auto pres_ = costs.buy_ore_robot(res);
+                if (!pres_) return INT_MIN;
+                *pres_ = *pres_ + rob;
 
                 auto rob_ = rob;
                 ++rob_[ORE];
-                return self(self, t - 1, *mb_res, rob_);
+                return self(self, t - 1, *pres_, rob_);
             }();
 
             const auto o_clay = [&]() -> int {
-                auto mb_res = costs.buy_clay_robot(res);
-                if (!mb_res) return INT_MIN;
-                *mb_res = *mb_res + rob;
+                auto pres_ = costs.buy_clay_robot(res);
+                if (!pres_) return INT_MIN;
+                *pres_ = *pres_ + rob;
 
                 auto rob_ = rob;
                 ++rob_[CLAY];
-                return self(self, t - 1, *mb_res, rob_);
+                return self(self, t - 1, *pres_, rob_);
             }();
 
             const auto o_obsidian = [&]() -> int {
-                auto mb_res = costs.buy_obsidian_robot(res);
-                if (!mb_res) return INT_MIN;
-                *mb_res = *mb_res + rob;
+                auto pres_ = costs.buy_obsidian_robot(res);
+                if (!pres_) return INT_MIN;
+                *pres_ = *pres_ + rob;
 
                 auto rob_ = rob;
                 ++rob_[OBSIDIAN];
-                return self(self, t - 1, *mb_res, rob_);
+                return self(self, t - 1, *pres_, rob_);
             }();
 
-            return max({o_none, o_ore, o_clay, o_obsidian});
+            return rob[GEODE] + max({o_none, o_ore, o_clay, o_obsidian});
         }();
     };
 
-    return recur(recur, T, {0, 0, 0, 0}, {1, 0, 0, 0});
+    return recur(recur, T, {0, 0, 0}, {1, 0, 0, 0});
 }
 
 int quality_level(const vector<RobotCosts> &blueprints) {
