@@ -1,14 +1,26 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using pii = pair<int, int>;
-using Resources = array<int, 3>;
-using Robots = array<int, 4>;
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
 
-static constexpr int ORE = 0;
-static constexpr int CLAY = 1;
-static constexpr int OBSIDIAN = 2;
-static constexpr int GEODE = 3;
+using pii = pair<int, int>;
+using Resources = array<int, 4>;
+using Robots = array<int, 4>;
+using ResId = int;
+
+static constexpr ResId ORE = 0;
+static constexpr ResId CLAY = 1;
+static constexpr ResId OBSIDIAN = 2;
+static constexpr ResId GEODE = 3;
 static constexpr int T = 24;
 
 struct RobotCosts final {
@@ -17,40 +29,59 @@ struct RobotCosts final {
     pii obsidian_ore_clay;
     pii geode_ore_obsidian;
 
-    optional<Resources> buy_ore_robot(Resources res) const {
-        if (res[ORE] >= ore_ore) {
-            res[ORE] -= ore_ore;
+    optional<Resources> buy_robot(const ResId id, Resources res) const {
+        switch (id) {
+        case ORE:
+            if (res[ORE] >= ore_ore) {
+                res[ORE] -= ore_ore;
+                return res;
+            }
+            break;
+        case CLAY:
+            if (res[ORE] >= clay_ore) {
+                res[ORE] -= clay_ore;
+                return res;
+            }
+            break;
+        case OBSIDIAN:
+            if (res[ORE] >= obsidian_ore_clay.first &&
+                res[CLAY] >= obsidian_ore_clay.second) {
+                res[ORE] -= obsidian_ore_clay.first;
+                res[CLAY] -= obsidian_ore_clay.second;
+                return res;
+            }
+            break;
+        case GEODE:
+            if (res[ORE] >= geode_ore_obsidian.first &&
+                res[OBSIDIAN] >= geode_ore_obsidian.second) {
+                res[ORE] -= geode_ore_obsidian.first;
+                res[OBSIDIAN] -= geode_ore_obsidian.second;
+                return res;
+            }
+            break;
+        default:
+            assert(false && "Invalid resource id");
             return res;
         }
+
         return nullopt;
     }
 
-    optional<Resources> buy_clay_robot(Resources res) const {
-        if (res[ORE] >= clay_ore) {
-            res[ORE] -= clay_ore;
-            return res;
+    int max_required(const ResId id) const {
+        switch (id) {
+        case ORE:
+            return max({ore_ore, clay_ore, obsidian_ore_clay.first,
+                        geode_ore_obsidian.first});
+        case CLAY:
+            return obsidian_ore_clay.second;
+        case OBSIDIAN:
+            return geode_ore_obsidian.second;
+        case GEODE:
+            return INT_MAX;
+        default:
+            assert(false && "Invalid resource id");
+            return 0;
         }
-        return nullopt;
-    }
-
-    optional<Resources> buy_obsidian_robot(Resources res) const {
-        if (res[ORE] >= obsidian_ore_clay.first &&
-            res[CLAY] >= obsidian_ore_clay.second) {
-            res[ORE] -= obsidian_ore_clay.first;
-            res[CLAY] -= obsidian_ore_clay.second;
-            return res;
-        }
-        return nullopt;
-    }
-
-    optional<Resources> buy_geode_robot(Resources res) const {
-        if (res[ORE] >= geode_ore_obsidian.first &&
-            res[OBSIDIAN] >= geode_ore_obsidian.second) {
-            res[ORE] -= geode_ore_obsidian.first;
-            res[OBSIDIAN] -= geode_ore_obsidian.second;
-            return res;
-        }
-        return nullopt;
     }
 };
 
@@ -69,91 +100,40 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> size_t combine_hashes(const T &xs) {
-    size_t seed = xs.size();
-    for (const auto i : xs) seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    return seed;
-}
-
-size_t state_key(const int t, const Resources &res, const Robots &rob) {
-    return combine_hashes(array<size_t, 3>{
-        static_cast<size_t>(t), combine_hashes(res), combine_hashes(rob)});
-}
-
-template <typename T, size_t N, size_t M>
-constexpr array<T, N> operator+(array<T, N> a, const array<T, M> &b) {
-    assert(N <= M);
+template <typename T, size_t N>
+constexpr array<T, N> operator+(array<T, N> a, const array<T, N> &b) {
     transform(cbegin(a), cend(a), cbegin(b), begin(a),
               [](const T x, const T y) { return x + y; });
     return a;
 }
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int max_geodes_gathered(const RobotCosts &costs) {
-    unordered_map<size_t, int> memo;
+    int geodes_max{};
 
     const auto recur = [&](const auto self, const int t, const Resources &res,
-                           const Robots &rob) -> int {
-        const auto key = state_key(t, res, rob);
-        if (memo.contains(key)) return memo.at(key);
-        return memo[key] = [&]() -> int {
-            if (!t) return 0;
+                           const Robots &rob) -> void {
+        if (!t) {
+            geodes_max = max(geodes_max, res[GEODE]);
+            return;
+        };
 
-            if (auto pres_ = costs.buy_geode_robot(res)) {
-                *pres_ = *pres_ + rob;
+        self(self, t - 1, res + rob, rob);
 
-                auto rob_ = rob;
-                ++rob_[GEODE];
-                return rob[GEODE] + self(self, t - 1, *pres_, rob_);
-            }
+        for (const auto id : {ORE, CLAY, OBSIDIAN, GEODE}) {
+            if (costs.max_required(id) <= rob[id]) continue;
 
-            const auto o_none = self(self, t - 1, res + rob, rob);
+            auto res_ = costs.buy_robot(id, res);
+            if (!res_) continue;
+            *res_ = *res_ + rob;
 
-            const auto o_ore = [&]() -> int {
-                auto pres_ = costs.buy_ore_robot(res);
-                if (!pres_) return INT_MIN;
-                *pres_ = *pres_ + rob;
-
-                auto rob_ = rob;
-                ++rob_[ORE];
-                return self(self, t - 1, *pres_, rob_);
-            }();
-
-            const auto o_clay = [&]() -> int {
-                auto pres_ = costs.buy_clay_robot(res);
-                if (!pres_) return INT_MIN;
-                *pres_ = *pres_ + rob;
-
-                auto rob_ = rob;
-                ++rob_[CLAY];
-                return self(self, t - 1, *pres_, rob_);
-            }();
-
-            const auto o_obsidian = [&]() -> int {
-                auto pres_ = costs.buy_obsidian_robot(res);
-                if (!pres_) return INT_MIN;
-                *pres_ = *pres_ + rob;
-
-                auto rob_ = rob;
-                ++rob_[OBSIDIAN];
-                return self(self, t - 1, *pres_, rob_);
-            }();
-
-            return rob[GEODE] + max({o_none, o_ore, o_clay, o_obsidian});
-        }();
+            auto rob_ = rob;
+            ++rob_[id];
+            self(self, t - 1, *res_, rob_);
+        }
     };
 
-    return recur(recur, T, {0, 0, 0}, {1, 0, 0, 0});
+    recur(recur, T, {0, 0, 0}, {1, 0, 0, 0});
+    return geodes_max;
 }
 
 int quality_level(const vector<RobotCosts> &blueprints) {
