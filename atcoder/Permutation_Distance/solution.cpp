@@ -30,10 +30,13 @@ vector<int> find_ds(const vector<int> &P) {
 
     for (int i = 0; i < N; ++i) {
         const auto p = P[i];
-        if (p > 1) ans[i] = min(ans[i], 1 + abs(i - idx[p - 1]));
-        if (p < N) ans[i] = min(ans[i], 1 + abs(i - idx[p + 1]));
-        if (i > 0) ans[i] = min(ans[i], abs(P[i] - P[i - 1]) + 1);
-        if (i < N - 1) ans[i] = min(ans[i], abs(P[i] - P[i + 1]) + 1);
+
+        for (int j = 1; j < 1000; ++j) {
+            if (p - j >= 1) ans[i] = min(ans[i], j + abs(i - idx[p - j]));
+            if (p + j <= N) ans[i] = min(ans[i], j + abs(i - idx[p + j]));
+            if (i - j >= 0) ans[i] = min(ans[i], abs(P[i] - P[i - j]) + j);
+            if (i + j < N) ans[i] = min(ans[i], abs(P[i] - P[i + j]) + j);
+        }
     }
 
     return ans;
