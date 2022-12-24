@@ -103,7 +103,10 @@ int max_geodes_gathered(const RobotCosts &costs) {
         for (const auto id : {ORE, CLAY, OBSIDIAN, GEODE}) {
             if (id != GEODE) {
                 const auto hi = costs.max_required(id);
-                if (rob[id] >= hi || res[id] > hi * t) continue;
+                if (rob[id] >= hi || res[id] > hi * t ||
+                    res[id] + t - 1 > hi * (t - 1)) {
+                    continue;
+                }
             }
 
             auto res_ = costs.buy_robot(id, res);
