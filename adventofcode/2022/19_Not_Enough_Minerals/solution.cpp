@@ -11,7 +11,7 @@ static constexpr ResId ORE = 0;
 static constexpr ResId CLAY = 1;
 static constexpr ResId OBSIDIAN = 2;
 static constexpr ResId GEODE = 3;
-static constexpr int T = 32;
+static constexpr int T = 24;
 
 struct RobotCosts final {
     int ore_ore;
@@ -88,6 +88,17 @@ constexpr array<T, N> operator+(array<T, N> a, const array<T, N> &b) {
     return a;
 }
 
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 int max_geodes_gathered(const RobotCosts &costs) {
     int geodes_max{};
 
@@ -103,8 +114,7 @@ int max_geodes_gathered(const RobotCosts &costs) {
         for (const auto id : {ORE, CLAY, OBSIDIAN, GEODE}) {
             if (id != GEODE) {
                 const auto hi = costs.max_required(id);
-                if (rob[id] >= hi || res[id] > hi * t ||
-                    res[id] + t - 1 > hi * (t - 1)) {
+                if (rob[id] >= hi || res[id] + t - 1 > hi * (t - 1)) {
                     continue;
                 }
             }
