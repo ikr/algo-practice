@@ -11,7 +11,7 @@ static constexpr ResId ORE = 0;
 static constexpr ResId CLAY = 1;
 static constexpr ResId OBSIDIAN = 2;
 static constexpr ResId GEODE = 3;
-static constexpr int T = 24;
+static constexpr int T = 32;
 
 struct RobotCosts final {
     int ore_ore;
@@ -105,9 +105,22 @@ int max_geodes_gathered(const RobotCosts &costs) {
     const auto recur = [&](const auto self, const int t, const Resources &res,
                            const Robots &rob) -> void {
         if (!t) {
+            if (res[GEODE] > geodes_max) {
+                cerr << res << ' ' << rob << endl;
+            }
             geodes_max = max(geodes_max, res[GEODE]);
             return;
         };
+
+        {
+            int r = res[GEODE];
+            int pot = r;
+            for (int i = t - 1; i >= 0; --i) {
+                ++r;
+                pot += r;
+            }
+            if (pot < geodes_max) return;
+        }
 
         self(self, t - 1, res + rob, rob);
 
