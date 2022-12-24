@@ -105,9 +105,6 @@ int max_geodes_gathered(const RobotCosts &costs) {
     const auto recur = [&](const auto self, const int t, const Resources &res,
                            const Robots &rob) -> void {
         if (!t) {
-            if (res[GEODE] > geodes_max) {
-                cerr << res << ' ' << rob << endl;
-            }
             geodes_max = max(geodes_max, res[GEODE]);
             return;
         };
