@@ -1,27 +1,17 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using pii = pair<int, int>;
 using Resources = array<int, 4>;
 using Robots = array<int, 4>;
 using ResId = int;
 
+static constexpr int INF = 100'000'000;
 static constexpr ResId ORE = 0;
 static constexpr ResId CLAY = 1;
 static constexpr ResId OBSIDIAN = 2;
 static constexpr ResId GEODE = 3;
-static constexpr int T = 24;
+static constexpr int T = 32;
 
 struct RobotCosts final {
     int ore_ore;
@@ -77,22 +67,13 @@ struct RobotCosts final {
         case OBSIDIAN:
             return geode_ore_obsidian.second;
         case GEODE:
-            return INT_MAX;
+            return INF;
         default:
             assert(false && "Invalid resource id");
             return 0;
         }
     }
 };
-
-ostream &operator<<(ostream &os, const RobotCosts &cst) {
-    os << '{' << "Ore-R: " << cst.ore_ore << "ore, Clay-R: " << cst.clay_ore
-       << "ore, Obsidian-R: " << cst.obsidian_ore_clay.first << "ore "
-       << cst.obsidian_ore_clay.second
-       << "clay, Geode-R: " << cst.geode_ore_obsidian.first << "ore "
-       << cst.geode_ore_obsidian.second << "obsidian}";
-    return os;
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -120,7 +101,10 @@ int max_geodes_gathered(const RobotCosts &costs) {
         self(self, t - 1, res + rob, rob);
 
         for (const auto id : {ORE, CLAY, OBSIDIAN, GEODE}) {
-            if (costs.max_required(id) <= rob[id]) continue;
+            if (id != GEODE) {
+                const auto hi = costs.max_required(id);
+                if (rob[id] >= hi || res[id] > hi * t) continue;
+            }
 
             auto res_ = costs.buy_robot(id, res);
             if (!res_) continue;
@@ -136,12 +120,12 @@ int max_geodes_gathered(const RobotCosts &costs) {
     return geodes_max;
 }
 
-int quality_level(const vector<RobotCosts> &blueprints) {
-    int result{};
-    for (int i = 0; i < sz(blueprints); ++i) {
+int first_3_geodes_max_product(const vector<RobotCosts> &blueprints) {
+    int result = 1;
+    for (int i = 0; i < min(sz(blueprints), 3); ++i) {
         const auto geodes = max_geodes_gathered(blueprints[i]);
         cerr << "Blueprint " << (i + 1) << " — " << geodes << " geodes" << endl;
-        result += (i + 1) * geodes;
+        result *= geodes;
     }
     return result;
 }
@@ -162,10 +146,8 @@ int main() {
 
         blueprints.push_back(RobotCosts{m_at(1), m_at(2), pii{m_at(3), m_at(4)},
                                         pii{m_at(5), m_at(6)}});
-
-        cerr << blueprints.back() << endl;
     }
 
-    cout << quality_level(blueprints) << '\n';
+    cout << first_3_geodes_max_product(blueprints) << '\n';
     return 0;
 }
