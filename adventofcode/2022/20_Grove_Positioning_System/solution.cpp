@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include <iterator>
 using namespace std;
 
 using Iter = list<int>::const_iterator;
@@ -9,33 +10,13 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-pair<list<int>, vector<Iter>>
-values_list_and_its_iterators(const vector<int> &xs) {
+vector<int> move_each_by_value(const vector<int> &xs) {
     list<int> li;
     vector<Iter> it(sz(xs));
 
     for (int i = 0; i < sz(xs); i++) {
         it[i] = li.insert(cend(li), xs[i]);
-        cerr << "it[i]:" << *it[i] << endl;
     }
-
-    return {li, it};
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-vector<int> move_each_by_value(const vector<int> &xs) {
-    auto liit = values_list_and_its_iterators(xs);
-    auto &li = liit.first;
-    const auto &it = liit.second;
 
     const auto step_left = [&](const Iter i) -> Iter {
         return i == cbegin(li) ? prev(cend(li)) : prev(i);
@@ -46,7 +27,6 @@ vector<int> move_each_by_value(const vector<int> &xs) {
     };
 
     for (const auto &i : it) {
-        cerr << "li: " << vector(cbegin(li), cend(li)) << " x:" << *i << endl;
         const auto x = *i;
         if (!x) continue;
 
@@ -76,9 +56,17 @@ int main() {
         xs.push_back(stoi(line));
     }
 
-    const auto [hi, lo] = minmax_element(cbegin(xs), cend(xs));
-    cerr << *hi << ' ' << *lo << endl;
+    xs = move_each_by_value(xs);
 
-    cerr << move_each_by_value(xs) << endl;
+    const auto it_zero = find(cbegin(xs), cend(xs), 0);
+    assert(it_zero != cend(xs));
+    const auto iz = inof(distance(cbegin(xs), it_zero));
+
+    const auto n = sz(xs);
+    const auto a = xs[(iz + 1000) % n];
+    const auto b = xs[(iz + 2000) % n];
+    const auto c = xs[(iz + 3000) % n];
+
+    cout << (a + b + c) << '\n';
     return 0;
 }
