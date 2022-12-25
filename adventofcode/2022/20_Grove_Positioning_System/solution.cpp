@@ -1,6 +1,15 @@
 #include <bits/stdc++.h>
-#include <iterator>
 using namespace std;
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
 
 using Iter = list<int>::const_iterator;
 
@@ -42,7 +51,7 @@ vector<int> move_each_by_value(const vector<int> &xs) {
         if (x < 0) {
             li.insert(j == cbegin(li) ? cend(li) : j, x);
         } else {
-            li.insert(next(j) == cend(li) ? cend(li) : next(j), x);
+            li.insert(next(j), x);
         }
         li.erase(i);
     }
@@ -57,6 +66,7 @@ int main() {
     }
 
     xs = move_each_by_value(xs);
+    cerr << xs << endl;
 
     const auto it_zero = find(cbegin(xs), cend(xs), 0);
     assert(it_zero != cend(xs));
