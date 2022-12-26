@@ -84,10 +84,8 @@ vector<KeyVal> move_right(vector<KeyVal> kvs, const int key, const ll d) {
 
 vector<KeyVal> move_each_by_value(vector<KeyVal> kvs) {
     for (int i = 0; i < sz(kvs); ++i) {
-        ll i0 = index_of(kvs, i);
-        const auto x = kvs[i0].second;
+        const auto x = kvs[index_of(kvs, i)].second;
         if (!x) continue;
-
         kvs = x < 0LL ? move_left(kvs, i, -x) : move_right(kvs, i, x);
     }
     return kvs;
