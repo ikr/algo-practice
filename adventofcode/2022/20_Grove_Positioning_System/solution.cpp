@@ -1,8 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using pii = pair<int, int>;
-
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     os << '(' << x.first << ' ' << x.second << ')';
@@ -19,44 +17,49 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+using ll = long long;
+using KeyVal = pair<int, ll>;
+
+static constexpr ll MULTIPLIER = 811589153LL;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<pii> key_values(const vector<int> &xs) {
-    vector<pii> result(sz(xs));
-    for (int i = 0; i < sz(xs); ++i) result[i] = pii{i, xs[i]};
+vector<KeyVal> key_values(const vector<ll> &xs) {
+    vector<KeyVal> result(sz(xs));
+    for (int i = 0; i < sz(xs); ++i) result[i] = KeyVal{i, xs[i]};
     return result;
 }
 
-int index_of(const vector<pii> &kvs, const int key) {
+int index_of(const vector<KeyVal> &kvs, const int key) {
     const auto it = find_if(cbegin(kvs), cend(kvs),
-                            [key](const pii kv) { return kv.first == key; });
+                            [key](const KeyVal kv) { return kv.first == key; });
     assert(it != cend(kvs));
     return inof(distance(cbegin(kvs), it));
 }
 
-vector<int> only_values(const vector<pii> &kvs) {
-    vector<int> result(sz(kvs));
+vector<ll> only_values(const vector<KeyVal> &kvs) {
+    vector<ll> result(sz(kvs));
     transform(cbegin(kvs), cend(kvs), begin(result),
-              [](const pii kv) { return kv.second; });
+              [](const KeyVal kv) { return kv.second; });
     return result;
 }
 
-vector<pii> move_left(vector<pii> kvs, const int key, const int d) {
-    auto i0 = index_of(kvs, key);
+vector<KeyVal> move_left(vector<KeyVal> kvs, const int key, const ll d) {
+    ll i0 = index_of(kvs, key);
     const auto value = kvs[i0].second;
 
     kvs.erase(cbegin(kvs) + i0);
 
     i0 -= d;
-    i0 %= sz(kvs);
+    i0 %= 0LL + sz(kvs);
     i0 += sz(kvs);
-    i0 %= sz(kvs);
+    i0 %= 0LL + sz(kvs);
 
-    if (i0 == 0) {
+    if (i0 == 0LL) {
         kvs.emplace_back(key, value);
     } else {
         kvs.emplace(cbegin(kvs) + i0, key, value);
@@ -65,42 +68,46 @@ vector<pii> move_left(vector<pii> kvs, const int key, const int d) {
     return kvs;
 }
 
-vector<pii> move_right(vector<pii> kvs, const int key, const int d) {
-    auto i0 = index_of(kvs, key);
+vector<KeyVal> move_right(vector<KeyVal> kvs, const int key, const ll d) {
+    ll i0 = index_of(kvs, key);
     const auto value = kvs[i0].second;
 
     kvs.erase(cbegin(kvs) + i0);
     if (i0 == sz(kvs)) i0 = 0;
 
     i0 += d;
-    i0 %= sz(kvs);
+    i0 %= 0LL + sz(kvs);
     kvs.emplace(cbegin(kvs) + i0, key, value);
 
     return kvs;
 }
 
-vector<int> move_each_by_value(const vector<int> &xs) {
-    auto kvs = key_values(xs);
-    for (int i = 0; i < sz(xs); ++i) {
-        const auto x = xs[i];
+vector<KeyVal> move_each_by_value(vector<KeyVal> kvs) {
+    for (int i = 0; i < sz(kvs); ++i) {
+        ll i0 = index_of(kvs, i);
+        const auto x = kvs[i0].second;
         if (!x) continue;
 
-        kvs = x < 0 ? move_left(kvs, i, -x) : move_right(kvs, i, x);
-        // cerr << (i + 1) << ' ' << kvs << endl;
+        kvs = x < 0LL ? move_left(kvs, i, -x) : move_right(kvs, i, x);
     }
-    return only_values(kvs);
+    return kvs;
 }
 
 int main() {
-    vector<int> xs;
+    vector<ll> xs;
     for (string line; getline(cin, line);) {
-        xs.push_back(stoi(line));
+        xs.push_back(stoll(line) * MULTIPLIER);
     }
 
     cerr << xs << endl;
-    xs = move_each_by_value(xs);
-    cerr << xs << endl;
+    auto kvs = key_values(xs);
 
+    for (int i = 0; i < 10; ++i) {
+        kvs = move_each_by_value(kvs);
+        cerr << (i + 1) << ' ' << only_values(kvs) << endl;
+    }
+
+    xs = only_values(kvs);
     const auto it_zero = find(cbegin(xs), cend(xs), 0);
     assert(it_zero != cend(xs));
     const auto iz = inof(distance(cbegin(xs), it_zero));
