@@ -1,6 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using pii = pair<int, int>;
+
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -11,52 +19,47 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-using Iter = list<int>::const_iterator;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+vector<pii> key_values(const vector<int> &xs) {
+    vector<pii> result(sz(xs));
+    for (int i = 0; i < sz(xs); ++i) result[i] = pii{i, xs[i]};
+    return result;
+}
+
+int index_of(const vector<pii> &kvs, const int key) {
+    const auto it = find_if(cbegin(kvs), cend(kvs),
+                            [key](const pii kv) { return kv.first == key; });
+    assert(it != cend(kvs));
+    return inof(distance(cbegin(kvs), it));
+}
+
+vector<int> only_values(const vector<pii> &kvs) {
+    vector<int> result(sz(kvs));
+    transform(cbegin(kvs), cend(kvs), begin(result),
+              [](const pii kv) { return kv.second; });
+    return result;
+}
+
+vector<pii> move_left(vector<pii> kvs, const int key, const int d) {
+    return kvs;
+}
+
+vector<pii> move_right(vector<pii> kvs, const int key, const int d) {
+    return kvs;
+}
+
 vector<int> move_each_by_value(const vector<int> &xs) {
-    list<int> li;
-    vector<Iter> it(sz(xs));
-
-    for (int i = 0; i < sz(xs); i++) {
-        it[i] = li.insert(cend(li), xs[i]);
+    auto kvs = key_values(xs);
+    for (int i = 0; i < sz(xs); ++i) {
+        const auto x = xs[i];
+        kvs = x < 0 ? move_left(kvs, i, -x) : move_left(kvs, i, x);
     }
-
-    const auto step_left = [&](const Iter i) -> Iter {
-        return i == cbegin(li) ? prev(cend(li)) : prev(i);
-    };
-
-    const auto step_right = [&](const Iter i) -> Iter {
-        return next(i) == cend(li) ? cbegin(li) : next(i);
-    };
-
-    for (const auto &i : it) {
-        const auto x = *i;
-        if (!x) continue;
-
-        auto j = i;
-        for (int k = 0; k < abs(x); ++k) {
-            if (x < 0) {
-                j = step_left(j);
-            } else {
-                j = step_right(j);
-            }
-        }
-
-        if (x < 0) {
-            li.insert(j == cbegin(li) ? cend(li) : j, x);
-        } else {
-            li.insert(next(j), x);
-        }
-        li.erase(i);
-    }
-
-    return vector(cbegin(li), cend(li));
+    return only_values(kvs);
 }
 
 int main() {
