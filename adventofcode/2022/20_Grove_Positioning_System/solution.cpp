@@ -46,10 +46,36 @@ vector<int> only_values(const vector<pii> &kvs) {
 }
 
 vector<pii> move_left(vector<pii> kvs, const int key, const int d) {
+    auto i0 = index_of(kvs, key);
+    const auto value = kvs[i0].second;
+
+    kvs.erase(cbegin(kvs) + i0);
+
+    i0 -= d;
+    i0 %= sz(kvs);
+    i0 += sz(kvs);
+    i0 %= sz(kvs);
+
+    if (i0 == 0) {
+        kvs.emplace_back(key, value);
+    } else {
+        kvs.emplace(cbegin(kvs) + i0, key, value);
+    }
+
     return kvs;
 }
 
 vector<pii> move_right(vector<pii> kvs, const int key, const int d) {
+    auto i0 = index_of(kvs, key);
+    const auto value = kvs[i0].second;
+
+    kvs.erase(cbegin(kvs) + i0);
+    if (i0 == sz(kvs)) i0 = 0;
+
+    i0 += d;
+    i0 %= sz(kvs);
+    kvs.emplace(cbegin(kvs) + i0, key, value);
+
     return kvs;
 }
 
@@ -57,7 +83,10 @@ vector<int> move_each_by_value(const vector<int> &xs) {
     auto kvs = key_values(xs);
     for (int i = 0; i < sz(xs); ++i) {
         const auto x = xs[i];
-        kvs = x < 0 ? move_left(kvs, i, -x) : move_left(kvs, i, x);
+        if (!x) continue;
+
+        kvs = x < 0 ? move_left(kvs, i, -x) : move_right(kvs, i, x);
+        // cerr << (i + 1) << ' ' << kvs << endl;
     }
     return only_values(kvs);
 }
@@ -68,6 +97,7 @@ int main() {
         xs.push_back(stoi(line));
     }
 
+    cerr << xs << endl;
     xs = move_each_by_value(xs);
     cerr << xs << endl;
 
