@@ -61,8 +61,8 @@ int main() {
         expressions_by_key.emplace(key, terms);
     }
 
-    ll lo = 3671030300000LL;
-    assert(root_argument_a(expressions_by_key, lo) > 0LL);
+    ll lo = 3759569926100LL;
+    assert(root_argument_a(expressions_by_key, lo) >= 0LL);
     // ll hi = 125000000000000LL;
     // assert(root_argument_a(expressions_by_key, hi) < 0LL);
 
