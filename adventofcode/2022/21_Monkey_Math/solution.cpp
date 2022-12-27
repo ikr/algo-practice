@@ -17,16 +17,22 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
-ll root_value(const map<string, vector<string>> &expressions_by_key) {
+ll root_argument_a(const map<string, vector<string>> &expressions_by_key,
+                   const ll humn_value) {
     map<string, ll> memo;
     const auto recur = [&](const auto self, const string &key) -> ll {
         if (memo.contains(key)) return memo.at(key);
         return memo[key] = [&]() -> ll {
+            if (key == "humn") return humn_value;
             const auto terms = expressions_by_key.at(key);
             if (sz(terms) == 1) return stoll(terms[0]);
 
             const auto a = self(self, terms[0]);
             const auto b = self(self, terms[2]);
+            if (key == "root") {
+                cerr << "a:" << a << " b:" << b << " delta:" << a - b << endl;
+                return a;
+            }
 
             switch (terms[1][0]) {
             case '+':
@@ -55,6 +61,19 @@ int main() {
         expressions_by_key.emplace(key, terms);
     }
 
-    cout << root_value(expressions_by_key) << '\n';
+    ll lo = 3671030300000LL;
+    assert(root_argument_a(expressions_by_key, lo) > 0LL);
+    // ll hi = 125000000000000LL;
+    // assert(root_argument_a(expressions_by_key, hi) < 0LL);
+
+    // while (lo + 1 < hi) {
+    //     const auto mid = midpoint(lo, hi);
+    //     if (root_argument_a(expressions_by_key, lo) > 0LL) {
+    //         lo = mid;
+    //     } else {
+    //         hi = mid;
+    //     }
+    // }
+
     return 0;
 }
