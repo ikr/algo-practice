@@ -1,8 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-
 static constexpr int KEY_LENGTH = 4;
 
 template <typename T> constexpr int inof(const T x) {
@@ -17,21 +15,22 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
-ll root_argument_a(const map<string, vector<string>> &expressions_by_key,
-                   const ll humn_value) {
-    map<string, ll> memo;
-    const auto recur = [&](const auto self, const string &key) -> ll {
+double
+root_arguments_diff(const map<string, vector<string>> &expressions_by_key,
+                    const double humn_value) {
+    map<string, double> memo;
+    const auto recur = [&](const auto self, const string &key) -> double {
         if (memo.contains(key)) return memo.at(key);
-        return memo[key] = [&]() -> ll {
+        return memo[key] = [&]() -> double {
             if (key == "humn") return humn_value;
             const auto terms = expressions_by_key.at(key);
-            if (sz(terms) == 1) return stoll(terms[0]);
+            if (sz(terms) == 1) return stod(terms[0]);
 
             const auto a = self(self, terms[0]);
             const auto b = self(self, terms[2]);
             if (key == "root") {
                 cerr << "a:" << a << " b:" << b << " delta:" << a - b << endl;
-                return a;
+                return a - b;
             }
 
             switch (terms[1][0]) {
@@ -54,6 +53,8 @@ ll root_argument_a(const map<string, vector<string>> &expressions_by_key,
 }
 
 int main() {
+    cerr << setprecision(2) << fixed;
+
     map<string, vector<string>> expressions_by_key;
     for (string line; getline(cin, line);) {
         const auto key = line.substr(0, KEY_LENGTH);
@@ -61,19 +62,20 @@ int main() {
         expressions_by_key.emplace(key, terms);
     }
 
-    ll lo = 3759569926193LL;
-    assert(root_argument_a(expressions_by_key, lo) >= 0LL);
-    // ll hi = 125000000000000LL;
-    // assert(root_argument_a(expressions_by_key, hi) < 0LL);
+    double lo = 0;
+    assert(root_arguments_diff(expressions_by_key, lo) > 0);
+    double hi = 1e16;
+    assert(root_arguments_diff(expressions_by_key, hi) < 0);
 
-    // while (lo + 1 < hi) {
-    //     const auto mid = midpoint(lo, hi);
-    //     if (root_argument_a(expressions_by_key, lo) > 0LL) {
-    //         lo = mid;
-    //     } else {
-    //         hi = mid;
-    //     }
-    // }
+    for (int i = 0; i < 100; ++i) {
+        const auto mid = midpoint(lo, hi);
+        cerr << "mid:" << mid << endl;
+        if (root_arguments_diff(expressions_by_key, mid) >= 0) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
 
     return 0;
 }
