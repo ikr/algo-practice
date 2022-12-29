@@ -27,6 +27,31 @@ struct State final {
     Dir dir;
 };
 
+ostream &operator<<(ostream &os, const Dir dir) {
+    switch (dir) {
+    case Dir::RIGHT:
+        os << '>';
+        break;
+    case Dir::DOWN:
+        os << 'v';
+        break;
+    case Dir::LEFT:
+        os << '<';
+        break;
+    case Dir::UP:
+        os << '^';
+        break;
+    default:
+        os << '?';
+    }
+    return os;
+}
+
+ostream &operator<<(ostream &os, const State st) {
+    os << st.dir << st.rc;
+    return os;
+}
+
 static const map<Dir, Coord> DS{{Dir::UP, {-1, 0}},
                                 {Dir::RIGHT, {0, 1}},
                                 {Dir::DOWN, {1, 0}},
@@ -168,6 +193,7 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
         return st.rc;
     };
 
+    cerr << st << endl;
     for (const auto cmd : commands) {
         switch (cmd) {
         case Cmd::TURN_LEFT:
@@ -187,6 +213,7 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
             }
             break;
         }
+        cerr << st << endl;
     }
 
     return st;
@@ -202,9 +229,10 @@ int main() {
     string command_source;
     cin >> command_source;
 
+    const auto horz = horz_spreads(grid);
     cout << final_password(route(
                 grid, atomic_commands(tokenize_command_source(command_source)),
-                State{Coord{0, 0}, Dir::RIGHT}))
+                State{Coord{0, horz[0].first}, Dir::RIGHT}))
          << '\n';
     return 0;
 }
