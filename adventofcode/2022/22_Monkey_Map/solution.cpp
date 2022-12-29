@@ -19,12 +19,18 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 using Coord = pair<int, int>;
 using Seg = pair<int, int>;
-enum class Facing { RIGHT = 0, DOWN = 1, LEFT = 2, UP = 3 };
+enum class Dir { RIGHT = 0, DOWN = 1, LEFT = 2, UP = 3 };
+enum class Cmd { MOVE, TURN_LEFT, TURN_RIGHT };
 
 struct State final {
     Coord rc;
-    Facing f;
+    Dir dir;
 };
+
+static const map<Dir, Coord> DS{{Dir::UP, {-1, 0}},
+                                {Dir::RIGHT, {0, 1}},
+                                {Dir::DOWN, {1, 0}},
+                                {Dir::LEFT, {0, -1}}};
 
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
@@ -63,6 +69,10 @@ char at(const vector<string> &grid, const Coord &rc) {
     return grid[RO(rc)][CO(rc)];
 }
 
+char one_ahead(const vector<string> &grid, const State &st) {
+    return at(grid, st.rc + DS.at(st.dir));
+}
+
 int max_width(const vector<string> &grid) {
     return transform_reduce(
         cbegin(grid), cend(grid), 0,
@@ -93,9 +103,92 @@ vector<Seg> horz_spreads(const vector<string> &grid) {
     return result;
 }
 
-State route(const vector<string> &grid, const vector<string> &commands,
-            State st) {
-    cerr << horz_spreads(grid) << endl;
+vector<Seg> vert_spreads(const vector<string> &grid) {
+    const auto H = sz(grid);
+    const auto W = max_width(grid);
+    vector<Seg> result(W, {-1, -1});
+
+    for (int co = 0; co < W; ++co) {
+        auto &a = result[co].first;
+        auto &b = result[co].second;
+
+        for (int ro = 0; ro < H; ++ro) {
+            if (at(grid, {ro, co}) == ' ') {
+                if (a != -1 && b == -1) b = ro - 1;
+            } else {
+                if (a == -1) a = ro;
+            }
+        }
+
+        if (b == -1) b = H - 1;
+    }
+
+    return result;
+}
+
+vector<Cmd> atomic_commands(const vector<string> &command_tokens) {
+    vector<Cmd> result;
+    for (const auto &t : command_tokens) {
+        if (t == "L") {
+            result.push_back(Cmd::TURN_LEFT);
+        } else if (t == "R") {
+            result.push_back(Cmd::TURN_RIGHT);
+        } else {
+            const auto k = stoi(t);
+            for (int i = 0; i != k; ++i) result.push_back(Cmd::MOVE);
+        }
+    }
+    return result;
+}
+
+constexpr Dir ddir(const Dir dir, const int delta) {
+    int x = (inof(dir) + delta) % 4;
+    x += 4;
+    x %= 4;
+    return static_cast<Dir>(x);
+}
+
+State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
+    const auto horz = horz_spreads(grid);
+    const auto vert = vert_spreads(grid);
+
+    const auto wrapped_location = [&]() -> Coord {
+        switch (st.dir) {
+        case Dir::RIGHT:
+            return {RO(st.rc), horz[RO(st.rc)].first};
+        case Dir::DOWN:
+            return {vert[CO(st.rc)].first, CO(st.rc)};
+        case Dir::LEFT:
+            return {RO(st.rc), horz[RO(st.rc)].second};
+        case Dir::UP:
+            return {vert[CO(st.rc)].first, CO(st.rc)};
+        }
+
+        assert(false && "/o\\");
+        return st.rc;
+    };
+
+    for (const auto cmd : commands) {
+        switch (cmd) {
+        case Cmd::TURN_LEFT:
+            st.dir = ddir(st.dir, -1);
+            break;
+        case Cmd::TURN_RIGHT:
+            st.dir = ddir(st.dir, 1);
+            break;
+        case Cmd::MOVE:
+            if (const auto a = one_ahead(grid, st); a == ' ') {
+                const auto w_rc = wrapped_location();
+                const auto w = at(grid, w_rc);
+                assert(w != ' ');
+                if (w == '.') st.rc = w_rc;
+            } else {
+                if (a == '.') st.rc = st.rc + DS.at(st.dir);
+            }
+            break;
+        }
+    }
+
     return st;
 }
 
@@ -109,8 +202,9 @@ int main() {
     string command_source;
     cin >> command_source;
 
-    cout << final_password(route(grid, tokenize_command_source(command_source),
-                                 State{Coord{0, 0}, Facing::RIGHT}))
+    cout << final_password(route(
+                grid, atomic_commands(tokenize_command_source(command_source)),
+                State{Coord{0, 0}, Dir::RIGHT}))
          << '\n';
     return 0;
 }
