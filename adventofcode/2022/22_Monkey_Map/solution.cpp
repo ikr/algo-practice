@@ -11,24 +11,6 @@ struct State final {
     Dir dir;
 };
 
-char dir_symbol(const Dir dir) {
-    switch (dir) {
-    case Dir::RIGHT:
-        return '>';
-    case Dir::DOWN:
-        return 'v';
-        break;
-    case Dir::LEFT:
-        return '<';
-        break;
-    case Dir::UP:
-        return '^';
-        break;
-    default:
-        return '?';
-    }
-}
-
 static const map<Dir, Coord> DS{{Dir::UP, {-1, 0}},
                                 {Dir::RIGHT, {0, 1}},
                                 {Dir::DOWN, {1, 0}},
@@ -151,7 +133,6 @@ constexpr Dir ddir(const Dir dir, const int delta) {
 }
 
 State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
-    auto dbg = grid;
     const auto horz = horz_spreads(grid);
     const auto vert = vert_spreads(grid);
 
@@ -165,13 +146,12 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
             return {RO(st.rc), horz[RO(st.rc)].second};
         case Dir::UP:
             return {vert[CO(st.rc)].second, CO(st.rc)};
+        default:
+            assert(false && "/o\\");
+            return st.rc;
         }
-
-        assert(false && "/o\\");
-        return st.rc;
     };
 
-    dbg[RO(st.rc)][CO(st.rc)] = dir_symbol(st.dir);
     for (const auto cmd : commands) {
         switch (cmd) {
         case Cmd::TURN_LEFT:
@@ -191,10 +171,8 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
             }
             break;
         }
-        dbg[RO(st.rc)][CO(st.rc)] = dir_symbol(st.dir);
     }
 
-    for (const auto &row : dbg) cerr << row << endl;
     return st;
 }
 
