@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using Coord = pair<int, int>;
 using Seg = pair<int, int>;
 enum class Dir { RIGHT = 0, DOWN = 1, LEFT = 2, UP = 3 };
@@ -27,29 +11,22 @@ struct State final {
     Dir dir;
 };
 
-ostream &operator<<(ostream &os, const Dir dir) {
+char dir_symbol(const Dir dir) {
     switch (dir) {
     case Dir::RIGHT:
-        os << '>';
-        break;
+        return '>';
     case Dir::DOWN:
-        os << 'v';
+        return 'v';
         break;
     case Dir::LEFT:
-        os << '<';
+        return '<';
         break;
     case Dir::UP:
-        os << '^';
+        return '^';
         break;
     default:
-        os << '?';
+        return '?';
     }
-    return os;
-}
-
-ostream &operator<<(ostream &os, const State st) {
-    os << st.dir << st.rc;
-    return os;
 }
 
 static const map<Dir, Coord> DS{{Dir::UP, {-1, 0}},
@@ -174,6 +151,7 @@ constexpr Dir ddir(const Dir dir, const int delta) {
 }
 
 State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
+    auto dbg = grid;
     const auto horz = horz_spreads(grid);
     const auto vert = vert_spreads(grid);
 
@@ -186,14 +164,14 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
         case Dir::LEFT:
             return {RO(st.rc), horz[RO(st.rc)].second};
         case Dir::UP:
-            return {vert[CO(st.rc)].first, CO(st.rc)};
+            return {vert[CO(st.rc)].second, CO(st.rc)};
         }
 
         assert(false && "/o\\");
         return st.rc;
     };
 
-    cerr << st << endl;
+    dbg[RO(st.rc)][CO(st.rc)] = dir_symbol(st.dir);
     for (const auto cmd : commands) {
         switch (cmd) {
         case Cmd::TURN_LEFT:
@@ -213,9 +191,10 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
             }
             break;
         }
-        cerr << st << endl;
+        dbg[RO(st.rc)][CO(st.rc)] = dir_symbol(st.dir);
     }
 
+    for (const auto &row : dbg) cerr << row << endl;
     return st;
 }
 
