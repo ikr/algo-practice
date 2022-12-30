@@ -57,13 +57,6 @@ char one_ahead(const vector<string> &grid, const State &st) {
     return at(grid, st.rc + DS.at(st.dir));
 }
 
-int max_width(const vector<string> &grid) {
-    return transform_reduce(
-        cbegin(grid), cend(grid), 0,
-        [](const int a, const int b) { return max(a, b); },
-        [](const string &s) { return sz(s); });
-}
-
 vector<Cmd> atomic_commands(const vector<string> &command_tokens) {
     vector<Cmd> result;
     for (const auto &t : command_tokens) {
