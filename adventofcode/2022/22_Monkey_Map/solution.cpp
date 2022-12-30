@@ -132,6 +132,47 @@ constexpr Dir ddir(const Dir dir, const int delta) {
     return static_cast<Dir>(x);
 }
 
+constexpr bool is_within(const Seg ab, const int x) {
+    return ab.first <= x && x < ab.second;
+}
+
+constexpr int face_number(const int edge_length, const Coord rc) {
+    const auto [ro, co] = rc;
+
+    if (is_within({0, edge_length}, ro) &&
+        is_within({edge_length, 2 * edge_length}, co)) {
+        return 1;
+    }
+
+    if (is_within({0, edge_length}, ro) &&
+        is_within({2 * edge_length, 3 * edge_length}, co)) {
+        return 2;
+    }
+
+    if (is_within({edge_length, 2 * edge_length}, ro) &&
+        is_within({edge_length, 2 * edge_length}, co)) {
+        return 3;
+    }
+
+    if (is_within({2 * edge_length, 3 * edge_length}, ro) &&
+        is_within({0, edge_length}, co)) {
+        return 4;
+    }
+
+    if (is_within({2 * edge_length, 3 * edge_length}, ro) &&
+        is_within({edge_length, 2 * edge_length}, co)) {
+        return 5;
+    }
+
+    if (is_within({3 * edge_length, 4 * edge_length}, ro) &&
+        is_within({0, edge_length}, co)) {
+        return 6;
+    }
+
+    assert(false && "Impossible cube face");
+    return 0;
+}
+
 State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
     const auto horz = horz_spreads(grid);
     const auto vert = vert_spreads(grid);
