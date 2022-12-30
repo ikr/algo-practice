@@ -122,7 +122,7 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
         const auto f = face_number(edge, st.rc);
 
         if (f == 1 && st.dir == Dir::LEFT) {
-            return {{2 * edge + RO(st.rc), 0}, Dir::RIGHT};
+            return {{2 * edge + edge - RO(st.rc), 0}, Dir::RIGHT};
         }
 
         if (f == 1 && st.dir == Dir::UP) {
@@ -134,7 +134,7 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
         }
 
         if (f == 2 && st.dir == Dir::RIGHT) {
-            return {{2 * edge + RO(st.rc), 2 * edge - 1}, Dir::LEFT};
+            return {{2 * edge + edge - RO(st.rc), 2 * edge - 1}, Dir::LEFT};
         }
 
         if (f == 2 && st.dir == Dir::DOWN) {
@@ -150,7 +150,7 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
         }
 
         if (f == 4 && st.dir == Dir::LEFT) {
-            return {{RO(st.rc) - 2 * edge, edge}, Dir::RIGHT};
+            return {{edge - RO(st.rc) + 2 * edge, edge}, Dir::RIGHT};
         }
 
         if (f == 4 && st.dir == Dir::UP) {
@@ -158,7 +158,7 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
         }
 
         if (f == 5 && st.dir == Dir::RIGHT) {
-            return {{RO(st.rc) - 2 * edge, 3 * edge - 1}, Dir::LEFT};
+            return {{edge - RO(st.rc) + 2 * edge, 3 * edge - 1}, Dir::LEFT};
         }
 
         if (f == 5 && st.dir == Dir::DOWN) {
