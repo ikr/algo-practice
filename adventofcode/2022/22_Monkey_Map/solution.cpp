@@ -195,9 +195,10 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
                 const auto w = at(grid, w_st.rc);
                 assert(w != ' ');
                 if (w == '.') st = w_st;
-            } else {
-                if (a == '.') st.rc = st.rc + DS.at(st.dir);
+            } else if (a == '.') {
+                st.rc = st.rc + DS.at(st.dir);
             }
+
             break;
         }
     }
