@@ -78,10 +78,10 @@ int main() {
         }
     }
 
-    for (int i = 1; i < 1'000'000; ++i) {
+    for (int i = 0; i < 10'000; ++i) {
         auto elves_ = evolve(elves, i % 4);
         if (elves == elves_) {
-            cout << (i + 1) << '\n';
+            cout << i << '\n';
             break;
         }
         swap(elves, elves_);
