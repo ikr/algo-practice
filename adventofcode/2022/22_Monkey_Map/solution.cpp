@@ -64,52 +64,6 @@ int max_width(const vector<string> &grid) {
         [](const string &s) { return sz(s); });
 }
 
-vector<Seg> horz_spreads(const vector<string> &grid) {
-    const auto H = sz(grid);
-    const auto W = max_width(grid);
-    vector<Seg> result(H, {-1, -1});
-
-    for (int ro = 0; ro < H; ++ro) {
-        auto &a = result[ro].first;
-        auto &b = result[ro].second;
-
-        for (int co = 0; co < W; ++co) {
-            if (at(grid, {ro, co}) == ' ') {
-                if (a != -1 && b == -1) b = co - 1;
-            } else {
-                if (a == -1) a = co;
-            }
-        }
-
-        if (b == -1) b = W - 1;
-    }
-
-    return result;
-}
-
-vector<Seg> vert_spreads(const vector<string> &grid) {
-    const auto H = sz(grid);
-    const auto W = max_width(grid);
-    vector<Seg> result(W, {-1, -1});
-
-    for (int co = 0; co < W; ++co) {
-        auto &a = result[co].first;
-        auto &b = result[co].second;
-
-        for (int ro = 0; ro < H; ++ro) {
-            if (at(grid, {ro, co}) == ' ') {
-                if (a != -1 && b == -1) b = ro - 1;
-            } else {
-                if (a == -1) a = ro;
-            }
-        }
-
-        if (b == -1) b = H - 1;
-    }
-
-    return result;
-}
-
 vector<Cmd> atomic_commands(const vector<string> &command_tokens) {
     vector<Cmd> result;
     for (const auto &t : command_tokens) {
@@ -136,36 +90,31 @@ constexpr bool is_within(const Seg ab, const int x) {
     return ab.first <= x && x < ab.second;
 }
 
-constexpr int face_number(const int edge_length, const Coord rc) {
+constexpr int face_number(const int edge, const Coord rc) {
     const auto [ro, co] = rc;
 
-    if (is_within({0, edge_length}, ro) &&
-        is_within({edge_length, 2 * edge_length}, co)) {
+    if (is_within({0, edge}, ro) && is_within({edge, 2 * edge}, co)) {
         return 1;
     }
 
-    if (is_within({0, edge_length}, ro) &&
-        is_within({2 * edge_length, 3 * edge_length}, co)) {
+    if (is_within({0, edge}, ro) && is_within({2 * edge, 3 * edge}, co)) {
         return 2;
     }
 
-    if (is_within({edge_length, 2 * edge_length}, ro) &&
-        is_within({edge_length, 2 * edge_length}, co)) {
+    if (is_within({edge, 2 * edge}, ro) && is_within({edge, 2 * edge}, co)) {
         return 3;
     }
 
-    if (is_within({2 * edge_length, 3 * edge_length}, ro) &&
-        is_within({0, edge_length}, co)) {
+    if (is_within({2 * edge, 3 * edge}, ro) && is_within({0, edge}, co)) {
         return 4;
     }
 
-    if (is_within({2 * edge_length, 3 * edge_length}, ro) &&
-        is_within({edge_length, 2 * edge_length}, co)) {
+    if (is_within({2 * edge, 3 * edge}, ro) &&
+        is_within({edge, 2 * edge}, co)) {
         return 5;
     }
 
-    if (is_within({3 * edge_length, 4 * edge_length}, ro) &&
-        is_within({0, edge_length}, co)) {
+    if (is_within({3 * edge, 4 * edge}, ro) && is_within({0, edge}, co)) {
         return 6;
     }
 
@@ -174,23 +123,69 @@ constexpr int face_number(const int edge_length, const Coord rc) {
 }
 
 State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
-    const auto horz = horz_spreads(grid);
-    const auto vert = vert_spreads(grid);
+    const auto edge = sz(grid) / 4;
 
-    const auto wrapped_location = [&]() -> Coord {
-        switch (st.dir) {
-        case Dir::RIGHT:
-            return {RO(st.rc), horz[RO(st.rc)].first};
-        case Dir::DOWN:
-            return {vert[CO(st.rc)].first, CO(st.rc)};
-        case Dir::LEFT:
-            return {RO(st.rc), horz[RO(st.rc)].second};
-        case Dir::UP:
-            return {vert[CO(st.rc)].second, CO(st.rc)};
-        default:
-            assert(false && "/o\\");
-            return st.rc;
+    const auto wrapped_state = [&]() -> State {
+        const auto f = face_number(edge, st.rc);
+
+        if (f == 1 && st.dir == Dir::LEFT) {
+            return {{2 * edge + RO(st.rc), 0}, Dir::RIGHT};
         }
+
+        if (f == 1 && st.dir == Dir::UP) {
+            return {{3 * edge + CO(st.rc) - edge, 0}, Dir::RIGHT};
+        }
+
+        if (f == 2 && st.dir == Dir::UP) {
+            return {{4 * edge - 1, CO(st.rc) - 2 * edge}, Dir::UP};
+        }
+
+        if (f == 2 && st.dir == Dir::RIGHT) {
+            return {{2 * edge + RO(st.rc), 2 * edge - 1}, Dir::LEFT};
+        }
+
+        if (f == 2 && st.dir == Dir::DOWN) {
+            return {{edge + CO(st.rc) - 2 * edge, 2 * edge - 1}, Dir::LEFT};
+        }
+
+        if (f == 3 && st.dir == Dir::LEFT) {
+            return {{2 * edge, RO(st.rc) - edge}, Dir::DOWN};
+        }
+
+        if (f == 3 && st.dir == Dir::RIGHT) {
+            return {{edge - 1, 2 * edge + RO(st.rc) - edge}, Dir::UP};
+        }
+
+        if (f == 4 && st.dir == Dir::LEFT) {
+            return {{RO(st.rc) - 2 * edge, edge}, Dir::RIGHT};
+        }
+
+        if (f == 4 && st.dir == Dir::UP) {
+            return {{edge + CO(st.rc), edge}, Dir::RIGHT};
+        }
+
+        if (f == 5 && st.dir == Dir::RIGHT) {
+            return {{RO(st.rc) - 2 * edge, 3 * edge - 1}, Dir::LEFT};
+        }
+
+        if (f == 5 && st.dir == Dir::DOWN) {
+            return {{3 * edge + CO(st.rc) - edge, edge - 1}, Dir::LEFT};
+        }
+
+        if (f == 6 && st.dir == Dir::LEFT) {
+            return {{0, edge + RO(st.rc) - 3 * edge}, Dir::DOWN};
+        }
+
+        if (f == 6 && st.dir == Dir::RIGHT) {
+            return {{3 * edge - 1, edge + RO(st.rc) - 3 * edge}, Dir::UP};
+        }
+
+        if (f == 6 && st.dir == Dir::DOWN) {
+            return {{0, 2 * edge + CO(st.rc)}, Dir::DOWN};
+        }
+
+        assert(false && "Failed to wrap");
+        return st;
     };
 
     for (const auto cmd : commands) {
@@ -203,10 +198,10 @@ State route(const vector<string> &grid, const vector<Cmd> &commands, State st) {
             break;
         case Cmd::MOVE:
             if (const auto a = one_ahead(grid, st); a == ' ') {
-                const auto w_rc = wrapped_location();
-                const auto w = at(grid, w_rc);
+                const auto w_st = wrapped_state();
+                const auto w = at(grid, w_st.rc);
                 assert(w != ' ');
-                if (w == '.') st.rc = w_rc;
+                if (w == '.') st = w_st;
             } else {
                 if (a == '.') st.rc = st.rc + DS.at(st.dir);
             }
@@ -227,10 +222,9 @@ int main() {
     string command_source;
     cin >> command_source;
 
-    const auto horz = horz_spreads(grid);
     cout << final_password(route(
                 grid, atomic_commands(tokenize_command_source(command_source)),
-                State{Coord{0, horz[0].first}, Dir::RIGHT}))
+                State{Coord{0, sz(grid) / 4}, Dir::RIGHT}))
          << '\n';
     return 0;
 }
