@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 using Coord = pair<int, int>;
 
 static const array<array<Coord, 3>, 4> VARS{
@@ -81,27 +65,6 @@ set<Coord> evolve(const set<Coord> &src, const int phase) {
     return result;
 }
 
-int min_rectangle_empty_ground(const set<Coord> &xs) {
-    int top = INT_MAX;
-    int left = INT_MAX;
-    int bottom = INT_MIN;
-    int right = INT_MIN;
-    for (const auto &[ro, co] : xs) {
-        top = min(top, ro);
-        left = min(left, co);
-        bottom = max(bottom, ro);
-        right = max(right, co);
-    }
-
-    int result{};
-    for (int ro = top; ro <= bottom; ++ro) {
-        for (int co = left; co <= right; ++co) {
-            if (!xs.contains({ro, co})) ++result;
-        }
-    }
-    return result;
-}
-
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) {
@@ -115,9 +78,13 @@ int main() {
         }
     }
 
-    for (int i = 0; i < 10; ++i) {
-        elves = evolve(elves, i % 4);
+    for (int i = 1; i < 1'000'000; ++i) {
+        auto elves_ = evolve(elves, i % 4);
+        if (elves == elves_) {
+            cout << (i + 1) << '\n';
+            break;
+        }
+        swap(elves, elves_);
     }
-    cout << min_rectangle_empty_ground(elves) << '\n';
     return 0;
 }
