@@ -81,6 +81,27 @@ set<Coord> evolve(const set<Coord> &src, const int phase) {
     return result;
 }
 
+int min_rectangle_empty_ground(const set<Coord> &xs) {
+    int top = INT_MAX;
+    int left = INT_MAX;
+    int bottom = INT_MIN;
+    int right = INT_MIN;
+    for (const auto &[ro, co] : xs) {
+        top = min(top, ro);
+        left = min(left, co);
+        bottom = max(bottom, ro);
+        right = max(right, co);
+    }
+
+    int result{};
+    for (int ro = top; ro <= bottom; ++ro) {
+        for (int co = left; co <= right; ++co) {
+            if (!xs.contains({ro, co})) ++result;
+        }
+    }
+    return result;
+}
+
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) {
@@ -94,13 +115,9 @@ int main() {
         }
     }
 
-    auto xs = evolve(elves, 0);
-    cerr << xs << endl;
-
-    xs = evolve(xs, 1);
-    cerr << xs << endl;
-
-    xs = evolve(xs, 2);
-    cerr << xs << endl;
+    for (int i = 0; i < 10; ++i) {
+        elves = evolve(elves, i % 4);
+    }
+    cout << min_rectangle_empty_ground(elves) << '\n';
     return 0;
 }
