@@ -81,7 +81,7 @@ int main() {
     for (int i = 0; i < 10'000; ++i) {
         auto elves_ = evolve(elves, i % 4);
         if (elves == elves_) {
-            cout << i << '\n';
+            cout << (i + 1) << '\n';
             break;
         }
         swap(elves, elves_);
