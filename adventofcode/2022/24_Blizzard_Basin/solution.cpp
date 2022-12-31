@@ -67,18 +67,17 @@ vector<Blizzards> all_blizzard_configurations(const Blizzards &bs) {
     return result;
 }
 
-int min_steps(const Blizzards &bs) {
-    const Coord start{-1, 0};
-    const Coord finish{bs.H, bs.W - 1};
-    const auto bss = all_blizzard_configurations(bs);
-
+pair<int, int> min_steps_and_phase(const vector<Blizzards> &bss,
+                                   const Coord start, const Coord finish,
+                                   const int ii0) {
     const auto in_bounds = [&](const Coord &coord) -> bool {
         const auto [ro, co] = coord;
-        return 0 <= ro && ro < bs.H && 0 <= co && co < bs.W;
+        return 0 <= ro && ro < bss[0].H && 0 <= co && co < bss[0].W;
     };
 
     const auto statically_adjacent = [&](const Coord &coord) -> vector<Coord> {
         if (coord == start) return {start, {0, 0}};
+        if (coord == finish) return {finish, {bss[0].H - 1, bss[0].W - 1}};
         vector<Coord> result{coord};
 
         for (const auto &d : DELTAS) {
@@ -87,7 +86,7 @@ int min_steps(const Blizzards &bs) {
 
         if (coord == Coord{0, 0}) {
             result.push_back(start);
-        } else if (coord == Coord{bs.H - 1, bs.W - 1}) {
+        } else if (coord == Coord{bss[0].H - 1, bss[0].W - 1}) {
             result.push_back(finish);
         }
         return result;
@@ -110,10 +109,10 @@ int min_steps(const Blizzards &bs) {
     };
 
     map<IiCoord, int> D;
-    D[{0, start.first, start.second}] = 0;
+    D[{ii0, start.first, start.second}] = 0;
 
     queue<IiCoord> q;
-    q.emplace(0, start.first, start.second);
+    q.emplace(ii0, start.first, start.second);
 
     while (!q.empty()) {
         const auto iicoord = q.front();
@@ -123,13 +122,13 @@ int min_steps(const Blizzards &bs) {
             if (D.contains(a)) continue;
             D[a] = D.at(iicoord) + 1;
 
-            const auto [_, ro, co] = a;
-            if (Coord{ro, co} == finish) return D.at(a);
+            const auto [jj, ro, co] = a;
+            if (Coord{ro, co} == finish) return {D.at(a), jj};
             q.push(a);
         }
     }
 
-    return INT_MAX;
+    return {INT_MAX, 0};
 }
 
 int main() {
@@ -159,7 +158,17 @@ int main() {
         ++bs.H;
         bs.W = sz(line);
     }
+    const auto bss = all_blizzard_configurations(bs);
+    const auto [A, ii] = min_steps_and_phase(bss, Coord{-1, 0},
+                                             Coord{bss[0].H, bss[0].W - 1}, 0);
+    cerr << "A:" << A << " ii:" << ii << endl;
+    const auto [B, jj] = min_steps_and_phase(bss, Coord{bss[0].H, bss[0].W - 1},
+                                             Coord{-1, 0}, ii);
+    cerr << "B:" << B << " jj:" << jj << endl;
+    const auto [C, kk] = min_steps_and_phase(bss, Coord{-1, 0},
+                                             Coord{bss[0].H, bss[0].W - 1}, jj);
+    cerr << "C:" << C << " kk:" << kk << endl;
 
-    cout << min_steps(bs) << '\n';
+    cout << (A + B + C) << '\n';
     return 0;
 }
