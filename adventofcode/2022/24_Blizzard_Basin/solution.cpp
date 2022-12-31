@@ -1,39 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using Coord = pair<int, int>;
 using IiCoord = tuple<int, int, int>;
 
 enum class Dir { U = 0, R = 1, D = 2, L = 3 };
 
-static constexpr int MAX_REPEATS = 64;
 static constexpr array<Coord, 4> DELTAS{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
                                         Coord{0, -1}};
 
@@ -85,11 +57,6 @@ struct Blizzards final {
     }
 };
 
-ostream &operator<<(ostream &os, const Blizzards &bs) {
-    os << pair{bs.H, bs.W} << ' ' << bs.xss;
-    return os;
-}
-
 vector<Blizzards> all_blizzard_configurations(const Blizzards &bs) {
     vector<Blizzards> result{bs};
     for (;;) {
@@ -104,7 +71,6 @@ int min_steps(const Blizzards &bs) {
     const Coord start{-1, 0};
     const Coord finish{bs.H, bs.W - 1};
     const auto bss = all_blizzard_configurations(bs);
-    map<IiCoord, int> repeats;
 
     const auto in_bounds = [&](const Coord &coord) -> bool {
         const auto [ro, co] = coord;
@@ -133,11 +99,7 @@ int min_steps(const Blizzards &bs) {
         auto sa = statically_adjacent({ro, co});
 
         sa.erase(remove_if(begin(sa), end(sa),
-                           [&](const Coord a) {
-                               return bss[jj].contains(a) ||
-                                      repeats[IiCoord{jj, a.first, a.second}] >
-                                          MAX_REPEATS;
-                           }),
+                           [&](const Coord a) { return bss[jj].contains(a); }),
                  end(sa));
 
         vector<IiCoord> result(sz(sa));
