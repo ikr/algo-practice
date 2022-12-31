@@ -32,13 +32,8 @@ using Coord = pair<int, int>;
 
 enum class Dir { U = 0, R = 1, D = 2, L = 3 };
 
-struct Blizzards final {
-    int H;
-    int W;
-    array<set<Coord>, 4> xss;
-
-    Blizzards() : H{}, W{} { xss.fill(set<Coord>()); }
-};
+static constexpr array<Coord, 4> DELTAS{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
+                                        Coord{0, -1}};
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -51,12 +46,63 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
+struct Blizzards final {
+    int H;
+    int W;
+    array<set<Coord>, 4> xss;
+
+    Blizzards() : H{}, W{} { xss.fill(set<Coord>()); }
+
+    Blizzards tick() const {
+        Blizzards result;
+        result.H = H;
+        result.W = W;
+
+        for (int i = 0; i < sz(DELTAS); ++i) {
+            for (const auto &x : xss[i]) {
+                auto [ro, co] = x + DELTAS[i];
+                if (i % 2) {
+                    co = ((co % W) + W) % W;
+                } else {
+                    ro = ((ro % H) + H) % H;
+                }
+                result.xss[i].emplace(ro, co);
+            }
+        }
+        return result;
+    }
+
+    bool operator==(const Blizzards &o) const {
+        if (&o == this) return true;
+        return H == o.H && W == o.W && xss == o.xss;
+    }
+};
+
+ostream &operator<<(ostream &os, const Blizzards &bs) {
+    os << pair{bs.H, bs.W} << ' ' << bs.xss;
+    return os;
+}
+
+vector<Blizzards> all_blizzard_configurations(const Blizzards &bs) {
+    vector<Blizzards> result{bs};
+    for (;;) {
+        auto bs_ = result.back().tick();
+        if (bs_ == result[0]) break;
+        result.emplace_back(move(bs_));
+    }
+    for (const auto &a : result) {
+        cerr << a << endl;
+    }
+    return result;
+}
+
 int main() {
-    Blizzards bs;
+    Blizzards bs{};
 
     for (string line; getline(cin, line);) {
         if (line.substr(0, 3) == "#.#" || line.substr(0, 3) == "###") continue;
         line = line.substr(1, sz(line) - 2);
+        cerr << line << endl;
 
         for (int co = 0; co < sz(line); ++co) {
             switch (line[co]) {
@@ -79,6 +125,7 @@ int main() {
         bs.W = sz(line);
     }
 
-    cerr << bs.H << ' ' << bs.W << endl;
+    cerr << bs << endl << endl;
+    all_blizzard_configurations(bs);
     return 0;
 }
