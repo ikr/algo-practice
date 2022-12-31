@@ -29,9 +29,11 @@ ostream &operator<<(ostream &os, const array<T, N> &xs) {
 }
 
 using Coord = pair<int, int>;
+using IiCoord = tuple<int, int, int>;
 
 enum class Dir { U = 0, R = 1, D = 2, L = 3 };
 
+static constexpr int MAX_REPEATS = 32;
 static constexpr array<Coord, 4> DELTAS{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
                                         Coord{0, -1}};
 
@@ -76,6 +78,11 @@ struct Blizzards final {
         if (&o == this) return true;
         return H == o.H && W == o.W && xss == o.xss;
     }
+
+    bool contains(const Coord coord) const {
+        return any_of(cbegin(xss), cend(xss),
+                      [coord](const auto &xs) { return xs.contains(coord); });
+    }
 };
 
 ostream &operator<<(ostream &os, const Blizzards &bs) {
@@ -94,6 +101,42 @@ vector<Blizzards> all_blizzard_configurations(const Blizzards &bs) {
         cerr << a << endl;
     }
     return result;
+}
+
+int min_steps(const Blizzards &bs) {
+    const Coord start{-1, 0};
+    const Coord finish{bs.H, bs.W - 1};
+    const auto bss = all_blizzard_configurations(bs);
+    map<IiCoord, int> repeats;
+
+    const auto in_bounds = [&](const Coord &coord) -> bool {
+        const auto [ro, co] = coord;
+        return 0 <= ro && ro < bs.H && 0 <= co && co < bs.W;
+    };
+
+    const auto statically_adjacent = [&](const Coord &coord) -> vector<Coord> {
+        if (coord == start) return {start, {0, 0}};
+        vector<Coord> result{coord};
+
+        for (const auto &d : DELTAS) {
+            if (in_bounds(coord + d)) result.push_back(coord + d);
+        }
+
+        if (coord == Coord{0, 0}) {
+            result.push_back(start);
+        } else if (coord == Coord{bs.H - 1, bs.W - 1}) {
+            result.push_back(finish);
+        }
+        return result;
+    };
+
+    const auto adjacent = [&](const IiCoord &iicoord) -> IiCoord {
+        const auto [ii, ro, co] = iicoord;
+        const auto jj = (ii + 1) % sz(bss);
+        const auto sa = statically_adjacent({ro, co});
+    };
+
+    return -1;
 }
 
 int main() {
@@ -125,7 +168,6 @@ int main() {
         bs.W = sz(line);
     }
 
-    cerr << bs << endl << endl;
-    all_blizzard_configurations(bs);
+    cout << min_steps(bs) << '\n';
     return 0;
 }
