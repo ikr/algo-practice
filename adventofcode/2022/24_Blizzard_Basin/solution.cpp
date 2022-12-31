@@ -33,7 +33,7 @@ using IiCoord = tuple<int, int, int>;
 
 enum class Dir { U = 0, R = 1, D = 2, L = 3 };
 
-static constexpr int MAX_REPEATS = 32;
+static constexpr int MAX_REPEATS = 64;
 static constexpr array<Coord, 4> DELTAS{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
                                         Coord{0, -1}};
 
@@ -97,9 +97,6 @@ vector<Blizzards> all_blizzard_configurations(const Blizzards &bs) {
         if (bs_ == result[0]) break;
         result.emplace_back(move(bs_));
     }
-    for (const auto &a : result) {
-        cerr << a << endl;
-    }
     return result;
 }
 
@@ -130,13 +127,47 @@ int min_steps(const Blizzards &bs) {
         return result;
     };
 
-    const auto adjacent = [&](const IiCoord &iicoord) -> IiCoord {
+    const auto adjacent = [&](const IiCoord &iicoord) -> vector<IiCoord> {
         const auto [ii, ro, co] = iicoord;
         const auto jj = (ii + 1) % sz(bss);
-        const auto sa = statically_adjacent({ro, co});
+        auto sa = statically_adjacent({ro, co});
+
+        sa.erase(remove_if(begin(sa), end(sa),
+                           [&](const Coord a) {
+                               return bss[jj].contains(a) ||
+                                      repeats[IiCoord{jj, a.first, a.second}] >
+                                          MAX_REPEATS;
+                           }),
+                 end(sa));
+
+        vector<IiCoord> result(sz(sa));
+        transform(cbegin(sa), cend(sa), begin(result), [jj](const Coord a) {
+            return IiCoord{jj, a.first, a.second};
+        });
+        return result;
     };
 
-    return -1;
+    map<IiCoord, int> D;
+    D[{0, start.first, start.second}] = 0;
+
+    queue<IiCoord> q;
+    q.emplace(0, start.first, start.second);
+
+    while (!q.empty()) {
+        const auto iicoord = q.front();
+        q.pop();
+
+        for (const auto &a : adjacent(iicoord)) {
+            if (D.contains(a)) continue;
+            D[a] = D.at(iicoord) + 1;
+
+            const auto [_, ro, co] = a;
+            if (Coord{ro, co} == finish) return D.at(a);
+            q.push(a);
+        }
+    }
+
+    return INT_MAX;
 }
 
 int main() {
@@ -145,7 +176,6 @@ int main() {
     for (string line; getline(cin, line);) {
         if (line.substr(0, 3) == "#.#" || line.substr(0, 3) == "###") continue;
         line = line.substr(1, sz(line) - 2);
-        cerr << line << endl;
 
         for (int co = 0; co < sz(line); ++co) {
             switch (line[co]) {
