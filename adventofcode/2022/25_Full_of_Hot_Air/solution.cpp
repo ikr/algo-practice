@@ -65,6 +65,38 @@ vector<int> snafu_digits_reversed(const ll x) {
         result.back() = d0;
     }
 
+    const auto carry = [&](const auto self, const int i) -> void {
+        assert(i >= 0);
+        assert(i <= sz(result));
+        if (i == sz(result)) {
+            result.push_back(1);
+            return;
+        }
+
+        if (result[i] + 1 < 3) {
+            ++result[i];
+            return;
+        }
+
+        result[i] = (result[i] + 1) - 5;
+        self(self, i + 1);
+    };
+
+    ll r = x;
+    for (int i = sz(ps) - 1; i >= 0; --i) {
+        const auto d = inof(r / ps[i]);
+        assert(0 <= d && d < 5);
+
+        if (d > 2) {
+            result[i] = d - 5;
+            carry(carry, i + 1);
+        } else {
+            result[i] = d;
+        }
+
+        r %= ps[i];
+    }
+
     return result;
 }
 
