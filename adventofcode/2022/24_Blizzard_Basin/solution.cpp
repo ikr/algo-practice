@@ -46,11 +46,6 @@ struct Blizzards final {
         return result;
     }
 
-    bool operator==(const Blizzards &o) const {
-        if (&o == this) return true;
-        return H == o.H && W == o.W && xss == o.xss;
-    }
-
     bool contains(const Coord coord) const {
         return any_of(cbegin(xss), cend(xss),
                       [coord](const auto &xs) { return xs.contains(coord); });
@@ -59,9 +54,8 @@ struct Blizzards final {
 
 vector<Blizzards> all_blizzard_configurations(const Blizzards &bs) {
     vector<Blizzards> result{bs};
-    for (;;) {
+    for (int i = 1; i < lcm(bs.H, bs.W); ++i) {
         auto bs_ = result.back().tick();
-        if (bs_ == result[0]) break;
         result.emplace_back(move(bs_));
     }
     return result;
