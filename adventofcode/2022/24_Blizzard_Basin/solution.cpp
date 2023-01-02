@@ -159,6 +159,7 @@ int main() {
         bs.W = sz(line);
     }
     const auto bss = all_blizzard_configurations(bs);
+    cerr << "Number of configurations: " << sz(bss) << endl;
     const auto [A, ii] = min_steps_and_phase(bss, Coord{-1, 0},
                                              Coord{bss[0].H, bss[0].W - 1}, 0);
     cerr << "A:" << A << " ii:" << ii << endl;
