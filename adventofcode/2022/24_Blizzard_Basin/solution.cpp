@@ -20,6 +20,11 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
+template <typename T>
+constexpr pair<T, T> scaled(const pair<T, T> a, const T k) {
+    return {a.first * k, a.second * k};
+}
+
 struct Blizzards final {
     int H;
     int W;
@@ -27,51 +32,31 @@ struct Blizzards final {
 
     Blizzards() : H{}, W{} { xss.fill(set<Coord>()); }
 
-    Blizzards tick() const {
-        Blizzards result;
-        result.H = H;
-        result.W = W;
-
-        for (int i = 0; i < sz(DELTAS); ++i) {
-            for (const auto &x : xss[i]) {
-                auto [ro, co] = x + DELTAS[i];
-                if (i % 2) {
-                    co = ((co % W) + W) % W;
-                } else {
-                    ro = ((ro % H) + H) % H;
-                }
-                result.xss[i].emplace(ro, co);
+    bool cover(const int t, const Coord coord) const {
+        for (int i = 0; i < 4; ++i) {
+            auto [ro, co] = coord + scaled(DELTAS[i], -1 * t);
+            if (i % 2) {
+                co = ((co % W) + W) % W;
+            } else {
+                ro = ((ro % H) + H) % H;
             }
-        }
-        return result;
-    }
 
-    bool contains(const Coord coord) const {
-        return any_of(cbegin(xss), cend(xss),
-                      [coord](const auto &xs) { return xs.contains(coord); });
+            if (xss[i].contains({ro, co})) return true;
+        }
+        return false;
     }
 };
 
-vector<Blizzards> all_blizzard_configurations(const Blizzards &bs) {
-    vector<Blizzards> result{bs};
-    for (int i = 1; i < lcm(bs.H, bs.W); ++i) {
-        auto bs_ = result.back().tick();
-        result.emplace_back(move(bs_));
-    }
-    return result;
-}
-
-pair<int, int> min_steps_and_phase(const vector<Blizzards> &bss,
-                                   const Coord start, const Coord finish,
-                                   const int ii0) {
+pair<int, int> min_steps_and_phase(const Blizzards &bs, const Coord start,
+                                   const Coord finish, const int ii0) {
     const auto in_bounds = [&](const Coord &coord) -> bool {
         const auto [ro, co] = coord;
-        return 0 <= ro && ro < bss[0].H && 0 <= co && co < bss[0].W;
+        return 0 <= ro && ro < bs.H && 0 <= co && co < bs.W;
     };
 
     const auto statically_adjacent = [&](const Coord &coord) -> vector<Coord> {
         if (coord == start) return {start, {0, 0}};
-        if (coord == finish) return {finish, {bss[0].H - 1, bss[0].W - 1}};
+        if (coord == finish) return {finish, {bs.H - 1, bs.W - 1}};
         vector<Coord> result{coord};
 
         for (const auto &d : DELTAS) {
@@ -80,19 +65,20 @@ pair<int, int> min_steps_and_phase(const vector<Blizzards> &bss,
 
         if (coord == Coord{0, 0}) {
             result.push_back(start);
-        } else if (coord == Coord{bss[0].H - 1, bss[0].W - 1}) {
+        } else if (coord == Coord{bs.H - 1, bs.W - 1}) {
             result.push_back(finish);
         }
         return result;
     };
 
     const auto adjacent = [&](const IiCoord &iicoord) -> vector<IiCoord> {
+        const auto m = lcm(bs.H, bs.W);
         const auto [ii, ro, co] = iicoord;
-        const auto jj = (ii + 1) % sz(bss);
+        const auto jj = (ii + 1) % m;
         auto sa = statically_adjacent({ro, co});
 
         sa.erase(remove_if(begin(sa), end(sa),
-                           [&](const Coord a) { return bss[jj].contains(a); }),
+                           [&](const Coord a) { return bs.cover(jj, a); }),
                  end(sa));
 
         vector<IiCoord> result(sz(sa));
@@ -152,16 +138,15 @@ int main() {
         ++bs.H;
         bs.W = sz(line);
     }
-    const auto bss = all_blizzard_configurations(bs);
-    cerr << "Number of configurations: " << sz(bss) << endl;
-    const auto [A, ii] = min_steps_and_phase(bss, Coord{-1, 0},
-                                             Coord{bss[0].H, bss[0].W - 1}, 0);
+
+    const auto [A, ii] =
+        min_steps_and_phase(bs, Coord{-1, 0}, Coord{bs.H, bs.W - 1}, 0);
     cerr << "A:" << A << " ii:" << ii << endl;
-    const auto [B, jj] = min_steps_and_phase(bss, Coord{bss[0].H, bss[0].W - 1},
-                                             Coord{-1, 0}, ii);
+    const auto [B, jj] =
+        min_steps_and_phase(bs, Coord{bs.H, bs.W - 1}, Coord{-1, 0}, ii);
     cerr << "B:" << B << " jj:" << jj << endl;
-    const auto [C, kk] = min_steps_and_phase(bss, Coord{-1, 0},
-                                             Coord{bss[0].H, bss[0].W - 1}, jj);
+    const auto [C, kk] =
+        min_steps_and_phase(bs, Coord{-1, 0}, Coord{bs.H, bs.W - 1}, jj);
     cerr << "C:" << C << " kk:" << kk << endl;
 
     cout << (A + B + C) << '\n';
