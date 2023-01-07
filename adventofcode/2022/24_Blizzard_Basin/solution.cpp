@@ -55,8 +55,11 @@ pair<int, int> min_steps_and_phase(const Blizzards &bs, const Coord start,
     };
 
     const auto statically_adjacent = [&](const Coord &coord) -> vector<Coord> {
-        if (coord == start) return {start, {0, 0}};
-        if (coord == finish) return {finish, {bs.H - 1, bs.W - 1}};
+        if (coord == Coord{-1, 0}) return {{-1, 0}, {0, 0}};
+        if (coord == Coord{bs.H, bs.W - 1}) {
+            return {{bs.H, bs.W - 1}, {bs.H - 1, bs.W - 1}};
+        }
+
         vector<Coord> result{coord};
 
         for (const auto &d : DELTAS) {
@@ -64,9 +67,9 @@ pair<int, int> min_steps_and_phase(const Blizzards &bs, const Coord start,
         }
 
         if (coord == Coord{0, 0}) {
-            result.push_back(start);
+            result.push_back(Coord{-1, 0});
         } else if (coord == Coord{bs.H - 1, bs.W - 1}) {
-            result.push_back(finish);
+            result.push_back(Coord{bs.H, bs.W - 1});
         }
         return result;
     };
