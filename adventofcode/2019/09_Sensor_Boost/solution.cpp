@@ -42,7 +42,7 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
             static_cast<Mode>(m2), static_cast<Mode>(m3)};
 }
 
-ll input() { return 1; }
+ll input() { return 2; }
 void output(const ll x) { cout << x << '\n'; }
 
 void intcode_run(vector<ll> xs) {
