@@ -30,10 +30,16 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
-tuple<Opcode, Mode, Mode, Mode> parse_op(const int op) {
-    return {static_cast<Opcode>(op % 100), static_cast<Mode>((op / 100) % 10),
-            static_cast<Mode>((op / 1000) % 10),
-            static_cast<Mode>((op / 10000) % 10)};
+tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
+    op = abs(op);
+    const auto oc = inof(op % 100LL);
+
+    const auto m1 = inof((op / 100LL) % 10LL);
+    const auto m2 = inof((op / 1000LL) % 10LL);
+    const auto m3 = inof((op / 10000LL) % 10LL);
+
+    return {static_cast<Opcode>(oc), static_cast<Mode>(m1),
+            static_cast<Mode>(m2), static_cast<Mode>(m3)};
 }
 
 ll input() { return 1; }
@@ -59,22 +65,30 @@ void intcode_run(vector<ll> xs) {
         return 0;
     };
 
-    for (int i = 0; i < sz(xs);) {
-        const auto [oc, m1, m2, m3] = parse_op(inof(xs[i++]));
+    for (int i = 0; 0 <= i && i < sz(xs);) {
+        const auto [oc, m1, m2, m3] = parse_op(xs[i++]);
 
         if (oc == Opcode::ADD) {
             const auto p1 = xs[i++];
             const auto p2 = xs[i++];
             const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) + deref(m2, p2);
+
+            assert(m3 != Mode::IMM);
+            xs[m3 == Mode::REL ? (rbase + p3) : p3] =
+                deref(m1, p1) + deref(m2, p2);
         } else if (oc == Opcode::MUL) {
             const auto p1 = xs[i++];
             const auto p2 = xs[i++];
             const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) * deref(m2, p2);
+
+            assert(m3 != Mode::IMM);
+            xs[m3 == Mode::REL ? (rbase + p3) : p3] =
+                deref(m1, p1) * deref(m2, p2);
         } else if (oc == Opcode::INP) {
             const auto p1 = xs[i++];
-            xs[deref(m1, p1)] = input();
+
+            assert(m1 != Mode::IMM);
+            xs[m1 == Mode::REL ? (rbase + p1) : p1] = input();
         } else if (oc == Opcode::OUT) {
             const auto p1 = xs[i++];
             output(deref(m1, p1));
@@ -90,12 +104,18 @@ void intcode_run(vector<ll> xs) {
             const auto p1 = xs[i++];
             const auto p2 = xs[i++];
             const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) < deref(m2, p2);
+
+            assert(m3 != Mode::IMM);
+            xs[m3 == Mode::REL ? (rbase + p3) : p3] =
+                deref(m1, p1) < deref(m2, p2);
         } else if (oc == Opcode::EQL) {
             const auto p1 = xs[i++];
             const auto p2 = xs[i++];
             const auto p3 = xs[i++];
-            xs[p3] = deref(m1, p1) == deref(m2, p2);
+
+            assert(m3 != Mode::IMM);
+            xs[m3 == Mode::REL ? (rbase + p3) : p3] =
+                deref(m1, p1) == deref(m2, p2);
         } else if (oc == Opcode::RBS) {
             const auto p1 = xs[i++];
             rbase += inof(deref(m1, p1));
