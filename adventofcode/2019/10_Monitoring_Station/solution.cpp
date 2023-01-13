@@ -19,22 +19,6 @@ struct CoordLess final {
 
 using Asteroids = set<Coord, CoordLess>;
 
-ostream &operator<<(ostream &os, const Coord &c) {
-    os << '(' << X(c) << ' ' << Y(c) << ')';
-    return os;
-}
-
-template <typename T, typename C>
-ostream &operator<<(ostream &os, const set<T, C> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 constexpr int sign(const int x) { return x == 0 ? 0 : (x < 0 ? -1 : 1); }
 
 constexpr Coord normalize(const Coord &v) {
