@@ -41,8 +41,15 @@ ull value_of(const vector<int> &exl_ds) {
     ull result{};
     for (int i = 1; i < sz(exl_ds); ++i) result += az_pow(i);
 
-    result += az_pow(sz(exl_ds) - 1) * exl_ds[0];
-    result += value_of(vector(cbegin(exl_ds) + 1, cend(exl_ds)));
+    const auto recur = [&](const auto self, const vector<int> &ds) -> ull {
+        if (sz(ds) == 1) return ds[0];
+        ull ans{};
+        ans += az_pow(sz(ds) - 1) * ds[0];
+        ans += self(self, vector(cbegin(ds) + 1, cend(ds)));
+        return ans;
+    };
+
+    result += recur(recur, exl_ds);
     return result;
 }
 
