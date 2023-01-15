@@ -22,27 +22,6 @@ struct CoordLess final {
     }
 };
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const Coord &c) {
-    os << '(' << X(c) << ' ' << Y(c) << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using Asteroids = set<Coord, CoordLess>;
 
 constexpr int sign(const int x) { return x == 0 ? 0 : (x < 0 ? -1 : 1); }
@@ -131,9 +110,7 @@ int main() {
              return clocklike_rotation_angle(a) < clocklike_rotation_angle(b);
          });
 
-    cerr << scene << endl;
-
     const auto result = surrounding[199];
-    cout << result << ' ' << X(result) * 100 + Y(result) << '\n';
+    cout << X(result) * 100 + Y(result) << '\n';
     return 0;
 }
