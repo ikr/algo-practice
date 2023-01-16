@@ -1,18 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ull = unsigned long long;
-
 static constexpr int AZ = 26;
 
 template <typename T> constexpr int inof(const T x) {
@@ -25,7 +14,6 @@ vector<int> exl_digits(const string &xs) {
     vector<int> result(sz(xs));
     transform(cbegin(xs), cend(xs), begin(result),
               [](const char a) { return inof(a) - 'A'; });
-    cerr << result << endl;
     return result;
 }
 
@@ -60,6 +48,6 @@ int main() {
     string xs;
     cin >> xs;
 
-    cerr << value_of(exl_digits(xs)) << endl;
+    cout << value_of(exl_digits(xs)) + 1 << endl;
     return 0;
 }
