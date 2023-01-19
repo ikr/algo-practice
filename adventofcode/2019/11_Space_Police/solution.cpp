@@ -2,6 +2,12 @@
 using namespace std;
 
 using ll = long long;
+using pii = pair<int, int>;
+
+enum class Phase { PAINTING = 0, MOVING = 1 };
+enum class Direction { NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3 };
+
+static const vector<pii> DELTAS = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
 enum class Opcode {
     ADD = 1,
@@ -23,6 +29,11 @@ template <typename T> constexpr int inof(const T x) {
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+template <typename T>
+constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
+    return {a.first + b.first, a.second + b.second};
+}
 
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
@@ -125,6 +136,14 @@ void intcode_run(vector<ll> xs, const function<ll(void)> input,
     }
 }
 
+template <int M, typename T> constexpr T cycle_forward(const T t) {
+    return static_cast<T>((inof(t) + 1) % M);
+}
+
+template <int M, typename T> constexpr T cycle_back(const T t) {
+    return static_cast<T>((((inof(t) - 1) % M) + M) % M);
+}
+
 int main() {
     string line;
     cin >> line;
@@ -134,5 +153,33 @@ int main() {
     transform(cbegin(tokens), cend(tokens), begin(xs),
               [](const auto &x) { return stoll(x); });
 
+    set<pii> black;
+    pii roco{0, 0};
+    Direction dir{Direction::NORTH};
+    Phase phase{Phase::PAINTING};
+
+    const auto input = [&]() -> ll { return black.contains(roco) ? 0 : 1; };
+
+    const auto output = [&](const ll x) -> void {
+        if (phase == Phase::PAINTING) {
+            if (x == 0) {
+                black.insert(roco);
+            } else {
+                black.erase(roco);
+            }
+        } else {
+            if (x == 0) {
+                dir = cycle_back<4>(dir);
+            } else {
+                dir = cycle_forward<4>(dir);
+            }
+
+            roco = roco + DELTAS[inof(dir)];
+        }
+        phase = cycle_forward<2>(phase);
+    };
+
+    intcode_run(move(xs), input, output);
+    cout << sz(black) << '\n';
     return 0;
 }
