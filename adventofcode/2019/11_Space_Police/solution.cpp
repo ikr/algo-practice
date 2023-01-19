@@ -153,22 +153,20 @@ int main() {
     transform(cbegin(tokens), cend(tokens), begin(xs),
               [](const auto &x) { return stoll(x); });
 
-    set<pii> white;
-    set<pii> trace;
+    set<pii> black;
     pii roco{0, 0};
     Direction dir{Direction::NORTH};
     Phase phase{Phase::PAINTING};
 
-    const auto input = [&]() -> ll { return white.contains(roco) ? 1 : 0; };
+    const auto input = [&]() -> ll { return black.contains(roco) ? 0 : 1; };
 
     const auto output = [&](const ll x) -> void {
         if (phase == Phase::PAINTING) {
             if (x == 0) {
-                white.erase(roco);
+                black.insert(roco);
             } else {
-                white.insert(roco);
+                black.erase(roco);
             }
-            trace.insert(roco);
         } else {
             if (x == 0) {
                 dir = cycle_back<4>(dir);
@@ -182,6 +180,11 @@ int main() {
     };
 
     intcode_run(move(xs), input, output);
-    cout << sz(trace) << '\n';
+
+    vector<string> grid(20, string(50, '#'));
+    for (const auto &[ro, co] : black) {
+        grid[ro][co] = ' ';
+    }
+    for (const auto &row : grid) cout << row << '\n';
     return 0;
 }
