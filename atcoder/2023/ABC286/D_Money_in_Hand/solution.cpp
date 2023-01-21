@@ -28,9 +28,9 @@ int main() {
     vector<int> wallet(N);
     for (int i = 0; i < N; ++i) cin >> denomi[i] >> wallet[i];
 
-    map<size_t, bool> memo;
+    unordered_map<size_t, bool> memo;
     const auto recur = [&](const auto self, const int x,
-                           vector<int> w) -> bool {
+                           vector<int> &w) -> bool {
         const auto k = key(x, w);
         {
             const auto it = memo.find(k);
@@ -52,8 +52,12 @@ int main() {
             for (int i = 0; i < sz(w); ++i) {
                 if (!w[i]) continue;
                 --w[i];
-                if (self(self, x - denomi[i], w)) return true;
-                ++w[i];
+                if (self(self, x - denomi[i], w)) {
+                    ++w[i];
+                    return true;
+                } else {
+                    ++w[i];
+                }
             }
 
             return false;
