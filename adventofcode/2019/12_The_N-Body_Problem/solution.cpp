@@ -24,6 +24,17 @@ ostream &operator<<(ostream &os, const array<T, N> &xs) {
 
 using Coord = array<int, 3>;
 
+template <typename T, size_t N>
+constexpr array<T, N> operator+(array<T, N> a, const array<T, N> &b) {
+    transform(cbegin(a), cend(a), cbegin(b), begin(a), plus<int>{});
+    return a;
+}
+
+int energy(const Coord &coord) {
+    return transform_reduce(cbegin(coord), cend(coord), 0, plus<int>{},
+                            [](const int x) { return abs(x); });
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -40,6 +51,6 @@ int main() {
             Coord{stoi(m[1].str()), stoi(m[2].str()), stoi(m[3].str())});
     }
 
-    cerr << bodies << endl;
+    cerr << energy(Coord{-2, -8, 3}) << endl;
     return 0;
 }
