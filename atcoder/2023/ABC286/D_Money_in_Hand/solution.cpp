@@ -30,7 +30,7 @@ int main() {
 
     map<size_t, bool> memo;
     const auto recur = [&](const auto self, const int x,
-                           vector<int> &w) -> bool {
+                           vector<int> w) -> bool {
         const auto k = key(x, w);
         {
             const auto it = memo.find(k);
