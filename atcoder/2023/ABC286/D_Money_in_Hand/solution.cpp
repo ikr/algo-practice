@@ -17,8 +17,6 @@ size_t key(const int X, const vector<int> &wallet) {
     return 31 * hash<int>{}(X) + combine_hashes(wallet);
 }
 
-constexpr bool is_zero(const int x) { return x == 0; }
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -42,6 +40,14 @@ int main() {
         return memo[k] = [&]() -> bool {
             if (x == 0) return true;
             if (x < 0) return false;
+
+            {
+                int budget{};
+                for (int i = 0; i < sz(w); ++i) {
+                    budget += w[i] * denomi[i];
+                }
+                if (budget < x) return false;
+            }
 
             for (int i = 0; i < sz(w); ++i) {
                 if (!w[i]) continue;
