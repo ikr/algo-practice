@@ -1,32 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
 
 using Coord = array<int, 3>;
 
@@ -35,28 +16,10 @@ struct State final {
     vector<Coord> vel;
 };
 
-ostream &operator<<(ostream &os, const State &state) {
-    for (int i = 0; i < sz(state.pos); ++i) {
-        os << "pos=" << state.pos[i] << " vel=" << state.vel[i] << '\n';
-    }
-    return os;
-}
-
 template <typename T, size_t N>
 constexpr array<T, N> operator+(array<T, N> a, const array<T, N> &b) {
     transform(cbegin(a), cend(a), cbegin(b), begin(a), plus<int>{});
     return a;
-}
-
-int energy(const Coord &coord) {
-    return transform_reduce(cbegin(coord), cend(coord), 0, plus<int>{},
-                            [](const int x) { return abs(x); });
-}
-
-int total_energy(const vector<Coord> &pos, const vector<Coord> &vel) {
-    return transform_reduce(
-        cbegin(pos), cend(pos), cbegin(vel), 0, plus<int>{},
-        [](const Coord &a, const Coord &b) { return energy(a) * energy(b); });
 }
 
 pair<Coord, Coord> velocity_deltas(const Coord &a, const Coord &b) {
@@ -92,6 +55,15 @@ State evolve(const State &s) {
     return {pos, vel};
 }
 
+ll period(const vector<pair<Coord, Coord>> &trace) {
+    const auto &[a0, b0] = trace[0];
+    for (int i = 1; i < sz(trace); ++i) {
+        const auto &[a, b] = trace[i];
+        if (a == a0 && b == b0) return i;
+    }
+    return 0;
+}
+
 int main() {
     vector<Coord> pos;
     const regex pattern{"^<x=(-?[0-9]+), y=(-?[0-9]+), z=(-?[0-9]+)>$"};
@@ -103,11 +75,23 @@ int main() {
     }
 
     State state{pos, vector(sz(pos), Coord{0, 0, 0})};
+    vector<vector<pair<Coord, Coord>>> traces(sz(pos));
 
-    for (int i = 1; i <= 1000; ++i) {
+    const auto log_traces = [&]() -> void {
+        for (int j = 0; j < sz(pos); ++j) {
+            traces[j].emplace_back(state.pos[j], state.vel[j]);
+        }
+    };
+    log_traces();
+
+    for (int i = 1; i <= 100'000'000; ++i) {
         state = evolve(state);
-        cout << "E" << i << ": " << total_energy(state.pos, state.vel) << '\n'
-             << state << '\n';
+        log_traces();
+    }
+
+    for (int j = 0; j < sz(pos); ++j) {
+        const auto p = period(traces[j]);
+        cerr << p << endl;
     }
 
     return 0;
