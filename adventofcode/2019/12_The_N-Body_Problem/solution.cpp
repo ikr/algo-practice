@@ -55,11 +55,11 @@ State evolve(const State &s) {
     return {pos, vel};
 }
 
-ll period(const vector<pair<Coord, Coord>> &trace) {
-    const auto &[a0, b0] = trace[1000];
-    for (int i = 1001; i < sz(trace); ++i) {
-        const auto &[a, b] = trace[i];
-        if (a == a0 && b == b0) return i - 1000;
+ll period(const vector<Coord> &trace) {
+    const auto shift = 0;
+    const auto &a0 = trace[shift];
+    for (int i = shift + 1; i < sz(trace); ++i) {
+        if (trace[i] == a0) return i - shift;
     }
     return 0;
 }
@@ -75,24 +75,28 @@ int main() {
     }
 
     State state{pos, vector(sz(pos), Coord{0, 0, 0})};
-    vector<vector<pair<Coord, Coord>>> traces(sz(pos));
+    vector<vector<Coord>> traces(2 * sz(pos));
 
     const auto log_traces = [&]() -> void {
         for (int j = 0; j < sz(pos); ++j) {
-            traces[j].emplace_back(state.pos[j], state.vel[j]);
+            traces[2 * j].push_back(state.pos[j]);
+            traces[2 * j + 1].push_back(state.vel[j]);
         }
     };
     log_traces();
 
-    for (int i = 1; i <= 100'000'000; ++i) {
+    for (int i = 1; i <= 10'000'000; ++i) {
         state = evolve(state);
         log_traces();
     }
 
-    for (int j = 0; j < sz(pos); ++j) {
+    ll ans = 1;
+    for (int j = 0; j < sz(traces); ++j) {
         const auto p = period(traces[j]);
+        ans = lcm(ans, p);
         cerr << p << endl;
     }
 
+    cout << ans << '\n';
     return 0;
 }
