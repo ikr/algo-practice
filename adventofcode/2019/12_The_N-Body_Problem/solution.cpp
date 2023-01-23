@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -31,7 +37,7 @@ struct State final {
 
 ostream &operator<<(ostream &os, const State &state) {
     for (int i = 0; i < sz(state.pos); ++i) {
-        os << "pos=" << state.pos << " vel=" << state.vel;
+        os << "pos=" << state.pos[i] << " vel=" << state.vel[i] << '\n';
     }
     return os;
 }
@@ -47,11 +53,44 @@ int energy(const Coord &coord) {
                             [](const int x) { return abs(x); });
 }
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
+int total_energy(const vector<Coord> &pos, const vector<Coord> &vel) {
+    return transform_reduce(
+        cbegin(pos), cend(pos), cbegin(vel), 0, plus<int>{},
+        [](const Coord &a, const Coord &b) { return energy(a) * energy(b); });
 }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+pair<Coord, Coord> velocity_deltas(const Coord &a, const Coord &b) {
+    Coord u{0, 0, 0};
+    Coord v{0, 0, 0};
+
+    for (int i = 0; i < sz(a); ++i) {
+        if (a[i] < b[i]) {
+            u[i] = 1;
+            v[i] = -1;
+        } else if (a[i] > b[i]) {
+            u[i] = -1;
+            v[i] = 1;
+        }
+    }
+
+    return {u, v};
+}
+
+State evolve(const State &s) {
+    auto vel = s.vel;
+    for (int i = 0; i < sz(vel) - 1; ++i) {
+        for (int j = i + 1; j < sz(vel); ++j) {
+            const auto [u, v] = velocity_deltas(s.pos[i], s.pos[j]);
+            vel[i] = vel[i] + u;
+            vel[j] = vel[j] + v;
+        }
+    }
+
+    auto pos = s.pos;
+    transform(cbegin(pos), cend(pos), cbegin(vel), begin(pos),
+              [](const Coord &a, const Coord &b) { return a + b; });
+    return {pos, vel};
+}
 
 int main() {
     vector<Coord> pos;
@@ -64,6 +103,12 @@ int main() {
     }
 
     State state{pos, vector(sz(pos), Coord{0, 0, 0})};
-    cerr << state << endl;
+
+    for (int i = 1; i <= 1000; ++i) {
+        state = evolve(state);
+        cout << "E" << i << ": " << total_energy(state.pos, state.vel) << '\n'
+             << state << '\n';
+    }
+
     return 0;
 }
