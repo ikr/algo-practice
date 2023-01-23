@@ -56,10 +56,10 @@ State evolve(const State &s) {
 }
 
 ll period(const vector<pair<Coord, Coord>> &trace) {
-    const auto &[a0, b0] = trace[0];
-    for (int i = 1; i < sz(trace); ++i) {
+    const auto &[a0, b0] = trace[1000];
+    for (int i = 1001; i < sz(trace); ++i) {
         const auto &[a, b] = trace[i];
-        if (a == a0 && b == b0) return i;
+        if (a == a0 && b == b0) return i - 1000;
     }
     return 0;
 }
