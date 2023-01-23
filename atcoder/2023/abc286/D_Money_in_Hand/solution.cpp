@@ -7,16 +7,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> size_t combine_hashes(const T &xs) {
-    size_t seed = xs.size();
-    for (const auto i : xs) seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    return seed;
-}
-
-size_t key(const int X, const vector<int> &wallet) {
-    return 31 * hash<int>{}(X) + combine_hashes(wallet);
-}
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -24,45 +14,35 @@ int main() {
     int N, X;
     cin >> N >> X;
 
+    int hi = X;
     vector<int> wallet(N);
     for (int i = 0; i < N; ++i) {
         int A, B;
         cin >> A >> B;
 
         for (int j = 1; j <= B; ++j) wallet.push_back(A);
+        hi = max(hi, A);
     }
 
-    unordered_map<size_t, bool> memo;
-    const auto recur = [&](const auto self, const int x, vector<int> &w,
-                           const int budget) -> bool {
-        const auto k = key(x, w);
-        {
-            const auto it = memo.find(k);
-            if (it != cend(memo)) return it->second;
-        }
+    // D[i][j] is true iﬀ it is possible to obtain exactly j yen with coins in
+    // the wallet up to index i
+    vector<vector<bool>> D(sz(wallet), vector(hi + 1, false));
 
-        return memo[k] = [&]() -> bool {
-            if (x == 0) return true;
-            if (x < 0) return false;
+    D[0][0] = true;
+    D[0][wallet[0]] = true;
 
-            if (budget < x) return false;
+    for (int i = 1; i < sz(wallet); ++i) {
+        for (int j = 0; j < sz(D[i]); ++j) {
+            D[i][j] = D[i - 1][j];
 
-            for (int i = 0; i < sz(w); ++i) {
-                if (!w[i]) continue;
-                --w[i];
-                if (self(self, x - denomi[i], w)) {
-                    ++w[i];
-                    return true;
-                } else {
-                    ++w[i];
-                }
+            if (j - wallet[i] >= 0) {
+                D[i][j] = D[i][j] || D[i - 1][j - wallet[i]];
             }
+        }
+    }
 
-            return false;
-        }();
-    };
-
-    const auto yes = recur(recur, X, wallet);
+    const auto yes =
+        any_of(cbegin(D), cend(D), [X](const auto &row) { return row[X]; });
     cout << (yes ? "Yes" : "No") << '\n';
     return 0;
 }
