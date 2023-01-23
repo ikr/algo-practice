@@ -24,13 +24,17 @@ int main() {
     int N, X;
     cin >> N >> X;
 
-    vector<int> denomi(N);
     vector<int> wallet(N);
-    for (int i = 0; i < N; ++i) cin >> denomi[i] >> wallet[i];
+    for (int i = 0; i < N; ++i) {
+        int A, B;
+        cin >> A >> B;
+
+        for (int j = 1; j <= B; ++j) wallet.push_back(A);
+    }
 
     unordered_map<size_t, bool> memo;
-    const auto recur = [&](const auto self, const int x,
-                           vector<int> &w) -> bool {
+    const auto recur = [&](const auto self, const int x, vector<int> &w,
+                           const int budget) -> bool {
         const auto k = key(x, w);
         {
             const auto it = memo.find(k);
@@ -41,13 +45,7 @@ int main() {
             if (x == 0) return true;
             if (x < 0) return false;
 
-            {
-                int budget{};
-                for (int i = 0; i < sz(w); ++i) {
-                    budget += w[i] * denomi[i];
-                }
-                if (budget < x) return false;
-            }
+            if (budget < x) return false;
 
             for (int i = 0; i < sz(w); ++i) {
                 if (!w[i]) continue;
