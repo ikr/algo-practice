@@ -55,7 +55,7 @@ State evolve(const State &s) {
     return {pos, vel};
 }
 
-ll period(const vector<Coord> &trace) {
+template <typename T> ll period(const vector<T> &trace) {
     const auto shift = 0;
     const auto &a0 = trace[shift];
     for (int i = shift + 1; i < sz(trace); ++i) {
@@ -75,17 +75,19 @@ int main() {
     }
 
     State state{pos, vector(sz(pos), Coord{0, 0, 0})};
-    vector<vector<Coord>> traces(2 * sz(pos));
+    vector<vector<pair<int, int>>> traces(3 * sz(pos));
 
     const auto log_traces = [&]() -> void {
         for (int j = 0; j < sz(pos); ++j) {
-            traces[2 * j].push_back(state.pos[j]);
-            traces[2 * j + 1].push_back(state.vel[j]);
+            for (int k = 0; k < 3; ++k) {
+                traces[3 * j + k].emplace_back(state.pos[j][k],
+                                               state.vel[j][k]);
+            }
         }
     };
     log_traces();
 
-    for (int i = 1; i <= 10'000'000; ++i) {
+    for (int i = 1; i <= 1'000'000; ++i) {
         state = evolve(state);
         log_traces();
     }
