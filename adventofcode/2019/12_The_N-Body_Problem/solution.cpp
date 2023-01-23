@@ -55,13 +55,27 @@ State evolve(const State &s) {
     return {pos, vel};
 }
 
-template <typename T> ll period(const vector<T> &trace) {
-    const auto shift = 0;
-    const auto &a0 = trace[shift];
-    for (int i = shift + 1; i < sz(trace); ++i) {
-        if (trace[i] == a0) return i - shift;
+template <typename T>
+bool is_at(const vector<T> &haystack, const vector<T> &needle, const int i) {
+    for (int j = 0; j < sz(needle); ++j) {
+        if (haystack[i + j] != needle[j]) return false;
     }
-    return 0;
+
+    return true;
+}
+
+template <typename T> int tail_period(const vector<T> &xs) {
+    const auto marker_size = 32;
+    const vector marker(cend(xs) - marker_size, cend(xs));
+    assert(is_at(xs, marker, sz(xs) - marker_size));
+
+    for (int i = sz(xs) - marker_size - 1; i >= 0; --i) {
+        if (is_at(xs, marker, i)) {
+            return sz(xs) - marker_size - i;
+        }
+    }
+
+    return -1;
 }
 
 int main() {
@@ -94,7 +108,7 @@ int main() {
 
     ll ans = 1;
     for (int j = 0; j < sz(traces); ++j) {
-        const auto p = period(traces[j]);
+        const auto p = tail_period(traces[j]);
         ans = lcm(ans, p);
         cerr << p << endl;
     }
