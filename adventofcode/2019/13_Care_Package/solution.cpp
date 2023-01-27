@@ -142,25 +142,54 @@ int main() {
     transform(cbegin(tokens), cend(tokens), begin(xs),
               [](const auto &x) { return stoll(x); });
 
-    map<Coord, Tile> grid;
+    xs[0] = 2;
+
+    set<Coord> blocks;
+    optional<Coord> ball;
+    optional<Coord> paddle;
     Phase phase = Phase::X;
     Coord xy{INT_MIN, INT_MIN};
+    ll score{};
 
-    const auto input = [&]() -> ll { return 0; };
+    const auto input = [&]() -> ll {
+        if (!paddle || !ball) return 0;
+        const auto bx = ball->first;
+        const auto px = paddle->first;
+        return bx == px ? 0 : (bx < px ? -1 : 1);
+    };
 
     const auto output = [&](const ll a) -> void {
         switch (phase) {
         case Phase::X:
-            xy.first = a;
+            xy.first = inof(a);
             break;
         case Phase::Y:
-            xy.second = a;
+            xy.second = inof(a);
             break;
         case Phase::TILE:
-            if (!a) {
-                grid.erase(xy);
+            if (xy == Coord{-1, 0}) {
+                score = a;
+                cerr << "score: " << score << endl;
+            } else if (!a) {
+                if (blocks.contains(xy)) {
+                    blocks.erase(xy);
+                    cerr << sz(blocks) << " blocks remaining" << endl;
+                } else if (ball && *ball == xy) {
+                    ball = nullopt;
+                } else if (paddle && *paddle == xy) {
+                    paddle = nullopt;
+                }
             } else {
-                grid[xy] = static_cast<Tile>(a);
+                const auto tile = static_cast<Tile>(a);
+                if (tile == Tile::BLOCK) {
+                    blocks.insert(xy);
+                } else if (tile == Tile::BALL) {
+                    assert(!ball);
+                    ball = xy;
+                } else if (tile == Tile::PADDLE) {
+                    assert(!paddle);
+                    paddle = xy;
+                }
             }
             break;
         }
@@ -170,9 +199,5 @@ int main() {
 
     intcode_run(move(xs), input, output);
 
-    int ans{};
-    for (const auto &[_, tile] : grid) ans += tile == Tile::BLOCK;
-
-    cout << ans << '\n';
     return 0;
 }
