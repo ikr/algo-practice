@@ -1,28 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ull = unsigned long long;
+
+static constexpr ull MM = 20170123456789ULL;
+static constexpr int AZ = 26;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-namespace kactl {
-#define rep(i, a, b) for (int i = a; i < (b); ++i)
-
-using vi = vector<int>;
-
-vi Z(const string &S) {
-    vi z(sz(S));
-    int l = -1, r = -1;
-    rep(i, 1, sz(S)) {
-        z[i] = i >= r ? 0 : min(r - i, z[i - l]);
-        while (i + z[i] < sz(S) && S[i + z[i]] == S[z[i]]) z[i]++;
-        if (i + z[i] > r) l = i, r = i + z[i];
-    }
-    return z;
-}
-} // namespace kactl
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -31,24 +19,53 @@ int main() {
     int N;
     cin >> N;
 
-    vector<string> xs(N);
-    for (auto &x : xs) cin >> x;
+    vector<string> xss(N);
+    for (auto &xs : xss) cin >> xs;
 
-    vector<int> idx(N, 1);
-    string s = "|" + xs[0];
+    map<ull, int> hash_freqs;
+    for (const auto &xs : xss) {
+        ull m = 1;
+        ull h{};
 
-    for (int i = 1; i < N; ++i) {
-        s += '|';
-        idx[i] = sz(s);
-        s += xs[i];
+        for (const auto x : xs) {
+            ull a = inof(x) - inof('a');
+            a *= m;
+            a %= MM;
+
+            h += a;
+            h %= MM;
+
+            ++hash_freqs[h];
+
+            m *= AZ;
+            m %= MM;
+        }
     }
 
-    const auto z = kactl::Z(s);
+    vector<int> ans(N, 0);
+    for (int i = 0; i < N; ++i) {
+        const auto &xs = xss[i];
+        ull m = 1;
+        ull h{};
 
-    vector<int> ans;
-    ans.reserve(N);
-    for (const auto i : idx) {
-        ans.push_back(z[i]);
+        for (int l = 1; l <= sz(xs); ++l) {
+            const auto x = xs[l - 1];
+            ull a = inof(x) - inof('a');
+            a *= m;
+            a %= MM;
+
+            h += a;
+            h %= MM;
+
+            if (hash_freqs[h] > 1) {
+                ans[i] = l;
+            } else {
+                break;
+            }
+
+            m *= AZ;
+            m %= MM;
+        }
     }
 
     for (const auto a : ans) {
