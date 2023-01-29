@@ -3,8 +3,8 @@ using namespace std;
 
 using ull = unsigned long long;
 
-static constexpr ull MM = 20170123456789ULL;
-static constexpr int AZ = 26;
+static constexpr ull MM = 9999999900000001ULL;
+static constexpr int B = 27;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -24,37 +24,26 @@ int main() {
 
     map<ull, int> hash_freqs;
     for (const auto &xs : xss) {
-        ull m = 1;
         ull h{};
 
         for (const auto x : xs) {
-            ull a = inof(x) - inof('a');
-            a *= m;
-            a %= MM;
-
-            h += a;
+            h *= B;
+            h += inof(x) - inof('`');
             h %= MM;
 
             ++hash_freqs[h];
-
-            m *= AZ;
-            m %= MM;
         }
     }
 
     vector<int> ans(N, 0);
     for (int i = 0; i < N; ++i) {
         const auto &xs = xss[i];
-        ull m = 1;
         ull h{};
 
         for (int l = 1; l <= sz(xs); ++l) {
             const auto x = xs[l - 1];
-            ull a = inof(x) - inof('a');
-            a *= m;
-            a %= MM;
-
-            h += a;
+            h *= B;
+            h += inof(x) - inof('`');
             h %= MM;
 
             if (hash_freqs[h] > 1) {
@@ -62,9 +51,6 @@ int main() {
             } else {
                 break;
             }
-
-            m *= AZ;
-            m %= MM;
         }
     }
 
