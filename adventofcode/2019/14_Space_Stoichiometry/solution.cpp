@@ -44,14 +44,74 @@ vector<MatQuant> parse_material_quantities(const string &src) {
     return result;
 }
 
+struct CookBook final {
+    map<string, int> material_output_quantities;
+    map<string, vector<MatQuant>> material_inputs;
+};
+
+map<string, int> to_material_registry(const vector<MatQuant> &src) {
+    map<string, int> result;
+    for (const auto &[k, v] : src) result[k] += v;
+    return result;
+}
+
+vector<MatQuant> to_material_quantities(const map<string, int> &reg) {
+    vector<MatQuant> result(sz(reg));
+    transform(cbegin(reg), cend(reg), begin(result),
+              [](const auto &a) { return a; });
+    return result;
+}
+
+template <typename T> constexpr T div_ceil(const T x, const T y) {
+    return x ? (1 + (x - 1) / y) : 0;
+}
+
+vector<MatQuant> reduce_once(const CookBook &cook_book,
+                             const vector<MatQuant> &src) {
+    const auto &[qs, ins] = cook_book;
+    const auto reg = to_material_registry(src);
+    map<string, int> reg_;
+
+    for (const auto &[k, v] : reg) {
+        if (k == "ORE") {
+            reg_[k] += v;
+            continue;
+        }
+
+        const auto cycles = div_ceil(v, qs.at(k));
+
+        for (const auto &[mat, quant] : ins.at(k)) {
+            reg_[mat] += cycles * quant;
+        }
+    }
+
+    return to_material_quantities(reg_);
+}
+
 int main() {
+    map<string, int> material_output_quantities;
+    map<string, vector<MatQuant>> material_inputs;
+
     for (string line; getline(cin, line);) {
         const auto parts = split(" => ", line);
         const auto input = parse_material_quantities(parts[0]);
         const auto output = parse_material_quantity(parts[1]);
 
-        cerr << input << " → " << output << endl;
+        if (output.first == "FUEL") assert(output.second == 1);
+        assert(!material_output_quantities.contains(output.first));
+        material_output_quantities.emplace(output.first, output.second);
+        material_inputs.emplace(output.first, input);
     }
 
+    const CookBook cook_book{material_output_quantities, material_inputs};
+    vector<MatQuant> mat_quants{{"FUEL", 1}};
+
+    for (;;) {
+        mat_quants = reduce_once(cook_book, mat_quants);
+        cerr << mat_quants << endl;
+        if (sz(mat_quants) == 1) break;
+    }
+
+    cout << mat_quants << endl;
     return 0;
 }
