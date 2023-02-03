@@ -1,7 +1,24 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using ll = long long;
+using pll = pair<ll, ll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -9,41 +26,40 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-static constexpr ll INF = 1e16;
+ll max_sum(const vector<ll> &xs) {
+    vector<pll> D0(sz(xs)); // prev kept intact
+    vector<pll> D1(sz(xs)); // swapped with prev
 
-ll max_sum(vector<ll> xs) {
-    for (int i = 0; i < sz(xs);) {
-        const auto left_win = [&]() -> ll {
-            if (i == 0) return -INF;
-            return -2LL * (xs[i - 1] + xs[i]);
-        }();
+    D0[0] = {0, xs[0]}; // (s b) — max sum s before, last element b
+    D1[0] = {0, xs[0]};
 
-        const auto right_win = [&]() -> ll {
-            if (i == sz(xs) - 1) return -INF;
-            return -2LL * (xs[i] + xs[i + 1]);
-        }();
+    for (int i = 1; i < sz(xs); ++i) {
+        {
+            const auto [s0, b0] = D0[i - 1];
+            const auto [s1, b1] = D1[i - 1];
 
-        if (right_win <= 0 && left_win <= 0) {
-            ++i;
-        } else {
-            if (right_win >= left_win) {
-                assert(right_win > 0);
-                swap(xs[i], xs[i + 1]);
-                xs[i] = -xs[i];
-                xs[i + 1] = -xs[i + 1];
-                i += 2;
-            } else {
-                assert(right_win < left_win);
-                assert(left_win > 0);
-                swap(xs[i - 1], xs[i]);
-                xs[i - 1] = -xs[i - 1];
-                xs[i] = -xs[i];
-                i += 1;
-            }
+            D0[i] =
+                pll{((s0 + b0) >= (s1 + b1) ? (s0 + b0) : (s1 + b1)), xs[i]};
         }
+
+        D1[i] = [&]() -> pll {
+            const auto [s0, b0] = D0[i - 1];
+            const auto [s1, b1] = D1[i - 1];
+
+            const auto sa = s0 - b0 - xs[i];
+            const auto sb = s1 - b1 - xs[i];
+
+            if (sa >= sb) {
+                return {s0 - xs[i], -b0};
+            } else {
+                return {s1 - xs[i], -b1};
+            }
+        }();
     }
 
-    return accumulate(cbegin(xs), cend(xs), 0LL);
+    // cerr << D0 << '\n' << D1 << endl;
+    return max(D0.back().first + D0.back().second,
+               D1.back().first + D1.back().second);
 }
 
 int main() {
@@ -59,7 +75,7 @@ int main() {
         vector<ll> xs(n);
         for (auto &x : xs) cin >> x;
 
-        cout << max_sum(move(xs)) << '\n';
+        cout << max_sum(xs) << '\n';
     }
 
     return 0;
