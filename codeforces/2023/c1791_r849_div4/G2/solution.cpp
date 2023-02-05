@@ -13,6 +13,23 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
     return x ? (1 + (x - 1) / y) : 0;
 }
 
+int max_teleports_from_left_only(const int c, const vector<int> &xs) {
+    priority_queue<int, vector<int>, greater<int>> pq;
+    for (int i = 0; i < sz(xs); ++i) {
+        pq.push(i + 1 + xs[i]);
+    }
+
+    int ans{};
+    auto cur = c;
+    while (!pq.empty() && pq.top() <= cur) {
+        cur -= pq.top();
+        pq.pop();
+        ++ans;
+    }
+
+    return ans;
+}
+
 int max_teleports(const int c, const vector<int> &xs) {
     const auto n = sz(xs);
     const auto im = (n - 1) / 2;
@@ -34,7 +51,7 @@ int max_teleports(const int c, const vector<int> &xs) {
     vector<ll> rcs_psums(sz(rcs));
     partial_sum(cbegin(rcs), cend(rcs), begin(rcs_psums));
 
-    int ans{};
+    int ans = max_teleports_from_left_only(c, xs);
     for (int i = 0; i <= im; ++i) {
         if (lcs_psums[i] > c) break;
         const auto remaining_for_right = c - lcs_psums[i];
