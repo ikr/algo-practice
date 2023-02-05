@@ -36,13 +36,23 @@ int max_teleports(const int c, const vector<int> &xs) {
 
     int ans{};
     for (int i = 0; i <= im; ++i) {
+        if (lcs_psums[i] > c) break;
         const auto remaining_for_right = c - lcs_psums[i];
-        if (remaining_for_right <= 0) break;
         ans = max(ans, i + 1);
+        if (remaining_for_right <= 0) break;
 
-        const auto jt = lower_bound(cbegin(rcs_psums), cend(rcs_psums),
-                                    remaining_for_right);
-        if (jt == cend(rcs_psums) || *jt > remaining_for_right) continue;
+        auto jt = lower_bound(cbegin(rcs_psums), cend(rcs_psums),
+                              remaining_for_right);
+        if (jt == cbegin(rcs_psums) && *jt != remaining_for_right) {
+            assert(*jt > remaining_for_right);
+            continue;
+        }
+
+        if (*jt != remaining_for_right) {
+            assert(*jt > remaining_for_right);
+            jt = prev(jt);
+        }
+
         const auto j = inof(distance(cbegin(rcs_psums), jt));
         ans = max(ans, i + 1 + j + 1);
     }
