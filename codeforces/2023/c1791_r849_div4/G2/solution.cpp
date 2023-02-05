@@ -16,15 +16,35 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
 int max_teleports(const int c, const vector<int> &xs) {
     const auto n = sz(xs);
     const auto im = (n - 1) / 2;
-    vector<ll> rhs_ss(1, xs[im + 1]);
-    rhs_ss.reserve(n / 2);
-    for (int i = n - 1; i > im; --i) {
-        rhs_ss.push_back(rhs_ss.back() + xs[i]);
+    vector<ll> costs(n);
+    for (int i = 0; i <= im; ++i) {
+        costs[i] = i + 1 + xs[i];
     }
+    for (int i = im + 1; i < n; ++i) {
+        costs[i] = n - i + xs[i];
+    }
+
+    vector<ll> lcs(cbegin(costs), cbegin(costs) + im + 1);
+    sort(begin(lcs), end(lcs));
+    vector<ll> rcs(cbegin(costs) + im + 1, cend(costs));
+    sort(begin(rcs), end(rcs));
+
+    vector<ll> lcs_psums(sz(lcs));
+    partial_sum(cbegin(lcs), cend(lcs), begin(lcs_psums));
+    vector<ll> rcs_psums(sz(rcs));
+    partial_sum(cbegin(rcs), cend(rcs), begin(rcs_psums));
 
     int ans{};
     for (int i = 0; i <= im; ++i) {
-        auto cur = c;
+        const auto remaining_for_right = c - lcs_psums[i];
+        if (remaining_for_right <= 0) break;
+        ans = max(ans, i + 1);
+
+        const auto jt = lower_bound(cbegin(rcs_psums), cend(rcs_psums),
+                                    remaining_for_right);
+        if (jt == cend(rcs_psums) || *jt > remaining_for_right) continue;
+        const auto j = inof(distance(cbegin(rcs_psums), jt));
+        ans = max(ans, i + 1 + j + 1);
     }
     return ans;
 }
