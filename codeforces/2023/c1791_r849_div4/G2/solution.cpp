@@ -15,14 +15,16 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
 
 int max_teleports(const int c, const vector<int> &xs) {
     const auto n = sz(xs);
-    vector<ll> rhs_ss(1, xs[div_ceil(n, 2)]);
+    const auto im = (n - 1) / 2;
+    vector<ll> rhs_ss(1, xs[im + 1]);
     rhs_ss.reserve(n / 2);
-    for (int i = n - 1; i > n / 2; --i) {
+    for (int i = n - 1; i > im; --i) {
         rhs_ss.push_back(rhs_ss.back() + xs[i]);
     }
 
     int ans{};
-    for (int i = 0; i <= n / 2; ++i) {
+    for (int i = 0; i <= im; ++i) {
+        auto cur = c;
     }
     return ans;
 }
