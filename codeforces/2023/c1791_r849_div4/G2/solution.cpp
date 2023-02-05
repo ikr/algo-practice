@@ -42,14 +42,10 @@ int max_teleports(const int c, const vector<int> &xs) {
         if (remaining_for_right <= 0) break;
 
         auto jt = lower_bound(cbegin(rcs_psums), cend(rcs_psums),
-                              remaining_for_right);
-        if (jt == cbegin(rcs_psums) && *jt != remaining_for_right) {
-            assert(*jt > remaining_for_right);
+                              remaining_for_right + 1);
+        if (jt == cbegin(rcs_psums)) {
             continue;
-        }
-
-        if (*jt != remaining_for_right) {
-            assert(*jt > remaining_for_right);
+        } else {
             jt = prev(jt);
         }
 
