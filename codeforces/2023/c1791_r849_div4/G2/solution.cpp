@@ -13,13 +13,27 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
     return x ? (1 + (x - 1) / y) : 0;
 }
 
-int max_teleports_from_left_only(const int c, const vector<int> &xs) {
+int max_right_teleports_afetr_one_walk_from_left(int c, const vector<int> &xs) {
+    int ilo = 0;
+    int lo = 1 + xs[0];
+    for (int i = 1; i < sz(xs); ++i) {
+        if (i + 1 + xs[i] < lo) {
+            ilo = i;
+            lo = i + 1 + xs[i];
+        }
+    }
+    if (c < lo) return 0;
+
+    c -= lo;
+    if (c == 0) return 1;
+
     priority_queue<int, vector<int>, greater<int>> pq;
     for (int i = 0; i < sz(xs); ++i) {
-        pq.push(i + 1 + xs[i]);
+        if (i == ilo) continue;
+        pq.push(sz(xs) - i + xs[i]);
     }
 
-    int ans{};
+    int ans = 1;
     auto cur = c;
     while (!pq.empty() && pq.top() <= cur) {
         cur -= pq.top();
@@ -51,7 +65,7 @@ int max_teleports(const int c, const vector<int> &xs) {
     vector<ll> rcs_psums(sz(rcs));
     partial_sum(cbegin(rcs), cend(rcs), begin(rcs_psums));
 
-    int ans = max_teleports_from_left_only(c, xs);
+    int ans = max_right_teleports_afetr_one_walk_from_left(c, xs);
     for (int i = 0; i <= im; ++i) {
         if (lcs_psums[i] > c) break;
         const auto remaining_for_right = c - lcs_psums[i];
