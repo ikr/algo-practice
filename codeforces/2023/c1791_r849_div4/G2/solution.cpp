@@ -9,10 +9,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
-}
-
 int max_right_teleports_afetr_one_walk_from_left(int c, const vector<int> &xs) {
     int ilo = 0;
     int lo = 1 + xs[0];
@@ -47,23 +43,28 @@ int max_right_teleports_afetr_one_walk_from_left(int c, const vector<int> &xs) {
 int max_teleports(const int c, const vector<int> &xs) {
     const auto n = sz(xs);
     const auto im = (n - 1) / 2;
-    vector<ll> costs(n);
-    for (int i = 0; i <= im; ++i) {
-        costs[i] = i + 1 + xs[i];
-    }
-    for (int i = im + 1; i < n; ++i) {
-        costs[i] = n - i + xs[i];
-    }
 
-    vector<ll> lcs(cbegin(costs), cbegin(costs) + im + 1);
-    sort(begin(lcs), end(lcs));
-    vector<ll> rcs(cbegin(costs) + im + 1, cend(costs));
-    sort(begin(rcs), end(rcs));
+    const auto [lcs_psums, rcs_psums] = [&]() -> pair<vector<ll>, vector<ll>> {
+        vector<ll> costs(n);
+        for (int i = 0; i <= im; ++i) {
+            costs[i] = i + 1 + xs[i];
+        }
+        for (int i = im + 1; i < n; ++i) {
+            costs[i] = n - i + xs[i];
+        }
 
-    vector<ll> lcs_psums(sz(lcs));
-    partial_sum(cbegin(lcs), cend(lcs), begin(lcs_psums));
-    vector<ll> rcs_psums(sz(rcs));
-    partial_sum(cbegin(rcs), cend(rcs), begin(rcs_psums));
+        vector<ll> lcs(cbegin(costs), cbegin(costs) + im + 1);
+        sort(begin(lcs), end(lcs));
+        vector<ll> rcs(cbegin(costs) + im + 1, cend(costs));
+        sort(begin(rcs), end(rcs));
+
+        vector<ll> A(sz(lcs));
+        partial_sum(cbegin(lcs), cend(lcs), begin(A));
+        vector<ll> B(sz(rcs));
+        partial_sum(cbegin(rcs), cend(rcs), begin(B));
+
+        return {A, B};
+    }();
 
     int ans = max_right_teleports_afetr_one_walk_from_left(c, xs);
     for (int i = 0; i <= im; ++i) {
