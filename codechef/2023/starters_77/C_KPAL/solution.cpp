@@ -1,37 +1,43 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using ll = long long;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-bool is_possible(const vector<int> &A, const ll K) {
+bool is_possible(const vector<int> &A, const int K) {
     const auto n = sz(A);
     if (n == 1 || K == 1) return true;
     vector<int> xs;
-    xs.reserve(n / 2);
 
     for (int i = 0; i <= (n - 1) / 2; ++i) {
         const int j = n - 1 - i;
-        xs.push_back(abs(A[i] - A[j]));
+        if (A[i] != A[j]) xs.push_back(abs(A[i] - A[j]));
     }
 
-    const auto s = accumulate(cbegin(xs), cend(xs), 0LL, plus<ll>{});
-    return (s % K) == 0LL;
+    if (xs.empty()) return true;
+    sort(begin(xs), end(xs));
+
+    priority_queue<int, vector<int>, greater<int>> cuts;
+    while (!xs.empty() || !cuts.empty()) {
+        while (!cuts.empty() && (xs.empty() || cuts.top() >= xs.back())) {
+            const auto x = cuts.top();
+            cuts.pop();
+            xs.push_back(x);
+        }
+
+        if (sz(xs) < K) return false;
+        const auto p = xs[sz(xs) - K];
+
+        for (int i = sz(xs) - K; i < sz(xs); ++i) {
+            const auto y = xs[i] - p;
+            if (y == 0) continue;
+        }
+    }
+
+    return true;
 }
 
 int main() {
