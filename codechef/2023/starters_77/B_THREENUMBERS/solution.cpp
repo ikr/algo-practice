@@ -4,11 +4,21 @@ using namespace std;
 int min_ops(array<int, 3> xs) {
     if (xs[0] == xs[1] && xs[1] == xs[2]) return 0;
 
+    if (any_of(cbegin(xs), cend(xs), [](const int x) { return x % 2; })) {
+        return -1;
+    }
+
     sort(begin(xs), end(xs));
-    if (xs[0] != xs[1]) return -1;
+    if (xs[0] == xs[1]) {
+        const auto d = xs[2] - xs[1];
+        return d / 2;
+    }
+
+    int o0 = (xs[1] - xs[0]) / 2;
+    xs[2] += o0 * 2;
 
     const auto d = xs[2] - xs[1];
-    return (d % 2) == 0 ? (d / 2) : -1;
+    return o0 + d / 2;
 }
 
 int main() {
