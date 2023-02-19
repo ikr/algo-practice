@@ -18,7 +18,7 @@ int main() {
         cin >> N >> D >> K;
         --K;
 
-        const auto p = (gcd(N, D) == 1LL) ? min(N, D) : gcd(N, D);
+        const auto p = (gcd(N, D) == 1LL) ? N : (N / gcd(N, D));
         const auto s = K / p;
         const auto ans = (s + ((K * D) % N)) % N;
         cout << ans << '\n';
