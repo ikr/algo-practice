@@ -1,0 +1,2 @@
+-I/home/ikr/code/ac-library
+-std=c++11
