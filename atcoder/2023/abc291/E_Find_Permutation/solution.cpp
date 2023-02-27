@@ -1,8 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using pii = pair<int, int>;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -14,36 +12,32 @@ vector<int> construct_permutation(const vector<vector<int>> &g) {
     vector<int> ideg(n, 0);
 
     for (int u = 0; u < n; ++u) {
-        for (const auto v : g[u]) {
-            ++ideg[v];
-        }
+        for (const auto v : g[u]) ++ideg[v];
     }
 
-    set<pii> iq;
-    for (int u = 0; u < n; ++u) iq.emplace(ideg[u], u);
+    vector<int> zus;
+    for (int u = 0; u < n; ++u) {
+        if (ideg[u] == 0) zus.push_back(u);
+    }
+    if (sz(zus) != 1) return {};
 
-    vector<int> pref;
+    vector<int> ans;
 
-    while (sz(pref) < n) {
-        if (iq.empty()) return {};
-        const auto [id, u] = *cbegin(iq);
-        if (id != 0) return {};
-        iq.erase(cbegin(iq));
-        if (!iq.empty() && cbegin(iq)->first == 0) return {};
+    for (;;) {
+        const auto zu = zus[0];
+        ans.push_back(zu);
+        if (sz(ans) == n) return ans;
+        zus.clear();
 
-        pref.push_back(u);
-
-        for (const auto v : g[u]) {
-            const auto jd = ideg[v];
+        for (const auto v : g[zu]) {
             --ideg[v];
-
-            const auto jt = iq.find(pii{jd, v});
-            iq.erase(jt);
-            iq.emplace(ideg[v], v);
+            if (ideg[v] == 0) zus.push_back(v);
         }
+
+        if (sz(zus) != 1) return {};
     }
 
-    return pref;
+    return {};
 }
 
 int main() {
