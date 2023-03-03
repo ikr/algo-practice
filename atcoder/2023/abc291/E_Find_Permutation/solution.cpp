@@ -15,29 +15,28 @@ vector<int> construct_permutation(const vector<vector<int>> &g) {
         for (const auto v : g[u]) ++ideg[v];
     }
 
-    vector<int> zus;
+    queue<int> q;
     for (int u = 0; u < n; ++u) {
-        if (ideg[u] == 0) zus.push_back(u);
+        if (!ideg[u]) q.push(u);
     }
-    if (sz(zus) != 1) return {};
 
-    vector<int> ans;
+    vector<int> ans(n, 0);
+    int cur{};
 
-    for (;;) {
-        const auto zu = zus[0];
-        ans.push_back(zu);
-        if (sz(ans) == n) return ans;
-        zus.clear();
+    while (!q.empty()) {
+        if (sz(q) != 1) return {};
+        const auto u = q.front();
+        q.pop();
+        ans[u] = cur;
+        ++cur;
 
-        for (const auto v : g[zu]) {
+        for (const auto v : g[u]) {
             --ideg[v];
-            if (ideg[v] == 0) zus.push_back(v);
+            if (!ideg[v]) q.push(v);
         }
-
-        if (sz(zus) != 1) return {};
     }
 
-    return {};
+    return ans;
 }
 
 int main() {
@@ -55,6 +54,11 @@ int main() {
         --v;
 
         g[u].push_back(v);
+    }
+
+    for (auto &row : g) {
+        sort(begin(row), end(row));
+        row.erase(unique(begin(row), end(row)), end(row));
     }
 
     const auto ans = construct_permutation(g);
