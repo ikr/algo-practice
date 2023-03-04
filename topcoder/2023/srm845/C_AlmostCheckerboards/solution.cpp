@@ -46,7 +46,7 @@ struct AlmostCheckerboards final {
             return cs[i][j];
         };
 
-        ll ans = 2LL * i_choose_j(R * C, D);
+        ll ans = i_choose_j(R * C, D) * (R * C / 2 == D ? 1 : 2);
         ans %= M;
         return inof(ans);
     }
@@ -55,13 +55,23 @@ struct AlmostCheckerboards final {
 // clang-format off
 const lest::test tests[] = {
     CASE("Example 0") {
+        const auto actual = AlmostCheckerboards{}.count(3, 4, 0);
+        const auto expected = 2;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 1") {
         const auto actual = AlmostCheckerboards{}.count(3, 4, 47);
         const auto expected = 0;
         EXPECT(actual == expected);
     },
-    CASE("Example 1") {
+    CASE("Example 2") {
         const auto actual = AlmostCheckerboards{}.count(2, 2, 1);
         const auto expected = 8;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 3") {
+        const auto actual = AlmostCheckerboards{}.count(9, 4, 15);
+        const auto expected = 135805043;
         EXPECT(actual == expected);
     },
 };
