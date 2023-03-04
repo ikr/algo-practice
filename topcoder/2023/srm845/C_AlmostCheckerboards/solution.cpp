@@ -12,14 +12,11 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
-    return xs.cbegin();
-}
-
-template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
-    return xs.cend();
+ll pow_mod(const ll base, const ll exp, const ll m) {
+    if (!exp) return 1;
+    if (exp % 2LL) return (base * pow_mod(base, exp - 1, m)) % m;
+    const ll q = pow_mod(base, exp / 2, m);
+    return (q * q) % m;
 }
 
 vvll combinations(const int n, const int k) {
@@ -46,7 +43,8 @@ struct AlmostCheckerboards final {
             return cs[i][j];
         };
 
-        ll ans = i_choose_j(R * C, D) * (R * C / 2 == D ? 1 : 2);
+        ll ans = i_choose_j(R * C, D);
+        if (R * C != 2 * D) ans *= 2;
         ans %= M;
         return inof(ans);
     }
@@ -72,6 +70,19 @@ const lest::test tests[] = {
     CASE("Example 3") {
         const auto actual = AlmostCheckerboards{}.count(9, 4, 15);
         const auto expected = 135805043;
+        EXPECT(actual == expected);
+    },
+    CASE("Test the total number of possible boards sums up to 2^(R*C)") {
+        const auto R = 17;
+        const auto C = 19;
+
+        ll actual{};
+        for (int D = 0; D <= R * C; ++D) {
+            actual += AlmostCheckerboards{}.count(R, C, D);
+            actual %= M;
+        }
+
+        const auto expected = pow_mod(2, R * C, M);
         EXPECT(actual == expected);
     },
 };
