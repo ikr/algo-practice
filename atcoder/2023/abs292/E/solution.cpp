@@ -9,28 +9,35 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int min_ops(const vector<vector<int>> &g, const set<pii> &es) {
-    set<pii> ans;
-
-    queue<pii> q;
-    for (const auto &uv : es) {
-        q.push(uv);
-    }
-
-    while (!q.empty()) {
-        const auto [u, v] = q.front();
-        q.pop();
-
-        for (const auto w : g[v]) {
-            const pii uw{u, w};
-            if (es.count(uw) || ans.count(uw)) continue;
-
-            ans.insert(uw);
-            q.push(uw);
+int min_ops(const vector<vector<int>> &g) {
+    const auto n = sz(g);
+    vector<vector<int>> m(n, vector(n, 0));
+    for (int u = 0; u < n; ++u) {
+        for (const auto v : g[u]) {
+            m[u][v] = 1;
         }
     }
 
-    return sz(ans);
+    vector<vector<int>> m2(n, vector(n, 0));
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            int s{};
+
+            for (const auto v : g[i]) {
+                s += m[v][j];
+            }
+
+            m2[i][j] = s;
+        }
+    }
+
+    int ans{};
+    for (int u = 0; u < n; ++u) {
+        for (int v = 0; v < n; ++v) {
+            ans += (m2[u][v] && !m[u][v]);
+        }
+    }
+    return ans;
 }
 
 int main() {
@@ -41,7 +48,6 @@ int main() {
     cin >> N >> M;
 
     vector<vector<int>> g(N);
-    set<pii> es;
     for (int i = 1; i <= M; ++i) {
         int u, v;
         cin >> u >> v;
@@ -49,9 +55,8 @@ int main() {
         --v;
 
         g[u].push_back(v);
-        es.emplace(u, v);
     }
 
-    cout << min_ops(g, es) << '\n';
+    cout << min_ops(g) << '\n';
     return 0;
 }
