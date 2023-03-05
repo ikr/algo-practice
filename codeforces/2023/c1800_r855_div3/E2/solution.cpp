@@ -21,26 +21,24 @@ vector<vector<int>> index_components(const int n, const int k) {
     return uf.groups();
 }
 
-bool are_equal_at(const string &s, const string &t, const vector<int> &ii) {
-    return all_of(cbegin(ii), cend(ii),
-                  [&](const int i) { return s[i] == t[i]; });
+string projection(const string &xs, const vector<int> &ii) {
+    string ans(sz(ii), ' ');
+    for (int j = 0; j < sz(ii); ++j) ans[j] = xs[ii[j]];
+    return ans;
 }
 
-void sort_indices(const string &xs, vector<int> &ii) {
-    stable_sort(begin(ii), end(ii), [&](const int i, const int j) {
-        return inof(xs[i]) < inof(xs[j]);
-    });
+bool are_equal_sorted(string s, string t) {
+    sort(begin(s), end(s));
+    sort(begin(t), end(t));
+    return s == t;
 }
 
 bool is_possible(const string &s, const string &t, const int k) {
     auto cs = index_components(sz(s), k);
     for (auto &ii : cs) {
-        auto jj = ii;
-        sort_indices(s, ii);
-        sort_indices(t, jj);
-
-        if (ii != jj) return false;
-        if (!are_equal_at(s, t, ii)) return false;
+        if (!are_equal_sorted(projection(s, ii), projection(t, ii))) {
+            return false;
+        }
     }
     return true;
 }
