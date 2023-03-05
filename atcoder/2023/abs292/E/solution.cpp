@@ -9,32 +9,35 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int min_ops(const vector<vector<int>> &g) {
-    const auto n = sz(g);
-    vector<vector<int>> m(n, vector(n, 0));
-    for (int u = 0; u < n; ++u) {
-        for (const auto v : g[u]) {
-            m[u][v] = 1;
+vector<int> vertices_reachabe_from_u(const vector<vector<int>> &g,
+                                     const int u) {
+    vector<int> ans;
+    vector<bool> done(sz(g), false);
+    queue<int> q;
+    q.push(u);
+    done[u] = true;
+
+    while (!q.empty()) {
+        const auto v = q.front();
+        q.pop();
+
+        for (const auto v_ : g[v]) {
+            if (done[v_]) continue;
+            ans.push_back(v_);
+            done[v_] = true;
+            q.push(v_);
         }
     }
 
-    vector<vector<int>> m2(n, vector(n, 0));
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            int s{};
+    return ans;
+}
 
-            for (const auto v : g[i]) {
-                s += m[v][j];
-            }
-
-            m2[i][j] = s;
-        }
-    }
-
+int min_ops(const vector<vector<int>> &g, const set<pii> &es) {
     int ans{};
-    for (int u = 0; u < n; ++u) {
-        for (int v = 0; v < n; ++v) {
-            ans += (m2[u][v] && !m[u][v]);
+    for (int u = 0; u < sz(g); ++u) {
+        const auto vs = vertices_reachabe_from_u(g, u);
+        for (const auto v : vs) {
+            if (!es.count({u, v})) ++ans;
         }
     }
     return ans;
@@ -48,6 +51,7 @@ int main() {
     cin >> N >> M;
 
     vector<vector<int>> g(N);
+    set<pii> es;
     for (int i = 1; i <= M; ++i) {
         int u, v;
         cin >> u >> v;
@@ -55,8 +59,9 @@ int main() {
         --v;
 
         g[u].push_back(v);
+        es.emplace(u, v);
     }
 
-    cout << min_ops(g) << '\n';
+    cout << min_ops(g, es) << '\n';
     return 0;
 }
