@@ -67,7 +67,7 @@ bool factorizable_under_N(const ll N, const ll a) {
 }
 
 ll find_X(const lll N, const lll M) {
-    if (N >= M) return llof(N);
+    if (N >= M) return llof(M);
     if (N * N < M) return -1;
     if (factorizable_under_N(llof(N), llof(M))) return llof(M);
 
