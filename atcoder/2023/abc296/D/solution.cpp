@@ -71,19 +71,23 @@ ll find_X(const lll N, const lll M) {
     if (N * N < M) return -1;
     if (factorizable_under_N(llof(N), llof(M))) return llof(M);
 
-    lll hi = N * N;
-    lll lo = M;
+    lll hi = N;
+    lll lo = 1;
 
     while (lo + lllof(1) < hi) {
         const auto mid = lo + (hi - lo) / lllof(2);
-        if (mid >= M) {
+        if (mid * N >= M) {
             hi = mid;
         } else {
             lo = mid;
         }
     }
 
-    return factorizable_under_N(llof(N), llof(hi)) ? llof(hi) : -1;
+    for (auto i = M + 1; i <= hi; ++i) {
+        if (factorizable_under_N(N, i)) return i;
+    }
+
+    return hi;
 }
 
 int main() {
