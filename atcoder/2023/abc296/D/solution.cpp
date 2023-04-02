@@ -83,11 +83,11 @@ ll find_X(const lll N, const lll M) {
         }
     }
 
-    for (auto i = M + 1; i <= hi; ++i) {
+    for (ll i = M + 1; i <= hi * N; ++i) {
         if (factorizable_under_N(N, i)) return i;
     }
 
-    return hi;
+    return llof(hi);
 }
 
 int main() {
