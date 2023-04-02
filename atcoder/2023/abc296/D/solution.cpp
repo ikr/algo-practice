@@ -61,9 +61,9 @@ vector<ull> factor(ull n) {
 } // namespace kactl
 
 bool factorizable_under_N(const ll N, const ll a) {
-    auto fs = kactl::factor(a);
-    sort(begin(fs), end(fs));
-    return lllof(fs.back()) <= N;
+    const auto fs = kactl::factor(a);
+    const ll hi = *max_element(begin(fs), end(fs));
+    return hi <= N;
 }
 
 ll find_X(const lll N, const lll M) {
@@ -83,8 +83,8 @@ ll find_X(const lll N, const lll M) {
         }
     }
 
-    for (ll i = M + 1; i <= hi * N; ++i) {
-        if (factorizable_under_N(N, i)) return i;
+    for (ll i = llof(M) + 1; i <= hi * N; ++i) {
+        if (factorizable_under_N(llof(N), i)) return i;
     }
 
     return llof(hi);
