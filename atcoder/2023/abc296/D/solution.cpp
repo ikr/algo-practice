@@ -20,6 +20,7 @@ ll find_X(const ll N, const ll M) {
 
     for (ll a = 1; a * a <= M; ++a) {
         const auto b = div_ceil(M, a);
+        if (a > b) break;
         if (a <= N && b <= N) ans = min(ans, a * b);
     }
 
