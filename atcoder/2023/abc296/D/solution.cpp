@@ -59,7 +59,7 @@ vector<ull> factor(ull n) {
 bool factorizable_under_N(const ll N, const ll a) {
     const auto fs = kactl::factor(a);
     const ll hi = *max_element(begin(fs), end(fs));
-    return hi <= N;
+    return hi <= N && a / hi <= N;
 }
 
 ll find_X(const ll N, const ll M) {
