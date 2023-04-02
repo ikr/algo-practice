@@ -2,12 +2,8 @@
 using namespace std;
 
 using ll = long long;
-using ull = unsigned long long;
 using lll = __int128_t;
-
-template <typename T> constexpr ll llof(const T x) {
-    return static_cast<ll>(x);
-}
+using ull = unsigned long long;
 
 template <typename T> constexpr lll lllof(const T x) {
     return static_cast<lll>(x);
@@ -66,28 +62,16 @@ bool factorizable_under_N(const ll N, const ll a) {
     return hi <= N;
 }
 
-ll find_X(const lll N, const lll M) {
-    if (N >= M) return llof(M);
-    if (N * N < M) return -1;
-    if (factorizable_under_N(llof(N), llof(M))) return llof(M);
+ll find_X(const ll N, const ll M) {
+    if (N >= M) return M;
+    if (lllof(N) * N < lllof(M)) return -1;
 
-    lll hi = N;
-    lll lo = 1;
-
-    while (lo + lllof(1) < hi) {
-        const auto mid = lo + (hi - lo) / lllof(2);
-        if (mid * N >= M) {
-            hi = mid;
-        } else {
-            lo = mid;
-        }
+    for (ll i = M;; ++i) {
+        if (factorizable_under_N(N, i)) return i;
     }
 
-    for (ll i = llof(M) + 1; i <= hi * N; ++i) {
-        if (factorizable_under_N(llof(N), i)) return i;
-    }
-
-    return llof(hi);
+    assert("/o\\" && false);
+    return 0;
 }
 
 int main() {
