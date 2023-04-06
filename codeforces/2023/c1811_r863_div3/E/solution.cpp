@@ -3,7 +3,7 @@ using namespace std;
 
 using ll = long long;
 
-static constexpr ll HI = 1'000'000'000'000LL;
+static constexpr ll INF = 1'000'000'000'000'000'000LL;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -40,8 +40,19 @@ template <typename T> T number(const deque<int> &ds) {
     return ans;
 }
 
-array<ll, 15> bad_nums_count_by_size() {
-    array<ll, 15> ans{};
+static const auto POWS = []() {
+    array<ll, 18> ans{};
+    ans[0] = 1;
+
+    for (int i = 1; i < sz(ans); ++i) {
+        ans[i] = ans[i - 1] * 10;
+    }
+
+    return ans;
+}();
+
+static const auto BBS = []() {
+    array<ll, 18> ans{};
     ans[1] = 1;
     ll m = 10;
 
@@ -51,29 +62,14 @@ array<ll, 15> bad_nums_count_by_size() {
     }
 
     return ans;
-}
-
-static const auto CBS = bad_nums_count_by_size();
-
-array<ll, 16> ten_pows() {
-    array<ll, 16> ans{};
-    ans[0] = 1;
-
-    for (int i = 1; i < sz(ans); ++i) {
-        ans[i] = ans[i - 1] * 10;
-    }
-
-    return ans;
-}
-
-static const auto POWS = ten_pows();
+}();
 
 ll bad_nums_up_to(deque<int> ds) {
     if (sz(ds) == 1) {
         return ds[0] < 4 ? 0 : 1;
     }
 
-    const auto sub = CBS[sz(ds) - 1];
+    const auto sub = BBS[sz(ds) - 1];
     const auto x = ds[0] - 1;
     ll ans = x < 4 ? (x * sub) : ((x - 1) * sub + POWS[sz(ds) - 1]);
 
@@ -91,20 +87,28 @@ ll find_ak(const ll k) {
     if (k == 1) return 1;
 
     ll lo = 1;
-    ll hi = HI;
+    ll hi = INF;
 
-    while (lo + 1 < hi) {
+    for (;;) {
+        cerr << "lo:" << lo << " hi:" << hi << endl;
         const auto mid = midpoint<ll>(lo, hi);
-        const auto pos = mid - bad_nums_up_to(digits(mid));
+        const auto x = mid - bad_nums_up_to(digits(mid));
+        if (x == k) return mid;
 
-        if (pos < k) {
+        if (mid == lo || mid == hi) break;
+        if (x < k) {
             lo = mid;
         } else {
             hi = mid;
         }
     }
 
-    return lo - bad_nums_up_to(digits(lo));
+    for (auto x = lo; x <= hi; ++x) {
+        if (x - bad_nums_up_to(digits(x)) == k) return x;
+    }
+
+    assert("/o\\" && false);
+    return -1;
 }
 
 int main() {
