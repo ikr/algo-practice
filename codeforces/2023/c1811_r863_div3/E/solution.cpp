@@ -89,22 +89,17 @@ ll find_ak(const ll k) {
     ll lo = 1;
     ll hi = INF;
 
-    for (;;) {
+    while (lo + 1 < hi) {
         cerr << "lo:" << lo << " hi:" << hi << endl;
         const auto mid = midpoint<ll>(lo, hi);
         const auto x = mid - bad_nums_up_to(digits(mid));
         if (x == k) return mid;
 
-        if (mid == lo || mid == hi) break;
         if (x < k) {
             lo = mid;
         } else {
             hi = mid;
         }
-    }
-
-    for (auto x = lo; x <= hi; ++x) {
-        if (x - bad_nums_up_to(digits(x)) == k) return x;
     }
 
     assert("/o\\" && false);
@@ -114,6 +109,20 @@ ll find_ak(const ll k) {
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
+
+    const int K = 43;
+    int exp = 0;
+    for (int i = 1; i <= K; ++i) {
+        const auto ds = to_string(i);
+        exp += ds.find('4') != ds.npos;
+
+        if (ds.find('4') != ds.npos) {
+            cerr << ds << endl;
+        }
+    }
+    const auto act = bad_nums_up_to(digits(K));
+    cerr << "exp:" << exp << " act:" << act << endl;
+    return 0;
 
     int t;
     cin >> t;
