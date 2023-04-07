@@ -90,7 +90,7 @@ ll find_ak(const ll k) {
         const auto mid = midpoint<ll>(lo, hi);
         const auto x = mid - bad_nums_up_to(digits(mid));
         if (x == k) {
-            return mid % 4 ? mid : mid - 1;
+            return mid % 10 == 4 ? mid - 1 : mid;
         }
 
         if (x < k) {
