@@ -77,10 +77,10 @@ ll bad_nums_up_to(deque<int> ds) {
     if (h == 4) {
         return POWS[n - 1] + (h - 1) * stt + bad_nums_up_to(ds);
     } else if (h < 4) {
-        return (h - 1) * stt + bad_nums_up_to(ds);
+        return h * stt + bad_nums_up_to(ds);
     } else {
         assert(h > 4);
-        return POWS[n - 1] + (h - 2) * stt + 2 * bad_nums_up_to(ds);
+        return POWS[n - 1] + (h - 1) * stt + bad_nums_up_to(ds);
     }
 }
 
@@ -111,7 +111,7 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    const int K = 999999;
+    const int K = 96941;
     int exp = 0;
     for (int i = 1; i <= K; ++i) {
         const auto ds = to_string(i);
