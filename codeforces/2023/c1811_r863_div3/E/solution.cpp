@@ -65,20 +65,23 @@ static const auto BBS = []() {
 }();
 
 ll bad_nums_up_to(deque<int> ds) {
-    if (sz(ds) == 1) return ds[0] < 4 ? 0 : 1;
-
-    const auto sub = BBS[sz(ds) - 1];
-    const auto x = ds[0] - 1;
-    ll ans = x < 4 ? (x * sub) : ((x - 1) * sub + POWS[sz(ds) - 1]);
+    const auto n = sz(ds);
+    assert(n);
+    const auto h = ds[0];
+    if (n == 1) return h < 4 ? 0 : 1;
 
     ds.pop_front();
-    if (ds[0] == 4) {
-        ans += number<ll>(ds) + 1;
-    } else {
-        ans += bad_nums_up_to(ds);
-    }
+    if (!h) return bad_nums_up_to(ds);
 
-    return ans;
+    const auto stt = accumulate(cbegin(BBS) + 1, cbegin(BBS) + n, 0LL);
+    if (h == 4) {
+        return POWS[n - 1] + (h - 1) * stt + bad_nums_up_to(ds);
+    } else if (h < 4) {
+        return (h - 1) * stt + bad_nums_up_to(ds);
+    } else {
+        assert(h > 4);
+        return POWS[n - 1] + (h - 2) * stt + 2 * bad_nums_up_to(ds);
+    }
 }
 
 ll find_ak(const ll k) {
@@ -108,7 +111,7 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    const int K = 999;
+    const int K = 999999;
     int exp = 0;
     for (int i = 1; i <= K; ++i) {
         const auto ds = to_string(i);
@@ -119,8 +122,7 @@ int main() {
         }
     }
     const auto act = bad_nums_up_to(digits(K));
-    cerr << "exp:" << exp << " act:" << act
-         << " BBS:" << (BBS[1] + BBS[2] + BBS[3]) << endl;
+    cerr << "exp:" << exp << " act:" << act << endl;
     return 0;
 
     int t;
