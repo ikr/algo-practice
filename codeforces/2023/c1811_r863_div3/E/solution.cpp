@@ -43,11 +43,7 @@ template <typename T> T number(const deque<int> &ds) {
 static const auto POWS = []() {
     array<ll, 18> ans{};
     ans[0] = 1;
-
-    for (int i = 1; i < sz(ans); ++i) {
-        ans[i] = ans[i - 1] * 10;
-    }
-
+    for (int i = 1; i < sz(ans); ++i) ans[i] = ans[i - 1] * 10;
     return ans;
 }();
 
@@ -75,7 +71,7 @@ ll bad_nums_up_to(deque<int> ds) {
 
     const auto stt = accumulate(cbegin(BBS) + 1, cbegin(BBS) + n, 0LL);
     if (h == 4) {
-        return POWS[n - 1] + (h - 1) * stt + bad_nums_up_to(ds);
+        return number<ll>(ds) + 1 + (h - 1) * stt + stt;
     } else if (h < 4) {
         return h * stt + bad_nums_up_to(ds);
     } else {
@@ -111,15 +107,11 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    const int K = 96941;
+    const int K = 1029380;
     int exp = 0;
     for (int i = 1; i <= K; ++i) {
         const auto ds = to_string(i);
         exp += ds.find('4') != ds.npos;
-
-        if (ds.find('4') != ds.npos) {
-            cerr << ds << endl;
-        }
     }
     const auto act = bad_nums_up_to(digits(K));
     cerr << "exp:" << exp << " act:" << act << endl;
