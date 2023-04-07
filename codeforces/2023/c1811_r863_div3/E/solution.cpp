@@ -80,6 +80,16 @@ ll bad_nums_up_to(deque<int> ds) {
     }
 }
 
+ll unfour_if_necessary(const ll x) {
+    auto s = to_string(x);
+    const auto it = s.find('4');
+    if (it == s.npos) return x;
+
+    s[it] = '3';
+    for (auto i = it + 1; i < s.size(); ++i) s[i] = '9';
+    return stoll(s);
+}
+
 ll find_ak(const ll k) {
     if (k == 1) return 1;
 
@@ -89,9 +99,7 @@ ll find_ak(const ll k) {
     while (lo + 1 < hi) {
         const auto mid = midpoint<ll>(lo, hi);
         const auto x = mid - bad_nums_up_to(digits(mid));
-        if (x == k) {
-            return mid % 10 == 4 ? mid - 1 : mid;
-        }
+        if (x == k) return unfour_if_necessary(mid);
 
         if (x < k) {
             lo = mid;
