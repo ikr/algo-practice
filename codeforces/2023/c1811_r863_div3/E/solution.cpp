@@ -57,7 +57,7 @@ static const auto BBS = []() {
     ll m = 10;
 
     for (int i = 2; i < sz(ans); ++i) {
-        ans[i] = m + 8 * ans[i - 1];
+        ans[i] = m + 8 * accumulate(cbegin(ans), cbegin(ans) + i, 0LL);
         m *= 10;
     }
 
@@ -65,9 +65,7 @@ static const auto BBS = []() {
 }();
 
 ll bad_nums_up_to(deque<int> ds) {
-    if (sz(ds) == 1) {
-        return ds[0] < 4 ? 0 : 1;
-    }
+    if (sz(ds) == 1) return ds[0] < 4 ? 0 : 1;
 
     const auto sub = BBS[sz(ds) - 1];
     const auto x = ds[0] - 1;
@@ -110,7 +108,7 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    const int K = 43;
+    const int K = 999;
     int exp = 0;
     for (int i = 1; i <= K; ++i) {
         const auto ds = to_string(i);
@@ -121,7 +119,8 @@ int main() {
         }
     }
     const auto act = bad_nums_up_to(digits(K));
-    cerr << "exp:" << exp << " act:" << act << endl;
+    cerr << "exp:" << exp << " act:" << act
+         << " BBS:" << (BBS[1] + BBS[2] + BBS[3]) << endl;
     return 0;
 
     int t;
