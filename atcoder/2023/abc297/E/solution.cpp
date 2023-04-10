@@ -1,18 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -20,31 +9,24 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll kth_lowest(const vector<ll> &A, const int K) {
-    vector<int> xs{0};
-    int i0{};
+ll kth_lowest(const vector<int> &A, const int K) {
+    set<ll> xs{0};
+    priority_queue<ll, vector<ll>, greater<ll>> q;
+    q.push(0);
 
-    const auto next_addition = [&]() -> pii {
-        for (int i = i0; i < sz(xs); ++i) {
-            for (const auto a : A) {
-                if (xs[i] + a > xs.back()) {
-                    return {xs[i] + a, i};
-                }
-            }
+    while (sz(xs) <= (K + 1) * sz(A)) {
+        const auto u = q.top();
+        q.pop();
+
+        for (const auto a : A) {
+            if (xs.count(u + a)) continue;
+            xs.insert(u + a);
+            q.push(u + a);
         }
-
-        assert(false && "/o\\");
-        return {};
-    };
-
-    while (sz(xs) <= K) {
-        const auto [x, i] = next_addition();
-        xs.push_back(x);
-        i0 = i;
     }
 
-    cerr << xs << endl;
-    return xs[K];
+    while (sz(xs) > K + 1) xs.erase(prev(cend(xs)));
+    return *crbegin(xs);
 }
 
 int main() {
@@ -54,7 +36,7 @@ int main() {
     int N, K;
     cin >> N >> K;
 
-    vector<ll> A(N);
+    vector<int> A(N);
     for (auto &a : A) cin >> a;
     sort(begin(A), end(A));
     A.erase(unique(begin(A), end(A)), end(A));
