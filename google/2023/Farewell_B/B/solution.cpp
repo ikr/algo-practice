@@ -10,7 +10,7 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 int ops_to_match(const int N, const int D, const int a, const int b) {
     if (a == b) return 0;
 
-    for (int i = 1; i <= N; ++i) {
+    for (int i = 1; i <= lcm(N, D); ++i) {
         const auto y = (a + i * D) % N;
         if (y == b) return i;
 
