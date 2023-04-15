@@ -8,17 +8,21 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 int ops_to_match(const int N, const int D, const int a, const int b) {
-    if (a == b) return 0;
+    const auto add_mod = [N](const int x, const int y) -> int {
+        return (((x + y) % N) + N) % N;
+    };
 
-    for (int i = 1; i <= lcm(N, D); ++i) {
-        const auto y = (a + i * D) % N;
-        if (y == b) return i;
+    int ans = INT_MAX;
 
-        const auto z = (((a - i * D) % N) + N) % N;
-        if (z == b) return i;
+    for (int i = -lcm(N, D); i <= lcm(N, D); ++i) {
+        for (int j = -lcm(N, D); j <= lcm(N, D); ++j) {
+            if (add_mod(a, i * D) == add_mod(b, j * D)) {
+                ans = min(ans, abs(i) + abs(j));
+            }
+        }
     }
 
-    return -1;
+    return ans == INT_MAX ? -1 : ans;
 }
 
 int solve(const vector<int> &X, const int N, const int D) {
