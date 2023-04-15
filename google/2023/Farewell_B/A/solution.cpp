@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -13,6 +19,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 using ll = long long;
 using pii = pair<int, int>;
+using pll = pair<ll, ll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -24,35 +31,41 @@ ll simulate(const vector<int> &xs, const int ia, const int ib) {
     const auto N = sz(xs);
     const auto in_bounds = [N](const int i) -> bool { return 0 <= i && i < N; };
 
-    ll ans{};
+    vector<pll> outcomes;
     for (const auto &[da, db] :
          vector<pii>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}}) {
-        cerr << "da:" << da << " db:" << db << endl;
-        ll sub{xs[ia]};
+        ll ra{xs[ia]};
+        ll rb{xs[ib]};
         vector<bool> av(N, true);
         av[ia] = false;
         av[ib] = false;
-        cerr << "av:" << av << endl;
 
         int i = ia;
         int j = ib;
 
-        while (in_bounds(i + da) && av[i + da]) {
-            i += da;
-            av[i] = false;
-            sub += xs[i];
+        while ((in_bounds(i + da) && av[i + da]) ||
+               (in_bounds(j + db) && av[j + db])) {
+            if (in_bounds(i + da) && av[i + da]) {
+                i += da;
+                av[i] = false;
+                ra += xs[i];
+            }
 
             if (in_bounds(j + db) && av[j + db]) {
                 j += db;
                 av[j] = false;
+                rb += xs[j];
             }
-            cerr << "av:" << av << endl;
         }
 
-        cerr << "sub:" << sub << endl << endl;
-        ans = max(ans, sub);
+        outcomes.emplace_back(ra, rb);
     }
-    return ans;
+
+    sort(begin(outcomes), end(outcomes), [](const pll &lhs, const pll &rhs) {
+        return abs(lhs.first - lhs.second) < abs(rhs.first - rhs.second);
+    });
+    cerr << outcomes << endl;
+    return -1;
 }
 
 ll solve(const vector<int> &xs, const pii sa, const pii sb) {
