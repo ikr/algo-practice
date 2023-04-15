@@ -21,30 +21,30 @@ vector<int> solve(const vector<pii> &A, const int K) {
     const auto N = sz(A);
     vector<int> ans(N, 1);
 
+    vector<int> lhs(N, 0);
     for (int i = 0; i < N; ++i) {
-        {
-            cerr << "a:" << A[i].first << endl;
-            const auto lo = A[i].first - K + 1;
-            const auto it =
-                lower_bound(cbegin(A), cbegin(A) + i, pii{lo, INT_MIN});
-            if (it != cbegin(A) + i && it != cbegin(A)) {
-                const auto d = inof(distance(cbegin(A), prev(it))) + 1;
-                cerr << "+" << d << endl;
-                ans[A[i].second] += d;
-            }
-        }
-        {
-            const auto hi = A[i].first + K;
-            const auto it =
-                lower_bound(cbegin(A) + i + 1, cend(A), pii{hi, INT_MIN});
-            if (it != cend(A)) {
-                const auto d = inof(distance(it, cend(A)));
-                cerr << "+" << d << endl;
-                ans[A[i].second] += d;
-            }
+        const auto lo = A[i].first - K + 1;
+        const auto it = lower_bound(cbegin(A), cbegin(A) + i, pii{lo, INT_MIN});
+        if (it != cbegin(A)) {
+            const auto j = inof(distance(cbegin(A), prev(it)));
+            lhs[i] = lhs[j] + 1;
         }
     }
 
+    vector<int> rhs(N, 0);
+    for (int i = N - 1; i >= 0; --i) {
+        const auto hi = A[i].first + K;
+        const auto it =
+            lower_bound(cbegin(A) + i + 1, cend(A), pii{hi, INT_MIN});
+        if (it != cend(A)) {
+            const auto j = distance(cbegin(A), it);
+            rhs[i] = rhs[j] + 1;
+        }
+    }
+
+    for (int i = 0; i < N; ++i) {
+        ans[A[i].second] += lhs[i] + rhs[i];
+    }
     return ans;
 }
 
