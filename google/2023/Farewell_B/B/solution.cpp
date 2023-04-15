@@ -13,9 +13,10 @@ int ops_to_match(const int N, const int D, const int a, const int b) {
     };
 
     int ans = INT_MAX;
+    const int H = N * N;
 
-    for (int i = -lcm(N, D); i <= lcm(N, D); ++i) {
-        for (int j = -lcm(N, D); j <= lcm(N, D); ++j) {
+    for (int i = -H; i <= H; ++i) {
+        for (int j = -H; j <= H; ++j) {
             if (add_mod(a, i * D) == add_mod(b, j * D)) {
                 ans = min(ans, abs(i) + abs(j));
             }
@@ -28,7 +29,7 @@ int ops_to_match(const int N, const int D, const int a, const int b) {
 int solve(const vector<int> &X, const int N, const int D) {
     int ans{};
     int l = 0, r = sz(X) - 1;
-    while (l != r) {
+    while (l < r) {
         const auto o = ops_to_match(N, D, X[l], X[r]);
         if (o < 0) return -1;
         ans += o;
