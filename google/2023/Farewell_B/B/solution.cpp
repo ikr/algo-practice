@@ -10,7 +10,7 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 int ops_to_match(const int N, const int D, const int a, const int b) {
     if (a == b) return 0;
 
-    for (int i = 1; i <= N * N; ++i) {
+    for (int i = 1; i <= lcm(N, D); ++i) {
         const auto y = (a + i * D) % N;
         if (y == b) return i;
 
@@ -25,8 +25,7 @@ int solve(const vector<int> &X, const int N, const int D) {
     int ans{};
     int l = 0, r = sz(X) - 1;
     while (l != r) {
-        const auto o =
-            min(ops_to_match(N, D, X[l], X[r]), ops_to_match(N, D, X[r], X[l]));
+        const auto o = ops_to_match(N, D, X[l], X[r]);
         if (o < 0) return -1;
         ans += o;
         ++l;
