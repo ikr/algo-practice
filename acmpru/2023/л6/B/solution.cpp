@@ -15,7 +15,7 @@ int cmp(pii a, pii b) {
 }
 
 pii find_pq(const int N) {
-    pii ans{0, 1};
+    pii ans{1, N - 1};
     for (int p = 1; p <= N / 2; ++p) {
         const auto q = N - p;
         if (gcd(p, q) != 1) continue;
