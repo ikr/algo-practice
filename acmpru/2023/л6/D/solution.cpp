@@ -34,6 +34,33 @@ vector<vector<int>> extract_paths(const int n, vector<vector<int>> cs) {
     return cs;
 }
 
+vector<int> order_path(const vector<vector<pii>> &g, const vector<int> &vs) {
+    set<int> vss(cbegin(vs), cend(vs));
+    vector<int> ans;
+    ans.reserve(sz(vs));
+
+    const auto it0 = find_if(cbegin(g[0]), cend(g[0]), [&vss](const pii vc) {
+        return vss.count(vc.first);
+    });
+    assert(it0 != cend(g[0]));
+
+    ans.push_back(it0->first);
+    vss.erase(it0->first);
+
+    while (!vss.empty()) {
+        const auto u = ans.back();
+        const auto it = find_if(cbegin(g[u]), cend(g[u]), [&vss](const pii vc) {
+            return vss.count(vc.first);
+        });
+        assert(it != cend(g[u]));
+
+        ans.push_back(it->first);
+        vss.erase(it->first);
+    }
+
+    return ans;
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
