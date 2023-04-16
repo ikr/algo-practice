@@ -4,16 +4,16 @@ using namespace std;
 // First of all, let's represent the input as a single homogeneous data
 // structure: a graph of {code quantity} vertices. Then, we traverse that graph
 // in a topological order, starting from {"FUEL" 1}, — actually, a post-order
-// traversal — keeping the inventory of the excess ORE. While traversing, we
-// shall also track, how many ORE-s we need to add total, in order for all the
-// necessary transitions to succeed. The {c q₁} → {c q₂} graph edges have to be
-// treated in a special way. We find the smallest integer k such that kq₁≥q₂.
-// Thus, we need to produce the left-hand-side material quantity k times, in
-// order to enable the {c q₁} → {c q₂} transition. Before telling, how many ORE
-// is required for {c q₂}, we already know, how many ORE-s is required to
-// produce the {c q₁}, and, also, how many ORE leftovers we'd get then.
-// Therefore, we can tell, how many ORE-s is optimal for the production of the
-// {c q₂}.
+// traversal — keeping the inventory of all the excess materials. While
+// traversing, we shall also track, how many ORE-s we need to add total, in
+// order for all the necessary transitions to succeed. The {c q₁} → {c q₂} graph
+// edges have to be treated in a special way. We find the smallest integer k
+// such that kq₁ ≥ q₂. Thus, we need to produce the left-hand-side material
+// quantity k times, in order to enable the {c q₁} → {c q₂} transition. Before
+// telling, how many ORE is required for {c q₂}, we already know, how many ORE-s
+// is required to produce the {c q₁}, and, also, how many leftovers of different
+// kinds we'd get then. Therefore, we can tell, how many ORE-s is optimal for
+// the production of the {c q₂}.
 
 using MatQuant = pair<string, int>;
 
