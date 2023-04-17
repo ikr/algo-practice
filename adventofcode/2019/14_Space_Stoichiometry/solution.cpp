@@ -24,6 +24,17 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
@@ -54,7 +65,6 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
 
 ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
     const auto only_ore_required = [&](const string &mat) -> bool {
-        assert(cook_book.material_inputs.contains(mat));
         const auto &mqs = cook_book.material_inputs.at(mat);
         return sz(mqs) == 1 && mqs[0].first == "ORE";
     };
@@ -63,8 +73,8 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
                              const string &mat) -> ll {
         assert(mat != "ORE");
         if (only_ore_required(mat)) {
-            cerr << "Need " << cook_book.material_inputs.at(mat)[0].second
-                 << " ORE for " << mat << endl;
+            // cerr << "Need " << cook_book.material_inputs.at(mat)[0].second
+            //      << " ORE for " << mat << endl;
             return cook_book.material_inputs.at(mat)[0].second;
         }
 
@@ -72,14 +82,13 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
 
         for (const auto &[submat, submat_q0] :
              cook_book.material_inputs.at(mat)) {
-            const auto reusable = min(0LL + submat_q0, mat_reg[submat]);
-            const auto submat_q = submat_q0 - reusable;
-            mat_reg[submat] -= reusable;
-            cerr << "Need " << submat_q << " of " << submat << " for " << mat
-                 << endl;
+            const auto reused = min(0LL + submat_q0, mat_reg[submat]);
+            const auto submat_q = submat_q0 - reused;
+            mat_reg[submat] -= reused;
+            // cerr << "Need " << submat_q << " of " << submat << " for " << mat
+            //      << ", " << reused << " reused"<< endl;
             if (!submat_q) continue;
 
-            assert(cook_book.material_output_quantities.contains(submat));
             const auto batch_q =
                 cook_book.material_output_quantities.at(submat);
 
@@ -88,12 +97,14 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
             mat_reg[submat] += batch_q * num_batches - submat_q;
         }
 
-        cerr << "Need " << result << " ORE to produce " << mat << endl;
+        // cerr << "Need " << result << " ORE to produce " << mat << endl;
         return result;
     };
 
     map<string, ll> mat_reg;
-    return ore_num(ore_num, mat_reg, "FUEL");
+    const auto result = ore_num(ore_num, mat_reg, "FUEL");
+    // cerr << "Final mat_reg: " << mat_reg << endl;
+    return result;
 }
 
 int main() {
