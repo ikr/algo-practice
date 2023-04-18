@@ -73,8 +73,9 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
                              const string &mat) -> ll {
         assert(mat != "ORE");
         if (only_ore_required(mat)) {
-            // cerr << "Need " << cook_book.material_inputs.at(mat)[0].second
-            //      << " ORE for " << mat << endl;
+            cerr << "Need " << cook_book.material_inputs.at(mat)[0].second
+                 << " ORE for " << cook_book.material_output_quantities.at(mat)
+                 << ' ' << mat << endl;
             return cook_book.material_inputs.at(mat)[0].second;
         }
 
@@ -84,26 +85,36 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
              cook_book.material_inputs.at(mat)) {
             const auto reused = min(0LL + submat_q0, mat_reg[submat]);
             const auto submat_q = submat_q0 - reused;
+            assert(submat_q >= 0);
             mat_reg[submat] -= reused;
-            // cerr << "Need " << submat_q << " of " << submat << " for " << mat
-            //      << ", " << reused << " reused"<< endl;
+            cerr << "Need " << submat_q << ' ' << submat << " for "
+                 << cook_book.material_output_quantities.at(mat) << ' ' << mat
+                 << ", " << reused << " reused" << endl;
             if (!submat_q) continue;
 
             const auto batch_q =
                 cook_book.material_output_quantities.at(submat);
 
             const auto num_batches = div_ceil(submat_q, 0LL + batch_q);
-            result += num_batches * self(self, mat_reg, submat);
+            const auto additional_ore =
+                num_batches * self(self, mat_reg, submat);
+            result += additional_ore;
+
+            cerr << "Ordered " << num_batches << "x got " << additional_ore
+                 << " ORE" << endl;
             mat_reg[submat] += batch_q * num_batches - submat_q;
+            cerr << "mat_reg: " << mat_reg << endl;
         }
 
-        // cerr << "Need " << result << " ORE to produce " << mat << endl;
+        cerr << "Need " << result << " ORE to produce "
+             << cook_book.material_output_quantities.at(mat) << ' ' << mat
+             << endl;
         return result;
     };
 
     map<string, ll> mat_reg;
     const auto result = ore_num(ore_num, mat_reg, "FUEL");
-    // cerr << "Final mat_reg: " << mat_reg << endl;
+    cerr << "Final mat_reg: " << mat_reg << endl;
     return result;
 }
 
