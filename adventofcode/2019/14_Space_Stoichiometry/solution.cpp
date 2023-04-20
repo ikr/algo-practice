@@ -79,12 +79,9 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
     };
 
     const auto ore_num = [&](const auto self, map<string, ll> &mat_reg,
-                             const string &mat) -> ll {
+                             const string &mat, const ll qtt) -> ll {
         assert(mat != "ORE");
         if (only_ore_required(mat)) {
-            cerr << "Need " << cook_book.material_inputs.at(mat)[0].second
-                 << " ORE for " << cook_book.material_output_quantities.at(mat)
-                 << ' ' << mat << endl;
             return cook_book.material_inputs.at(mat)[0].second;
         }
 
@@ -96,9 +93,6 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
             const auto submat_q = submat_q0 - reused;
             assert(submat_q >= 0);
             mat_reg[submat] -= reused;
-            cerr << "Need " << submat_q << ' ' << submat << " for "
-                 << cook_book.material_output_quantities.at(mat) << ' ' << mat
-                 << ", " << reused << " reused" << endl;
             if (!submat_q) continue;
 
             const auto batch_q =
@@ -106,25 +100,17 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
 
             const auto num_batches = div_ceil(submat_q, 0LL + batch_q);
             const auto additional_ore =
-                num_batches * self(self, mat_reg, submat);
+                num_batches * self(self, mat_reg, submat, -1);
             result += additional_ore;
 
-            cerr << "Ordered " << num_batches << "x got " << additional_ore
-                 << " ORE" << endl;
             mat_reg[submat] += batch_q * num_batches - submat_q;
-            cerr << "mat_reg: " << mat_reg << endl;
         }
 
-        cerr << "Need " << result << " ORE to produce "
-             << cook_book.material_output_quantities.at(mat) << ' ' << mat
-             << endl;
         return result;
     };
 
     map<string, ll> mat_reg;
-    const auto result = ore_num(ore_num, mat_reg, "FUEL");
-    cerr << "Final mat_reg: " << mat_reg << endl;
-    return result;
+    return ore_num(ore_num, mat_reg, "FUEL", 1);
 }
 
 int main() {
