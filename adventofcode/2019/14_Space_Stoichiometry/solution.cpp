@@ -79,18 +79,18 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
     };
 
     const auto ore_num = [&](const auto self, map<string, ll> &mat_reg,
-                             const string &mat, const ll qtt) -> ll {
+                             const string &mat, const ll times) -> ll {
         assert(mat != "ORE");
         if (only_ore_required(mat)) {
-            return cook_book.material_inputs.at(mat)[0].second;
+            return times * cook_book.material_inputs.at(mat)[0].second;
         }
 
         ll result{};
 
         for (const auto &[submat, submat_q0] :
              cook_book.material_inputs.at(mat)) {
-            const auto reused = min(0LL + submat_q0, mat_reg[submat]);
-            const auto submat_q = submat_q0 - reused;
+            const auto reused = min(times * submat_q0, mat_reg[submat]);
+            const auto submat_q = times * submat_q0 - reused;
             assert(submat_q >= 0);
             mat_reg[submat] -= reused;
             if (!submat_q) continue;
@@ -100,7 +100,7 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
 
             const auto num_batches = div_ceil(submat_q, 0LL + batch_q);
             const auto additional_ore =
-                num_batches * self(self, mat_reg, submat, -1);
+                self(self, mat_reg, submat, num_batches);
             result += additional_ore;
 
             mat_reg[submat] += batch_q * num_batches - submat_q;
