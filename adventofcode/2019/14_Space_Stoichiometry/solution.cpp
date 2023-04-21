@@ -1,18 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// We traverse the graph in the topological order, starting from {"FUEL" 1}, —
-// actually, it's a post-order traversal — keeping the inventory of all the
-// excess materials. While traversing, we shall also track, how many ORE-s we
-// need to add total, in order for all the necessary transitions to succeed. The
-// {c q₁} → {c q₂} graph edges have to be treated in a special way. We find the
-// smallest integer k such that kq₁ ≥ q₂. Thus, we need to produce the
-// left-hand-side material quantity k times, in order to enable the {c q₁} → {c
-// q₂} transition. Before telling, how many ORE is required for {c q₂}, we
-// already know, how many ORE-s is required to produce the {c q₁}, and, also,
-// how many leftovers of different kinds we'd get then. Therefore, we can tell,
-// how many ORE-s is optimal for the production of the {c q₂}.
-
 using ll = long long;
 using MatQuant = pair<string, int>;
 using MatReg = map<string, ll>;
@@ -22,17 +10,6 @@ template <typename T> constexpr int inof(const T x) {
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
 
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
@@ -60,16 +37,6 @@ struct CookBook final {
 
 template <typename T> constexpr T div_ceil(const T x, const T y) {
     return x ? (1 + (x - 1) / y) : 0;
-}
-
-MatReg merge(MatReg a, const MatReg &b) {
-    for (const auto &[k, v] : b) a[k] += v;
-    return a;
-}
-
-MatReg scale_by(const ll k, MatReg a) {
-    for (auto &[_, v] : a) v *= k;
-    return a;
 }
 
 ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
