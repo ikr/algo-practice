@@ -39,7 +39,9 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
     return x ? (1 + (x - 1) / y) : 0;
 }
 
-ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
+static constexpr ll TRIO = 1'000'000'000'000LL;
+
+ll max_fuel_from_one_trillion_ore(const CookBook &cook_book) {
     const auto only_ore_required = [&](const string &mat) -> bool {
         const auto &mqs = cook_book.material_inputs.at(mat);
         return sz(mqs) == 1 && mqs[0].first == "ORE";
@@ -76,8 +78,24 @@ ll min_ore_to_produce_one_fuel(const CookBook &cook_book) {
         return result;
     };
 
-    map<string, ll> mat_reg;
-    return ore_num(ore_num, mat_reg, "FUEL", 1);
+    const auto ore_for_k_fuel = [&](const ll k) -> ll {
+        map<string, ll> mat_reg;
+        return ore_num(ore_num, mat_reg, "FUEL", k);
+    };
+
+    auto lo = TRIO / ore_for_k_fuel(1);
+    auto hi = TRIO;
+
+    while (lo + 1 < hi) {
+        const auto mid = midpoint(lo, hi);
+        if (ore_for_k_fuel(mid) <= TRIO) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return lo;
 }
 
 int main() {
@@ -95,7 +113,7 @@ int main() {
         material_inputs.emplace(output.first, input);
     }
 
-    cout << min_ore_to_produce_one_fuel(
+    cout << max_fuel_from_one_trillion_ore(
                 {material_output_quantities, material_inputs})
          << '\n';
     return 0;
