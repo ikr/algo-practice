@@ -14,16 +14,31 @@ multimap<int, int> vertices_by_distance_from(const vector<vector<int>> &g,
     const auto n = sz(g);
     vector<int> D(n, INF);
     D[u0] = 0;
+    queue<int> q;
+    q.push(u0);
 
-    // ??
+    while (!q.empty()) {
+        const auto u = q.front();
+        q.pop();
+
+        for (const auto v : g[u]) {
+            if (D[v] != INF) continue;
+            D[v] = D[u] + 1;
+            q.push(v);
+        }
+    }
 
     multimap<int, int> ans;
     for (int v = 0; v < n; ++v) ans.emplace(D[v], v);
     return ans;
 }
 
-string find_coloring(const vector<vector<int>> &g, const vector<int> &RD) {
+string find_coloring(const vector<vector<int>> &g,
+                     const vector<int> &req_dist) {
     const auto n = sz(g);
+    vector<multimap<int, int>> vbds(n);
+    for (auto u0 = 0; u0 < n; ++u0) vbds[u0] = vertices_by_distance_from(g, u0);
+
     // ??
     return "";
 }
@@ -48,16 +63,16 @@ int main() {
 
     int K;
     cin >> K;
-    vector<int> RD(N, -1);
+    vector<int> req_dist(N, -1);
     for (int i = 1; i <= K; ++i) {
         int p, d;
         cin >> p >> d;
         --p;
 
-        RD[p] = d;
+        req_dist[p] = d;
     }
 
-    const auto ans = find_coloring(g, RD);
+    const auto ans = find_coloring(g, req_dist);
     if (ans.empty()) {
         cout << "No\n";
     } else {
