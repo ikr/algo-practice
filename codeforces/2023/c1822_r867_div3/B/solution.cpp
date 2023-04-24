@@ -22,51 +22,46 @@ int main() {
         vector<int> xs(n);
         for (auto &x : xs) cin >> x;
 
-        int n_lo = INT_MAX;
-        int in_lo = -1;
-
-        int n_hi = INT_MIN;
-        int in_hi = -1;
-
-        int p_lo = INT_MAX;
-        int ip_lo = -1;
-
-        int p_hi = INT_MIN;
-        int ip_hi = -1;
-
+        vector<int> pos;
+        vector<int> neg;
         int iz = -1;
 
         for (int i = 0; i < n; ++i) {
             if (xs[i] == 0) {
                 iz = i;
-            } else if (xs[i] < 0) {
-                if (xs[i] < n_lo) {
-                    n_lo = xs[i];
-                    in_lo = i;
-                }
+            } else if (xs[i] > 0) {
+                pos.push_back(i);
 
-                if (xs[i] > n_hi) {
-                    n_hi = xs[i];
-                    in_hi = i;
-                }
             } else {
-                assert(xs[i] > 0);
-                if (xs[i] < p_lo) {
-                    p_lo = xs[i];
-                    ip_lo = i;
-                }
-
-                if (xs[i] > p_hi) {
-                    p_hi = xs[i];
-                    ip_hi = i;
-                }
+                neg.push_back(i);
             }
         }
 
+        sort(begin(pos), end(pos),
+             [&](const auto i, const auto j) { return xs[i] < xs[j]; });
+
+        sort(begin(neg), end(neg),
+             [&](const auto i, const auto j) { return xs[i] < xs[j]; });
+
         vector<int> idx;
-        for (const auto i : {iz, in_lo, in_hi, ip_lo, ip_hi}) {
-            if (i >= 0) idx.push_back(i);
+        if (iz != -1) idx.push_back(iz);
+        if (!pos.empty()) {
+            idx.push_back(pos[0]);
+            idx.push_back(pos.back());
         }
+        if (sz(pos) > 1) {
+            idx.push_back(pos[1]);
+            idx.push_back(pos[sz(pos) - 2]);
+        }
+        if (!neg.empty()) {
+            idx.push_back(neg[0]);
+            idx.push_back(neg.back());
+        }
+        if (sz(neg) > 1) {
+            idx.push_back(neg[1]);
+            idx.push_back(neg[sz(neg) - 2]);
+        }
+
         sort(begin(idx), end(idx));
         idx.erase(unique(begin(idx), end(idx)), end(idx));
         assert(!idx.empty());
