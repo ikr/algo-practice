@@ -15,8 +15,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<int> super_permutation(const int n) { return {}; }
-
 bool is_perm(const vector<int> &xs) {
     const auto n = sz(xs);
     const set<int> xss(cbegin(xs), cend(xs));
@@ -33,21 +31,38 @@ bool is_super(const vector<int> &xs) {
     return is_perm(ss);
 }
 
+vector<int> super_permutation(const int n) {
+    vector<int> ans{n};
+    ans.reserve(n);
+
+    deque<int> src(n - 1);
+    iota(begin(src), end(src), 1);
+
+    int cur{};
+    while (sz(ans) < n) {
+        if ((cur + src.front()) % n) {
+            ans.push_back(src.front());
+            cur += src.front();
+            cur %= n;
+            src.pop_front();
+        } else if ((cur + src.back()) % n) {
+            ans.push_back(src.back());
+            cur += src.back();
+            cur %= n;
+            src.pop_back();
+        } else {
+            return {};
+        }
+    }
+
+    cerr << "ans: " << ans << endl;
+    assert(is_super(ans));
+    return ans;
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-
-    assert(is_super({6, 5, 2, 3, 4, 1}));
-    assert(is_super({2, 1}));
-    assert(!is_super({1, 2}));
-    assert(!is_super({2, 3, 1}));
-
-    vector P{1, 2, 3, 4, 5, 6};
-    do {
-        if (is_super(P)) {
-            cerr << "Ps: " << P << endl;
-        }
-    } while (next_permutation(begin(P), end(P)));
 
     int t;
     cin >> t;
