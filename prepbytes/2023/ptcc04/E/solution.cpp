@@ -101,10 +101,94 @@ vector<vector<int>> distance_matrix(const vector<vector<int>> &g,
     return ans;
 }
 
+vector<vector<int>>
+pad_distance_matrix_with_origin_city(const vector<vector<int>> &D0) {
+    const auto k = sz(D0);
+    vector<vector<int>> D(k + 1, vector<int>(k + 1, 0));
+    for (int i = 0; i < k; ++i) {
+        for (int j = 0; j < k; ++j) {
+            D[i + 1][j + 1] = D0[i][j];
+        }
+    }
+    return D;
+}
+
+static constexpr int INF = 1000000000;
+
+vector<int> pop_one_more_bit(const int n, const int x) {
+    vector<int> ans;
+    ans.reserve(n);
+
+    for (int i = 1; i < n; ++i) {
+        const int mask = 1 << i;
+        if (x & mask) continue;
+        ans.push_back(x | mask);
+    }
+
+    return ans;
+}
+
+set<int> pop_one_more_bit(const int n, const set<int> &xs) {
+    set<int> ans;
+
+    for (const auto x : xs) {
+        const auto ys = pop_one_more_bit(n, x);
+        ans.insert(cbegin(ys), cend(ys));
+    }
+
+    return ans;
+}
+
+int gather_tsp_answer(const vector<vector<int>> &D,
+                      const vector<vector<int>> &dp) {
+    const int n = sz(dp);
+    const int complete_set = (1 << n) - 1;
+    int ans = INF;
+
+    for (int i = 1; i < n; ++i) {
+        ans = min(ans, dp[i][complete_set] + D[i][0]);
+    }
+
+    return ans;
+}
+
+int solve_tsp(const vector<vector<int>> &D0) {
+    const auto D = pad_distance_matrix_with_origin_city(D0);
+    const int n = sz(D);
+
+    // minimal distance from point 0
+    // [to point i] [over j bits-defined subset of points]
+    vector<vector<int>> dp(n, vector<int>(1 << n, INF));
+
+    vector<set<int>> subsets_by_point(n);
+
+    for (int i = 1; i < n; ++i) {
+        const int mask = 1 | (1 << i);
+        subsets_by_point[i].insert(mask);
+        dp[i][mask] = D[0][i];
+    }
+
+    for (int k = 3; k <= n; ++k) {
+        for (auto &ss : subsets_by_point) ss = pop_one_more_bit(n, ss);
+
+        for (int i = 1; i < n; ++i) {
+            for (const auto &ss : subsets_by_point[i]) {
+                for (int b = 1; b < n; ++b) {
+                    const int mask = 1 << i;
+                    if ((mask & ss) && b != i) {
+                        dp[i][ss] = min(dp[i][ss], dp[b][ss & ~mask] + D[b][i]);
+                    }
+                }
+            }
+        }
+    }
+
+    return gather_tsp_answer(D, dp);
+}
+
 int min_path_length(const vector<vector<int>> &g, const vector<int> &xs) {
     if (!confirm_vertices_connected(g, xs)) return -1;
-
-    return 0;
+    return solve_tsp(distance_matrix(g, xs));
 }
 
 int main() {
