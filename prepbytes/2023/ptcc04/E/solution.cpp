@@ -183,7 +183,7 @@ int solve_tsp(const vector<vector<int>> &D0) {
         }
     }
 
-    return gather_tsp_answer(D, dp);
+    return gather_tsp_answer(D, dp) + 1;
 }
 
 int min_path_length(const vector<vector<int>> &g, const vector<int> &xs) {
