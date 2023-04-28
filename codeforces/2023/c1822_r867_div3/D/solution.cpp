@@ -32,32 +32,34 @@ bool is_super(const vector<int> &xs) {
 }
 
 vector<int> super_permutation(const int n) {
-    vector<int> ans{n};
-    ans.reserve(n);
+    vector<int> xs(n);
+    iota(begin(xs), end(xs), 1);
+    reverse(begin(xs), end(xs));
 
-    deque<int> src(n - 1);
-    iota(begin(src), end(src), 1);
+    vector<bool> used(n, false);
+    used[0] = true;
 
     int cur{};
-    while (sz(ans) < n) {
-        if ((cur + src.front()) % n) {
-            ans.push_back(src.front());
-            cur += src.front();
-            cur %= n;
-            src.pop_front();
-        } else if ((cur + src.back()) % n) {
-            ans.push_back(src.back());
-            cur += src.back();
-            cur %= n;
-            src.pop_back();
-        } else {
-            return {};
+    for (int i = 1; i < n; ++i) {
+        {
+            const auto nxt = (cur + xs[i]) % n;
+            if (!used[nxt]) {
+                used[nxt] = true;
+                cur = nxt;
+                continue;
+            }
         }
+
+        if (i == n - 1) return {};
+        swap(xs[i], xs[i + 1]);
+        const auto nxt = (cur + xs[i]) % n;
+        if (used[nxt]) return {};
+        cur = nxt;
     }
 
-    cerr << "ans: " << ans << endl;
-    assert(is_super(ans));
-    return ans;
+    cerr << "xs: " << xs << endl;
+    assert(is_super(xs));
+    return xs;
 }
 
 int main() {
