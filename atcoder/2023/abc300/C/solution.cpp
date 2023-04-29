@@ -23,6 +23,8 @@ set<pii> centers(const vector<string> &grid) {
     set<pii> ans;
     for (int ro = 1; ro < H - 1; ++ro) {
         for (int co = 1; co < W - 1; ++co) {
+            if (grid[ro][co] != '#') continue;
+
             const vector<pii> straight{
                 {ro - 1, co}, {ro, co + 1}, {ro + 1, co}, {ro, co - 1}};
 
