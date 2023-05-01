@@ -21,19 +21,23 @@ ll max_tri_prod(const vector<int> &xs) {
         }
     }
 
-    set<int> izer;
-    set<int> ineg;
-    set<int> ipos;
+    vector<int> izer;
+    vector<int> ineg;
+    vector<int> ipos;
     for (int i = 0; i < sz(xs); ++i) {
         if (xs[i] < 0) {
-            ineg.insert(i);
+            ineg.push_back(i);
         } else if (xs[i] == 0) {
-            izer.insert(i);
+            izer.push_back(i);
         } else {
             assert(xs[i] > 0);
-            ipos.insert(i);
+            ipos.push_back(i);
         }
     }
+    sort(begin(ipos), end(ipos),
+         [&](const int i, const int j) { return xs[i] < xs[j]; });
+    sort(begin(ineg), end(ineg),
+         [&](const int i, const int j) { return xs[i] < xs[j]; });
 
     vector<int> opts;
     for (const auto &src : {izer, ineg, ipos}) {
