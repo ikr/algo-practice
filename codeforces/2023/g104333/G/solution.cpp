@@ -17,8 +17,8 @@ ll min_square_area(const vector<pii> &ps) {
         y_hi = max(y_hi, y);
     }
 
-    const ll a = max(x_hi - x_lo, 1);
-    const ll b = max(y_hi - y_lo, 1);
+    const ll a = max(x_hi - x_lo, 0);
+    const ll b = max(y_hi - y_lo, 0);
     const auto s = max(a, b);
     return s * s;
 }
