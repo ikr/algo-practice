@@ -5,7 +5,12 @@ using namespace std;
 using mint = atcoder::modint998244353;
 
 mint num_stimulated(const int N, const int M) {
-    return mint{M} * mint{M - 1} * mint{M - 2}.pow(N - 2);
+    if (N == 3) {
+        if (M < 3) return 0;
+        return mint{M} * mint{M - 1} * mint{M - 2};
+    }
+
+    return mint{M} * mint{M - 1}.pow(N - 2) * mint{M - 2};
 }
 
 int main() {
