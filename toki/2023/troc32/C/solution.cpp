@@ -12,7 +12,7 @@ mint num_stimulated(const int N, const int M) {
         return mint{M} * mint{M - 1} * mint{M - 2};
     }
 
-    return mint{M} * mint{M - 2} * mint{M - 1}.pow(N - 2);
+    return mint{M} * mint{M - 1}.pow(N - 1) - mint{M} * mint{M - 1};
 }
 
 int main() {
