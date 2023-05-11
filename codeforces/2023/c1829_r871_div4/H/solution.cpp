@@ -11,18 +11,22 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 mint num_seq_z(const vector<int> &xs) {
+    const auto n = sz(xs);
+
     vector<int> freq(64, 0);
     for (const auto x : xs) ++freq[x];
 
     mint ans{};
-    for (const auto x : xs) {
-        int cur{};
-        for (int bits = 0; bits < 64; ++bits) {
-            if (bits != x && (bits & x) == 0) cur += freq[bits];
-        }
 
-        ans += (mint{2}.pow(freq[x]) - 1) * mint{2}.pow(cur);
+    for (const auto x : xs) {
+        for (int bits = 0; bits < 64; ++bits) {
+            if (bits != x && (bits & x) == 0) {
+                const auto s = freq[bits];
+                ans += s * mint{2}.pow(n - s - 1);
+            }
+        }
     }
+
     return ans;
 }
 
