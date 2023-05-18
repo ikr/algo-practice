@@ -11,12 +11,14 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 static const auto FACT = []() {
-    vector<mint> result(10001, 1);
+    vector<mint> result(100001, 1);
     for (int i = 2; i < sz(result); ++i) result[i] = result[i - 1] * i;
     return result;
 }();
 
 mint n_choose_k(const int n, const int k) {
+    if (k > n) return 0;
+    if (k == 0) return 1;
     return FACT[n] * (FACT[k] * FACT[n - k]).inv();
 }
 
@@ -24,7 +26,7 @@ mint goodness_sum(const vector<int> &xs) {
     const auto N = sz(xs);
     mint result{};
 
-    for (int i0{}; i0 < N; ++i0) {
+    for (int i0 = 0; i0 < N; ++i0) {
         const auto i = i0 + 1;
         const auto x = xs[i0];
 
