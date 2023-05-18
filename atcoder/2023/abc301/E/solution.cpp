@@ -69,15 +69,34 @@ int max_candy(const vector<vector<int>> &D, const int T) {
     const auto goal = sz(D) - 1;
     if (D[start][goal] > T) return -1;
 
-    const auto m = sz(D) - 2;
-    int result{};
+    const auto n = sz(D) - 2;
 
-    for (int bits = 1; bits < (1 << m); ++bits) {
-        const auto t = solve_tsp(D, indices_of_ones(bits));
-        if (t <= T) result = max(result, __builtin_popcount(bits));
+    int lo = 0;
+    int hi = n;
+    if (solve_tsp(D, indices_of_ones((1 << n) - 1)) <= T) return hi;
+
+    vector<vector<int>> bits_by_pops(n + 1);
+    for (int bits = 1; bits < (1 << n); ++bits) {
+        bits_by_pops[__builtin_popcount(bits)].push_back(bits);
     }
 
-    return result;
+    const auto doable = [&](const int pops) -> bool {
+        for (const auto bits : bits_by_pops[pops]) {
+            if (solve_tsp(D, indices_of_ones(bits)) <= T) return true;
+        }
+        return false;
+    };
+
+    while (lo + 1 < hi) {
+        const auto mid = lo + (hi - lo) / 2;
+        if (doable(mid)) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return lo;
 }
 
 int main() {
