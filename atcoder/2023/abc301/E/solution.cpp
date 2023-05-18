@@ -1,28 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 using pii = pair<int, int>;
 
 static constexpr int INF = 1000 * 1000 * 1000;
@@ -32,6 +10,75 @@ template <typename T> constexpr int inof(const T x) {
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+vector<int> indices_of_ones(const int bits) {
+    vector<int> result;
+    for (int i = 0; i < 20; ++i) {
+        if ((1 << i) & bits) result.push_back(i);
+    }
+    return result;
+}
+
+int solve_tsp(const vector<vector<int>> &D, const vector<int> &sites) {
+    const auto m = sz(sites);
+    vector<vector<int>> memo(m, vector(1 << m, -1));
+
+    const auto goal = sz(D) - 1;
+    // We're on site index u, with av_bits indicating which other site indices
+    // are open for a visit. The returned total distance includes the sites
+    // tour, and the path from the last site to the goal.
+    const auto recur = [&](const auto self, const int u,
+                           const int av_bits) -> int {
+        if (memo[u][av_bits] != -1) return memo[u][av_bits];
+
+        return memo[u][av_bits] = [&]() -> int {
+            assert(((1 << u) & av_bits) == 0);
+            if (av_bits == 0) return D[sites[u]][goal];
+
+            int result{INF};
+            for (const auto v : indices_of_ones(av_bits)) {
+                if (D[sites[u]][sites[v]] == INF) return INF;
+
+                const auto sub = self(self, v, av_bits ^ (1 << v));
+                if (sub == INF) return INF;
+
+                result = min(result, D[sites[u]][sites[v]] + sub);
+            }
+            return result;
+        }();
+    };
+
+    const auto start = sz(D) - 2;
+    const int av_bits_all = (1 << m) - 1;
+    int result{INF};
+
+    for (int u0 = 0; u0 < m; ++u0) {
+        if (D[start][sites[u0]] == INF) return INF;
+
+        const auto tail = recur(recur, u0, av_bits_all ^ (1 << u0));
+        if (tail == INF) return INF;
+
+        result = min(result, D[start][sites[u0]] + tail);
+    }
+
+    return result;
+}
+
+int max_candy(const vector<vector<int>> &D, const int T) {
+    const auto start = sz(D) - 2;
+    const auto goal = sz(D) - 1;
+    if (D[start][goal] > T) return -1;
+
+    const auto m = sz(D) - 2;
+    int result{};
+
+    for (int bits = 1; bits < (1 << m); ++bits) {
+        const auto t = solve_tsp(D, indices_of_ones(bits));
+        if (t <= T) result = max(result, __builtin_popcount(bits));
+    }
+
+    return result;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -125,6 +172,6 @@ int main() {
     };
 
     for (int u0 = 0; u0 < n; ++u0) trace_from(u0);
-    cerr << G << endl;
+    cout << max_candy(G, T) << '\n';
     return 0;
 }
