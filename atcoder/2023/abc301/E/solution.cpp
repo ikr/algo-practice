@@ -11,92 +11,45 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<int> indices_of_ones(const int bits) {
-    vector<int> result;
-    for (int i = 0; i < 20; ++i) {
-        if ((1 << i) & bits) result.push_back(i);
-    }
-    return result;
-}
+int max_candy(const vector<vector<int>> &G, const int T) {
+    const auto start = sz(G) - 2;
+    const auto goal = sz(G) - 1;
+    if (G[start][goal] > T) return -1;
 
-int solve_tsp(const vector<vector<int>> &D, const vector<int> &sites) {
-    const auto m = sz(sites);
-    vector<vector<int>> memo(m, vector(1 << m, -1));
-
-    const auto goal = sz(D) - 1;
-    // We're on site index u, with av_bits indicating which other site indices
-    // are open for a visit. The returned total distance includes the sites
-    // tour, and the path from the last site to the goal.
-    const auto recur = [&](const auto self, const int u,
-                           const int av_bits) -> int {
-        if (memo[u][av_bits] != -1) return memo[u][av_bits];
-
-        return memo[u][av_bits] = [&]() -> int {
-            assert(((1 << u) & av_bits) == 0);
-            if (av_bits == 0) return D[sites[u]][goal];
-
-            int result{INF};
-            for (const auto v : indices_of_ones(av_bits)) {
-                if (D[sites[u]][sites[v]] == INF) return INF;
-
-                const auto sub = self(self, v, av_bits ^ (1 << v));
-                if (sub == INF) return INF;
-
-                result = min(result, D[sites[u]][sites[v]] + sub);
-            }
-            return result;
-        }();
-    };
-
-    const auto start = sz(D) - 2;
-    const int av_bits_all = (1 << m) - 1;
-    int result{INF};
-
-    for (int u0 = 0; u0 < m; ++u0) {
-        if (D[start][sites[u0]] == INF) return INF;
-
-        const auto tail = recur(recur, u0, av_bits_all ^ (1 << u0));
-        if (tail == INF) return INF;
-
-        result = min(result, D[start][sites[u0]] + tail);
-    }
-
-    return result;
-}
-
-int max_candy(const vector<vector<int>> &D, const int T) {
-    const auto start = sz(D) - 2;
-    const auto goal = sz(D) - 1;
-    if (D[start][goal] > T) return -1;
-
-    const auto n = sz(D) - 2;
-
-    int lo = 0;
-    int hi = n;
-    if (solve_tsp(D, indices_of_ones((1 << n) - 1)) <= T) return hi;
-
+    const auto n = sz(G) - 2;
     vector<vector<int>> bits_by_pops(n + 1);
     for (int bits = 1; bits < (1 << n); ++bits) {
         bits_by_pops[__builtin_popcount(bits)].push_back(bits);
     }
 
-    const auto doable = [&](const int pops) -> bool {
-        for (const auto bits : bits_by_pops[pops]) {
-            if (solve_tsp(D, indices_of_ones(bits)) <= T) return true;
-        }
-        return false;
-    };
+    // D[i][j] is the length of the route beginning at the start, going through
+    // all the candies corresponding to the bits set in j, and ending at candy i
+    vector<vector<int>> D(n, vector(1 << n, INF));
+    for (int u0{}; u0 < n; ++u0) D[u0][1 << u0] = G[start][u0];
 
-    while (lo + 1 < hi) {
-        const auto mid = lo + (hi - lo) / 2;
-        if (doable(mid)) {
-            lo = mid;
-        } else {
-            hi = mid;
+    for (int p{1}; p <= n - 1; ++p) {
+        for (const auto bits : bits_by_pops[p]) {
+            for (int u{}; u < n; ++u) {
+                if (D[u][bits] == INF) continue;
+
+                for (int v{}; v < n; ++v) {
+                    if ((1 << v) & bits) continue;
+                    D[v][bits | (1 << v)] =
+                        min(D[v][bits | (1 << v)], G[u][v] + D[u][bits]);
+                }
+            }
         }
     }
 
-    return lo;
+    int result{};
+    for (int u{}; u < n; ++u) {
+        for (int bits{1}; bits < (1 << n); ++bits) {
+            if (D[u][bits] == INF) continue;
+            if (D[u][bits] + G[u][goal] > T) continue;
+            result = max(result, __builtin_popcount(bits));
+        }
+    }
+    return result;
 }
 
 int main() {
