@@ -65,7 +65,7 @@ int main() {
     }
 
     const auto n = sz(candies) + 2;
-    vector<vector<pii>> g(n);
+    vector<vector<int>> G(n, vector(n, INF));
 
     const auto vertex_roco = [&](const int v) -> pii {
         if (v == n - 2) return start;
@@ -119,12 +119,12 @@ int main() {
                 const auto it = vertices_by_roco.find({ro, co});
                 if (it == cend(vertices_by_roco)) continue;
 
-                g[u0].emplace_back(it->second, D[ro][co]);
+                G[u0][it->second] = D[ro][co];
             }
         }
     };
 
     for (int u0 = 0; u0 < n; ++u0) trace_from(u0);
-    cerr << g << endl;
+    cerr << G << endl;
     return 0;
 }
