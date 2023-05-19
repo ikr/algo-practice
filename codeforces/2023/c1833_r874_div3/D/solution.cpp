@@ -22,18 +22,19 @@ vector<int> optimal(vector<int> xs) {
         return xs;
     }
 
-    const auto n = sz(xs);
-    const auto it_hi = max_element(begin(xs) + 1, end(xs));
-    const auto hi = inof(distance(begin(xs), it_hi));
+    auto ans = xs;
+    for (int i = 0; i < sz(xs); ++i) {
+        for (int j = i; j < sz(xs); ++j) {
+            vector cur(cbegin(xs) + j + 1, cend(xs));
+            for (int k = j; k >= i; --k) {
+                cur.push_back(xs[k]);
+            }
+            cur.insert(cend(cur), cbegin(xs), cbegin(xs) + i);
 
-    if (hi == n - 1 && xs[n - 2] < xs[0]) {
-        rotate(begin(xs), it_hi, end(xs));
-        return xs;
+            if (cur > ans) swap(cur, ans);
+        }
     }
-
-    int i = hi - 1;
-
-    return xs;
+    return ans;
 }
 
 int main() {
