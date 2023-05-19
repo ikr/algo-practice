@@ -42,7 +42,7 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
             static_cast<Mode>(m2), static_cast<Mode>(m3)};
 }
 
-void intcode_run(vector<ll> xs, const function<ll(void)> input,
+void intcode_run(vector<ll> &xs, const function<ll(void)> input,
                  const function<void(ll)> output) {
     xs.resize(100'000, 0);
     int rbase{};
@@ -125,13 +125,54 @@ void intcode_run(vector<ll> xs, const function<ll(void)> input,
     }
 }
 
+using Coord = complex<int>;
+constexpr int X(const Coord coord) { return coord.real(); }
+constexpr int Y(const Coord coord) { return coord.imag(); }
+
+struct CoordLess final {
+    bool operator()(const Coord &a, const Coord &b) const {
+        return (X(a) == X(b)) ? (Y(a) < Y(b)) : (X(a) < X(b));
+    }
+};
+
+bool are_adjacent(const Coord &a, const Coord &b) {
+    return norm<int>(a - b) == 1;
+}
+
+using Space = set<Coord, CoordLess>;
+
+enum class Dir { N = 1, S = 2, W = 3, E = 4 };
+static const array DirDelta{Coord{0, 1}, Coord{0, -1}, Coord{-1, 0},
+                            Coord{1, 0}};
+
+pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
+    Space space{{0, 0}};
+    optional<Coord> goal;
+
+    const auto recur = [&](const auto self, const Coord &droid) {
+        if (goal) return;
+
+        for (int i = 0; i < sz(DirDelta); ++i) {
+            const auto delta = DirDelta[i];
+            if (space.contains(droid + delta)) continue;
+
+            const auto dir = static_cast<Dir>(i + 1);
+            const auto input = [dir]() { return static_cast<ll>(dir); };
+        }
+    };
+
+    recur(recur, {0, 0});
+    assert(goal);
+    return {space, *goal};
+}
+
 int main() {
     string line;
     cin >> line;
 
     const auto tokens = split(",", line);
-    vector<ll> xs(sz(tokens));
-    transform(cbegin(tokens), cend(tokens), begin(xs),
+    vector<ll> ram(sz(tokens));
+    transform(cbegin(tokens), cend(tokens), begin(ram),
               [](const auto &x) { return stoll(x); });
 
     return 0;
