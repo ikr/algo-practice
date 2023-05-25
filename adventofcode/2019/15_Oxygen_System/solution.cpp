@@ -42,7 +42,8 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
             static_cast<Mode>(m2), static_cast<Mode>(m3)};
 }
 
-void intcode_run(vector<ll> &xs, const function<ll(void)> input,
+// Halts immediately if input returns a nullopt
+void intcode_run(vector<ll> &xs, const function<optional<ll>(void)> input,
                  const function<void(ll)> output) {
     xs.resize(100'000, 0);
     int rbase{};
@@ -86,7 +87,10 @@ void intcode_run(vector<ll> &xs, const function<ll(void)> input,
             const auto p1 = xs[i++];
 
             assert(m1 != Mode::IMM);
-            xs[m1 == Mode::REL ? (rbase + p1) : p1] = input();
+            const auto maybe_val = input();
+            if (!maybe_val) return;
+
+            xs[m1 == Mode::REL ? (rbase + p1) : p1] = *maybe_val;
         } else if (oc == Opcode::OUT) {
             const auto p1 = xs[i++];
             output(deref(m1, p1));
@@ -145,23 +149,51 @@ enum class Dir { N = 1, S = 2, W = 3, E = 4 };
 static const array DirDelta{Coord{0, 1}, Coord{0, -1}, Coord{-1, 0},
                             Coord{1, 0}};
 
+static constexpr ll ReplyWall = 0;
+static constexpr ll ReplyMove = 1;
+static constexpr ll ReplyGoal = 2;
+
+Dir opposite_dir(const Dir d) {
+    switch (d) {
+    case Dir::N:
+        return Dir::S;
+    case Dir::S:
+        return Dir::N;
+    case Dir::W:
+        return Dir::E;
+    case Dir::E:
+        return Dir::W;
+    }
+
+    assert(false && "Impossible direction in `opposite`");
+    return Dir::N;
+}
+
+Dir next_dir(const Dir d) {
+    static const array seq{Dir::N, Dir::E, Dir::S, Dir::W};
+    const auto i = inof(find(cbegin(seq), cend(seq), d) - cbegin(seq));
+    return seq[(i + 1) % sz(seq)];
+}
+
 pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     Space space{{0, 0}};
     optional<Coord> goal;
 
-    const auto recur = [&](const auto self, const Coord &droid) {
-        if (goal) return;
+    Coord droid{0, 0};
+    stack<Dir> st;
+    st.push(Dir::N);
 
-        for (int i = 0; i < sz(DirDelta); ++i) {
-            const auto delta = DirDelta[i];
-            if (space.contains(droid + delta)) continue;
+    const auto input = [&]() -> optional<ll> {
+        if (st.empty() || goal) return nullopt;
+        const auto dir = st.top();
+        st.pop();
 
-            const auto dir = static_cast<Dir>(i + 1);
-            const auto input = [dir]() { return static_cast<ll>(dir); };
-        }
+        const auto delta = DirDelta[inof(dir) - 1];
+        return static_cast<ll>(dir);
     };
+    const auto output = [](const ll x) -> void {};
 
-    recur(recur, {0, 0});
+    intcode_run(ram, input, output);
     assert(goal);
     return {space, *goal};
 }
