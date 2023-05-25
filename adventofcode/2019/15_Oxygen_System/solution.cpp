@@ -1,6 +1,17 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T, typename L>
+ostream &operator<<(ostream &os, const set<T, L> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 using ll = long long;
 
 enum class Opcode {
@@ -139,6 +150,11 @@ struct CoordLess final {
     }
 };
 
+ostream &operator<<(ostream &os, const Coord &xy) {
+    os << '(' << X(xy) << ' ' << Y(xy) << ')';
+    return os;
+}
+
 bool are_adjacent(const Coord &a, const Coord &b) {
     return norm<int>(a - b) == 1;
 }
@@ -186,14 +202,34 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     const auto input = [&]() -> optional<ll> {
         if (st.empty() || goal) return nullopt;
         const auto dir = st.top();
-        st.pop();
-
         const auto delta = DirDelta[inof(dir) - 1];
         return static_cast<ll>(dir);
     };
-    const auto output = [](const ll x) -> void {};
+
+    const auto output = [&](const ll x) -> void {
+        assert(!st.empty());
+        const auto dir = st.top();
+        st.pop();
+        const auto delta = DirDelta[inof(dir) - 1];
+
+        switch (x) {
+        case ReplyWall:
+            cerr << "Wall!" << endl;
+            break;
+        case ReplyMove:
+            droid += delta;
+            space.insert(droid);
+            break;
+        case ReplyGoal:
+            *goal = droid + delta;
+            break;
+        default:
+            assert(false && "Invalid reply");
+        }
+    };
 
     intcode_run(ram, input, output);
+    cerr << space << endl;
     assert(goal);
     return {space, *goal};
 }
@@ -207,5 +243,6 @@ int main() {
     transform(cbegin(tokens), cend(tokens), begin(ram),
               [](const auto &x) { return stoll(x); });
 
+    explore_space_locate_goal(ram);
     return 0;
 }
