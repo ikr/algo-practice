@@ -9,6 +9,31 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+ll best_end_sum(const vector<ll> &xs, const int K) {
+    vector<ll> ss(sz(xs));
+    partial_sum(cbegin(xs), cend(xs), begin(ss));
+
+    ll ans{};
+
+    for (int pre = 0; pre <= K; ++pre) {
+        const auto suf = K - pre;
+
+        ll cur = ss.back();
+
+        if (pre) {
+            cur -= ss[2 * pre - 1];
+        }
+
+        if (suf) {
+            cur -= (ss.back() - ss[sz(xs) - suf - 1]);
+        }
+
+        ans = max(ans, cur);
+    }
+
+    return ans;
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -16,24 +41,10 @@ int main() {
     int n, k;
     cin >> n >> k;
 
-    deque<ll> xs(n);
+    vector<ll> xs(n);
     for (auto &x : xs) cin >> x;
     sort(begin(xs), end(xs));
 
-    for (int i = 1; i <= k; ++i) {
-        if (sz(xs) < 2) {
-            xs.pop_back();
-            continue;
-        }
-
-        if (xs[0] + xs[1] <= xs.back()) {
-            xs.pop_front();
-            xs.pop_front();
-        } else {
-            xs.pop_back();
-        }
-    }
-
-    cout << accumulate(cbegin(xs), cend(xs), 0LL) << '\n';
+    cout << best_end_sum(xs, k) << '\n';
     return 0;
 }
