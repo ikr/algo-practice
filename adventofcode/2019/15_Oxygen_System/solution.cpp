@@ -12,6 +12,16 @@ ostream &operator<<(ostream &os, const set<T, L> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using ll = long long;
 
 enum class Opcode {
@@ -196,7 +206,9 @@ Dir next_dir(const Dir d) {
 
 pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     Space space{{0, 0}};
+    Space walls;
     optional<Coord> goal;
+    vector<Coord> path{{0, 0}};
 
     Coord droid{0, 0};
     stack<Dir> plan;
@@ -218,15 +230,18 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
 
         switch (x) {
         case ReplyWall:
-            cerr << "Wall at " << (droid + dir_delta(dir)) << endl;
+            walls.insert(droid + dir_delta(dir));
             break;
         case ReplyMove:
-            if (!space.contains(droid + dir_delta(dir))) {
-                droid += dir_delta(dir);
-                space.insert(droid);
+            droid += dir_delta(dir);
+            space.insert(droid);
+            path.push_back(droid);
 
-                for (const auto &sub_dir : Compas) {
-                    if (sub_dir == opposite_dir(dir)) continue;
+            for (const auto &sub_dir : Compas) {
+                if (sub_dir == opposite_dir(dir)) continue;
+
+                if (!space.contains(droid + dir_delta(sub_dir)) &&
+                    !walls.contains(droid + dir_delta(sub_dir))) {
                     plan.push(opposite_dir(sub_dir));
                     plan.push(sub_dir);
                 }
@@ -241,7 +256,7 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     };
 
     intcode_run(ram, input, output);
-    cerr << space << endl;
+    cerr << "Space: " << space << endl << "Path: " << path << endl;
     assert(goal);
     cerr << *goal << endl;
     return {space, *goal};
