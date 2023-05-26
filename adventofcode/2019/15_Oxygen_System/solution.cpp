@@ -162,12 +162,16 @@ bool are_adjacent(const Coord &a, const Coord &b) {
 using Space = set<Coord, CoordLess>;
 
 enum class Dir { N = 1, S = 2, W = 3, E = 4 };
-static const array DirDelta{Coord{0, 1}, Coord{0, -1}, Coord{-1, 0},
-                            Coord{1, 0}};
+static constexpr array DirDelta{Coord{0, 1}, Coord{0, -1}, Coord{-1, 0},
+                                Coord{1, 0}};
+
+static constexpr array Compas{Dir::N, Dir::E, Dir::S, Dir::W};
 
 static constexpr ll ReplyWall = 0;
 static constexpr ll ReplyMove = 1;
 static constexpr ll ReplyGoal = 2;
+
+constexpr Coord dir_delta(const Dir dir) { return DirDelta[inof(dir) - 1]; }
 
 Dir opposite_dir(const Dir d) {
     switch (d) {
@@ -186,9 +190,8 @@ Dir opposite_dir(const Dir d) {
 }
 
 Dir next_dir(const Dir d) {
-    static const array seq{Dir::N, Dir::E, Dir::S, Dir::W};
-    const auto i = inof(find(cbegin(seq), cend(seq), d) - cbegin(seq));
-    return seq[(i + 1) % sz(seq)];
+    const auto i = inof(find(cbegin(Compas), cend(Compas), d) - cbegin(Compas));
+    return Compas[(i + 1) % sz(Compas)];
 }
 
 pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
@@ -196,32 +199,41 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     optional<Coord> goal;
 
     Coord droid{0, 0};
-    stack<Dir> st;
-    st.push(Dir::N);
+    stack<Dir> plan;
+    for (const Dir &dir : Compas) {
+        plan.push(opposite_dir(dir));
+        plan.push(dir);
+    }
 
     const auto input = [&]() -> optional<ll> {
-        if (st.empty() || goal) return nullopt;
-        const auto dir = st.top();
-        const auto delta = DirDelta[inof(dir) - 1];
+        if (plan.empty() || goal) return nullopt;
+        const auto dir = plan.top();
         return static_cast<ll>(dir);
     };
 
     const auto output = [&](const ll x) -> void {
-        assert(!st.empty());
-        const auto dir = st.top();
-        st.pop();
-        const auto delta = DirDelta[inof(dir) - 1];
+        assert(!plan.empty());
+        const auto dir = plan.top();
+        plan.pop();
 
         switch (x) {
         case ReplyWall:
-            cerr << "Wall!" << endl;
+            cerr << "Wall at " << (droid + dir_delta(dir)) << endl;
             break;
         case ReplyMove:
-            droid += delta;
-            space.insert(droid);
+            if (!space.contains(droid + dir_delta(dir))) {
+                droid += dir_delta(dir);
+                space.insert(droid);
+
+                for (const auto &sub_dir : Compas) {
+                    if (sub_dir == opposite_dir(dir)) continue;
+                    plan.push(opposite_dir(sub_dir));
+                    plan.push(sub_dir);
+                }
+            }
             break;
         case ReplyGoal:
-            *goal = droid + delta;
+            *goal = droid + dir_delta(dir);
             break;
         default:
             assert(false && "Invalid reply");
@@ -231,6 +243,7 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     intcode_run(ram, input, output);
     cerr << space << endl;
     assert(goal);
+    cerr << *goal << endl;
     return {space, *goal};
 }
 
