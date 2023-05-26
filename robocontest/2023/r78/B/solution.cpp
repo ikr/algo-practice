@@ -1,19 +1,18 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
-}
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
+    cout << setprecision(5) << fixed;
 
-    ll x;
-    cin >> x;
+    double x, pw, pw_;
+    cin >> x >> pw >> pw_;
 
-    cout << div_ceil(x, 2LL) << '\n';
+    pw /= 100.0;
+    pw_ /= 100.0;
+
+    const auto x_ = (1.0 - pw) * x / (1.0 - pw_);
+    cout << x_ << '\n';
     return 0;
 }
