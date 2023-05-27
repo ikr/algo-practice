@@ -231,6 +231,7 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
         switch (x) {
         case ReplyWall:
             walls.insert(droid + dir_delta(dir));
+            plan.push(next_dir(dir));
             break;
         case ReplyMove:
             droid += dir_delta(dir);
@@ -238,8 +239,6 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
             path.push_back(droid);
 
             for (const auto &sub_dir : Compas) {
-                if (sub_dir == opposite_dir(dir)) continue;
-
                 if (!space.contains(droid + dir_delta(sub_dir)) &&
                     !walls.contains(droid + dir_delta(sub_dir))) {
                     plan.push(opposite_dir(sub_dir));
@@ -257,6 +256,16 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
 
     intcode_run(ram, input, output);
     cerr << "Space: " << space << endl << "Path: " << path << endl;
+
+    const int H = 40;
+    const int W = 40;
+    vector<string> grid(H, string(W, ' '));
+    for (const auto s : space) grid[Y(s) + H / 2][X(s) + W / 2] = '.';
+    for (const auto w : walls) grid[Y(w) + H / 2][X(w) + W / 2] = '#';
+
+    cerr << endl;
+    for (const auto &row : grid) cerr << row << endl;
+
     assert(goal);
     cerr << *goal << endl;
     return {space, *goal};
