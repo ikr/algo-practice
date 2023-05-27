@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
 
 enum class Opcode {
@@ -154,8 +144,14 @@ ostream &operator<<(ostream &os, const Coord &xy) {
     return os;
 }
 
-bool are_adjacent(const Coord &a, const Coord &b) {
-    return norm<int>(a - b) == 1;
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
 }
 
 using Space = set<Coord, CoordLess>;
@@ -197,7 +193,6 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     Coord droid{0, 0};
     stack<Dir> plan;
     for (const Dir &dir : Compas) {
-        plan.push(opposite_dir(dir));
         plan.push(dir);
     }
 
@@ -218,13 +213,13 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
             break;
         case ReplyMove:
             droid += dir_delta(dir);
+            if (!space.contains(droid)) plan.push(opposite_dir(dir));
             space.insert(droid);
             path.push_back(droid);
 
             for (const auto &sub_dir : Compas) {
                 if (!space.contains(droid + dir_delta(sub_dir)) &&
                     !walls.contains(droid + dir_delta(sub_dir))) {
-                    plan.push(opposite_dir(sub_dir));
                     plan.push(sub_dir);
                 }
             }
@@ -239,16 +234,18 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
 
     intcode_run(ram, input, output);
 
-    const int H = 36;
-    const int W = 42;
-    vector<string> grid(H, string(W, ' '));
-    for (const auto s : space) grid[Y(s) + H / 2][X(s) + W / 2] = '.';
-    for (const auto w : walls) grid[Y(w) + H / 2][X(w) + W / 2] = '#';
-    grid[H / 2][W / 2] = 'o';
-    grid[Y(path.back()) + H / 2][X(path.back()) + W / 2] = 'x';
+    if (1) {
+        const int H = 50;
+        const int W = 42;
+        vector<string> grid(H, string(W, ' '));
+        for (const auto s : space) grid[Y(s) + H / 2][X(s) + W / 2] = '.';
+        for (const auto w : walls) grid[Y(w) + H / 2][X(w) + W / 2] = '#';
+        grid[H / 2][W / 2] = 'o';
+        grid[Y(path.back()) + H / 2][X(path.back()) + W / 2] = 'x';
 
-    for (const auto &row : grid) cerr << row << endl;
-    cerr << "Path: " << path << endl;
+        for (const auto &row : grid) cerr << row << endl;
+        cerr << "Trajectory length: " << sz(path) << endl;
+    }
 
     assert(goal);
     cerr << *goal << endl;
