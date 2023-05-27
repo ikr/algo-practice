@@ -213,9 +213,10 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
             break;
         case ReplyMove:
             droid += dir_delta(dir);
+            path.push_back(droid);
+
             if (!space.contains(droid)) plan.push(opposite_dir(dir));
             space.insert(droid);
-            path.push_back(droid);
 
             for (const auto &sub_dir : Compas) {
                 if (!space.contains(droid + dir_delta(sub_dir)) &&
