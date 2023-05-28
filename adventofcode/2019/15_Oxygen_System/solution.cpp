@@ -144,17 +144,7 @@ ostream &operator<<(ostream &os, const Coord &xy) {
     return os;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using Space = set<Coord, CoordLess>;
+using Shape = set<Coord, CoordLess>;
 
 enum class Dir { N = 1, S = 2, W = 3, E = 4 };
 static constexpr array DirDelta{Coord{0, 1}, Coord{0, -1}, Coord{-1, 0},
@@ -184,9 +174,34 @@ Dir opposite_dir(const Dir d) {
     return Dir::N;
 }
 
-pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
-    Space space{{0, 0}};
-    Space walls;
+void display_frame(const Shape &space, const Shape &walls, const Coord &droid) {
+    const int H = 35;
+    const int W = 41;
+
+    vector<string> grid(H, string(W, ' '));
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            const auto x = X(droid) - W / 2 + co;
+            const auto y = Y(droid) + H / 2 - ro;
+
+            if (x == X(droid) && y == Y(droid)) {
+                grid[ro][co] = '@';
+            } else if (space.contains({x, y})) {
+                grid[ro][co] = '.';
+            } else if (walls.contains({x, y})) {
+                grid[ro][co] = '#';
+            }
+        }
+    }
+
+    printf("\033[%d;%dH", 0, 0);
+    for (const auto &row : grid) cout << row << '\n';
+    cout << endl;
+}
+
+pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
+    Shape space{{0, 0}};
+    Shape walls;
     optional<Coord> goal;
     vector<Coord> path{{0, 0}};
 
@@ -215,6 +230,9 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
             droid += dir_delta(dir);
             path.push_back(droid);
 
+            display_frame(space, walls, droid);
+            this_thread::sleep_for(chrono::milliseconds(500));
+
             if (!space.contains(droid)) plan.push(opposite_dir(dir));
             space.insert(droid);
 
@@ -234,19 +252,6 @@ pair<Space, Coord> explore_space_locate_goal(vector<ll> ram) {
     };
 
     intcode_run(ram, input, output);
-
-    if (1) {
-        const int H = 50;
-        const int W = 42;
-        vector<string> grid(H, string(W, ' '));
-        for (const auto s : space) grid[Y(s) + H / 2][X(s) + W / 2] = '.';
-        for (const auto w : walls) grid[Y(w) + H / 2][X(w) + W / 2] = '#';
-        grid[H / 2][W / 2] = 'o';
-        grid[Y(path.back()) + H / 2][X(path.back()) + W / 2] = 'x';
-
-        for (const auto &row : grid) cerr << row << endl;
-        cerr << "Trajectory length: " << sz(path) << endl;
-    }
 
     assert(goal);
     cerr << *goal << endl;
