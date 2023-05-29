@@ -171,9 +171,10 @@ Dir opposite_dir(const Dir d) {
     return Dir::N;
 }
 
-void display_frame(const Shape &space, const Shape &walls, const Coord &droid) {
-    const int H = 35;
-    const int W = 41;
+void display_frame(const Shape &space, const Shape &walls,
+                   const optional<Coord> goal, const Coord &droid) {
+    const int H = 45;
+    const int W = 91;
 
     vector<string> grid(H, string(W, ' '));
     for (int ro = 0; ro < H; ++ro) {
@@ -183,6 +184,10 @@ void display_frame(const Shape &space, const Shape &walls, const Coord &droid) {
 
             if (x == X(droid) && y == Y(droid)) {
                 grid[ro][co] = '@';
+            } else if (goal && (*goal == Coord{x, y})) {
+                grid[ro][co] = 'O';
+            } else if (x == 0 && y == 0) {
+                grid[ro][co] = '+';
             } else if (space.contains({x, y})) {
                 grid[ro][co] = '.';
             } else if (walls.contains({x, y})) {
@@ -196,7 +201,7 @@ void display_frame(const Shape &space, const Shape &walls, const Coord &droid) {
     cout << endl;
 }
 
-void stay_idle() { this_thread::sleep_for(chrono::milliseconds(100)); }
+void stay_idle() { this_thread::sleep_for(chrono::milliseconds(75)); }
 
 pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
     Shape space{{0, 0}};
@@ -223,16 +228,16 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
         switch (x) {
         case ReplyWall:
             walls.insert(droid + dir_delta(dir));
-            // display_frame(space, walls, droid);
-            // stay_idle();
+            display_frame(space, walls, goal, droid);
+            stay_idle();
             break;
         case ReplyMove:
         case ReplyGoal:
             droid += dir_delta(dir);
             if (x == ReplyGoal) goal = droid;
 
-            // display_frame(space, walls, droid);
-            // stay_idle();
+            display_frame(space, walls, goal, droid);
+            stay_idle();
 
             if (stage == Stage::EXPLORE) {
                 plan.emplace(Stage::BACKTRACK, opposite_dir(dir));
