@@ -207,7 +207,6 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
     Shape space{{0, 0}};
     Shape walls;
     optional<Coord> goal;
-    vector<Coord> path{{0, 0}};
 
     Coord droid{0, 0};
     stack<pair<Stage, Dir>> plan;
@@ -234,7 +233,6 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
             break;
         case ReplyMove:
             droid += dir_delta(dir);
-            path.push_back(droid);
 
             // display_frame(space, walls, droid);
             // stay_idle();
@@ -253,6 +251,7 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
             break;
         case ReplyGoal:
             goal = droid + dir_delta(dir);
+            space.insert(*goal);
             break;
         default:
             assert(false && "Invalid reply");
@@ -262,7 +261,6 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
     intcode_run(ram, input, output);
 
     assert(goal);
-    cerr << *goal << endl;
     return {space, *goal};
 }
 
@@ -275,6 +273,25 @@ int main() {
     transform(cbegin(tokens), cend(tokens), begin(ram),
               [](const auto &x) { return stoll(x); });
 
-    explore_space_locate_goal(ram);
+    const auto [space, goal] = explore_space_locate_goal(ram);
+    queue<Coord> plan;
+    plan.emplace(0, 0);
+    map<Coord, int, CoordLess> D;
+    D[{0, 0}] = 0;
+
+    while (!plan.empty()) {
+        const auto u = plan.front();
+        plan.pop();
+
+        for (const auto dir : Compas) {
+            const auto v = u + dir_delta(dir);
+            if (space.contains(v) && !D.contains(v)) {
+                D[v] = D.at(u) + 1;
+                plan.push(v);
+            }
+        }
+    }
+
+    cout << D.at(goal) << endl;
     return 0;
 }
