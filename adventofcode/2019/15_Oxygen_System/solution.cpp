@@ -199,6 +199,8 @@ void display_frame(const Shape &space, const Shape &walls, const Coord &droid) {
     cout << endl;
 }
 
+void stay_idle() { this_thread::sleep_for(chrono::milliseconds(400)); }
+
 pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
     Shape space{{0, 0}};
     Shape walls;
@@ -225,13 +227,15 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
         switch (x) {
         case ReplyWall:
             walls.insert(droid + dir_delta(dir));
+            display_frame(space, walls, droid);
+            stay_idle();
             break;
         case ReplyMove:
             droid += dir_delta(dir);
             path.push_back(droid);
 
             display_frame(space, walls, droid);
-            this_thread::sleep_for(chrono::milliseconds(500));
+            stay_idle();
 
             if (!space.contains(droid)) plan.push(opposite_dir(dir));
             space.insert(droid);
