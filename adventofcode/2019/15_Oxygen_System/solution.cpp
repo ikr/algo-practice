@@ -139,11 +139,6 @@ struct CoordLess final {
     }
 };
 
-ostream &operator<<(ostream &os, const Coord &xy) {
-    os << '(' << X(xy) << ' ' << Y(xy) << ')';
-    return os;
-}
-
 using Shape = set<Coord, CoordLess>;
 
 enum class Dir { N = 1, S = 2, W = 3, E = 4 };
@@ -232,7 +227,9 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
             // stay_idle();
             break;
         case ReplyMove:
+        case ReplyGoal:
             droid += dir_delta(dir);
+            if (x == ReplyGoal) goal = droid;
 
             // display_frame(space, walls, droid);
             // stay_idle();
@@ -248,10 +245,6 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
                     plan.emplace(Stage::EXPLORE, sub_dir);
                 }
             }
-            break;
-        case ReplyGoal:
-            goal = droid + dir_delta(dir);
-            space.insert(*goal);
             break;
         default:
             assert(false && "Invalid reply");
