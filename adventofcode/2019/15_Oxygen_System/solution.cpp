@@ -152,6 +152,8 @@ static constexpr array DirDelta{Coord{0, 1}, Coord{0, -1}, Coord{-1, 0},
 
 static constexpr array Compas{Dir::N, Dir::E, Dir::S, Dir::W};
 
+enum class Stage { EXPLORE, BACKTRACK };
+
 static constexpr ll ReplyWall = 0;
 static constexpr ll ReplyMove = 1;
 static constexpr ll ReplyGoal = 2;
@@ -199,7 +201,7 @@ void display_frame(const Shape &space, const Shape &walls, const Coord &droid) {
     cout << endl;
 }
 
-void stay_idle() { this_thread::sleep_for(chrono::milliseconds(400)); }
+void stay_idle() { this_thread::sleep_for(chrono::milliseconds(100)); }
 
 pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
     Shape space{{0, 0}};
@@ -208,47 +210,49 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
     vector<Coord> path{{0, 0}};
 
     Coord droid{0, 0};
-    stack<Dir> plan;
+    stack<pair<Stage, Dir>> plan;
     for (const Dir &dir : Compas) {
-        plan.push(dir);
+        plan.emplace(Stage::EXPLORE, dir);
     }
 
     const auto input = [&]() -> optional<ll> {
         if (plan.empty() || goal) return nullopt;
-        const auto dir = plan.top();
+        const auto [_, dir] = plan.top();
         return static_cast<ll>(dir);
     };
 
     const auto output = [&](const ll x) -> void {
         assert(!plan.empty());
-        const auto dir = plan.top();
+        const auto [stage, dir] = plan.top();
         plan.pop();
 
         switch (x) {
         case ReplyWall:
             walls.insert(droid + dir_delta(dir));
-            display_frame(space, walls, droid);
-            stay_idle();
+            // display_frame(space, walls, droid);
+            // stay_idle();
             break;
         case ReplyMove:
             droid += dir_delta(dir);
             path.push_back(droid);
 
-            display_frame(space, walls, droid);
-            stay_idle();
+            // display_frame(space, walls, droid);
+            // stay_idle();
 
-            if (!space.contains(droid)) plan.push(opposite_dir(dir));
+            if (stage == Stage::EXPLORE) {
+                plan.emplace(Stage::BACKTRACK, opposite_dir(dir));
+            }
             space.insert(droid);
 
             for (const auto &sub_dir : Compas) {
                 if (!space.contains(droid + dir_delta(sub_dir)) &&
                     !walls.contains(droid + dir_delta(sub_dir))) {
-                    plan.push(sub_dir);
+                    plan.emplace(Stage::EXPLORE, sub_dir);
                 }
             }
             break;
         case ReplyGoal:
-            *goal = droid + dir_delta(dir);
+            goal = droid + dir_delta(dir);
             break;
         default:
             assert(false && "Invalid reply");
