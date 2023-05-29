@@ -275,9 +275,9 @@ int main() {
 
     const auto [space, goal] = explore_space_locate_goal(ram);
     queue<Coord> plan;
-    plan.emplace(0, 0);
+    plan.push(goal);
     map<Coord, int, CoordLess> D;
-    D[{0, 0}] = 0;
+    D[goal] = 0;
 
     while (!plan.empty()) {
         const auto u = plan.front();
