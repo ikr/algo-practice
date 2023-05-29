@@ -215,7 +215,7 @@ pair<Shape, Coord> explore_space_locate_goal(vector<ll> ram) {
     }
 
     const auto input = [&]() -> optional<ll> {
-        if (plan.empty() || goal) return nullopt;
+        if (plan.empty()) return nullopt;
         const auto [_, dir] = plan.top();
         return static_cast<ll>(dir);
     };
@@ -292,6 +292,10 @@ int main() {
         }
     }
 
-    cout << D.at(goal) << endl;
+    cout << transform_reduce(
+                cbegin(D), cend(D), 0,
+                [](const int x, const int y) { return max(x, y); },
+                [](const auto kv) { return kv.second; })
+         << endl;
     return 0;
 }
