@@ -22,6 +22,36 @@ template <typename T> constexpr pair<T, T> normalized(const pair<T, T> &ab) {
     return {min(a, b), max(a, b)};
 }
 
+struct OperationalRepresentation final {
+    vector<int> parent;
+    vector<int> degree;
+    queue<int> frontier;
+};
+
+vector<int> degrees(const vector<vector<int>> &g) {
+    vector<int> result(sz(g), 0);
+    for (int u = 0; u < sz(g); ++u) result[u] = sz(g[u]);
+    return result;
+}
+
+OperationalRepresentation
+operational_representation(const vector<vector<int>> &g) {
+    vector<int> parent(sz(g), -1);
+    const auto recur = [&](const auto self, const int u_parent,
+                           const int u) -> void {
+        for (const auto v : g[u]) {
+            if (v == u_parent) continue;
+            parent[v] = u;
+            self(self, u, v);
+        }
+    };
+    recur(recur, -1, 0);
+
+    auto degree = degrees(g);
+    queue<int> frontier;
+    return {parent, degree, frontier};
+}
+
 optional<vector<int>> edges_cut(const vector<vector<int>> &g,
                                 const map<pii, int> &edge_indices) {
     return vector<int>{};
