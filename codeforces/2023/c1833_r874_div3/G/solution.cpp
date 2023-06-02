@@ -22,39 +22,45 @@ template <typename T> constexpr pair<T, T> normalized(const pair<T, T> &ab) {
     return {min(a, b), max(a, b)};
 }
 
-struct OperationalRepresentation final {
-    vector<int> parent;
-    vector<int> degree;
-    queue<int> frontier;
-};
-
-vector<int> degrees(const vector<vector<int>> &g) {
+vector<int> degree(const vector<vector<int>> &g) {
     vector<int> result(sz(g), 0);
     for (int u = 0; u < sz(g); ++u) result[u] = sz(g[u]);
     return result;
 }
 
-OperationalRepresentation
-operational_representation(const vector<vector<int>> &g) {
-    vector<int> parent(sz(g), -1);
-    const auto recur = [&](const auto self, const int u_parent,
-                           const int u) -> void {
-        for (const auto v : g[u]) {
-            if (v == u_parent) continue;
-            parent[v] = u;
-            self(self, u, v);
-        }
-    };
-    recur(recur, -1, 0);
-
-    auto degree = degrees(g);
-    queue<int> frontier;
-    return {parent, degree, frontier};
+queue<int> initial_frontier(const vector<int> &deg) {
+    queue<int> result;
+    for (int u{}; u < sz(deg); ++u) {
+        if (deg[u] == 1) result.push(u);
+    }
+    return result;
 }
 
 optional<vector<int>> edges_cut(const vector<vector<int>> &g,
-                                const map<pii, int> &edge_indices) {
-    return vector<int>{};
+                                const map<pii, int> &edge_ids) {
+    auto deg = degree(g);
+    auto fro = initial_frontier(deg);
+    set<int> vs_cut;
+    set<pii> es_cut;
+
+    map<int, int> mid;
+    while (!fro.empty()) {
+        const auto u = fro.front();
+        fro.pop();
+
+        for (const auto v : g[u]) {
+            if (vs_cut.contains(v)) continue;
+
+            if (mid.contains(v)) {
+
+            } else {
+            }
+        }
+    }
+
+    vector<int> result;
+    for (const auto &e : es_cut) result.push_back(edge_ids.at(e));
+    return result;
 }
 
 int main() {
@@ -67,7 +73,7 @@ int main() {
         int n;
         cin >> n;
 
-        map<pii, int> edge_indices;
+        map<pii, int> edge_ids;
         vector<vector<int>> g(n);
         for (int i = 1; i <= n - 1; ++i) {
             int u, v;
@@ -77,10 +83,10 @@ int main() {
 
             g[u].push_back(v);
             g[v].push_back(u);
-            edge_indices[normalized(pii{u, v})] = i;
+            edge_ids[normalized(pii{u, v})] = i;
         }
 
-        const auto result = edges_cut(g, edge_indices);
+        const auto result = edges_cut(g, edge_ids);
         if (result) {
             cout << sz(*result) << '\n';
             cout << *result << '\n';
