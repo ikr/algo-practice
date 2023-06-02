@@ -1,2 +1,2 @@
 -I/home/ikr/code/ac-library
--std=c++17
+-std=c++20
