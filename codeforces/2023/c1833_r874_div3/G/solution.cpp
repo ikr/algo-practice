@@ -9,6 +9,12 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 using pii = pair<int, int>;
 using Graph = vector<vector<int>>;
 
@@ -26,8 +32,7 @@ template <typename T> constexpr pair<T, T> normalized(const pair<T, T> &ab) {
 static constexpr int INF = 1'000'000'000;
 
 optional<vector<int>> edges_cut(const Graph &g, const map<pii, int> &edge_ids) {
-    if (sz(g) < 3) return nullopt;
-
+    if (sz(g) % 3) return nullopt;
     set<pii> es_cut;
 
     const auto weight_and_cut = [&](const auto self, const int u0,
@@ -51,7 +56,8 @@ optional<vector<int>> edges_cut(const Graph &g, const map<pii, int> &edge_ids) {
         return subs + 1;
     };
 
-    if (weight_and_cut(weight_and_cut, -1, 0) == INF) return nullopt;
+    const auto root_weight = weight_and_cut(weight_and_cut, -1, 0);
+    if (root_weight != 3 && root_weight != 0) return nullopt;
 
     vector<int> result;
     for (const auto &e : es_cut) result.push_back(edge_ids.at(e));
