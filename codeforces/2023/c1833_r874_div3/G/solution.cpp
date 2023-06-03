@@ -10,8 +10,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 using pii = pair<int, int>;
-using tri = tuple<int, int, int>;
-using Graph = vector<set<int>>;
+using Graph = vector<vector<int>>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -24,43 +23,35 @@ template <typename T> constexpr pair<T, T> normalized(const pair<T, T> &ab) {
     return {min(a, b), max(a, b)};
 }
 
-vector<int> degree(const Graph &g) {
-    vector<int> result(sz(g), 0);
-    for (int u = 0; u < sz(g); ++u) result[u] = sz(g[u]);
-    return result;
-}
+static constexpr int INF = 1'000'000'000;
 
-vector<int> initial_frontier(const vector<int> &deg) {
-    vector<int> result;
-    for (int u{}; u < sz(deg); ++u) {
-        if (deg[u] == 1) result.push_back(u);
-    }
-    return result;
-}
-
-optional<vector<int>> edges_cut(Graph g, const map<pii, int> &edge_ids) {
-    auto deg = degree(g);
-    auto fro = initial_frontier(deg);
-
-    const auto angular_vetochkas = [&]() -> vector<tri> {
-        vector<tri> result;
-        map<int, int> mi;
-
-        for (const auto u : fro) {
-            for (const auto v : g[u]) {
-                if (mi.contains(v)) {
-
-                } else {
-                }
-            }
-        }
-
-        return result;
-    };
+optional<vector<int>> edges_cut(const Graph &g, const map<pii, int> &edge_ids) {
+    if (sz(g) < 3) return nullopt;
 
     set<pii> es_cut;
 
-    // ??
+    const auto weight_and_cut = [&](const auto self, const int u0,
+                                    const int u) -> int {
+        int subs{};
+        for (const auto v : g[u]) {
+            if (v == u0) continue;
+
+            const auto sub = self(self, u, v);
+            if (sub == INF) return INF;
+            subs += sub;
+        }
+
+        if (subs == 2) {
+            if (u0 != -1) es_cut.insert(normalized(pii{u0, u}));
+            return 0;
+        } else if (subs > 2) {
+            return INF;
+        }
+
+        return subs + 1;
+    };
+
+    if (weight_and_cut(weight_and_cut, -1, 0) == INF) return nullopt;
 
     vector<int> result;
     for (const auto &e : es_cut) result.push_back(edge_ids.at(e));
@@ -85,12 +76,12 @@ int main() {
             --u;
             --v;
 
-            g[u].insert(v);
-            g[v].insert(u);
+            g[u].push_back(v);
+            g[v].push_back(u);
             edge_ids[normalized(pii{u, v})] = i;
         }
 
-        const auto result = edges_cut(move(g), edge_ids);
+        const auto result = edges_cut(std::move(g), edge_ids);
         if (result) {
             cout << sz(*result) << '\n';
             cout << *result << '\n';
