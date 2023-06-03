@@ -3,6 +3,16 @@ using namespace std;
 
 using pii = pair<int, int>;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -30,7 +40,7 @@ int main() {
 
     const auto horizontal_frequencies =
         [&](const pii vert_band) -> vector<int> {
-        const auto [up, dn] = vert_band;
+        const auto [dn, up] = vert_band;
         vector<int> result(sa + 1, 0);
 
         for (const auto &[p, q] : PQ) {
