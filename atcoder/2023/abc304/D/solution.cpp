@@ -50,32 +50,83 @@ int main() {
     vector<int> B(sb);
     for (auto &b : B) cin >> b;
 
-    vector<int> vert_freq(sb + 1, 0);
-    for (const auto &[_, q] : PQ) {
-        const auto it = upper_bound(cbegin(B), cend(B), q);
-        const auto i = inof(it - cbegin(B));
-        ++vert_freq[i];
-    }
+    const auto vertical_frequencies = [&](const pii horz_band) -> vector<int> {
+        const auto [le, ri] = horz_band;
+        vector<int> result(sb + 1, 0);
 
-    const auto [lo, hi] = minmax_element(cbegin(vert_freq), cend(vert_freq));
-    const auto ilo = inof(lo - cbegin(vert_freq));
-    const auto lo0 = ilo == 0 ? 0 : B[ilo - 1];
-    const auto lo1 = ilo == sb ? H : B[ilo];
+        for (const auto &[p, q] : PQ) {
+            if (le <= p && p <= ri) {
+                const auto it = upper_bound(cbegin(B), cend(B), q);
+                const auto i = inof(it - cbegin(B));
+                ++result[i];
+            }
+        }
 
-    const auto ihi = inof(hi - cbegin(vert_freq));
-    const auto hi0 = ihi == 0 ? 0 : B[ihi - 1];
-    const auto hi1 = ihi == sb ? H : B[ihi];
+        return result;
+    };
 
-    const auto m = [&]() -> int {
-        const auto horz_freq = horizontal_frequencies({lo0, lo1});
-        return *min_element(cbegin(horz_freq), cend(horz_freq));
+    const auto [m1, M1] = [&]() -> pair<int, int> {
+        vector<int> vert_freq(sb + 1, 0);
+        for (const auto &[_, q] : PQ) {
+            const auto it = upper_bound(cbegin(B), cend(B), q);
+            const auto i = inof(it - cbegin(B));
+            ++vert_freq[i];
+        }
+
+        const auto [lo, hi] =
+            minmax_element(cbegin(vert_freq), cend(vert_freq));
+        const auto ilo = inof(lo - cbegin(vert_freq));
+        const auto lo0 = ilo == 0 ? 0 : B[ilo - 1];
+        const auto lo1 = ilo == sb ? H : B[ilo];
+
+        const auto ihi = inof(hi - cbegin(vert_freq));
+        const auto hi0 = ihi == 0 ? 0 : B[ihi - 1];
+        const auto hi1 = ihi == sb ? H : B[ihi];
+
+        const auto m = [&]() -> int {
+            const auto horz_freq = horizontal_frequencies({lo0, lo1});
+            return *min_element(cbegin(horz_freq), cend(horz_freq));
+        }();
+
+        const auto M = [&]() -> int {
+            const auto horz_freq = horizontal_frequencies({hi0, hi1});
+            return *max_element(cbegin(horz_freq), cend(horz_freq));
+        }();
+
+        return {m, M};
     }();
 
-    const auto M = [&]() -> int {
-        const auto horz_freq = horizontal_frequencies({hi0, hi1});
-        return *max_element(cbegin(horz_freq), cend(horz_freq));
+    const auto [m2, M2] = [&]() -> pair<int, int> {
+        vector<int> horz_freq(sa + 1, 0);
+        for (const auto &[p, _] : PQ) {
+            const auto it = upper_bound(cbegin(A), cend(A), p);
+            const auto i = inof(it - cbegin(A));
+            ++horz_freq[i];
+        }
+
+        const auto [lo, hi] =
+            minmax_element(cbegin(horz_freq), cend(horz_freq));
+        const auto ilo = inof(lo - cbegin(horz_freq));
+        const auto lo0 = ilo == 0 ? 0 : A[ilo - 1];
+        const auto lo1 = ilo == sa ? W : A[ilo];
+
+        const auto ihi = inof(hi - cbegin(horz_freq));
+        const auto hi0 = ihi == 0 ? 0 : A[ihi - 1];
+        const auto hi1 = ihi == sa ? W : A[ihi];
+
+        const auto m = [&]() -> int {
+            const auto vert_freq = vertical_frequencies({lo0, lo1});
+            return *min_element(cbegin(vert_freq), cend(vert_freq));
+        }();
+
+        const auto M = [&]() -> int {
+            const auto vert_freq = vertical_frequencies({hi0, hi1});
+            return *max_element(cbegin(vert_freq), cend(vert_freq));
+        }();
+
+        return {m, M};
     }();
 
-    cout << m << ' ' << M << '\n';
+    cout << min(m1, m2) << ' ' << max(M1, M2) << '\n';
     return 0;
 }
