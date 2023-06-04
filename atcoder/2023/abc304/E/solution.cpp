@@ -40,6 +40,23 @@ int main() {
         cin >> x >> y;
         --x;
         --y;
+
+        assert(!uf.same(x, y));
+        ex.insert(normalized(pair{uf.leader(x), uf.leader(y)}));
+    }
+
+    int Q;
+    cin >> Q;
+
+    for (int i = 0; i < Q; ++i) {
+        int p, q;
+        cin >> p >> q;
+        --p;
+        --q;
+
+        const auto spoiling =
+            ex.count(normalized(pair{uf.leader(p), uf.leader(q)}));
+        cout << (spoiling ? "No" : "Yes") << '\n';
     }
 
     return 0;
