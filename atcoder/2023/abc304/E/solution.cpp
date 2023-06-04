@@ -21,7 +21,7 @@ int main() {
     cin >> N >> M;
 
     atcoder::dsu uf(N);
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < M; ++i) {
         int u, v;
         cin >> u >> v;
         --u;
