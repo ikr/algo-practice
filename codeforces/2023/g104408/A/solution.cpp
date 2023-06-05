@@ -7,30 +7,29 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<pair<char, int>> run_length_encoding(const string &xs) {
-    vector<pair<char, int>> result{{xs[0], 1}};
-    for (int i = 1; i < sz(xs); ++i) {
-        if (xs[i] == result.back().first) {
-            ++(result.back().second);
-        } else {
-            result.emplace_back(xs[i], 1);
-        }
-    }
-    return result;
-}
+static constexpr int AZ = 26;
 
 string last_one(const string &xs) {
-    const auto rle = run_length_encoding(xs);
-    const auto it_hi =
-        max_element(cbegin(rle), cend(rle), [](const auto a, const auto b) {
-            return a.second < b.second;
-        });
-    const auto hi = it_hi->second;
+    array<int, AZ> freq{};
+    for (const auto x : xs) {
+        ++freq[inof(x) - inof('a')];
+    }
+
+    const auto hi = *max_element(cbegin(freq), cend(freq));
+    array<bool, AZ> need{};
+    for (int i = 0; i < AZ; ++i) {
+        if (freq[i] == hi) need[i] = true;
+    }
 
     string result;
-    for (const auto &[c, f] : rle) {
-        if (f == hi) result += c;
+    for (int i = sz(xs) - 1; i >= 0; --i) {
+        const auto code = inof(xs[i]) - inof('a');
+        if (need[code]) {
+            result += xs[i];
+            need[code] = false;
+        }
     }
+    reverse(begin(result), end(result));
     return result;
 }
 
