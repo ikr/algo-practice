@@ -10,32 +10,44 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-mint n_choose_2(const mint n) { return n * (n - 1) / mint{2}; }
+mint n_choose_2(const mint n) { return n * (n - 1) * mint{2}.inv(); }
 
 mint num_good_removals(const vector<int> &xs) {
-    const auto total = accumulate(cbegin(xs), cend(xs), 0LL);
-    const auto od =
+
+    map<pair<int, int>, mint> memo;
+
+    const auto recur = [&](const auto self, const int ev,
+                           const int od) -> mint {
+        const auto it = memo.find({ev, od});
+        if (it != cend(memo)) return it->second;
+
+        return memo[{ev, od}] = [&]() -> mint {
+            if (!ev && !od) return 1;
+
+            if (od % 2) {
+                return od * self(self, ev, od - 1);
+            } else {
+                mint ans{};
+
+                if (od) {
+                    assert(od >= 2);
+                    ans += n_choose_2(od) * self(self, ev, od - 2);
+                }
+
+                if (ev) {
+                    ans += ev * self(self, ev - 1, od);
+                }
+
+                return ans;
+            }
+        }();
+    };
+
+    const auto od0 =
         inof(count_if(cbegin(xs), cend(xs), [](const int x) { return x % 2; }));
-    const auto ev = sz(xs) - od;
+    const auto ev0 = sz(xs) - od0;
 
-    if (total % 2LL) {
-        assert(od);
-        const auto od_ps = (od - 1) / 2;
-        return od * mint{2}.pow(ev) * mint{2}.pow(od_ps);
-    } else {
-        mint ans{};
-
-        if (ev) {
-            ans += ev * mint{2}.pow(ev - 1) * mint{2}.pow(od / 2);
-        }
-
-        if (od) {
-            const auto od_ps = od / 2;
-            ans += n_choose_2(od_ps) * mint{2}.pow(od_ps - 1) * mint{2}.pow(ev);
-        }
-
-        return ans;
-    }
+    return recur(recur, ev0, od0);
 }
 
 int main() {
