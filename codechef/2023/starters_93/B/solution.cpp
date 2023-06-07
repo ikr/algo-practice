@@ -14,40 +14,13 @@ mint n_choose_2(const mint n) { return n * (n - 1) * mint{2}.inv(); }
 
 mint num_good_removals(const vector<int> &xs) {
 
-    map<pair<int, int>, mint> memo;
-
-    const auto recur = [&](const auto self, const int ev,
-                           const int od) -> mint {
-        const auto it = memo.find({ev, od});
-        if (it != cend(memo)) return it->second;
-
-        return memo[{ev, od}] = [&]() -> mint {
-            if (!ev && !od) return 1;
-
-            if (od % 2) {
-                return od * self(self, ev, od - 1);
-            } else {
-                mint ans{};
-
-                if (od) {
-                    assert(od >= 2);
-                    ans += n_choose_2(od) * self(self, ev, od - 2);
-                }
-
-                if (ev) {
-                    ans += ev * self(self, ev - 1, od);
-                }
-
-                return ans;
-            }
-        }();
-    };
-
-    const auto od0 =
+    const auto od =
         inof(count_if(cbegin(xs), cend(xs), [](const int x) { return x % 2; }));
-    const auto ev0 = sz(xs) - od0;
+    const auto ev = sz(xs) - od;
 
-    return recur(recur, ev0, od0);
+    if (!ev) return 1;
+
+    return mint{2}.pow(ev);
 }
 
 int main() {
