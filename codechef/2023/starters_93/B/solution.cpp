@@ -20,7 +20,7 @@ mint num_good_removals(const vector<int> &xs) {
 
     if (!ev) return 1;
 
-    return mint{2}.pow(ev);
+    return mint{2}.pow(ev) - (od ? 0 : 1);
 }
 
 int main() {
