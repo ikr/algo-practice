@@ -51,12 +51,10 @@ int flawed_frequency_transmission_kth_digit(const vector<int> &pat, const int k,
             return pat[j];
         }
 
-        const auto j = ((i - block0_size + 1) % block_size) / rep;
+        const auto j = ((i - block0_size) % block_size) / rep;
         assert(j < sz(pat));
         return pat[j];
     });
-
-    cerr << "M: " << M << endl;
 
     return keep_last_digit(transform_reduce(
         cbegin(xs), cend(xs), cbegin(M), 0LL, plus<long long>{},
@@ -77,9 +75,11 @@ int main() {
     string s;
     cin >> s;
 
-    cout << flawed_frequency_transmission_kth_digit(BasePattern, 0,
-                                                    digits("12345678"))
-         << '\n';
+    auto xs = digits(s);
+    for (int t = 1; t <= 100; ++t) {
+        xs = flawed_frequency_transmission(BasePattern, xs);
+    }
 
+    cout << bignum(xs).substr(0, 8) << '\n';
     return 0;
 }
