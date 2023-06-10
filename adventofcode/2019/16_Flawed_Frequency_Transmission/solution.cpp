@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
