@@ -42,10 +42,14 @@ ll sleep_time(const vector<pii> &AB, const vector<ll> &ss, const pii lr) {
     const auto ir = potentially_intersecting_index(r);
 
     ll ans{};
-    for (int j : {il, ir}) {
-        const auto x = intersection(AB[j], lr);
-        if (x) ans += x->second - x->first;
+    const auto xa = intersection(AB[il], lr);
+    if (xa) ans += xa->second - xa->first;
+
+    if (il != ir) {
+        const auto xb = intersection(AB[ir], lr);
+        if (xb) ans += xb->second - xb->first;
     }
+
     if (il + 1 < ir) ans += ss[ir - 1] - ss[il];
     return ans;
 }
