@@ -65,11 +65,19 @@ int main() {
     string s;
     cin >> s;
 
-    auto xs = digits(s);
-    for (int t = 1; t <= 100; ++t) {
-        xs = flawed_frequency_transmission(BasePattern, xs);
+    string ss;
+    for (int t = 1; t <= 10'000; ++t) {
+        ss += s;
     }
 
-    cout << bignum(xs).substr(0, 8) << '\n';
+    auto xs = digits(ss);
+    for (int t = 1; t <= 100; ++t) {
+        xs = flawed_frequency_transmission(BasePattern, xs);
+        cerr << "Iteration " << t << " done" << endl;
+    }
+
+    const auto offset = stoi(s.substr(0, 7));
+
+    cout << bignum(xs).substr(offset, 8) << '\n';
     return 0;
 }
