@@ -22,8 +22,7 @@ int main() {
     map<int, int> guards;
     queue<pair<int, int>> q;
     set<int> guarded;
-    map<pair<int, int>, int> D;
-
+    vector<int> D(N, -1);
     for (int i = 1; i <= K; ++i) {
         int p, h;
         cin >> p >> h;
@@ -32,7 +31,7 @@ int main() {
         guards.emplace(p, h);
         q.emplace(p, p);
         guarded.insert(p);
-        D[{p, p}] = 0;
+        D[p] = 0;
     }
 
     while (!q.empty()) {
@@ -41,11 +40,11 @@ int main() {
         q.pop();
 
         for (const auto v : g[u]) {
-            if (D.count(pair{v, p})) continue;
-            const auto d_ = D.at({u, p}) + 1;
+            if (D[v] != -1) continue;
+            const auto d_ = D[u] + 1;
             if (d_ > h) continue;
 
-            D[{v, p}] = d_;
+            D[v] = d_;
             guarded.insert(v);
             q.emplace(v, p);
         }
