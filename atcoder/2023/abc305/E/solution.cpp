@@ -1,12 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -26,40 +20,37 @@ int main() {
     }
 
     map<int, int> guards;
+    queue<pair<int, int>> q;
+    set<int> guarded;
+    vector<int> D(N, -1);
     for (int i = 1; i <= K; ++i) {
         int p, h;
         cin >> p >> h;
         --p;
 
         guards.emplace(p, h);
+        q.emplace(p, p);
+        guarded.insert(p);
+        D[p] = 0;
     }
 
-    set<int> guarded;
+    while (!q.empty()) {
+        const auto [u, p] = q.front();
+        const auto h = guards.at(p);
+        q.pop();
 
-    for (const auto &[p, h] : guards) {
-        guarded.insert(p);
-        map<int, int> D;
-        D.emplace(p, 0);
+        for (const auto v : g[u]) {
+            if (D[v] != -1) continue;
+            const auto d_ = D[u] + 1;
+            if (d_ > h) continue;
 
-        queue<int> q;
-        q.push(p);
-
-        while (!q.empty()) {
-            const auto u = q.front();
-            q.pop();
-
-            for (const auto v : g[u]) {
-                if (D.count(v)) continue;
-                const auto d_ = D[u] + 1;
-                D.emplace(v, d_);
-                assert(d_ <= h);
-                guarded.insert(v);
-                if (d_ < h) q.push(v);
-            }
+            D[v] = d_;
+            guarded.insert(v);
+            q.emplace(v, p);
         }
     }
 
-    cout << sz(guarded) << '\n';
+    cout << size(guarded) << '\n';
     for (auto i = guarded.cbegin(); i != guarded.cend(); ++i) {
         if (i != guarded.cbegin()) cout << ' ';
         cout << (*i) + 1;
