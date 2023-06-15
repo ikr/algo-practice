@@ -44,9 +44,12 @@ int main() {
             const auto d_ = D[u] + 1;
             if (d_ > h) continue;
 
-            D[v] = d_;
             guarded.insert(v);
-            q.emplace(v, p);
+
+            if (d_ != h) {
+                D[v] = d_;
+                q.emplace(v, p);
+            }
         }
     }
 
