@@ -19,37 +19,27 @@ int main() {
         g[v].push_back(u);
     }
 
-    map<int, int> guards;
     queue<pair<int, int>> q;
     set<int> guarded;
-    vector<int> D(N, -1);
+
     for (int i = 1; i <= K; ++i) {
         int p, h;
         cin >> p >> h;
         --p;
 
-        guards.emplace(p, h);
-        q.emplace(p, p);
+        q.emplace(p, h);
         guarded.insert(p);
-        D[p] = 0;
     }
 
     while (!q.empty()) {
-        const auto [u, p] = q.front();
-        const auto h = guards.at(p);
+        const auto [u, h] = q.front();
+        assert(h);
         q.pop();
 
         for (const auto v : g[u]) {
-            if (D[v] != -1) continue;
-            const auto d_ = D[u] + 1;
-            if (d_ > h) continue;
-
+            if (guarded.count(v)) continue;
             guarded.insert(v);
-
-            if (d_ != h) {
-                D[v] = d_;
-                q.emplace(v, p);
-            }
+            if (h - 1) q.emplace(v, h - 1);
         }
     }
 
