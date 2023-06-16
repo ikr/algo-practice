@@ -19,7 +19,7 @@ int main() {
         g[v].push_back(u);
     }
 
-    queue<pair<int, int>> q;
+    priority_queue<pair<int, int>> q;
     set<int> guarded;
 
     for (int i = 1; i <= K; ++i) {
@@ -27,19 +27,19 @@ int main() {
         cin >> p >> h;
         --p;
 
-        q.emplace(p, h);
+        q.emplace(h, p);
         guarded.insert(p);
     }
 
     while (!q.empty()) {
-        const auto [u, h] = q.front();
+        const auto [h, u] = q.top();
         assert(h);
         q.pop();
 
         for (const auto v : g[u]) {
             if (guarded.count(v)) continue;
             guarded.insert(v);
-            if (h - 1) q.emplace(v, h - 1);
+            if (h - 1) q.emplace(h - 1, v);
         }
     }
 
