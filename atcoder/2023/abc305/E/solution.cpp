@@ -20,7 +20,7 @@ int main() {
     }
 
     priority_queue<pair<int, int>> q;
-    set<int> guarded;
+    vector<int> potential(N, -1);
 
     for (int i = 1; i <= K; ++i) {
         int p, h;
@@ -28,24 +28,29 @@ int main() {
         --p;
 
         q.emplace(h, p);
-        guarded.insert(p);
+        potential[p] = h;
     }
 
     while (!q.empty()) {
         const auto [h, u] = q.top();
-        assert(h);
+        assert(h > 0);
         q.pop();
 
         for (const auto v : g[u]) {
-            if (guarded.count(v)) continue;
-            guarded.insert(v);
-            if (h - 1) q.emplace(h - 1, v);
+            if (h - 1 <= potential[v]) continue;
+            potential[v] = h - 1;
+            if (h - 1 > 0) q.emplace(h - 1, v);
         }
     }
 
+    vector<long long> guarded;
+    for (auto i = cbegin(potential); i != cend(potential); ++i) {
+        if (*i >= 0) guarded.push_back(i - cbegin(potential));
+    }
+
     cout << size(guarded) << '\n';
-    for (auto i = guarded.cbegin(); i != guarded.cend(); ++i) {
-        if (i != guarded.cbegin()) cout << ' ';
+    for (auto i = cbegin(guarded); i != cend(guarded); ++i) {
+        if (i != cbegin(guarded)) cout << ' ';
         cout << (*i) + 1;
     }
     cout << '\n';
