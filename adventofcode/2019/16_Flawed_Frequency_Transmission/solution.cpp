@@ -25,11 +25,11 @@ int keep_last_digit(const long long x) { return inof(abs(x) % 10LL); }
 int flawed_frequency_transmission_kth_digit(const int k,
                                             const vector<int> &xs) {
     assert(0 <= k && k < sz(xs));
-    const auto block_size = 4 * (k + 1);
+    const auto block_size = k + 1;
     long long result{};
 
     for (int i = k; i < sz(xs); i += 4 * block_size) {
-        for (int j = 0; j < block_size; ++j) {
+        for (int j = 0; j <= k; ++j) {
             if (i + j < sz(xs)) {
                 result += xs[i + j];
             }
@@ -46,7 +46,6 @@ vector<int> flawed_frequency_transmission(const vector<int> &xs) {
     vector<int> result(sz(xs));
     iota(begin(result), end(result), 0);
     transform(cbegin(result), cend(result), begin(result), [&](const int k) {
-        if (k % 1000 == 0) cerr << "digit " << k << endl;
         return flawed_frequency_transmission_kth_digit(k, xs);
     });
     return result;
@@ -56,20 +55,20 @@ int main() {
     string s;
     cin >> s;
 
-    string ss;
-    for (int t = 1; t <= 10'000; ++t) {
-        ss += s;
-    }
+    // string ss;
+    //  for (int t = 1; t <= 10'000; ++t) {
+    //      ss += s;
+    //  }
 
-    auto xs = digits(ss);
-    cerr << "xs ready" << endl;
-    for (int t = 1; t <= 1; ++t) {
+    auto xs = digits(s);
+    for (int t = 1; t <= 100; ++t) {
         xs = flawed_frequency_transmission(xs);
         cerr << "Iteration " << t << " done" << endl;
     }
 
-    const auto offset = stoi(s.substr(0, 7));
+    cerr << bignum(xs) << endl;
 
-    cout << bignum(xs).substr(offset, 8) << '\n';
+    // const auto offset = stoi(s.substr(0, 7));
+    // cout << bignum(xs).substr(offset, 8) << '\n';
     return 0;
 }
