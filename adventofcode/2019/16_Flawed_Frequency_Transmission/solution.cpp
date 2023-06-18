@@ -42,7 +42,7 @@ bool is_at(const vector<T> &haystack, const vector<T> &needle, const int i) {
 }
 
 template <typename T> int tail_period(const vector<T> &xs) {
-    const auto marker_size = 128;
+    const auto marker_size = 20;
     const vector marker(cend(xs) - marker_size, cend(xs));
     assert(is_at(xs, marker, sz(xs) - marker_size));
 
@@ -76,26 +76,39 @@ int flawed_frequency_transmission_kth_digit(const int k,
 }
 
 vector<int> flawed_frequency_transmission(const vector<int> &xs) {
-    vector<int> result;
-    result.reserve(sz(xs));
+    vector<int> result0;
+    result0.reserve(sz(xs));
 
-    for (int k = 0; k < 10000; ++k) {
-        result.push_back(flawed_frequency_transmission_kth_digit(k, xs));
+    for (int k = 0; k < sz(xs); ++k) {
+        result0.push_back(flawed_frequency_transmission_kth_digit(k, xs));
+        if (k && k % 100000 == 0) {
+            cerr << "Digit " << k << " computed; per:" << tail_period(result0)
+                 << endl;
+        }
     }
 
-    cerr << "result: " << result << endl;
+    {
+        vector<int> result;
+        result.reserve(sz(xs));
 
-    const auto per = tail_period(result);
-    assert(per > 0);
-    cerr << "per:" << per << endl;
-    const auto pat = vector(cend(result) - per, cend(result));
+        for (int k = 0; k < 200'000; ++k) {
+            result.push_back(flawed_frequency_transmission_kth_digit(k, xs));
+        }
 
-    while (sz(result) < sz(xs)) {
-        result.insert(cend(result), cbegin(pat), cend(pat));
+        const auto per = tail_period(result);
+        assert(per > 0);
+        const auto pat = vector(cend(result) - per, cend(result));
+
+        while (sz(result) < sz(xs)) {
+            result.insert(cend(result), cbegin(pat), cend(pat));
+        }
+
+        result.resize(sz(xs));
+        assert(result == result0);
     }
 
-    result.resize(sz(xs));
-    return result;
+    cerr << "per:" << tail_period(result0) << endl;
+    return result0;
 }
 
 int main() {
