@@ -76,16 +76,17 @@ int flawed_frequency_transmission_kth_digit(const int k,
 }
 
 vector<int> flawed_frequency_transmission(const vector<int> &xs) {
-    vector<int> result0;
-    result0.reserve(sz(xs));
+    // vector<int> result0;
+    // result0.reserve(sz(xs));
 
-    for (int k = 0; k < sz(xs); ++k) {
-        result0.push_back(flawed_frequency_transmission_kth_digit(k, xs));
-        if (k && k % 100000 == 0) {
-            cerr << "Digit " << k << " computed; per:" << tail_period(result0)
-                 << endl;
-        }
-    }
+    // for (int k = 0; k < sz(xs); ++k) {
+    //     result0.push_back(flawed_frequency_transmission_kth_digit(k, xs));
+    //     if (k && k % 100000 == 0) {
+    //         cerr << "Digit " << k << " computed; per:" <<
+    //         tail_period(result0)
+    //              << endl;
+    //     }
+    // }
 
     {
         vector<int> result;
@@ -104,11 +105,12 @@ vector<int> flawed_frequency_transmission(const vector<int> &xs) {
         }
 
         result.resize(sz(xs));
-        assert(result == result0);
+        // assert(result == result0);
+        return result;
     }
 
-    cerr << "per:" << tail_period(result0) << endl;
-    return result0;
+    // cerr << "per:" << tail_period(result0) << endl;
+    // return result0;
 }
 
 int main() {
