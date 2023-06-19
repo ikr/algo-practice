@@ -21,79 +21,79 @@ Box code_to_box(const string &c) {
                array{c[6] - '0', c[7] - '0', c[8] - '0'}};
 }
 
-vector<string> adjacent_codes(const string &c) {
+vector<string> adjacent_codes(unordered_map<string, int> &D, const string &c) {
     vector<string> result;
 
     {
         auto x = c;
         swap(x[0], x[1]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[0], x[3]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[1], x[4]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[1], x[2]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[2], x[5]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[3], x[6]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[3], x[4]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[4], x[7]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[4], x[5]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[5], x[8]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[6], x[7]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     {
         auto x = c;
         swap(x[7], x[8]);
-        result.push_back(x);
+        if (!D.count(x)) result.push_back(x);
     }
 
     return result;
@@ -120,8 +120,7 @@ int main() {
         const auto u = q.front();
         q.pop();
 
-        for (const auto &v : adjacent_codes(u)) {
-            if (D.count(v)) continue;
+        for (const auto &v : adjacent_codes(D, u)) {
             D[v] = D.at(u) + 1;
             q.push(v);
         }
