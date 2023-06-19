@@ -42,7 +42,7 @@ bool is_at(const vector<T> &haystack, const vector<T> &needle, const int i) {
 }
 
 template <typename T> int tail_period(const vector<T> &xs) {
-    const auto marker_size = 20;
+    const auto marker_size = 64;
     const vector marker(cend(xs) - marker_size, cend(xs));
     assert(is_at(xs, marker, sz(xs) - marker_size));
 
@@ -92,11 +92,12 @@ vector<int> flawed_frequency_transmission(const vector<int> &xs) {
         vector<int> result;
         result.reserve(sz(xs));
 
-        for (int k = 0; k < 200'000; ++k) {
+        for (int k = 0; k < 2'000'000; ++k) {
             result.push_back(flawed_frequency_transmission_kth_digit(k, xs));
         }
 
         const auto per = tail_period(result);
+        cerr << "per:" << per << endl;
         assert(per > 0);
         const auto pat = vector(cend(result) - per, cend(result));
 
