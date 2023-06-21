@@ -9,8 +9,8 @@ template <typename T> constexpr T div_ceil(const T x, const T y) {
 }
 
 ll max_total_energy(const int H, const vector<int> &A, const vector<int> &B) {
-    priority_queue<int> aa;
-    for (const auto &x : A) aa.push(x);
+    priority_queue<pii> aa;
+    for (const auto &x : A) aa.emplace(x, H);
 
     priority_queue<pii> bb;
     for (const auto &x : B) bb.emplace(x, H);
@@ -18,25 +18,26 @@ ll max_total_energy(const int H, const vector<int> &A, const vector<int> &B) {
     ll result{};
 
     while (!aa.empty() && !bb.empty()) {
-        const auto a = aa.top();
+        const auto [a, ha] = aa.top();
+        assert(ha > 0);
         aa.pop();
 
-        const auto [b, h] = bb.top();
-        assert(h > 0);
+        const auto [b, hb] = bb.top();
+        assert(hb > 0);
         bb.pop();
 
         const auto max_hours = div_ceil(a, b);
-        const auto actual_hours = min(h, max_hours);
+        const auto actual_hours = min({ha, hb, max_hours});
 
         const auto charged = min(a, actual_hours * b);
         result += charged;
 
-        if (actual_hours < h) {
-            bb.emplace(b, h - actual_hours);
+        if (actual_hours < hb) {
+            bb.emplace(b, hb - actual_hours);
         }
 
-        if (charged < a) {
-            aa.push(a - charged);
+        if (charged < a && actual_hours < ha) {
+            aa.emplace(a - charged, ha - actual_hours);
         }
     }
 
