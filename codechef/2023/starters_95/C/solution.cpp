@@ -14,6 +14,10 @@ constexpr unsigned long long mlog2(const unsigned long long x) {
     return 8ULL * sizeof(unsigned long long) - __builtin_clzll(x) - 1ULL;
 }
 
+template <typename T> constexpr T div_ceil(const T x, const T y) {
+    return x ? (1 + (x - 1) / y) : 0;
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -27,18 +31,13 @@ int main() {
         vector<ll> xs(n);
         for (auto &x : xs) cin >> x;
 
-        map<ull, map<ll, int>> freq;
+        map<ull, int> freq;
         for (const auto &x : xs) {
-            ++(freq[mlog2(x)][x]);
+            ++freq[mlog2(x)];
         }
 
-        const auto &hi = crbegin(freq)->second;
-        int result = 1;
-        for (const auto &[_, f] : hi) {
-            result = max(result, f);
-        }
-
-        cout << result << '\n';
+        const auto hi = crbegin(freq)->second;
+        cout << div_ceil(hi, 2) << '\n';
     }
 
     return 0;
