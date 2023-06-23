@@ -1,15 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
+using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -30,45 +22,26 @@ string bignum(const vector<int> &digits) {
     return ss.str();
 }
 
-int keep_last_digit(const long long x) { return inof(abs(x) % 10LL); }
+int keep_last_digit(const ll x) { return inof(abs(x) % 10LL); }
 
-template <typename T>
-bool is_at(const vector<T> &haystack, const vector<T> &needle, const int i) {
-    for (int j = 0; j < sz(needle); ++j) {
-        if (haystack[i + j] != needle[j]) return false;
-    }
+int flawed_frequency_transmission_kth_digit(const int k, const vector<int> &xs,
+                                            const vector<ll> &ss) {
+    const auto sum = [&](const int i, const int j) -> ll {
+        assert(i <= j);
+        assert(0 <= i && i < sz(ss));
+        assert(0 <= j && j < sz(ss));
+        return ss[j] - (i ? ss[i - 1] : 0LL);
+    };
 
-    return true;
-}
-
-template <typename T> int tail_period(const vector<T> &xs) {
-    const auto marker_size = 64;
-    const vector marker(cend(xs) - marker_size, cend(xs));
-    assert(is_at(xs, marker, sz(xs) - marker_size));
-
-    for (int i = sz(xs) - marker_size - 1; i >= 0; --i) {
-        if (is_at(xs, marker, i)) {
-            return sz(xs) - marker_size - i;
-        }
-    }
-
-    return -1;
-}
-
-int flawed_frequency_transmission_kth_digit(const int k,
-                                            const vector<int> &xs) {
-    assert(0 <= k && k < sz(xs));
     const auto block_size = k + 1;
-    long long result{};
+    ll result{};
 
     for (int i = k; i < sz(xs); i += 4 * block_size) {
-        for (int j = 0; j <= k; ++j) {
-            if (i + j < sz(xs)) {
-                result += xs[i + j];
-            }
-            if (i + j + 2 * block_size < sz(xs)) {
-                result -= xs[i + j + 2 * block_size];
-            }
+        result += sum(i, min(i + k, sz(xs) - 1));
+
+        if (i + 2 * block_size < sz(xs)) {
+            result -= sum(i + 2 * block_size,
+                          min(i + k + 2 * block_size, sz(xs) - 1));
         }
     }
 
@@ -76,42 +49,15 @@ int flawed_frequency_transmission_kth_digit(const int k,
 }
 
 vector<int> flawed_frequency_transmission(const vector<int> &xs) {
-    // vector<int> result0;
-    // result0.reserve(sz(xs));
+    vector<int> result(sz(xs));
+    vector<ll> ss(sz(xs));
+    partial_sum(cbegin(xs), cend(xs), begin(ss), plus<ll>{});
 
-    // for (int k = 0; k < sz(xs); ++k) {
-    //     result0.push_back(flawed_frequency_transmission_kth_digit(k, xs));
-    //     if (k && k % 100000 == 0) {
-    //         cerr << "Digit " << k << " computed; per:" <<
-    //         tail_period(result0)
-    //              << endl;
-    //     }
-    // }
-
-    {
-        vector<int> result;
-        result.reserve(sz(xs));
-
-        for (int k = 0; k < 2'000'000; ++k) {
-            result.push_back(flawed_frequency_transmission_kth_digit(k, xs));
-        }
-
-        const auto per = tail_period(result);
-        cerr << "per:" << per << endl;
-        assert(per > 0);
-        const auto pat = vector(cend(result) - per, cend(result));
-
-        while (sz(result) < sz(xs)) {
-            result.insert(cend(result), cbegin(pat), cend(pat));
-        }
-
-        result.resize(sz(xs));
-        // assert(result == result0);
-        return result;
+    for (int k = 0; k < sz(xs); ++k) {
+        result[k] = flawed_frequency_transmission_kth_digit(k, xs, ss);
     }
 
-    // cerr << "per:" << tail_period(result0) << endl;
-    // return result0;
+    return result;
 }
 
 int main() {
