@@ -57,6 +57,9 @@ int main() {
         cin >> row;
         assert(sz(row) == WA);
     }
+    ga = cut_by_blacks(ga);
+    HA = sz(ga);
+    WA = sz(ga[0]);
 
     int HB, WB;
     cin >> HB >> WB;
@@ -65,6 +68,9 @@ int main() {
         cin >> row;
         assert(sz(row) == WB);
     }
+    gb = cut_by_blacks(gb);
+    HB = sz(gb);
+    WB = sz(gb[0]);
 
     int HX, WX;
     cin >> HX >> WX;
@@ -73,20 +79,24 @@ int main() {
         cin >> row;
         assert(sz(row) == WX);
     }
+    gx = cut_by_blacks(gx);
+    HX = sz(gx);
+    WX = sz(gx[0]);
 
-    const auto gxx = cut_by_blacks(gx);
+    const auto h = 2 * (HA + HB);
+    const auto w = 2 * (WA + WB);
 
     const auto yes = [&]() -> bool {
-        for (int aro = 0; aro < 20 - HA; ++aro) {
-            for (int aco = 0; aco < 20 - WA; ++aco) {
-                for (int bro = 0; bro < 20 - HB; ++bro) {
-                    for (int bco = 0; bco < 20 - WB; ++bco) {
-                        vector<string> canvas(20, string(20, '.'));
+        for (int aro = 0; aro < h - HA; ++aro) {
+            for (int aco = 0; aco < w - WA; ++aco) {
+                for (int bro = 0; bro < h - HB; ++bro) {
+                    for (int bco = 0; bco < w - WB; ++bco) {
+                        vector<string> canvas(h, string(w, '.'));
 
                         paste(canvas, ga, aro, aco);
                         paste(canvas, gb, bro, bco);
 
-                        if (cut_by_blacks(canvas) == gxx) return true;
+                        if (cut_by_blacks(canvas) == gx) return true;
                     }
                 }
             }
