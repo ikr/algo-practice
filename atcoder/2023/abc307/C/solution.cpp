@@ -72,31 +72,28 @@ int main() {
     HB = sz(gb);
     WB = sz(gb[0]);
 
-    int HX, WX;
-    cin >> HX >> WX;
-    vector<string> gx(HX);
+    int h, w;
+    cin >> h >> w;
+    vector<string> gx(h);
     for (auto &row : gx) {
         cin >> row;
-        assert(sz(row) == WX);
+        assert(sz(row) == w);
     }
     gx = cut_by_blacks(gx);
-    HX = sz(gx);
-    WX = sz(gx[0]);
-
-    const auto h = 2 * (HA + HB);
-    const auto w = 2 * (WA + WB);
+    h = sz(gx);
+    w = sz(gx[0]);
 
     const auto yes = [&]() -> bool {
-        for (int aro = 0; aro < h - HA; ++aro) {
-            for (int aco = 0; aco < w - WA; ++aco) {
-                for (int bro = 0; bro < h - HB; ++bro) {
-                    for (int bco = 0; bco < w - WB; ++bco) {
-                        vector<string> canvas(h, string(w, '.'));
+        if (HA > h || WA > w || HB > h || WB > w) return false;
 
+        for (int aro = 0; aro <= h - HA; ++aro) {
+            for (int aco = 0; aco <= w - WA; ++aco) {
+                for (int bro = 0; bro <= h - HB; ++bro) {
+                    for (int bco = 0; bco <= w - WB; ++bco) {
+                        vector<string> canvas(h, string(w, '.'));
                         paste(canvas, ga, aro, aco);
                         paste(canvas, gb, bro, bco);
-
-                        if (cut_by_blacks(canvas) == gx) return true;
+                        if (canvas == gx) return true;
                     }
                 }
             }
