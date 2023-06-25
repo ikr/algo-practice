@@ -129,6 +129,25 @@ void intcode_run(vector<ll> &xs, const function<optional<ll>(void)> input,
     }
 }
 
+ll alignment_parameters_sum(const vector<string> &grid) {
+    const auto is_intersection = [&](const int ro, const int co) -> bool {
+        if (grid[ro][co] == '.') return false;
+        const string neighs{grid[ro - 1][co], grid[ro][co + 1],
+                            grid[ro + 1][co], grid[ro][co - 1]};
+        return neighs == "####";
+    };
+
+    ll result{};
+    for (int ro = 1; ro < sz(grid) - 1; ++ro) {
+        for (int co = 1; co < sz(grid[ro]) - 1; ++co) {
+            if (is_intersection(ro, co)) {
+                result += ro * co;
+            }
+        }
+    }
+    return result;
+}
+
 int main() {
     string line;
     cin >> line;
@@ -154,5 +173,6 @@ int main() {
     while (grid.back() == "") grid.pop_back();
 
     for (const auto &row : grid) cout << row << '\n';
+    cout << alignment_parameters_sum(grid) << '\n';
     return 0;
 }
