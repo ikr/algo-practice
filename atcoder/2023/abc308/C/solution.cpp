@@ -15,15 +15,16 @@ struct Element final {
     int index;
 };
 
-double estimate(const pll &ab) {
-    const auto [a, b] = ab;
-    return static_cast<double>(a) / static_cast<double>(b);
+ll cmp(const pll &a, const pll &b) {
+    const auto [x1, y1] = a;
+    const auto [x2, y2] = b;
+    return x1 * y2 - x2 * y1;
 }
 
 struct ElementLess final {
     bool operator()(const Element &a, const Element &b) const {
         if (a.rate == b.rate) return a.index < b.index;
-        return estimate(a.rate) > estimate(b.rate);
+        return cmp(a.rate, b.rate) > 0;
     }
 };
 
