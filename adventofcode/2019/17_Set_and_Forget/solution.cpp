@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using ll = long long;
 
 enum class Opcode {
@@ -129,20 +145,18 @@ void intcode_run(vector<ll> &xs, const function<optional<ll>(void)> input,
     }
 }
 
-ll alignment_parameters_sum(const vector<string> &grid) {
-    const auto is_intersection = [&](const int ro, const int co) -> bool {
-        if (grid[ro][co] == '.') return false;
-        const string neighs{grid[ro - 1][co], grid[ro][co + 1],
-                            grid[ro + 1][co], grid[ro][co - 1]};
-        return neighs == "####";
-    };
+using Coord = pair<int, int>;
 
-    ll result{};
+vector<Coord> edges(const vector<string> &grid) {
+    vector<Coord> result;
     for (int ro = 1; ro < sz(grid) - 1; ++ro) {
         for (int co = 1; co < sz(grid[ro]) - 1; ++co) {
-            if (is_intersection(ro, co)) {
-                result += ro * co;
-            }
+            if (grid[ro][co] == '.') continue;
+            const string neighs{grid[ro - 1][co], grid[ro][co + 1],
+                                grid[ro + 1][co], grid[ro][co - 1]};
+            const auto deg = count_if(cbegin(neighs), cend(neighs),
+                                      [](const char x) { return x != '.'; });
+            if (deg == 1 || deg == 4) result.emplace_back(ro, co);
         }
     }
     return result;
@@ -173,6 +187,40 @@ int main() {
     while (grid.back() == "") grid.pop_back();
 
     for (const auto &row : grid) cout << row << '\n';
-    cout << alignment_parameters_sum(grid) << '\n';
+    cout << '\n';
+
+    const auto es = edges(grid);
+    cout << "es[" << sz(es) << "]: " << es << '\n';
+
+    const vector<vector<int>> adj{
+        {0, 0, 12, 1},
+        {0, 3, 3, 5},
+        {8},
+        {1, 4, 10, 1},
+        {3},
+        {1, 5, 5, 9},
+        {8, 7, 7, 9},
+        {6, 8, 9, 6},
+        {6, 2, 9, 7},
+        {7, 8, 5, 6},
+        {3, 12, 11, 13},
+        {10, 12, 13, 13},
+        {10, 0, 13, 11},
+        {11, 11, 12, 10},
+    };
+
+    const string full_program{
+        "L,6,R,8,R,12,L,6,L,8,L,10,L,8,R,12,L,6,R,8,R,12,L,6,L,8,L,8,L,10,L,6,"
+        "L,6,L,10,L,8,R,12,L,8,L,10,L,6,L,6,L,10,L,8,R,12,L,6,R,8,R,12,L,6,L,8,"
+        "L,8,L,10,L,6,L,6,L,10,L,8,R,12"};
+
+    cout << "full_program: " << full_program << '\n';
+
+    const string A{"L,6,R,8,R,12,L,6,L,8"};
+    const string B{"L,10,L,8,R,12"};
+    const string C{"L,8,L,10,L,6,L,6"};
+
+    const string compressed_program{"A,B,A,C,B,C,B,A,C,B"};
+
     return 0;
 }
