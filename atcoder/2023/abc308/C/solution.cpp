@@ -17,8 +17,7 @@ struct Element final {
 
 double estimate(const pll &ab) {
     const auto [a, b] = ab;
-    return static_cast<double>(a) /
-           (static_cast<double>(a) + static_cast<double>(b));
+    return static_cast<double>(a) / static_cast<double>(b);
 }
 
 struct ElementLess final {
@@ -47,7 +46,7 @@ int main() {
     for (int i = 1; i <= N; ++i) {
         ll a, b;
         cin >> a >> b;
-        xs.push_back(Element({simplify({a, b}), i}));
+        xs.push_back(Element({simplify({a, a + b}), i}));
     }
 
     sort(begin(xs), end(xs), ElementLess{});
