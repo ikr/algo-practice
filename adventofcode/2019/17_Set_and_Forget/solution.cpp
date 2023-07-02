@@ -163,28 +163,34 @@ vector<Coord> edges(const vector<string> &grid) {
 }
 
 int main() {
-    string line;
-    cin >> line;
+    const auto rom = [&]() -> vector<ll> {
+        string line;
+        cin >> line;
 
-    const auto tokens = split(",", line);
-    vector<ll> ram(sz(tokens));
-    transform(cbegin(tokens), cend(tokens), begin(ram),
-              [](const auto &x) { return stoll(x); });
-
-    const auto input = [&]() -> optional<ll> { return nullopt; };
+        const auto tokens = split(",", line);
+        vector<ll> result(sz(tokens));
+        transform(cbegin(tokens), cend(tokens), begin(result),
+                  [](const auto &x) { return stoll(x); });
+        return result;
+    }();
 
     vector<string> grid{""};
 
-    const auto output = [&](const ll x) -> void {
-        if (x == 10) {
-            grid.push_back("");
-        } else {
-            grid.back() += static_cast<char>(x);
-        }
-    };
+    {
+        const auto input = [&]() -> optional<ll> { return nullopt; };
 
-    intcode_run(ram, input, output);
-    while (grid.back() == "") grid.pop_back();
+        const auto output = [&](const ll x) -> void {
+            if (x == 10) {
+                grid.push_back("");
+            } else {
+                grid.back() += static_cast<char>(x);
+            }
+        };
+
+        auto ram = rom;
+        intcode_run(ram, input, output);
+        while (grid.back() == "") grid.pop_back();
+    }
 
     for (const auto &row : grid) cout << row << '\n';
     cout << '\n';
@@ -214,13 +220,35 @@ int main() {
         "L,6,L,10,L,8,R,12,L,8,L,10,L,6,L,6,L,10,L,8,R,12,L,6,R,8,R,12,L,6,L,8,"
         "L,8,L,10,L,6,L,6,L,10,L,8,R,12"};
 
-    cout << "full_program: " << full_program << '\n';
+    cout << "full_program: " << full_program << "\n\n";
 
     const string A{"L,6,R,8,R,12,L,6,L,8"};
     const string B{"L,10,L,8,R,12"};
     const string C{"L,8,L,10,L,6,L,6"};
 
     const string compressed_program{"A,B,A,C,B,C,B,A,C,B"};
+
+    {
+        const string input_data =
+            compressed_program + '\n' + A + '\n' + B + '\n' + C + '\n' + "n\n";
+        int i{};
+
+        const auto input = [&]() -> optional<ll> {
+            return static_cast<ll>(input_data[i++]);
+        };
+
+        const auto output = [&](const ll x) -> void {
+            if (x > 255) {
+                cout << '\n' << x << '\n';
+            } else {
+                cout << static_cast<char>(x);
+            }
+        };
+
+        auto ram = rom;
+        ram[0] = 2;
+        intcode_run(ram, input, output);
+    }
 
     return 0;
 }
