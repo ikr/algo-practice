@@ -230,19 +230,27 @@ int main() {
 
     {
         const string input_data =
-            compressed_program + '\n' + A + '\n' + B + '\n' + C + '\n' + "n\n";
+            compressed_program + '\n' + A + '\n' + B + '\n' + C + '\n' + "y\n";
         int i{};
 
         const auto input = [&]() -> optional<ll> {
             return static_cast<ll>(input_data[i++]);
         };
 
+        ll prev_x = 0;
         const auto output = [&](const ll x) -> void {
             if (x > 255) {
                 cout << '\n' << x << '\n';
             } else {
-                cout << static_cast<char>(x);
+                if (x == 10 && prev_x == 10) {
+                    this_thread::sleep_for(chrono::milliseconds(75));
+                    printf("\033[%d;%dH", 0, 0);
+                } else {
+                    cout << static_cast<char>(x);
+                }
             }
+
+            prev_x = x;
         };
 
         auto ram = rom;
