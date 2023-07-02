@@ -41,7 +41,7 @@ int main() {
         }
     }
 
-    array<array<vector<int>, 3>, 3> EX{};
+    array<array<vector<ll>, 3>, 3> EX{};
     for (int e = 0; e < 3; ++e) {
         for (int x = 0; x < 3; ++x) {
             EX[e][x].resize(sz(E[e]));
