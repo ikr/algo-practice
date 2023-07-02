@@ -45,10 +45,13 @@ int main() {
     for (int e = 0; e < 3; ++e) {
         for (int x = 0; x < 3; ++x) {
             EX[e][x].resize(sz(E[e]));
+
             for (int i = 0; i < sz(E[e]); ++i) {
                 const auto it = lower_bound(cbegin(X[x]), cend(X[x]), E[e][i]);
                 EX[e][x][i] = inof(cend(X[x]) - it);
             }
+
+            partial_sum(crbegin(EX[e][x]), crend(EX[e][x]), rbegin(EX[e][x]));
         }
     }
 
