@@ -103,9 +103,8 @@ int main() {
             if (it != cend(E[0])) {
                 const auto i = inof(it - cbegin(E[0]));
                 ans += E0X0[i];
-                ans += E0X2[i];
                 ans += 2 * E0X1[i];
-                ans += 3 * E1X2[i];
+                ans += E0X2[i];
             }
         }
         {
@@ -122,8 +121,8 @@ int main() {
             if (it != cend(E[2])) {
                 const auto i = inof(it - cbegin(E[2]));
                 ans += E2X0[i];
-                ans += E2X2[i];
                 ans += 3 * E2X1[i];
+                ans += E2X2[i];
             }
         }
     }
@@ -133,8 +132,8 @@ int main() {
             const auto it = lower_bound(cbegin(E[0]), cend(E[0]), im);
             if (it != cend(E[0])) {
                 const auto i = inof(it - cbegin(E[0]));
-                ans += 2 * E0X1[i];
                 ans += 2 * E0X0[i];
+                ans += 2 * E0X1[i];
                 ans += 3 * E0X2[i];
             }
         }
@@ -159,8 +158,9 @@ int main() {
             const auto it = lower_bound(cbegin(E[0]), cend(E[0]), im);
             if (it != cend(E[0])) {
                 const auto i = inof(it - cbegin(E[0]));
-                ans += E0X2[i];
+                ans += E0X0[i];
                 ans += 3 * E0X1[i];
+                ans += E0X2[i];
             }
         }
         {
