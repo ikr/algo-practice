@@ -44,7 +44,7 @@ int main() {
     const auto recur = [&](const auto self, const int c, const int u) -> void {
         if (c > 0) ++ans;
         for (const auto v : chi[u]) {
-            self(self, max(c - 1, 0) + coverage[v], v);
+            self(self, max(max(c - 1, 0), coverage[v]), v);
         }
     };
 
