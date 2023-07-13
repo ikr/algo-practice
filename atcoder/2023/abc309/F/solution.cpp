@@ -16,22 +16,32 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+vector<int> ys_compressed(const vector<Tri> &boxes) {
+    set<int> y_values_set;
+    for (const auto &box : boxes) y_values_set.insert(box[1]);
+
+    vector<int> y_values(cbegin(y_values_set), cend(y_values_set));
+    unordered_map<int, int> idx;
+    for (int i = 0; i < sz(y_values); ++i) idx[y_values[i]] = i;
+
+    vector<int> result(sz(boxes));
+    for (int i = 0; i < sz(boxes); ++i) result[i] = idx.at(boxes[i][1]);
+    return result;
+}
+
 bool can_nest(const vector<Tri> &boxes) {
-    vector<Duo> ys_with_index(sz(boxes));
-    for (int i = 0; i < sz(boxes); ++i) {
-        ys_with_index[i] = {boxes[i][1], i};
-    }
-    sort(begin(ys_with_index), end(ys_with_index));
-
-    vector<int> ys_compressed(sz(ys_with_index));
-    for (int i = 0; i < sz(ys_with_index); ++i) {
-        ys_compressed[ys_with_index[i].second] = i;
-    }
-
+    const auto yc = ys_compressed(boxes);
     atcoder::segtree<int, op, e> zs(sz(boxes));
+    vector<Duo> stash;
+
     for (int i = 0; i < sz(boxes); ++i) {
-        if (zs.prod(0, ys_compressed[i]) < boxes[i][2]) return true;
-        zs.set(ys_compressed[i], boxes[i][2]);
+        if (i && boxes[i][0] != boxes[i - 1][0]) {
+            for (const auto &[y, z] : stash) zs.set(y, min(zs.get(y), z));
+            stash.clear();
+        }
+
+        if (zs.prod(0, yc[i]) < boxes[i][2]) return true;
+        stash.emplace_back(yc[i], boxes[i][2]);
     }
 
     return false;
