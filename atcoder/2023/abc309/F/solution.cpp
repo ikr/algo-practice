@@ -61,6 +61,7 @@ int main() {
         sort(begin(box), end(box));
     }
 
+    sort(begin(boxes), end(boxes));
     cout << (can_nest(boxes) ? "Yes" : "No") << '\n';
     return 0;
 }
