@@ -23,16 +23,6 @@ int main() {
     unordered_set<int> ind;
     MS ms = MS::N;
 
-    unordered_set<int> up;
-    unordered_set<int> lo;
-    for (int i = 0; i < sz(xs); ++i) {
-        if (isupper(xs[i])) {
-            up.insert(i);
-        } else if (islower(xs[i])) {
-            lo.insert(i);
-        }
-    }
-
     int Q;
     cin >> Q;
     for (int q = 0; q < Q; ++q) {
@@ -47,11 +37,11 @@ int main() {
             ind.insert(i);
             xs[i] = c;
         } else if (t == 2) {
-            ms = MS::U;
+            ms = MS::L;
             ind.clear();
         } else {
             assert(t == 3);
-            ms = MS::L;
+            ms = MS::U;
             ind.clear();
         }
     }
