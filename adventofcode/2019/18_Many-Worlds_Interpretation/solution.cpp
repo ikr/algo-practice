@@ -4,18 +4,48 @@ using namespace std;
 using Coord = pair<int, int>;
 
 static constexpr int Inf = 1000 * 1000 * 1000;
-
-static const auto InitialWalls = []() -> unordered_set<char> {
-    unordered_set<char> ans{'#'};
-    for (char c = 'A'; c <= 'Z'; ++c) ans.insert(c);
-    return ans;
-}();
+static constexpr int Az = 26;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+constexpr bool is_key(const char x) { return 'a' <= x && x <= 'z'; }
+constexpr bool is_flexiwall(const char x) { return 'A' <= x && x <= 'Z'; }
+
+vector<Coord> key_locations(const vector<string> &grid) {
+    vector<Coord> result(Az + 1, {-1, -1});
+    for (int ro = 0; ro < sz(grid); ++ro) {
+        for (int co = 0; co < sz(grid[ro]); ++co) {
+            const auto x = grid[ro][co];
+            if (x == '@') {
+                result[Az] = {ro, co};
+            } else if (is_key(x)) {
+                result[x - 'a'] = {ro, co};
+            }
+        }
+    }
+    return result;
+}
+
+namespace state {
+constexpr int code(const int flexiwall_bits, const char cell) {
+    const int cell_id = cell == '@' ? Az : cell - 'a';
+    return (flexiwall_bits << 5) | cell_id;
+}
+
+constexpr int flexiwall_bits(const int code) { return code >> 5; }
+
+constexpr int cell_id(const int code) { return code & 31; }
+} // namespace state
+
+static const auto InitialWalls = []() -> unordered_set<char> {
+    unordered_set<char> ans{'#'};
+    for (char c = 'A'; c <= 'Z'; ++c) ans.insert(c);
+    return ans;
+}();
 
 struct Model final {
     vector<string> grid;
