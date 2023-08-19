@@ -12,12 +12,14 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 array<int, Az> freqs(const string &xs) {
     array<int, Az> ans{};
+    ans.fill(0);
     for (const char x : xs) ++ans[x - 'a'];
     return ans;
 }
 
 array<int, Az> freqs(const vector<string> &grid, const int co) {
     array<int, Az> ans{};
+    ans.fill(0);
     for (int ro = 0; ro < sz(grid); ++ro) ++ans[grid[ro][co] - 'a'];
     return ans;
 }
@@ -35,18 +37,13 @@ int main() {
         assert(sz(row) == W);
     }
 
-    set<Coord> rem;
-    for (int ro = 0; ro < H; ++ro) {
-        for (int co = 0; co < W; ++co) {
-            rem.emplace(ro, co);
-        }
-    }
+    vector<vector<bool>> rem(H, vector(W, true));
 
     for (int ro = 0; ro < H; ++ro) {
         const auto fs = freqs(grid[ro]);
         for (int co = 0; co < W; ++co) {
             const int x = grid[ro][co] - 'a';
-            if (fs[x] != 1) rem.erase({ro, co});
+            if (fs[x] != 1) rem[ro][co] = false;
         }
     }
 
@@ -54,10 +51,14 @@ int main() {
         const auto fs = freqs(grid, co);
         for (int ro = 0; ro < H; ++ro) {
             const int x = grid[ro][co] - 'a';
-            if (fs[x] != 1) rem.erase({ro, co});
+            if (fs[x] != 1) rem[ro][co] = false;
         }
     }
 
-    cout << sz(rem) << '\n';
+    int ans{};
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) ans += rem[ro][co];
+    }
+    cout << ans << '\n';
     return 0;
 }
