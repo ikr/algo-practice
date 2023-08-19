@@ -15,17 +15,6 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-template <typename T>
-ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 unordered_set<int> interesting_vertices(const vector<vector<int>> &g) {
     unordered_set<int> ans;
     const auto dfs = [&](const auto &self, const auto u) -> void {
@@ -68,9 +57,7 @@ int main() {
     queue<int> q;
 
     for (int u = 0; u < N; ++u) {
-        if (!deg[u] && ivs.contains(u)) {
-            q.push(u);
-        }
+        if (!deg[u] && ivs.contains(u)) q.push(u);
     }
 
     vector<int> ans;
@@ -83,7 +70,7 @@ int main() {
 
         for (const auto v : g_[u]) {
             --deg[v];
-            if (!deg[v]) q.push(v);
+            if (!deg[v] && ivs.contains(v)) q.push(v);
         }
     }
 
