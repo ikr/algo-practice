@@ -17,10 +17,13 @@ array<int, Az> freqs(const string &xs) {
     return ans;
 }
 
-array<int, Az> freqs(const vector<string> &grid, const int co) {
+array<int, Az> freqs(const vector<string> &grid, const vector<bool> &row_empty,
+                     const int co) {
     array<int, Az> ans{};
     ans.fill(0);
-    for (int ro = 0; ro < sz(grid); ++ro) ++ans[grid[ro][co] - 'a'];
+    for (int ro = 0; ro < sz(grid); ++ro) {
+        if (!row_empty[ro]) ++ans[grid[ro][co] - 'a'];
+    }
     return ans;
 }
 
@@ -37,27 +40,37 @@ int main() {
         assert(sz(row) == W);
     }
 
-    vector<vector<bool>> rem(H, vector(W, true));
+    vector<vector<bool>> keep(H, vector(W, true));
+    vector<bool> row_empty(H, false);
 
     for (int ro = 0; ro < H; ++ro) {
         const auto fs = freqs(grid[ro]);
         for (int co = 0; co < W; ++co) {
             const int x = grid[ro][co] - 'a';
-            if (fs[x] != 1) rem[ro][co] = false;
+            if (fs[x] == W) {
+                keep[ro][co] = false;
+                row_empty[ro] = true;
+            }
         }
     }
 
+    const auto empty_rows_count =
+        inof(count(cbegin(row_empty), cend(row_empty), true));
+
     for (int co = 0; co < W; ++co) {
-        const auto fs = freqs(grid, co);
+        const auto fs = freqs(grid, row_empty, co);
+
         for (int ro = 0; ro < H; ++ro) {
             const int x = grid[ro][co] - 'a';
-            if (fs[x] != 1) rem[ro][co] = false;
+            if (fs[x] == H - empty_rows_count) {
+                keep[ro][co] = false;
+            }
         }
     }
 
     int ans{};
     for (int ro = 0; ro < H; ++ro) {
-        for (int co = 0; co < W; ++co) ans += rem[ro][co];
+        for (int co = 0; co < W; ++co) ans += keep[ro][co];
     }
     cout << ans << '\n';
     return 0;
