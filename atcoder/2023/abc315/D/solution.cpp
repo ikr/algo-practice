@@ -29,6 +29,16 @@ list<ValRep> run_length_encoding(const string &xs) {
     return result;
 }
 
+vector<int> indices_to_mark(const vector<list<ValRep>> &xss) {
+    vector<int> ans;
+    for (int i = 0; i < ssize(xss); ++i) {
+        if (ssize(xss[i]) == 1 && xss[i].front().second > 1) {
+            ans.push_back(i);
+        }
+    }
+    return ans;
+}
+
 int cookies_num_remaining(const vector<string> &grid) {
     vector<list<ValRep>> rows(size(grid));
     ranges::transform(grid, begin(rows), run_length_encoding);
@@ -36,6 +46,9 @@ int cookies_num_remaining(const vector<string> &grid) {
     assert(!empty(grid));
     vector<list<ValRep>> cols(size(grid[0]));
     ranges::transform(transpose(grid), begin(cols), run_length_encoding);
+
+    vector<int> xrows;
+    vector<int> xcols;
 
     return -1;
 }
