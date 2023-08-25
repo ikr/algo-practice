@@ -5,24 +5,37 @@ template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
 }
 
 bool is_symm(const vector<int> &xs) {
-    const int n = sz(xs);
-    if (xs[0] != n) return false;
+    auto ys = xs;
+    ranges::reverse(ys);
 
-    for (int i = 0; i < div_ceil(n, 2); ++i) {
-        const auto h = xs[i] - i;
-        if (h < 0) return false;
-        if (i + h > n) return false;
-        if (!(i + h == n || xs[i + h] < i)) return false;
+    vector<int> buf;
+    int i{};
+    int baseline{};
+    while (i < ssize(ys)) {
+        auto y = ys[i];
+        while (y > baseline) {
+            buf.push_back(ssize(ys) - i);
+            // cerr << "buf: " << buf << endl;
+            --y;
+            if (size(buf) > size(xs)) return false;
+        }
+        baseline = ys[i];
+
+        i = inof(ranges::upper_bound(ys, baseline) - ranges::cbegin(ys));
     }
 
-    return true;
+    return buf == xs;
 }
 
 int main() {
