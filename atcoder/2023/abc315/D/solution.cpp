@@ -29,12 +29,14 @@ list<ValRep> run_length_encoding(const string &xs) {
     return result;
 }
 
+constexpr bool should_be_marked(const list<ValRep> &xs) {
+    return ssize(xs) == 1 && xs.front().second > 1;
+}
+
 vector<int> indices_to_mark(const vector<list<ValRep>> &xss) {
     vector<int> ans;
     for (int i = 0; i < ssize(xss); ++i) {
-        if (ssize(xss[i]) == 1 && xss[i].front().second > 1) {
-            ans.push_back(i);
-        }
+        if (should_be_marked(xss[i])) ans.push_back(i);
     }
     return ans;
 }
@@ -47,10 +49,31 @@ int cookies_num_remaining(const vector<string> &grid) {
     vector<list<ValRep>> cols(size(grid[0]));
     ranges::transform(transpose(grid), begin(cols), run_length_encoding);
 
+    auto mrows = indices_to_mark(rows);
+    auto mcols = indices_to_mark(cols);
+
+    vector<int> mrows_;
+    vector<int> mcols_;
+
     vector<int> xrows;
     vector<int> xcols;
 
-    return -1;
+    while (!mrows.empty() || !mcols.empty()) {
+        for (const auto i : mrows) {
+        }
+
+        for (const auto i : mcols) {
+        }
+
+        swap(mrows, mrows_);
+        swap(mcols, mcols_);
+    }
+
+    int result{};
+    for (const auto &row : rows) {
+        for (const auto &[_, k] : row) result += k;
+    }
+    return result;
 }
 
 int main() {
