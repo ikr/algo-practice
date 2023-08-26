@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-static constexpr int Inf = -1;
+static constexpr int Inf = 0;
 
 int path_length(const vector<vector<int>> &g, const vector<int> &path) {
     int result{};
@@ -36,6 +36,7 @@ int main() {
 
     for (const auto &us : cs.groups()) {
         auto seq = us;
+        ranges::sort(seq);
 
         do {
             result = max(result, path_length(g, seq));
