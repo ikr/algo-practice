@@ -1,48 +1,21 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-static constexpr int Inf = 1'000'000'000;
-
-int longest_path_from(const vector<vector<int>> &g, const int u) {
+int longest_path_from(const vector<vector<pair<int, int>>> &g, const int u0) {
     const auto n = ssize(g);
     vector<int> D(n, -1);
+    D[u0] = 0;
 
-    D[u] = 0;
-    set<pair<int, int>> q;
-    q.emplace(0, u);
-
-    while (!q.empty()) {
-        const auto v = cbegin(q)->second;
-        q.erase(cbegin(q));
-
-        for (int e = 0; e < n; ++e) {
-            if (g[v][e] == Inf) continue;
-
-            const auto to = e;
-            const auto len = g[v][e];
-
-            if (D[to] == -1 || D[v] + len > D[to]) {
-                q.erase({-D[to], to});
-                D[to] = D[v] + len;
-                q.emplace(-D[to], to);
-            }
+    const auto recur = [&](const auto &self, const int u) -> void {
+        for (const auto &[v, w] : g[u]) {
+            if (D[v] != -1) continue;
+            self(self, v);
+            D[u] = max(D[u], w + D[v]);
         }
-    }
+    };
 
-    int result{};
-    for (const auto d : D) {
-        if (d != Inf) result = max(result, d);
-    }
-    return result;
-}
-
-int path_length(const vector<vector<int>> &g, const vector<int> &path) {
-    int result{};
-    for (int i = 1; i < ssize(path); ++i) {
-        if (g[path[i - 1]][path[i]] == Inf) return 0;
-        result += g[path[i - 1]][path[i]];
-    }
-    return result;
+    recur(recur, u0);
+    return *max_element(cbegin(D), cend(D));
 }
 
 int main() {
@@ -52,14 +25,14 @@ int main() {
     int N, M;
     cin >> N >> M;
 
-    vector<vector<int>> g(N, vector(N, Inf));
+    vector<vector<pair<int, int>>> g(N);
 
     for (int i = 0; i < M; ++i) {
         int u, v, w;
         cin >> u >> v >> w;
         --u, --v;
-        g[u][v] = w;
-        g[v][u] = w;
+        g[u].emplace_back(v, w);
+        g[v].emplace_back(u, w);
     }
 
     int result{};
