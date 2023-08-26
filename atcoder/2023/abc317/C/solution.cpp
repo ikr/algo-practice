@@ -2,12 +2,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-static constexpr int Inf = 0;
+using ll = long long;
+static constexpr int Inf = 1'000'000'000;
 
-int path_length(const vector<vector<int>> &g, const vector<int> &path) {
-    int result{};
+ll path_length(const vector<vector<int>> &g, const vector<int> &path) {
+    ll result{};
     for (int i = 1; i < ssize(path); ++i) {
-        if (g[path[i - 1]][path[i]] == Inf) return Inf;
+        if (g[path[i - 1]][path[i]] == Inf) return 0;
         result += g[path[i - 1]][path[i]];
     }
     return result;
@@ -32,7 +33,7 @@ int main() {
         cs.merge(u, v);
     }
 
-    int result{};
+    ll result{};
 
     for (const auto &us : cs.groups()) {
         auto seq = us;
