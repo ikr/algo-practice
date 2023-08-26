@@ -26,18 +26,21 @@ code = '#include "lest.hpp"\n' if args.tests else ""
 
 code += """#include <bits/stdc++.h>
 using namespace std;
+"""
 
+
+if args.cpp_standard < 20:
+    code = code + """
 template <typename T> constexpr int inof(const T x) { return static_cast<int>(x); }
-
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 """
+
 
 if args.cpp_standard < 17:
     code = code + """
 template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
     return xs.cbegin();
 }
-
 template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
     return xs.cend();
 }
