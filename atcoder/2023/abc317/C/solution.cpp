@@ -1,12 +1,43 @@
-#include <atcoder/dsu>
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 static constexpr int Inf = 1'000'000'000;
 
-ll path_length(const vector<vector<int>> &g, const vector<int> &path) {
-    ll result{};
+int longest_path_from(const vector<vector<int>> &g, const int u) {
+    const auto n = ssize(g);
+    vector<int> D(n, -1);
+
+    D[u] = 0;
+    set<pair<int, int>> q;
+    q.emplace(0, u);
+
+    while (!q.empty()) {
+        const auto v = cbegin(q)->second;
+        q.erase(cbegin(q));
+
+        for (int e = 0; e < n; ++e) {
+            if (g[v][e] == Inf) continue;
+
+            const auto to = e;
+            const auto len = g[v][e];
+
+            if (D[to] == -1 || D[v] + len > D[to]) {
+                q.erase({-D[to], to});
+                D[to] = D[v] + len;
+                q.emplace(-D[to], to);
+            }
+        }
+    }
+
+    int result{};
+    for (const auto d : D) {
+        if (d != Inf) result = max(result, d);
+    }
+    return result;
+}
+
+int path_length(const vector<vector<int>> &g, const vector<int> &path) {
+    int result{};
     for (int i = 1; i < ssize(path); ++i) {
         if (g[path[i - 1]][path[i]] == Inf) return 0;
         result += g[path[i - 1]][path[i]];
@@ -22,7 +53,6 @@ int main() {
     cin >> N >> M;
 
     vector<vector<int>> g(N, vector(N, Inf));
-    atcoder::dsu cs(N);
 
     for (int i = 0; i < M; ++i) {
         int u, v, w;
@@ -30,18 +60,12 @@ int main() {
         --u, --v;
         g[u][v] = w;
         g[v][u] = w;
-        cs.merge(u, v);
     }
 
-    ll result{};
+    int result{};
 
-    for (const auto &us : cs.groups()) {
-        auto seq = us;
-        ranges::sort(seq);
-
-        do {
-            result = max(result, path_length(g, seq));
-        } while (next_permutation(begin(seq), end(seq)));
+    for (int u = 0; u < N; ++u) {
+        result = max(result, longest_path_from(g, u));
     }
 
     cout << result << '\n';
