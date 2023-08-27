@@ -3,6 +3,10 @@ using namespace std;
 
 using ValRep = pair<int, int>;
 
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+
 vector<string> transpose(const vector<string> &m) {
     const auto H = ssize(m[0]);
     const auto W = ssize(m);
@@ -40,6 +44,22 @@ vector<int> indices_to_mark(const vector<list<ValRep>> &xss) {
     }
     return ans;
 }
+
+int number_of_dominated(const vector<int> &xs, const int hi) {
+    return inof(lower_bound(cbegin(xs), cend(xs), hi) - cbegin(xs));
+}
+
+list<ValRep>::iterator skip_k(list<ValRep> &xs, const int k) {
+    int skipped{};
+    for (auto it = begin(xs); it != end(xs); ++it) {
+        skipped += it->second;
+        if (skipped > k) return it;
+    }
+    return end(xs);
+}
+
+void remove_at_index(const vector<int> hole_indices, list<ValRep> &xs,
+                     const int i) {}
 
 int cookies_num_remaining(const vector<string> &grid) {
     vector<list<ValRep>> rows(size(grid));
