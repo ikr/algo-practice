@@ -1,21 +1,32 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int longest_path_from(const vector<vector<pair<int, int>>> &g, const int u0) {
-    const auto n = ssize(g);
-    vector<int> D(n, -1);
-    D[u0] = 0;
+using pii = pair<int, int>;
 
-    const auto recur = [&](const auto &self, const int u) -> void {
-        for (const auto &[v, w] : g[u]) {
-            if (D[v] != -1) continue;
-            self(self, v);
-            D[u] = max(D[u], w + D[v]);
+template <typename T> constexpr bool contains(const vector<T> &xs, const T &x) {
+    return find(cbegin(xs), cend(xs), x) != cend(xs);
+}
+
+constexpr int path_length(const vector<vector<pii>> &g,
+                          const vector<int> &path) {
+    int result{};
+    for (int i = 1; i < ssize(path); ++i) {
+        // TODO
+    }
+    return result;
+}
+
+int longest_path_from(const vector<vector<pii>> &g, const int u0) {
+    int result{};
+    const auto recur = [&](const auto self, vector<int> &pre) -> void {
+        assert(!empty(pre));
+        for (const auto &[v, w] : g[pre.back()]) {
+            if (contains(pre, v)) continue;
         }
     };
-
-    recur(recur, u0);
-    return *max_element(cbegin(D), cend(D));
+    vector<int> pre{u0};
+    recur(recur, pre);
+    return result;
 }
 
 int main() {
@@ -25,7 +36,7 @@ int main() {
     int N, M;
     cin >> N >> M;
 
-    vector<vector<pair<int, int>>> g(N);
+    vector<vector<pii>> g(N);
 
     for (int i = 0; i < M; ++i) {
         int u, v, w;
