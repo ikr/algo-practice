@@ -117,28 +117,28 @@ int cookies_num_remaining(const vector<string> &grid) {
     vector<list<ValRep>> cols(size(grid[0]));
     ranges::transform(transpose(grid), begin(cols), run_length_encoding);
 
-    cerr << "rows:\n" << rows << endl;
-    cerr << "cols:\n" << cols << endl;
-    return -1;
-
     auto mrows = indices_to_mark(rows);
     auto mcols = indices_to_mark(cols);
 
-    vector<int> mrows_;
-    vector<int> mcols_;
+    // cerr << "rows:\n" << rows << endl;
+    // cerr << "cols:\n" << cols << endl;
+    // cerr << "mrows: " << mrows << endl;
+    // cerr << "mcols: " << mcols << endl;
 
     vector<int> xrows;
     vector<int> xcols;
 
     while (!mrows.empty() || !mcols.empty()) {
+        vector<int> mrows_;
+        vector<int> mcols_;
+
         for (const auto iro : mrows) {
-            cerr << "Deleting row " << iro << endl;
+            // cerr << "Deleting row " << iro << endl;
 
             for (auto ico = sz(cols) - 1; ico >= 0; --ico) {
                 if (empty(cols[ico])) continue;
 
                 remove_at_index(xrows, cols[ico], iro);
-                cerr << "cols:\n" << cols << endl;
                 if (sz(cols[ico]) == 1 && cols[ico].front().second > 1 &&
                     !binary_search(crbegin(mcols), crend(mcols), ico)) {
 
@@ -147,17 +147,15 @@ int cookies_num_remaining(const vector<string> &grid) {
             }
 
             rows[iro].clear();
-            cerr << "rows:\n" << rows << endl;
         }
 
         for (const auto ico : mcols) {
-            cerr << "Deleting col " << ico << endl;
+            // cerr << "Deleting col " << ico << endl;
 
             for (auto iro = sz(rows) - 1; iro >= 0; --iro) {
                 if (empty(rows[iro])) continue;
 
                 remove_at_index(xcols, rows[iro], ico);
-                cerr << "rows:\n" << rows << endl;
                 if (sz(rows[iro]) == 1 && rows[iro].front().second > 1 &&
                     !binary_search(crbegin(mrows), crend(mrows), iro)) {
                     mrows_.push_back(iro);
@@ -165,7 +163,6 @@ int cookies_num_remaining(const vector<string> &grid) {
             }
 
             cols[ico].clear();
-            cerr << "cols:\n" << cols << endl;
         }
 
         xrows.insert(end(xrows), cbegin(mrows), cend(mrows));
@@ -175,6 +172,11 @@ int cookies_num_remaining(const vector<string> &grid) {
 
         swap(mrows, mrows_);
         swap(mcols, mcols_);
+
+        // cerr << "rows:\n" << rows << endl;
+        // cerr << "cols:\n" << cols << endl;
+        // cerr << "mrows: " << mrows << endl;
+        // cerr << "mcols: " << mcols << endl;
     }
 
     int result{};
