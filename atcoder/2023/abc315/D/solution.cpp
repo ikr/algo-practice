@@ -102,7 +102,9 @@ int cookies_num_remaining(const vector<string> &grid) {
                 if (empty(cols[ico])) continue;
 
                 remove_at_index(xrows, cols[ico], iro);
-                if (sz(cols[ico]) == 1 && cols[ico].front().second > 1) {
+                if (sz(cols[ico]) == 1 && cols[ico].front().second > 1 &&
+                    !binary_search(crbegin(mcols), crend(mcols), ico)) {
+
                     mcols_.push_back(ico);
                 }
             }
@@ -117,7 +119,8 @@ int cookies_num_remaining(const vector<string> &grid) {
                 if (empty(rows[iro])) continue;
 
                 remove_at_index(xcols, rows[iro], ico);
-                if (sz(rows[iro]) == 1 && rows[iro].front().second > 1) {
+                if (sz(rows[iro]) == 1 && rows[iro].front().second > 1 &&
+                    !binary_search(crbegin(mrows), crend(mrows), iro)) {
                     mrows_.push_back(iro);
                 }
             }
