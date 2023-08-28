@@ -106,6 +106,8 @@ int cookies_num_remaining(const vector<string> &grid) {
                     mcols_.push_back(ico);
                 }
             }
+
+            rows[iro].clear();
         }
 
         for (const auto ico : mcols) {
@@ -119,6 +121,8 @@ int cookies_num_remaining(const vector<string> &grid) {
                     mrows_.push_back(iro);
                 }
             }
+
+            cols[ico].clear();
         }
 
         xrows.insert(end(xrows), cbegin(mrows), cend(mrows));
