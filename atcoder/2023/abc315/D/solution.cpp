@@ -1,6 +1,38 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const list<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<list<T>> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
 using ValRep = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -24,9 +56,9 @@ vector<string> transpose(const vector<string> &m) {
 
 list<ValRep> run_length_encoding(const string &xs) {
     assert(!empty(xs));
-    list<ValRep> result{{xs[0], 1}};
+    list<ValRep> result{{xs[0] - 'a', 1}};
     for (const auto x : xs | views::drop(1)) {
-        if (result.back().first == x) {
+        if (result.back().first == x - 'a') {
             ++result.back().second;
         } else {
             result.emplace_back(x - 'a', 1);
@@ -85,6 +117,10 @@ int cookies_num_remaining(const vector<string> &grid) {
     vector<list<ValRep>> cols(size(grid[0]));
     ranges::transform(transpose(grid), begin(cols), run_length_encoding);
 
+    cerr << "rows:\n" << rows << endl;
+    cerr << "cols:\n" << cols << endl;
+    return -1;
+
     auto mrows = indices_to_mark(rows);
     auto mcols = indices_to_mark(cols);
 
@@ -102,6 +138,7 @@ int cookies_num_remaining(const vector<string> &grid) {
                 if (empty(cols[ico])) continue;
 
                 remove_at_index(xrows, cols[ico], iro);
+                cerr << "cols:\n" << cols << endl;
                 if (sz(cols[ico]) == 1 && cols[ico].front().second > 1 &&
                     !binary_search(crbegin(mcols), crend(mcols), ico)) {
 
@@ -110,6 +147,7 @@ int cookies_num_remaining(const vector<string> &grid) {
             }
 
             rows[iro].clear();
+            cerr << "rows:\n" << rows << endl;
         }
 
         for (const auto ico : mcols) {
@@ -119,6 +157,7 @@ int cookies_num_remaining(const vector<string> &grid) {
                 if (empty(rows[iro])) continue;
 
                 remove_at_index(xcols, rows[iro], ico);
+                cerr << "rows:\n" << rows << endl;
                 if (sz(rows[iro]) == 1 && rows[iro].front().second > 1 &&
                     !binary_search(crbegin(mrows), crend(mrows), iro)) {
                     mrows_.push_back(iro);
@@ -126,6 +165,7 @@ int cookies_num_remaining(const vector<string> &grid) {
             }
 
             cols[ico].clear();
+            cerr << "cols:\n" << cols << endl;
         }
 
         xrows.insert(end(xrows), cbegin(mrows), cend(mrows));
