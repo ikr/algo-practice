@@ -88,7 +88,7 @@ vector<pii> indices_to_mark(const vector<Freq> &xss) {
 }
 
 constexpr bool contains_index(const vector<pii> &ixs, const int i) {
-    return ranges::any_of(ixs, [i](const auto &p) { return p.first == i; });
+    return ranges::any_of(ixs, [i](const auto &ix) { return ix.first == i; });
 }
 
 int cookies_num_remaining(const vector<string> &grid) {
@@ -112,7 +112,7 @@ int cookies_num_remaining(const vector<string> &grid) {
         for (const auto &[iro, x] : mrows) {
             for (int ico = 0; ico < sz(cols); ++ico) {
                 if (cols[ico] == Empty || contains_index(mcols, ico)) continue;
-                --cols[ico][x];
+                if (cols[ico][x]) --cols[ico][x];
 
                 const auto mbx = markable_value(cols[ico]);
                 if (mbx) mcols_.emplace_back(ico, *mbx);
@@ -123,7 +123,7 @@ int cookies_num_remaining(const vector<string> &grid) {
         for (const auto &[ico, x] : mcols) {
             for (int iro = 0; iro < sz(rows); ++iro) {
                 if (rows[iro] == Empty) continue;
-                --rows[iro][x];
+                if (rows[iro][x]) --rows[iro][x];
 
                 if (rows[iro] == Empty) mrows_.emplace_back(iro, x);
                 const auto mbx = markable_value(rows[iro]);
