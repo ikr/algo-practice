@@ -1,39 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
+using Freq = array<int, 26>;
+using pii = pair<int, int>;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const list<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<list<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-using ValRep = pair<int, int>;
+static constexpr Freq Empty{};
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -54,134 +25,77 @@ vector<string> transpose(const vector<string> &m) {
     return ans;
 }
 
-list<ValRep> run_length_encoding(const string &xs) {
-    assert(!empty(xs));
-    list<ValRep> result{{xs[0] - 'a', 1}};
-    for (const auto x : xs | views::drop(1)) {
-        if (result.back().first == x - 'a') {
-            ++result.back().second;
-        } else {
-            result.emplace_back(x - 'a', 1);
-        }
+Freq frequences(const string &xs) {
+    Freq result{};
+    for (const auto x : xs) {
+        ++result[x - 'a'];
     }
     return result;
 }
 
-constexpr bool should_be_marked(const list<ValRep> &xs) {
-    return sz(xs) == 1 && xs.front().second > 1;
+constexpr bool is_non_zero(const int x) { return !!x; }
+
+constexpr optional<int> markable_value(const Freq &xs) {
+    if (ranges::count_if(xs, is_non_zero) != 1) {
+        return nullopt;
+    }
+
+    const auto it = ranges::find_if(xs, is_non_zero);
+    assert(it != cend(xs) && *it > 0);
+    return *it == 1 ? nullopt : optional{it - cbegin(xs)};
 }
 
-vector<int> indices_to_mark(const vector<list<ValRep>> &xss) {
-    vector<int> ans;
+vector<pii> indices_to_mark(const vector<Freq> &xss) {
+    vector<pii> result;
     for (auto i = sz(xss) - 1; i >= 0; --i) {
-        if (should_be_marked(xss[i])) ans.push_back(i);
+        const auto mbx = markable_value(xss[i]);
+        if (mbx) result.emplace_back(i, *mbx);
     }
-    return ans;
+    return result;
 }
 
-int number_of_dominated(const vector<int> &xs, const int hi) {
-    return inof(lower_bound(cbegin(xs), cend(xs), hi) - cbegin(xs));
-}
-
-list<ValRep>::iterator skip_k(list<ValRep> &xs, const int k) {
-    int skipped{};
-    for (auto it = begin(xs); it != end(xs); ++it) {
-        skipped += it->second;
-        if (skipped > k) return it;
-    }
-    return end(xs);
-}
-
-void remove_at_index(const vector<int> hole_indices, list<ValRep> &xs,
-                     const int i) {
-    const auto it = skip_k(xs, i - number_of_dominated(hole_indices, i));
-    assert(it != end(xs));
-    if (it->second == 1) {
-        const auto lit = it == begin(xs) ? end(xs) : prev(it);
-        const auto rit = xs.erase(it);
-
-        if (lit != cend(xs) && rit != cend(xs) && lit->first == rit->first) {
-            lit->second += rit->second;
-            xs.erase(rit);
-        }
-    } else {
-        --it->second;
-    }
+constexpr bool contains_index(const vector<pii> &ixs, const int i) {
+    return ranges::any_of(ixs, [i](const auto &p) { return p.first == i; });
 }
 
 int cookies_num_remaining(const vector<string> &grid) {
-    vector<list<ValRep>> rows(size(grid));
-    ranges::transform(grid, begin(rows), run_length_encoding);
+    vector<Freq> rows(size(grid));
+    ranges::transform(grid, begin(rows), frequences);
 
     assert(!empty(grid));
-    vector<list<ValRep>> cols(size(grid[0]));
-    ranges::transform(transpose(grid), begin(cols), run_length_encoding);
+    vector<Freq> cols(size(grid[0]));
+    ranges::transform(transpose(grid), begin(cols), frequences);
 
     auto mrows = indices_to_mark(rows);
     auto mcols = indices_to_mark(cols);
 
-    // cerr << "rows:\n" << rows << endl;
-    // cerr << "cols:\n" << cols << endl;
-    // cerr << "mrows: " << mrows << endl;
-    // cerr << "mcols: " << mcols << endl;
-
-    vector<int> xrows;
-    vector<int> xcols;
-
     while (!mrows.empty() || !mcols.empty()) {
-        vector<int> mrows_;
-        vector<int> mcols_;
+        vector<pii> mrows_;
+        vector<pii> mcols_;
 
-        for (const auto iro : mrows) {
-            // cerr << "Deleting row " << iro << endl;
-
-            for (auto ico = sz(cols) - 1; ico >= 0; --ico) {
-                if (empty(cols[ico])) continue;
-
-                remove_at_index(xrows, cols[ico], iro);
-                if (sz(cols[ico]) == 1 && cols[ico].front().second > 1 &&
-                    !binary_search(crbegin(mcols), crend(mcols), ico)) {
-
-                    mcols_.push_back(ico);
-                }
+        for (const auto &[iro, x] : mrows) {
+            for (int ico = 0; ico < sz(cols); ++ico) {
+                if (cols[ico] == Empty || contains_index(mcols, ico)) continue;
+                --cols[ico][x];
+                if (cols[ico] == Empty) mcols_.emplace_back(ico, x);
             }
-
-            rows[iro].clear();
         }
 
-        for (const auto ico : mcols) {
-            // cerr << "Deleting col " << ico << endl;
-
-            for (auto iro = sz(rows) - 1; iro >= 0; --iro) {
-                if (empty(rows[iro])) continue;
-
-                remove_at_index(xcols, rows[iro], ico);
-                if (sz(rows[iro]) == 1 && rows[iro].front().second > 1 &&
-                    !binary_search(crbegin(mrows), crend(mrows), iro)) {
-                    mrows_.push_back(iro);
-                }
+        for (const auto &[ico, x] : mcols) {
+            for (int iro = 0; iro < sz(rows); ++iro) {
+                if (rows[iro] == Empty) continue;
+                --rows[iro][x];
+                if (rows[iro] == Empty) mrows_.emplace_back(iro, x);
             }
-
-            cols[ico].clear();
         }
-
-        xrows.insert(end(xrows), cbegin(mrows), cend(mrows));
-        xcols.insert(end(xcols), cbegin(mcols), cend(mcols));
-        ranges::sort(xrows);
-        ranges::sort(xcols);
 
         swap(mrows, mrows_);
         swap(mcols, mcols_);
-
-        // cerr << "rows:\n" << rows << endl;
-        // cerr << "cols:\n" << cols << endl;
-        // cerr << "mrows: " << mrows << endl;
-        // cerr << "mcols: " << mcols << endl;
     }
 
     int result{};
     for (const auto &row : rows) {
-        for (const auto &[_, k] : row) result += k;
+        result += accumulate(cbegin(row), cend(row), 0);
     }
     return result;
 }
