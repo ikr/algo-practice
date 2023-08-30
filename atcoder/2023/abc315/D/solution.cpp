@@ -1,6 +1,39 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const vector<array<T, N>> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
 using Freq = array<int, 26>;
 using pii = pair<int, int>;
 
@@ -47,7 +80,7 @@ constexpr optional<int> markable_value(const Freq &xs) {
 
 vector<pii> indices_to_mark(const vector<Freq> &xss) {
     vector<pii> result;
-    for (auto i = sz(xss) - 1; i >= 0; --i) {
+    for (int i = 0; i < sz(xss); ++i) {
         const auto mbx = markable_value(xss[i]);
         if (mbx) result.emplace_back(i, *mbx);
     }
@@ -69,6 +102,9 @@ int cookies_num_remaining(const vector<string> &grid) {
     auto mrows = indices_to_mark(rows);
     auto mcols = indices_to_mark(cols);
 
+    // cerr << "mrows: " << mrows << endl;
+    // cerr << "mcols: " << mcols << endl;
+
     while (!mrows.empty() || !mcols.empty()) {
         vector<pii> mrows_;
         vector<pii> mcols_;
@@ -77,20 +113,29 @@ int cookies_num_remaining(const vector<string> &grid) {
             for (int ico = 0; ico < sz(cols); ++ico) {
                 if (cols[ico] == Empty || contains_index(mcols, ico)) continue;
                 --cols[ico][x];
-                if (cols[ico] == Empty) mcols_.emplace_back(ico, x);
+
+                const auto mbx = markable_value(cols[ico]);
+                if (mbx) mcols_.emplace_back(ico, *mbx);
             }
+            rows[iro].fill(0);
         }
 
         for (const auto &[ico, x] : mcols) {
             for (int iro = 0; iro < sz(rows); ++iro) {
                 if (rows[iro] == Empty) continue;
                 --rows[iro][x];
+
                 if (rows[iro] == Empty) mrows_.emplace_back(iro, x);
+                const auto mbx = markable_value(rows[iro]);
+                if (mbx) mrows_.emplace_back(iro, *mbx);
             }
+            cols[ico].fill(0);
         }
 
         swap(mrows, mrows_);
         swap(mcols, mcols_);
+        // cerr << "mrows: " << mrows << endl;
+        // cerr << "mcols: " << mcols << endl;
     }
 
     int result{};
