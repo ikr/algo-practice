@@ -115,7 +115,9 @@ int cookies_num_remaining(const vector<string> &grid) {
                 if (cols[ico][x]) --cols[ico][x];
 
                 const auto mbx = markable_value(cols[ico]);
-                if (mbx) mcols_.emplace_back(ico, *mbx);
+                if (mbx && !contains_index(mcols_, ico)) {
+                    mcols_.emplace_back(ico, *mbx);
+                }
             }
             rows[iro].fill(0);
         }
@@ -127,7 +129,9 @@ int cookies_num_remaining(const vector<string> &grid) {
 
                 if (rows[iro] == Empty) mrows_.emplace_back(iro, x);
                 const auto mbx = markable_value(rows[iro]);
-                if (mbx) mrows_.emplace_back(iro, *mbx);
+                if (mbx && !contains_index(mrows_, iro)) {
+                    mrows_.emplace_back(iro, *mbx);
+                }
             }
             cols[ico].fill(0);
         }
