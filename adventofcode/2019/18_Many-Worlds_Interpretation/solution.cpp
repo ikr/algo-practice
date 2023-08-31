@@ -2,6 +2,7 @@
 using namespace std;
 
 using Coord = pair<int, int>;
+using Adj = pair<int, int>;
 
 static constexpr int Inf = 1000 * 1000 * 1000;
 static constexpr int Az = 26;
@@ -16,9 +17,14 @@ constexpr bool is_key(const char x) { return 'a' <= x && x <= 'z'; }
 constexpr bool is_flexiwall(const char x) { return 'A' <= x && x <= 'Z'; }
 
 namespace state {
+constexpr int id_of(const char cell) {
+    assert(cell == '@' || is_key(cell));
+    return cell == '@' ? Az : cell - 'a';
+}
+
 constexpr int code(const int flexiwall_bits, const char cell) {
-    const int cell_id = cell == '@' ? Az : cell - 'a';
-    return (flexiwall_bits << 5) | cell_id;
+    assert(__builtin_popcount(flexiwall_bits) <= 26);
+    return (flexiwall_bits << 5) | id_of(cell);
 }
 
 constexpr int flexiwall_bits(const int code) { return code >> 5; }
@@ -26,11 +32,13 @@ constexpr int flexiwall_bits(const int code) { return code >> 5; }
 constexpr int cell_id(const int code) { return code & 31; }
 } // namespace state
 
-static const auto InitialWalls = []() -> unordered_set<char> {
-    unordered_set<char> ans{'#'};
-    for (char c = 'A'; c <= 'Z'; ++c) ans.insert(c);
-    return ans;
-}();
+vector<Adj> adjacent_state_codes(const vector<string> &grid, const Coord &roco,
+                                 const int state_code) {
+    assert(state::cell_id(state_code) ==
+           state::id_of(grid[roco.first][roco.second]));
+    vector<Adj> result;
+    return result;
+}
 
 int min_total_distance_collecting_all_keys(const vector<string> &grid,
                                            const Coord &start) {
