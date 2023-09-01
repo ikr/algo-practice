@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
 using Coord = pair<int, int>;
 using Adj = pair<int, int>;
 
@@ -13,23 +14,26 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-constexpr bool is_key(const char x) { return 'a' <= x && x <= 'z'; }
 constexpr bool is_flexiwall(const char x) { return 'A' <= x && x <= 'Z'; }
+constexpr bool is_key(const char x) { return 'a' <= x && x <= 'z'; }
 
 namespace state {
-constexpr int id_of(const char cell) {
-    assert(cell == '@' || is_key(cell));
-    return cell == '@' ? Az : cell - 'a';
+constexpr ll id_of(const char cell) {
+    if (is_flexiwall(cell)) return cell - 'A';
+    if (is_key(cell)) return Az + cell - 'a';
+
+    assert(cell == '@');
+    return 2 * Az;
 }
 
-constexpr int code(const int flexiwall_bits, const char cell) {
-    assert(__builtin_popcount(flexiwall_bits) <= 26);
-    return (flexiwall_bits << 5) | id_of(cell);
+constexpr ll code(const ll flexiwall_bits, const char cell) {
+    assert(__builtin_popcountl(flexiwall_bits) <= 26);
+    return (flexiwall_bits << 6) | id_of(cell);
 }
 
-constexpr int flexiwall_bits(const int code) { return code >> 5; }
+constexpr ll flexiwall_bits(const ll code) { return code >> 6; }
 
-constexpr int cell_id(const int code) { return code & 31; }
+constexpr ll cell_id(const ll code) { return code & 63LL; }
 } // namespace state
 
 vector<Adj> adjacent_state_codes(const vector<string> &grid, const Coord &roco,
