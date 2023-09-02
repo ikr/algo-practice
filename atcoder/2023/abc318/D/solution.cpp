@@ -20,6 +20,16 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 template <typename T>
 ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     for (const auto &xs : xss) os << xs << '\n';
@@ -31,17 +41,22 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+constexpr pii normalize(const pii p) {
+    return p.first <= p.second ? p : pii{p.second, p.first};
+}
+
 ll max_total_weight(const vector<vector<ll>> &g) {
     const auto n = sz(g);
     set<pii> best_set{{0, 1}};
 
     const auto included_edge = [&](const int v) -> optional<pii> {
-        for (int u = 0; u < v; ++u) {
-            if (best_set.contains({u, v})) return pii{u, v};
+        for (int u = 0; u < n; ++u) {
+            if (best_set.contains(normalize({u, v}))) return pii{u, v};
         }
         return nullopt;
     };
 
+    cerr << "best_set: " << best_set << endl;
     for (int v = 2; v < n; ++v) {
         priority_queue<pair<ll, int>> pq;
 
@@ -62,6 +77,7 @@ ll max_total_weight(const vector<vector<ll>> &g) {
             best_set.erase({a, b});
         }
         best_set.emplace(u, v);
+        cerr << "best_set: " << best_set << endl;
     }
 
     ll best_total{};
