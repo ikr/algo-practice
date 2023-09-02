@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 static constexpr int Inf = 1000 * 1000 * 1000;
 static constexpr int Az = 26;
 
@@ -128,32 +112,42 @@ vector<Adj> adjacent_state_codes(const vector<string> &grid,
 
             return {state::code(flexiwall_bits, grid[ro][co]), d};
         });
+
+    assert(ranges::all_of(result, [&](const auto &adj) {
+        const auto [code, d] = adj;
+        return __builtin_popcount(state::flexiwall_bits(code)) <
+               __builtin_popcount(state::flexiwall_bits(state_code));
+    }));
+
     return result;
 }
 
 int min_total_distance_collecting_all_keys(const vector<string> &grid,
                                            const CellCoords &cell_coords) {
-    cerr << adjacent_state_codes(grid, cell_coords,
-                                 state::code((1 << 26) - 1, '@'))
-         << endl;
-    return -1;
-}
+    const auto flexiwalls_num =
+        ranges::count_if(cell_coords,
+                         [&](const auto &roco) {
+                             return roco != Coord{-1, -1};
+                         }) -
+        1;
+    const auto u0 = state::code((1 << flexiwalls_num) - 1, '@');
+    unordered_map<int, int> D;
+    auto result{Inf};
 
-void unit_test() {
-    {
-        const auto code = state::code((1 << 26) - 1, '@');
-        assert(state::flexiwall_bits(code) == 0b11111111111111111111111111);
-        assert(state::cell_of(state::cell_id(code)) == '@');
-    }
-    {
-        const auto code = state::code(8, 'b');
-        assert(state::flexiwall_bits(code) == 8);
-        assert(state::cell_of(state::cell_id(code)) == 'b');
-    }
+    const auto dfs = [&](const auto self, const int u) -> void {
+        for (const auto &[v, d] : adjacent_state_codes(grid, cell_coords, u)) {
+            D[v] = D[u] + d;
+            self(self, v);
+        }
+
+        if (state::flexiwall_bits(u) == 0) result = min(result, D[u]);
+    };
+
+    dfs(dfs, u0);
+    return result;
 }
 
 int main() {
-    unit_test();
     vector<string> grid;
     for (string line; getline(cin, line);) {
         if (!empty(line)) grid.push_back(line);
