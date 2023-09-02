@@ -113,13 +113,28 @@ vector<Adj> adjacent_state_codes(const vector<string> &grid,
                                  const int state_code) {
     const auto [ro0, co0] = cell_coords[state::cell_id(state_code)];
     assert(ro0 != -1 && co0 != -1);
+
     vector<Adj> result;
+    ranges::transform(
+        neighbor_cells(grid, state::flexiwall_bits(state_code), {ro0, co0}),
+        back_inserter(result), [&](const auto &rocod) -> Adj {
+            const auto [roco, d] = rocod;
+            const auto [ro, co] = roco;
+
+            const auto id = state::id_of(grid[ro][co]);
+            assert((state::flexiwall_bits(state_code) & (1 << id)));
+            const auto flexiwall_bits =
+                state::flexiwall_bits(state_code) ^ (1 << id);
+
+            return {state::code(flexiwall_bits, grid[ro][co]), d};
+        });
     return result;
 }
 
 int min_total_distance_collecting_all_keys(const vector<string> &grid,
                                            const CellCoords &cell_coords) {
-    cerr << neighbor_cells(grid, (1 << 26) - 1, cell_coords[state::id_of('@')])
+    cerr << adjacent_state_codes(grid, cell_coords,
+                                 state::code((1 << 26) - 1, '@'))
          << endl;
     return -1;
 }
