@@ -2,7 +2,6 @@
 using namespace std;
 
 using ll = long long;
-using pil = pair<int, ll>;
 using pii = pair<int, int>;
 
 template <typename T1, typename T2>
@@ -32,7 +31,7 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll max_total_weight(const vector<vector<pil>> &g) {
+ll max_total_weight(const vector<vector<ll>> &g) {
     const auto n = sz(g);
     set<pii> best_set{{0, 1}};
 
@@ -47,14 +46,12 @@ ll max_total_weight(const vector<vector<pil>> &g) {
         priority_queue<pair<ll, int>> pq;
 
         for (int u = 0; u < v; ++u) {
-            cerr << "u: " << u << " v: " << v << endl;
             const auto mbe = included_edge(u);
             if (mbe) {
                 const auto [a, b] = *mbe;
-                cerr << "HERE" << endl;
-                pq.emplace(g[u][v].second - g[a][b].second, u);
+                pq.emplace(g[u][v] - g[a][b], u);
             } else {
-                pq.emplace(g[u][v].second, u);
+                pq.emplace(g[u][v], u);
             }
         }
 
@@ -68,7 +65,7 @@ ll max_total_weight(const vector<vector<pil>> &g) {
     }
 
     ll best_total{};
-    for (const auto &[a, b] : best_set) best_total += g[a][b].second;
+    for (const auto &[a, b] : best_set) best_total += g[a][b];
     return best_total;
 }
 
@@ -79,13 +76,13 @@ int main() {
     int N;
     cin >> N;
 
-    vector<vector<pil>> g(N);
+    vector<vector<ll>> g(N, vector(N, -1LL));
     for (int u = 0; u < N - 1; ++u) {
         for (int v = u + 1; v < N; ++v) {
             ll w;
             cin >> w;
-            g[u].emplace_back(v, w);
-            g[v].emplace_back(u, w);
+            g[u][v] = w;
+            g[v][u] = w;
         }
     }
 
