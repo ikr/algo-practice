@@ -1,6 +1,33 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const unordered_map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 static constexpr int Inf = 1000 * 1000 * 1000;
 static constexpr int Az = 26;
 
@@ -122,8 +149,8 @@ vector<Adj> adjacent_state_codes(const vector<string> &grid,
     return result;
 }
 
-int min_total_distance_collecting_all_keys(const vector<string> &grid,
-                                           const CellCoords &cell_coords) {
+unordered_map<int, vector<Adj>> weighted_graph(const vector<string> &grid,
+                                               const CellCoords &cell_coords) {
     const auto flexiwalls_num =
         ranges::count_if(cell_coords,
                          [&](const auto &roco) {
@@ -131,20 +158,25 @@ int min_total_distance_collecting_all_keys(const vector<string> &grid,
                          }) -
         1;
     const auto u0 = state::code((1 << flexiwalls_num) - 1, '@');
-    unordered_map<int, int> D;
-    auto result{Inf};
 
+    unordered_map<int, vector<Adj>> g;
     const auto dfs = [&](const auto self, const int u) -> void {
+        if (g.contains(u)) return;
         for (const auto &[v, d] : adjacent_state_codes(grid, cell_coords, u)) {
-            D[v] = D[u] + d;
+            g[u].emplace_back(v, d);
             self(self, v);
         }
-
-        if (state::flexiwall_bits(u) == 0) result = min(result, D[u]);
     };
 
     dfs(dfs, u0);
-    return result;
+    return g;
+}
+
+int min_total_distance_collecting_all_keys(const vector<string> &grid,
+                                           const CellCoords &cell_coords) {
+    const auto g = weighted_graph(grid, cell_coords);
+    cerr << g << endl;
+    return -1;
 }
 
 int main() {
