@@ -149,16 +149,19 @@ vector<Adj> adjacent_state_codes(const vector<string> &grid,
     return result;
 }
 
-unordered_map<int, vector<Adj>> weighted_graph(const vector<string> &grid,
-                                               const CellCoords &cell_coords) {
+constexpr int initial_state_code(const CellCoords &cell_coords) {
     const auto flexiwalls_num =
         ranges::count_if(cell_coords,
                          [&](const auto &roco) {
                              return roco != Coord{-1, -1};
                          }) -
         1;
-    const auto u0 = state::code((1 << flexiwalls_num) - 1, '@');
+    return state::code((1 << flexiwalls_num) - 1, '@');
+}
 
+unordered_map<int, vector<Adj>> weighted_graph(const vector<string> &grid,
+                                               const CellCoords &cell_coords) {
+    const auto u0 = initial_state_code(cell_coords);
     unordered_map<int, vector<Adj>> g;
     const auto dfs = [&](const auto self, const int u) -> void {
         if (g.contains(u)) return;
@@ -175,7 +178,13 @@ unordered_map<int, vector<Adj>> weighted_graph(const vector<string> &grid,
 int min_total_distance_collecting_all_keys(const vector<string> &grid,
                                            const CellCoords &cell_coords) {
     const auto g = weighted_graph(grid, cell_coords);
-    cerr << g << endl;
+    const auto u0 = initial_state_code(cell_coords);
+    unordered_map<int, int> D;
+    for (const auto &[u, adjs] : g) {
+        D[u] = Inf;
+        for (const auto &[v, d] : adjs) D[v] = Inf;
+    }
+
     return -1;
 }
 
