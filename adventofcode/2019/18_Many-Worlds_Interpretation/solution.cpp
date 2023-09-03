@@ -164,9 +164,11 @@ unordered_map<int, vector<Adj>> weighted_graph(const vector<string> &grid,
     const auto u0 = initial_state_code(cell_coords);
     unordered_map<int, vector<Adj>> g;
     const auto dfs = [&](const auto self, const int u) -> void {
+        g[u];
         if (g.contains(u)) return;
         for (const auto &[v, d] : adjacent_state_codes(grid, cell_coords, u)) {
             g[u].emplace_back(v, d);
+            g[v];
             self(self, v);
         }
     };
@@ -179,13 +181,35 @@ int min_total_distance_collecting_all_keys(const vector<string> &grid,
                                            const CellCoords &cell_coords) {
     const auto g = weighted_graph(grid, cell_coords);
     const auto u0 = initial_state_code(cell_coords);
+
     unordered_map<int, int> D;
     for (const auto &[u, adjs] : g) {
         D[u] = Inf;
         for (const auto &[v, d] : adjs) D[v] = Inf;
     }
+    D[u0] = 0;
 
-    return -1;
+    set<pair<int, int>> q;
+    q.emplace(0, u0);
+
+    while (!empty(q)) {
+        const auto [du, u] = *cbegin(q);
+        q.erase(cbegin(q));
+
+        for (const auto &[v, d] : g.at(u)) {
+            if (D[v] > du + d) {
+                q.erase({D[v], v});
+                D[v] = du + d;
+                q.emplace(D[v], v);
+            }
+        }
+    }
+
+    auto result{Inf};
+    for (const auto &[v, d] : D) {
+        if (state::flexiwall_bits(v) == 0) result = min(result, d);
+    }
+    return result;
 }
 
 int main() {
