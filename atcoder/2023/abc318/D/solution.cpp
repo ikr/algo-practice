@@ -2,7 +2,6 @@
 using namespace std;
 
 using ll = long long;
-using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -12,29 +11,20 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 ll max_total_weight(const vector<vector<ll>> &g) {
     const auto n = sz(g);
 
-    vector<vector<pii>> es_by_taken_v_bits(1 << n);
-    for (int u = 0; u < n - 1; ++u) {
-        for (int v = u + 1; v < n; ++v) {
-            for (int bits = 0; bits < sz(es_by_taken_v_bits); ++bits) {
-                if (bits & (1 << u)) continue;
-                if (bits & (1 << v)) continue;
-                es_by_taken_v_bits[bits].emplace_back(u, v);
+    vector<ll> dp(1 << n, 0);
+
+    for (int v_bits = 1; v_bits < (1 << n); ++v_bits) {
+        for (int u = 0; u < n - 1; ++u) {
+            for (int v = u + 1; v < n; ++v) {
+                if ((v_bits & (1 << u)) && (v_bits & (1 << v))) {
+                    dp[v_bits] = max(
+                        dp[v_bits], dp[v_bits ^ (1 << u) ^ (1 << v)] + g[u][v]);
+                }
             }
         }
     }
 
-    ll result{};
-    const auto recur = [&](const auto self, const ll weight,
-                           const int v_bits) -> void {
-        result = max(result, weight);
-        for (const auto &[u, v] : es_by_taken_v_bits[v_bits]) {
-            const auto v_bits_ = v_bits | (1 << u) | (1 << v);
-            self(self, weight + g[u][v], v_bits_);
-        }
-    };
-
-    recur(recur, 0LL, 0);
-    return result;
+    return dp.back();
 }
 
 int main() {
