@@ -10,10 +10,9 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 ll max_total_weight(const vector<vector<ll>> &g) {
     const auto n = sz(g);
-
     vector<ll> dp(1 << n, 0);
 
-    for (int v_bits = 1; v_bits < (1 << n); ++v_bits) {
+    for (int v_bits = 3; v_bits < (1 << n); ++v_bits) {
         for (int u = 0; u < n - 1; ++u) {
             for (int v = u + 1; v < n; ++v) {
                 if ((v_bits & (1 << u)) && (v_bits & (1 << v))) {
