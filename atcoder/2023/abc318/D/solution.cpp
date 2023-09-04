@@ -9,10 +9,6 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-constexpr pii normalize(const pii p) {
-    return p.first <= p.second ? p : pii{p.second, p.first};
-}
-
 ll max_total_weight(const vector<vector<ll>> &g) {
     const auto n = sz(g);
 
