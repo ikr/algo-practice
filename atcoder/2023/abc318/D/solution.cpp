@@ -30,11 +30,7 @@ ll max_total_weight(const vector<vector<ll>> &g) {
     ll result{};
     const auto recur = [&](const auto self, const ll weight,
                            const int v_bits) -> void {
-        if (__builtin_popcount(v_bits) == n / 2) {
-            result = max(result, weight);
-            return;
-        }
-
+        result = max(result, weight);
         for (const auto &[u, v] : es_by_taken_v_bits[v_bits]) {
             const auto v_bits_ = v_bits | (1 << u) | (1 << v);
             self(self, weight + g[u][v], v_bits_);
