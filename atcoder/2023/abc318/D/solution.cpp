@@ -4,38 +4,6 @@ using namespace std;
 using ll = long long;
 using pii = pair<int, int>;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -47,42 +15,34 @@ constexpr pii normalize(const pii p) {
 
 ll max_total_weight(const vector<vector<ll>> &g) {
     const auto n = sz(g);
-    set<pii> best_set{{0, 1}};
 
-    const auto included_edge = [&](const int v) -> optional<pii> {
-        for (int u = 0; u < n; ++u) {
-            if (best_set.contains(normalize({u, v}))) return pii{u, v};
-        }
-        return nullopt;
-    };
-
-    cerr << "best_set: " << best_set << endl;
-    for (int v = 2; v < n; ++v) {
-        priority_queue<pair<ll, int>> pq;
-
-        for (int u = 0; u < v; ++u) {
-            const auto mbe = included_edge(u);
-            if (mbe) {
-                const auto [a, b] = *mbe;
-                pq.emplace(g[u][v] - g[a][b], u);
-            } else {
-                pq.emplace(g[u][v], u);
+    vector<vector<pii>> es_by_taken_v_bits(1 << n);
+    for (int u = 0; u < n - 1; ++u) {
+        for (int v = u + 1; v < n; ++v) {
+            for (int bits = 0; bits < sz(es_by_taken_v_bits); ++bits) {
+                if (bits & (1 << u)) continue;
+                if (bits & (1 << v)) continue;
+                es_by_taken_v_bits[bits].emplace_back(u, v);
             }
         }
-
-        const auto [_, u] = pq.top();
-        const auto mbe = included_edge(u);
-        if (mbe) {
-            const auto [a, b] = *mbe;
-            best_set.erase({a, b});
-        }
-        best_set.emplace(u, v);
-        cerr << "best_set: " << best_set << endl;
     }
 
-    ll best_total{};
-    for (const auto &[a, b] : best_set) best_total += g[a][b];
-    return best_total;
+    ll result{};
+    const auto recur = [&](const auto self, const ll weight,
+                           const int v_bits) -> void {
+        if (__builtin_popcount(v_bits) == n / 2) {
+            result = max(result, weight);
+            return;
+        }
+
+        for (const auto &[u, v] : es_by_taken_v_bits[v_bits]) {
+            const auto v_bits_ = v_bits | (1 << u) | (1 << v);
+            self(self, weight + g[u][v], v_bits_);
+        }
+    };
+
+    recur(recur, 0LL, 0);
+    return result;
 }
 
 int main() {
