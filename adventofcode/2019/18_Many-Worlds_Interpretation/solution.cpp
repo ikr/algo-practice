@@ -9,6 +9,7 @@ using Adj = pair<int, int>;
 using CellCoords = array<Coord, Az + 1>;
 
 static const vector<Coord> Deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+static const vector<Coord> DiagDeltas{{-1, -1}, {-1, 1}, {1, 1}, {1, -1}};
 
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
@@ -43,6 +44,18 @@ constexpr int flexiwall_bits(const int code) { return code >> 5; }
 
 constexpr int cell_id(const int code) { return code & 31LL; }
 } // namespace state
+
+void quad_patch(vector<string> &grid, const Coord &start) {
+    const auto [ro, co] = start;
+    grid[ro][co] = '#';
+    for (const auto &[dro, dco] : Deltas) {
+        grid[ro + dro][co + dco] = '#';
+    }
+
+    for (const auto &[dro, dco] : DiagDeltas) {
+        grid[ro + dro][co + dco] = '@';
+    }
+}
 
 vector<pair<Coord, int>> neighbor_cells(const vector<string> &grid,
                                         const int flexiwall_bits,
