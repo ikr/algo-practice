@@ -9,7 +9,7 @@ using Adj = pair<int, int>;
 using CellCoords = array<Coord, Az + 1>;
 
 static const vector<Coord> Deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-static const vector<Coord> DiagDeltas{{-1, -1}, {-1, 1}, {1, 1}, {1, -1}};
+static const vector<Coord> DiagDeltas{{-1, 1}, {-1, -1}, {1, -1}, {1, 1}};
 
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
