@@ -4,9 +4,11 @@ using namespace std;
 static constexpr int Inf = 1000 * 1000 * 1000;
 static constexpr int Az = 26;
 
+using ll = long long;
 using Coord = pair<int, int>;
 using Adj = pair<int, int>;
 using CellCoords = array<Coord, Az + 1>;
+using Quad = array<char, 4>;
 
 static const vector<Coord> Deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 static const vector<Coord> DiagDeltas{{-1, 1}, {-1, -1}, {1, -1}, {1, 1}};
@@ -29,10 +31,33 @@ constexpr int id_of(const char cell) {
     return Az;
 }
 
+constexpr int quad_id_of(const Quad &quad) {
+    int result{};
+    for (const auto cell : quad) {
+        result *= (Az + 1);
+        result += id_of(cell);
+    }
+    return result;
+}
+
 constexpr char cell_of(const int id) {
     assert(0LL <= id && id <= Az);
     if (id != Az) return chof('a' + id);
     return '@';
+}
+
+Quad quad_of(int quad_id) {
+    vector<char> ds{};
+    while (quad_id) {
+        ds.push_back(cell_of(quad_id % (Az + 1)));
+        quad_id /= (Az + 1);
+    }
+    assert(sz(ds) <= 4);
+    while (sz(ds) < 4) ds.push_back('a');
+
+    Quad result;
+    copy(crbegin(ds), crend(ds), begin(result));
+    return result;
 }
 
 constexpr int code(const int flexiwall_bits, const char cell) {
@@ -199,7 +224,18 @@ int min_total_distance_collecting_all_keys(const vector<string> &grid,
     return result;
 }
 
+void unit_test() {
+    vector<Quad> qs{{'a', 'a', 'a', 'a'}, {'@', '@', '@', '@'},
+                    {'z', '@', 'k', 'p'}, {'a', 'b', 'c', 'd'},
+                    {'b', 'a', 'b', 'a'}, {'a', 'a', '@', '@'}};
+
+    for (const auto &q : qs) {
+        assert(q == state::quad_of(state::quad_id_of(q)));
+    }
+}
+
 int main() {
+    unit_test();
     vector<string> grid;
     for (string line; getline(cin, line);) {
         if (!empty(line)) grid.push_back(line);
