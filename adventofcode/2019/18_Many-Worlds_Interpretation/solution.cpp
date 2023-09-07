@@ -53,6 +53,10 @@ static const vector<Coord> DiagDeltas{{-1, 1}, {-1, -1}, {1, -1}, {1, 1}};
 
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -99,7 +103,7 @@ Quad quad_of(int quad_id) {
 
 constexpr ll code(const int flexiwall_bits, const Quad &quad) {
     assert(__builtin_popcount(flexiwall_bits) <= 26);
-    return (flexiwall_bits << 20) | quad_id_of(quad);
+    return (llof(flexiwall_bits) << 20) | llof(quad_id_of(quad));
 }
 
 constexpr int flexiwall_bits(const ll code) { return inof(code >> 20); }
