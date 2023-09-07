@@ -6,7 +6,7 @@ static constexpr int Az = 26;
 
 using ll = long long;
 using Coord = pair<int, int>;
-using Adj = pair<int, int>;
+using Adj = pair<ll, int>;
 using CellCoords = array<Coord, Az + 4>;
 using Quad = array<char, 4>;
 
@@ -59,14 +59,14 @@ Quad quad_of(int quad_id) {
     return result;
 }
 
-constexpr int code(const int flexiwall_bits, const char cell) {
+constexpr ll code(const int flexiwall_bits, const Quad &quad) {
     assert(__builtin_popcount(flexiwall_bits) <= 26);
-    return (flexiwall_bits << 5) | id_of(cell);
+    return (flexiwall_bits << 20) | quad_id_of(quad);
 }
 
-constexpr int flexiwall_bits(const int code) { return code >> 5; }
+constexpr int flexiwall_bits(const ll code) { return inof(code >> 20); }
 
-constexpr int cell_id(const int code) { return code & 31LL; }
+constexpr int quad_id(const ll code) { return code & ((1LL << 20) - 1LL); }
 } // namespace state
 
 void quad_patch(vector<string> &grid, CellCoords &cell_coords,
@@ -90,7 +90,7 @@ vector<pair<Coord, int>> neighbor_cells(const vector<string> &grid,
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
     const auto [ro0, co0] = cell;
-    assert(grid[ro0][co0] == '@' || is_key(grid[ro0][co0]));
+    assert(is_source(grid[ro0][co0]) || is_key(grid[ro0][co0]));
 
     const auto is_wall = [&](const int ro, const int co) -> bool {
         const auto x = grid[ro][co];
@@ -134,24 +134,30 @@ vector<pair<Coord, int>> neighbor_cells(const vector<string> &grid,
 
 vector<Adj> adjacent_state_codes(const vector<string> &grid,
                                  const CellCoords &cell_coords,
-                                 const int state_code) {
-    const auto [ro0, co0] = cell_coords[state::cell_id(state_code)];
-    assert(ro0 != -1 && co0 != -1);
-
+                                 const ll state_code) {
+    const auto quad = state::quad_of(state::quad_id(state_code));
     vector<Adj> result;
-    ranges::transform(
-        neighbor_cells(grid, state::flexiwall_bits(state_code), {ro0, co0}),
-        back_inserter(result), [&](const auto &rocod) -> Adj {
+
+    for (int qi = 0; qi < sz(quad); ++qi) {
+        const auto [ro0, co0] = cell_coords[state::id_of(quad[qi])];
+        assert(ro0 != -1 && co0 != -1);
+
+        for (const auto &rocod : neighbor_cells(
+                 grid, state::flexiwall_bits(state_code), {ro0, co0})) {
             const auto [roco, d] = rocod;
             const auto [ro, co] = roco;
 
             const auto id = state::id_of(grid[ro][co]);
             assert((state::flexiwall_bits(state_code) & (1 << id)));
+
             const auto flexiwall_bits =
                 state::flexiwall_bits(state_code) ^ (1 << id);
 
-            return {state::code(flexiwall_bits, grid[ro][co]), d};
-        });
+            auto quad_ = quad;
+            quad_[qi] = grid[ro][co];
+            result.emplace_back(state::code(flexiwall_bits, quad_), d);
+        }
+    }
 
     assert(ranges::all_of(result, [&](const auto &adj) {
         const auto [code, d] = adj;
@@ -162,21 +168,21 @@ vector<Adj> adjacent_state_codes(const vector<string> &grid,
     return result;
 }
 
-constexpr int initial_state_code(const CellCoords &cell_coords) {
+constexpr ll initial_state_code(const CellCoords &cell_coords) {
     const auto flexiwalls_num =
         ranges::count_if(cell_coords,
                          [&](const auto &roco) {
                              return roco != Coord{-1, -1};
                          }) -
         1;
-    return state::code((1 << flexiwalls_num) - 1, '@');
+    return state::code((1 << flexiwalls_num) - 1, Quad{'0', '1', '2', '3'});
 }
 
-unordered_map<int, vector<Adj>> weighted_graph(const vector<string> &grid,
-                                               const CellCoords &cell_coords) {
+unordered_map<ll, vector<Adj>> weighted_graph(const vector<string> &grid,
+                                              const CellCoords &cell_coords) {
     const auto u0 = initial_state_code(cell_coords);
-    unordered_map<int, vector<Adj>> g;
-    const auto dfs = [&](const auto self, const int u) -> void {
+    unordered_map<ll, vector<Adj>> g;
+    const auto dfs = [&](const auto self, const ll u) -> void {
         if (g.contains(u)) return;
         for (const auto &[v, d] : adjacent_state_codes(grid, cell_coords, u)) {
             g[u].emplace_back(v, d);
@@ -196,14 +202,14 @@ int min_total_distance_collecting_all_keys(const vector<string> &grid,
     const auto g = weighted_graph(grid, cell_coords);
     const auto u0 = initial_state_code(cell_coords);
 
-    unordered_map<int, int> D;
+    unordered_map<ll, int> D;
     for (const auto &[u, adjs] : g) {
         D[u] = Inf;
         for (const auto &[v, d] : adjs) D[v] = Inf;
     }
     D[u0] = 0;
 
-    set<pair<int, int>> q;
+    set<pair<int, ll>> q;
     q.emplace(0, u0);
 
     while (!empty(q)) {
@@ -224,17 +230,6 @@ int min_total_distance_collecting_all_keys(const vector<string> &grid,
         if (state::flexiwall_bits(v) == 0) result = min(result, d);
     }
     return result;
-}
-
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
 }
 
 void unit_test() {
@@ -276,7 +271,6 @@ int main() {
     quad_patch(grid, cell_coords, center);
     for (int i = 0; i < 3; ++i) assert((cell_coords[Az] != Coord{-1, -1}));
 
-    // cout << min_total_distance_collecting_all_keys(grid, cell_coords) <<
-    // '\n';
+    cout << min_total_distance_collecting_all_keys(grid, cell_coords) << '\n';
     return 0;
 }
