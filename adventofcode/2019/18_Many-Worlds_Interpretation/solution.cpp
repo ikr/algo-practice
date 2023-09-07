@@ -212,7 +212,7 @@ constexpr ll initial_state_code(const CellCoords &cell_coords) {
                          [&](const auto &roco) {
                              return roco != Coord{-1, -1};
                          }) -
-        1;
+        4;
     return state::code((1 << flexiwalls_num) - 1, Quad{'0', '1', '2', '3'});
 }
 
