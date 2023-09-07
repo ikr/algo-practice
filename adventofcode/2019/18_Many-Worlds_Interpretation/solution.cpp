@@ -7,7 +7,7 @@ static constexpr int Az = 26;
 using ll = long long;
 using Coord = pair<int, int>;
 using Adj = pair<int, int>;
-using CellCoords = array<Coord, Az + 1>;
+using CellCoords = array<Coord, Az + 4>;
 using Quad = array<char, 4>;
 
 static const vector<Coord> Deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
@@ -23,40 +23,39 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 constexpr bool is_flexiwall(const char x) { return 'A' <= x && x <= 'Z'; }
 constexpr bool is_key(const char x) { return 'a' <= x && x <= 'z'; }
+constexpr bool is_source(const char x) { return '0' <= x && x <= '3'; }
 
 namespace state {
 constexpr int id_of(const char cell) {
     if (is_key(cell)) return cell - 'a';
-    assert(cell == '@');
-    return Az;
+    assert(is_source(cell));
+    return Az + cell - '0';
 }
 
 constexpr int quad_id_of(const Quad &quad) {
     int result{};
     for (const auto cell : quad) {
-        result *= (Az + 1);
+        result *= (Az + 4);
         result += id_of(cell);
     }
     return result;
 }
 
 constexpr char cell_of(const int id) {
-    assert(0LL <= id && id <= Az);
-    if (id != Az) return chof('a' + id);
-    return '@';
+    assert(0LL <= id && id <= Az + 3);
+    return id < Az ? chof('a' + id) : chof('0' + id - Az);
 }
 
 Quad quad_of(int quad_id) {
-    vector<char> ds{};
-    while (quad_id) {
-        ds.push_back(cell_of(quad_id % (Az + 1)));
-        quad_id /= (Az + 1);
-    }
-    assert(sz(ds) <= 4);
-    while (sz(ds) < 4) ds.push_back('a');
-
     Quad result;
-    copy(crbegin(ds), crend(ds), begin(result));
+    result.fill('a');
+    int i = 3;
+
+    while (quad_id) {
+        result[i--] = cell_of(quad_id % (Az + 4));
+        quad_id /= (Az + 4);
+    }
+
     return result;
 }
 
@@ -70,15 +69,18 @@ constexpr int flexiwall_bits(const int code) { return code >> 5; }
 constexpr int cell_id(const int code) { return code & 31LL; }
 } // namespace state
 
-void quad_patch(vector<string> &grid, const Coord &start) {
+void quad_patch(vector<string> &grid, CellCoords &cell_coords,
+                const Coord &start) {
     const auto [ro, co] = start;
     grid[ro][co] = '#';
     for (const auto &[dro, dco] : Deltas) {
         grid[ro + dro][co + dco] = '#';
     }
 
-    for (const auto &[dro, dco] : DiagDeltas) {
-        grid[ro + dro][co + dco] = '@';
+    for (int i = 0; i < sz(DiagDeltas); ++i) {
+        const auto [dro, dco] = DiagDeltas[i];
+        grid[ro + dro][co + dco] = chof('0' + i);
+        cell_coords[Az + i] = {ro + dro, co + dco};
     }
 }
 
@@ -224,10 +226,21 @@ int min_total_distance_collecting_all_keys(const vector<string> &grid,
     return result;
 }
 
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 void unit_test() {
-    vector<Quad> qs{{'a', 'a', 'a', 'a'}, {'@', '@', '@', '@'},
-                    {'z', '@', 'k', 'p'}, {'a', 'b', 'c', 'd'},
-                    {'b', 'a', 'b', 'a'}, {'a', 'a', '@', '@'}};
+    vector<Quad> qs{{'a', 'a', 'a', 'a'}, {'0', '1', '3', '0'},
+                    {'z', '2', 'k', 'p'}, {'a', 'b', 'c', 'd'},
+                    {'b', 'a', 'b', 'a'}, {'a', 'a', '0', '3'}};
 
     for (const auto &q : qs) {
         assert(q == state::quad_of(state::quad_id_of(q)));
@@ -236,6 +249,7 @@ void unit_test() {
 
 int main() {
     unit_test();
+
     vector<string> grid;
     for (string line; getline(cin, line);) {
         if (!empty(line)) grid.push_back(line);
@@ -245,15 +259,24 @@ int main() {
     CellCoords cell_coords;
     cell_coords.fill({-1, -1});
 
+    Coord center{-1, -1};
+
     for (int ro = 0; ro < sz(grid); ++ro) {
         for (int co = 0; co < sz(grid[ro]); ++co) {
             const auto x = grid[ro][co];
             if (x == '#' || x == '.' || is_flexiwall(x)) continue;
+            if (x == '@') {
+                center = {ro, co};
+                continue;
+            }
             cell_coords[state::id_of(grid[ro][co])] = {ro, co};
         }
     }
 
-    assert(cell_coords[state::id_of('@')] != (Coord{-1, -1}));
-    cout << min_total_distance_collecting_all_keys(grid, cell_coords) << '\n';
+    quad_patch(grid, cell_coords, center);
+    for (int i = 0; i < 3; ++i) assert((cell_coords[Az] != Coord{-1, -1}));
+
+    // cout << min_total_distance_collecting_all_keys(grid, cell_coords) <<
+    // '\n';
     return 0;
 }
