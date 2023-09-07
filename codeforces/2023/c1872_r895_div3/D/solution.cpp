@@ -4,12 +4,13 @@ using namespace std;
 using ll = long long;
 
 ll best_sch(const ll n, const ll x, const ll y) {
-    const auto xp = n / x;
-    const auto yp = n / y;
-    const auto overlap = n / lcm(x, y);
+    if (x == y) return 0;
+    const auto ov = n / lcm(x, y);
+    const auto xp = n / x - ov;
+    const auto yp = n / y - ov;
 
     const auto A = xp * (n + (n - xp + 1LL)) / 2LL;
-    const auto B = (yp + overlap) * (1LL + yp + overlap) / 2LL;
+    const auto B = yp * (1LL + yp) / 2LL;
     return A - B;
 }
 
