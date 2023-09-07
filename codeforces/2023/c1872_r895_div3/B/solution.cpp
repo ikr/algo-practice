@@ -20,19 +20,22 @@ int main() {
         vector<pii> ds(n);
         for (auto &[d, s] : ds) {
             cin >> d >> s;
-            --d;
         }
 
         ranges::sort(ds);
 
         int lo{INT_MAX};
-        int hi{};
-        for (const auto &[d, s] : ds) {
-            if (d > lo) break;
-
-            const auto h = div_ceil(s, 2) - 1;
-            const auto k = d + h;
+        for (int i = 0; i < n; ++i) {
+            const auto [d, s] = ds[i];
+            const auto k = (s % 2) ? (d + s / 2) : (d + s / 2 - 1);
             lo = min(lo, k);
+        }
+
+        int hi{1};
+        for (int i = 0; i < n; ++i) {
+            const auto [d, s] = ds[i];
+            const auto k = (s % 2) ? (d + s / 2) : (d + s / 2 - 1);
+            if (k > lo) continue;
             hi = max(hi, k);
         }
         cout << hi << '\n';
