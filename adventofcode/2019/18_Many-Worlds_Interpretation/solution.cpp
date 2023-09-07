@@ -308,7 +308,7 @@ int main() {
     }
 
     quad_patch(grid, cell_coords, center);
-    for (int i = 0; i < 3; ++i) assert((cell_coords[Az] != Coord{-1, -1}));
+    for (int i = 0; i < 3; ++i) assert((cell_coords[Az + i] != Coord{-1, -1}));
 
     cout << min_total_distance_collecting_all_keys(grid, cell_coords) << '\n';
     return 0;
