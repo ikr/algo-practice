@@ -184,6 +184,7 @@ vector<Adj> adjacent_state_codes(const vector<string> &grid,
                  grid, state::flexiwall_bits(state_code), {ro0, co0})) {
             const auto [roco, d] = rocod;
             const auto [ro, co] = roco;
+            assert(!is_source(grid[ro][co]));
 
             const auto id = state::id_of(grid[ro][co]);
             assert((state::flexiwall_bits(state_code) & (1 << id)));
