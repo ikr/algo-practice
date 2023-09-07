@@ -1,6 +1,44 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const unordered_map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 static constexpr int Inf = 1000 * 1000 * 1000;
 static constexpr int Az = 26;
 
@@ -200,6 +238,7 @@ unordered_map<ll, vector<Adj>> weighted_graph(const vector<string> &grid,
 int min_total_distance_collecting_all_keys(const vector<string> &grid,
                                            const CellCoords &cell_coords) {
     const auto g = weighted_graph(grid, cell_coords);
+    cerr << g << '\n' << cell_coords << endl;
     const auto u0 = initial_state_code(cell_coords);
 
     unordered_map<ll, int> D;
