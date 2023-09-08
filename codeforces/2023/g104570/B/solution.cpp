@@ -25,7 +25,7 @@ int main() {
         A.pop_back();
         ranges::reverse(A);
 
-        vector<ll> SA(n);
+        vector<ll> SA(sz(A));
         partial_sum(cbegin(A), cend(A), begin(SA));
 
         vector<ll> B(n);
@@ -35,15 +35,15 @@ int main() {
         B.pop_back();
         ranges::reverse(B);
 
-        vector<ll> SB(n);
+        vector<ll> SB(sz(B));
         partial_sum(cbegin(B), cend(B), begin(SB));
 
         ll ans = X - SB.back();
         for (int i = 0; i < sz(SA); ++i) {
             auto a = SA[i];
-            auto b = i ? SB[i - 1] : 0;
+            auto b = i ? SB[i - 1] : 0LL;
 
-            if (b + X > SB.back()) {
+            if (b + X - a > SB.back() - a - X) {
                 ans = max(ans, a - (b + X));
             } else {
                 ans = max(ans, a + X - SB.back());
