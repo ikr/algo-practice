@@ -64,9 +64,14 @@ ll super_palindrome_substrings_num(const string &xs) {
         // cerr << "ls:" << ls << endl;
         for (const auto l : ls) {
             assert(l >= 3);
+            if (l == 3) {
+                ++ans;
+                continue;
+            }
+
             const auto d = (l - 3) / 2;
-            ans += 3 * d;
-            if (l == 3) ++ans;
+            const ll k = d + 1;
+            ans += k * (k + 1LL) / 2LL;
         }
     }
 
