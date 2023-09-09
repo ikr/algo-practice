@@ -12,13 +12,6 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-constexpr tri normalize(const tri &abc) {
-    const auto [a, b, c] = abc;
-    array<int, 3> xs{a, b, c};
-    ranges::sort(xs);
-    return {xs[0], xs[1], xs[2]};
-}
-
 constexpr int in_grid(const Grid &g, const int id) {
     const auto ro = id / 3;
     const auto co = id % 3;
@@ -65,7 +58,10 @@ int main() {
 
         for (int i = 2; i < sz(ids); ++i) {
             const auto [ida, idb, idc] = tri{ids[i - 2], ids[i - 1], ids[i]};
-            if (!LineIds.contains(normalize({ida, idb, idc}))) continue;
+            if (!LineIds.contains({ida, idb, idc}) &&
+                !LineIds.contains({idc, idb, ida})) {
+                continue;
+            }
 
             if (are_disappointing(in_grid(grid, ida), in_grid(grid, idb),
                                   in_grid(grid, idc))) {
