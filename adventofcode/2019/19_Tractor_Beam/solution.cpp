@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
@@ -77,7 +67,6 @@ void run(vector<ll> &xs, const function<optional<ll>(void)> input,
 
     for (int i = 0; 0 <= i && i < sz(xs);) {
         const auto [oc, m1, m2, m3] = parse_op(xs[i++]);
-        // cerr << "i:" << i << " oc:" << inof(oc) << endl;
 
         if (oc == Opcode::ADD) {
             const auto p1 = xs[i++];
@@ -142,33 +131,41 @@ void run(vector<ll> &xs, const function<optional<ll>(void)> input,
 }
 } // namespace intcode
 
-int main() {
+vector<ll> read_rom_from_stdin() {
     string line;
     cin >> line;
 
     const auto tokens = split(",", line);
-    vector<ll> ram(sz(tokens));
-    transform(cbegin(tokens), cend(tokens), begin(ram),
+    vector<ll> result(sz(tokens));
+    transform(cbegin(tokens), cend(tokens), begin(result),
               [](const auto &x) { return stoll(x); });
 
-    // cerr << ram << endl;
+    return result;
+}
 
-    vector<int> todo;
+int main() {
+    const auto rom = read_rom_from_stdin();
+
+    ll result{};
+    const auto output = [&](const ll a) -> void { result += a; };
+
     for (int x = 0; x < 50; ++x) {
         for (int y = 0; y < 50; ++y) {
-            todo.push_back(x);
-            todo.push_back(y);
+            queue<ll> q;
+            q.push(x);
+            q.push(y);
+
+            const auto input = [&]() -> optional<ll> {
+                const auto a = q.front();
+                q.pop();
+                return a;
+            };
+
+            auto ram = rom;
+            intcode::run(ram, input, output);
         }
     }
 
-    // cerr << todo << endl;
-
-    const auto input = [&]() -> optional<ll> { return 1; };
-
-    ll result{};
-    const auto output = [&](const ll x) -> void { result = x; };
-
-    intcode::run(ram, input, output);
     cout << result << '\n';
     return 0;
 }
