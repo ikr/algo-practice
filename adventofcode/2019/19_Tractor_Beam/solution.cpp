@@ -3,6 +3,20 @@ using namespace std;
 
 using ll = long long;
 
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+vector<string> split(const string &delim_regex, const string &s) {
+    regex r(delim_regex);
+    return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
+                          sregex_token_iterator{});
+}
+
+namespace intcode {
+
 enum class Opcode {
     ADD = 1,
     MUL = 2,
@@ -18,18 +32,6 @@ enum class Opcode {
 
 enum class Mode { POS = 0, IMM = 1, REL = 2 };
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-vector<string> split(const string &delim_regex, const string &s) {
-    regex r(delim_regex);
-    return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
-                          sregex_token_iterator{});
-}
-
 tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
     op = abs(op);
     const auto oc = inof(op % 100LL);
@@ -43,9 +45,9 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
 }
 
 // Halts immediately if input returns a nullopt
-void intcode_run(vector<ll> &xs, const function<optional<ll>(void)> input,
-                 const function<void(ll)> output) {
-    xs.resize(100'000, 0);
+void run(vector<ll> &xs, const function<optional<ll>(void)> input,
+         const function<void(ll)> output) {
+    // xs.resize(100'000, 0);
     int rbase{};
 
     const auto deref = [&](const Mode m, const ll p) -> ll {
@@ -66,6 +68,7 @@ void intcode_run(vector<ll> &xs, const function<optional<ll>(void)> input,
 
     for (int i = 0; 0 <= i && i < sz(xs);) {
         const auto [oc, m1, m2, m3] = parse_op(xs[i++]);
+        // cerr << "i:" << i << " oc:" << inof(oc) << endl;
 
         if (oc == Opcode::ADD) {
             const auto p1 = xs[i++];
@@ -128,6 +131,17 @@ void intcode_run(vector<ll> &xs, const function<optional<ll>(void)> input,
         }
     }
 }
+} // namespace intcode
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
 
 int main() {
     string line;
@@ -138,6 +152,8 @@ int main() {
     transform(cbegin(tokens), cend(tokens), begin(ram),
               [](const auto &x) { return stoll(x); });
 
+    // cerr << ram << endl;
+
     vector<int> todo;
     for (int x = 0; x < 50; ++x) {
         for (int y = 0; y < 50; ++y) {
@@ -146,20 +162,21 @@ int main() {
         }
     }
 
+    // cerr << todo << endl;
+
     int cur{};
     const auto input = [&]() -> optional<ll> {
         if (cur >= sz(todo)) return nullopt;
-        cerr << "cur:" << cur << endl;
         return todo[cur++];
     };
 
     ll result{};
     const auto output = [&](const ll x) -> void {
-        cerr << "output:" << x << endl;
+        // cerr << "output:" << x << endl;
         result += x;
     };
 
-    while (cur < sz(todo)) intcode_run(ram, input, output);
+    while (cur < sz(todo)) intcode::run(ram, input, output);
     cout << result << '\n';
     return 0;
 }
