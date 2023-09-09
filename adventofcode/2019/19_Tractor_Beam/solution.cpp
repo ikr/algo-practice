@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
@@ -16,7 +26,6 @@ vector<string> split(const string &delim_regex, const string &s) {
 }
 
 namespace intcode {
-
 enum class Opcode {
     ADD = 1,
     MUL = 2,
@@ -47,7 +56,7 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
 // Halts immediately if input returns a nullopt
 void run(vector<ll> &xs, const function<optional<ll>(void)> input,
          const function<void(ll)> output) {
-    // xs.resize(100'000, 0);
+    xs.resize(100'000, 0);
     int rbase{};
 
     const auto deref = [&](const Mode m, const ll p) -> ll {
@@ -133,16 +142,6 @@ void run(vector<ll> &xs, const function<optional<ll>(void)> input,
 }
 } // namespace intcode
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int main() {
     string line;
     cin >> line;
@@ -164,19 +163,12 @@ int main() {
 
     // cerr << todo << endl;
 
-    int cur{};
-    const auto input = [&]() -> optional<ll> {
-        if (cur >= sz(todo)) return nullopt;
-        return todo[cur++];
-    };
+    const auto input = [&]() -> optional<ll> { return 1; };
 
     ll result{};
-    const auto output = [&](const ll x) -> void {
-        // cerr << "output:" << x << endl;
-        result += x;
-    };
+    const auto output = [&](const ll x) -> void { result = x; };
 
-    while (cur < sz(todo)) intcode::run(ram, input, output);
+    intcode::run(ram, input, output);
     cout << result << '\n';
     return 0;
 }
