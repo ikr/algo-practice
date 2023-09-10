@@ -1,11 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using Grid = array<array<int, 3>, 3>;
-using tri = tuple<int, int, int>;
+using tri = array<int, 3>;
+using Grid = array<tri, 3>;
 
-static const set<tri> LineIds{{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, {0, 3, 6},
-                              {1, 4, 7}, {2, 5, 8}, {0, 4, 8}, {2, 4, 6}};
+static const vector<tri> LineIds{{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, {0, 3, 6},
+                                 {1, 4, 7}, {2, 5, 8}, {0, 4, 8}, {2, 4, 6}};
 
 constexpr int in_grid(const Grid &g, const int id) {
     const auto ro = id / 3;
@@ -28,24 +28,24 @@ int main() {
     }
 
     array<int, 9> ids{0, 1, 2, 3, 4, 5, 6, 7, 8};
-    double disap = 0;
+    double disap = 0.0;
 
     do {
-        Grid g;
+        [&]() -> void {
+            for (const auto &line : LineIds) {
+                for (int i = 0; i < 3; ++i) {
+                    const auto a = line[i];
+                    const auto b = line[(i + 1) % 3];
+                    const auto c = line[(i + 2) % 3];
 
-        for (int i = 0; i < 9; ++i) {
-            const auto ro = i / 3;
-            const auto co = i % 3;
-            g[ro][co] = in_grid(grid, ids[i]);
-        }
-
-        for (const auto &[a, b, c] : LineIds) {
-            if (are_disappointing(in_grid(g, a), in_grid(g, b),
-                                  in_grid(g, c))) {
-                ++disap;
-                break;
+                    if (in_grid(grid, b) == in_grid(grid, c) &&
+                        ids[b] < ids[a] && ids[c] < ids[a]) {
+                        ++disap;
+                        return;
+                    }
+                }
             }
-        }
+        }();
     } while (next_permutation(begin(ids), end(ids)));
 
     cout << (362880.0 - disap) / 362880.0 << '\n';
