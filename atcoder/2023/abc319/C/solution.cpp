@@ -13,10 +13,6 @@ constexpr int in_grid(const Grid &g, const int id) {
     return g[ro][co];
 }
 
-constexpr bool are_disappointing(const int a, const int b, const int c) {
-    return (a == b && b != c) || (b == c && b != a);
-}
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
