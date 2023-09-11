@@ -1,7 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
 using ll = long long;
+using Coord = pair<ll, ll>;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -46,7 +53,7 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
 // Halts immediately if input returns a nullopt
 void run(vector<ll> &xs, const function<optional<ll>(void)> input,
          const function<void(ll)> output) {
-    xs.resize(100'000, 0);
+    xs.resize(10'000, 0);
     int rbase{};
 
     const auto deref = [&](const Mode m, const ll p) -> ll {
@@ -146,26 +153,52 @@ vector<ll> read_rom_from_stdin() {
 int main() {
     const auto rom = read_rom_from_stdin();
 
-    ll result{};
-    const auto output = [&](const ll a) -> void { result += a; };
+    const auto confirm_beam_covers = [&](const Coord xy) -> bool {
+        optional<bool> result;
+        queue<ll> q;
+        q.push(xy.first);
+        q.push(xy.second);
 
-    for (int x = 0; x < 50; ++x) {
-        for (int y = 0; y < 50; ++y) {
-            queue<ll> q;
-            q.push(x);
-            q.push(y);
+        const auto input = [&]() -> optional<ll> {
+            const auto a = q.front();
+            q.pop();
+            return a;
+        };
 
-            const auto input = [&]() -> optional<ll> {
-                const auto a = q.front();
-                q.pop();
-                return a;
-            };
+        auto ram = rom;
+        const auto output = [&](const ll a) -> void { result = (a == 1LL); };
+        intcode::run(ram, input, output);
 
-            auto ram = rom;
-            intcode::run(ram, input, output);
+        assert(result && "No output received");
+        return *result;
+    };
+
+    assert(confirm_beam_covers({0, 0}));
+    for (ll x = 0; x < 50; ++x) {
+        for (ll y = 0; y < 50; ++y) {
+            if (confirm_beam_covers({x, y})) {
+                cerr << Coord{x, y} << endl;
+            }
         }
     }
 
-    cout << result << '\n';
+    const auto left_bottom = [&]() -> Coord {
+        for (ll ex = 44LL, ey = 49LL; ex < 100'000; ++ex) {
+            while (confirm_beam_covers({ex, ey + 1})) ++ey;
+            if (ey - 99 < 0) continue;
+
+            const Coord right_top{ex + 99, ey - 99};
+            if (confirm_beam_covers(right_top)) return {ex, ey};
+        }
+
+        return {-1, -1};
+    }();
+
+    assert(left_bottom != (Coord{-1, -1}));
+    cerr << "LB: " << left_bottom << endl;
+
+    const Coord left_top{left_bottom.first, left_bottom.second - 99};
+    const auto [x0, y0] = left_top;
+    cout << (x0 * 10'000LL + y0) << '\n';
     return 0;
 }
