@@ -10,16 +10,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 vector<mint> num_ways(const vector<vector<int>> &g) {
     vector<int> ancestors(sz(g), -1);
     vector<int> descendants(sz(g), -1);
@@ -37,10 +27,11 @@ vector<mint> num_ways(const vector<vector<int>> &g) {
     };
     recur(recur, -1, 0);
 
-    cerr << "ancestors: " << ancestors << " descendants: " << descendants
-         << endl;
-
-    return vector<mint>(sz(g), 0);
+    vector<mint> result(sz(g), 0);
+    for (int i = 0; i < sz(result); ++i) {
+        result[i] = mint{ancestors[i] + 1} * mint{descendants[i] + 1};
+    }
+    return result;
 }
 
 int main() {
