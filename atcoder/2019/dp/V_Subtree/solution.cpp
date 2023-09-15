@@ -1,8 +1,12 @@
 #include <atcoder/modint>
+#include <atcoder/segtree>
 #include <bits/stdc++.h>
 using namespace std;
 
 using mint = atcoder::modint;
+
+mint op(const mint a, const mint b) { return a * b; }
+mint e() { return -1; }
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -10,35 +14,33 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 vector<mint> num_ways(const vector<vector<int>> &g) {
-    vector<int> subtrees(sz(g), -1);
+    vector<atcoder::segtree<mint, op, e>> subtrees;
+    subtrees.reserve(sz(g));
+    for (int u = 0; u < sz(subtrees); ++u) {
+        subtrees.emplace_back(atcoder::segtree<mint, op, e>(sz(g[u])));
+    }
 
-    const auto recur = [&](const auto &self, const int parent,
-                           const int u) -> void {
-        subtrees[u] = 1;
+    vector<int> parent_(sz(g), -1);
 
-        for (const auto v : g[u]) {
-            if (v == parent) continue;
+    const auto recur = [&](const auto &self, const int p, const int u) -> void {
+        parent_[u] = p;
+
+        for (int i = 0; i < sz(g[u]); ++i) {
+            const auto v = g[u][i];
+            if (v == p) continue;
             self(self, u, v);
-            subtrees[u] *= subtrees[v] + 1;
+
+            if (empty(g[v])) continue;
+            subtrees[u].set(i, subtrees[v].all_prod() + 1);
         }
     };
     recur(recur, -1, 0);
 
-    cerr << "subtrees: " << subtrees << endl;
-
     vector<mint> result(sz(g), 0);
-    // todo
+    for (int u = 0; u < sz(g); ++u) {
+        result[u] = empty(g[u]) ? 1 : subtrees[u].all_prod();
+    }
     return result;
 }
 
