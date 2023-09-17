@@ -1,21 +1,8 @@
 #include <atcoder/modint>
-#include <atcoder/segtree>
 #include <bits/stdc++.h>
 using namespace std;
 
 using mint = atcoder::modint;
-using pii = pair<int, int>;
-
-template <typename T1, typename T2> struct PairHash final {
-    size_t operator()(const pair<T1, T2> &p) const {
-        return 31 * hash<T1>{}(p.first) + hash<T2>{}(p.second);
-    }
-};
-
-using Memo = unordered_map<pii, mint, PairHash<int, int>>;
-
-mint op(const mint a, const mint b) { return a * b; }
-mint e() { return -1; }
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -24,25 +11,48 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<mint> num_ways(const vector<vector<int>> &g) {
-    Memo memo;
+    vector<mint> topdown(sz(g), 0);
+    vector<int> parent(sz(g), 0);
 
-    const auto subtrees_num = [&](const auto &self, const int p,
-                                  const int u) -> mint {
-        if (memo.contains({p, u})) return memo.at({p, u});
-
-        return memo[{p, u}] = [&]() -> mint {
-            mint result{1};
-            for (const auto v : g[u]) {
-                if (v == p) continue;
-                result *= self(self, u, v) + 1;
-            }
-            return result;
-        }();
+    const auto topdown_dfs = [&](const auto &self, const int p,
+                                 const int u) -> void {
+        topdown[u] = 1;
+        parent[u] = p;
+        for (const auto v : g[u]) {
+            if (v == p) continue;
+            self(self, u, v);
+            topdown[u] *= topdown[v] + 1;
+        }
     };
+    topdown_dfs(topdown_dfs, 0, 0);
 
-    vector<mint> D(sz(g), 0);
-    for (int u = 0; u < sz(g); ++u) D[u] = subtrees_num(subtrees_num, u, u);
-    return D;
+    vector<mint> bottomup(sz(g), 1);
+    queue<int> q;
+    for (const auto v : g[0]) q.push(v);
+
+    while (!empty(q)) {
+        const auto u = q.front();
+        q.pop();
+
+        const auto p = parent[u];
+        mint result{bottomup[p]};
+        for (const auto v : g[p]) {
+            if (v == u || v == parent[p]) continue;
+            result *= topdown[v] + 1;
+        }
+        ++result;
+        bottomup[u] = result;
+
+        for (const auto v : g[u]) {
+            if (v == parent[u]) continue;
+            q.push(v);
+        }
+    }
+
+    vector<mint> result(sz(g), 0);
+    ranges::transform(topdown, bottomup, begin(result),
+                      [](const auto x, const auto y) { return x * y; });
+    return result;
 }
 
 int main() {
