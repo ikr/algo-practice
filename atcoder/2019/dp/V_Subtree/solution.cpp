@@ -11,22 +11,46 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<mint> num_ways(const vector<vector<int>> &g) {
-    vector<mint> topdown(sz(g), 0);
+    vector<mint> down(sz(g), 0);
     vector<int> parent(sz(g), 0);
 
     const auto topdown_dfs = [&](const auto &self, const int p,
                                  const int u) -> void {
-        topdown[u] = 1;
+        down[u] = 1;
         parent[u] = p;
         for (const auto v : g[u]) {
             if (v == p) continue;
             self(self, u, v);
-            topdown[u] *= topdown[v] + 1;
+            down[u] *= down[v] + 1;
         }
     };
     topdown_dfs(topdown_dfs, 0, 0);
 
-    vector<mint> bottomup(sz(g), 1);
+    vector<vector<mint>> pref(sz(g));
+    vector<vector<mint>> suff(sz(g));
+
+    for (int u = 0; u < sz(g); ++u) {
+        pref[u].resize(sz(g[u]), 1);
+        suff[u].resize(sz(g[u]), 1);
+
+        for (int i = 0; i < sz(g[u]); ++i) {
+            if (i == 0) {
+                pref[u][i] = down[g[u][i]] + 1;
+            } else {
+                pref[u][i] = pref[u][i - 1] * (down[g[u][i]] + 1);
+            }
+        }
+
+        for (int i = sz(g[u]) - 1; i >= 0; --i) {
+            if (i == sz(g[u]) - 1) {
+                suff[u][i] = down[g[u][i]] + 1;
+            } else {
+                suff[u][i] = suff[u][i + 1] * (down[g[u][i]] + 1);
+            }
+        }
+    }
+
+    vector<mint> up(sz(g), 1);
     queue<int> q;
     for (const auto v : g[0]) q.push(v);
 
@@ -35,13 +59,13 @@ vector<mint> num_ways(const vector<vector<int>> &g) {
         q.pop();
 
         const auto p = parent[u];
-        mint result{bottomup[p]};
+        mint result{up[p]};
         for (const auto v : g[p]) {
             if (v == u || v == parent[p]) continue;
-            result *= topdown[v] + 1;
+            result *= down[v] + 1;
         }
         ++result;
-        bottomup[u] = result;
+        up[u] = result;
 
         for (const auto v : g[u]) {
             if (v == parent[u]) continue;
@@ -50,7 +74,7 @@ vector<mint> num_ways(const vector<vector<int>> &g) {
     }
 
     vector<mint> result(sz(g), 0);
-    ranges::transform(topdown, bottomup, begin(result),
+    ranges::transform(down, up, begin(result),
                       [](const auto x, const auto y) { return x * y; });
     return result;
 }
