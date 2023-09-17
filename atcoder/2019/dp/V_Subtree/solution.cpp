@@ -15,10 +15,8 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<mint> num_ways(const vector<vector<int>> &g) {
-    vector<int> parent_(sz(g), -1);
     const auto subtrees_num = [&](const auto &self, const int p,
                                   const int u) -> mint {
-        parent_[u] = p;
         mint result{1};
         for (const auto v : g[u]) {
             if (v == p) continue;
@@ -27,7 +25,8 @@ vector<mint> num_ways(const vector<vector<int>> &g) {
         return result;
     };
 
-    vector<mint> D(sz(g), subtrees_num(subtrees_num, -1, 0));
+    vector<mint> D(sz(g), 0);
+    for (int u = 0; u < sz(g); ++u) D[u] = subtrees_num(subtrees_num, u, u);
     return D;
 }
 
