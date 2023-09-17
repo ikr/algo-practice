@@ -15,32 +15,23 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 vector<mint> num_ways(const vector<vector<int>> &g) {
-    vector<atcoder::segtree<mint, op, e>> subtrees;
-    subtrees.reserve(sz(g));
-    for (int u = 0; u < sz(subtrees); ++u) {
-        subtrees.emplace_back(atcoder::segtree<mint, op, e>(sz(g[u])));
-    }
-
     vector<int> parent_(sz(g), -1);
 
-    const auto recur = [&](const auto &self, const int p, const int u) -> void {
+    const auto subtrees_num = [&](const auto &self, const int p,
+                                  const int u) -> mint {
         parent_[u] = p;
+        mint result{1};
 
-        for (int i = 0; i < sz(g[u]); ++i) {
-            const auto v = g[u][i];
+        for (const auto v : g[u]) {
             if (v == p) continue;
-            self(self, u, v);
-
-            if (empty(g[v])) continue;
-            subtrees[u].set(i, subtrees[v].all_prod() + 1);
+            result *= self(self, u, v) + 1;
         }
-    };
-    recur(recur, -1, 0);
 
-    vector<mint> result(sz(g), 0);
-    for (int u = 0; u < sz(g); ++u) {
-        result[u] = empty(g[u]) ? 1 : subtrees[u].all_prod();
-    }
+        return result;
+    };
+    const auto hi = subtrees_num(subtrees_num, -1, 0);
+
+    vector<mint> result(sz(g), hi);
     return result;
 }
 
