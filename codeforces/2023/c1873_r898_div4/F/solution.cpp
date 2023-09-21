@@ -17,18 +17,18 @@ int max_interesting_length(const vector<ll> &A, const vector<ll> &H,
         return ss[r] - (l ? ss[l - 1] : 0LL);
     };
 
-    int l = 0;
-    int r = 0;
-    int result = yield_within(l, r) < K ? 1 : 0;
+    int l{};
+    int r{};
+    int result{};
+
+    for (int i = 0; i < sz(A); ++i) {
+        if (A[i] < K) result = max(result, 1);
+    }
 
     while (l < sz(A)) {
-        if (l == sz(A) - 1) {
-            if (yield_within(l, l) < K) result = max(result, 1);
-            break;
-        }
+        if (l == sz(A) - 1) break;
 
         if ((H[l] % H[l + 1]) != 0) {
-            if (yield_within(l, l) < K) result = max(result, 1);
             ++l;
             r = l;
             // cerr << "l: " << l << ", r: " << r << endl;
@@ -41,8 +41,8 @@ int max_interesting_length(const vector<ll> &A, const vector<ll> &H,
             // cerr << "l: " << l << ", r: " << r << endl;
             result = max(result, r - l + 1);
         }
+
         if (r == l) {
-            if (yield_within(l, l) < K) result = max(result, 1);
             ++l;
             ++r;
             // cerr << "l: " << l << ", r: " << r << endl;
