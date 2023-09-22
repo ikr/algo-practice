@@ -1,16 +1,15 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
+
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int max_interesting_length(const vector<ll> &A, const vector<ll> &H,
-                           const ll K) {
-    vector<ll> ss(sz(A));
+int max_interesting_length(const vector<int> &A, const vector<int> &H,
+                           const int K) {
+    vector<int> ss(sz(A));
     partial_sum(cbegin(A), cend(A), begin(ss));
     const auto yield_within = [&](const int l, const int r) {
         assert(0 <= l && l <= r && r < sz(ss));
@@ -19,38 +18,24 @@ int max_interesting_length(const vector<ll> &A, const vector<ll> &H,
 
     int l{};
     int r{};
-    int result{};
-
-    for (int i = 0; i < sz(A); ++i) {
-        if (A[i] < K) result = max(result, 1);
-    }
+    int result{ranges::any_of(A, [K](const int a) { return a <= K; }) ? 1 : 0};
 
     while (l < sz(A)) {
         if (l == sz(A) - 1) break;
 
-        if ((H[l] % H[l + 1]) != 0) {
-            ++l;
-            r = l;
-            // cerr << "l: " << l << ", r: " << r << endl;
-            continue;
-        }
-
         while (r + 1 <= sz(A) - 1 && (H[r] % H[r + 1]) == 0 &&
-               yield_within(l, r + 1) < K) {
+               yield_within(l, r + 1) <= K) {
             ++r;
-            // cerr << "l: " << l << ", r: " << r << endl;
             result = max(result, r - l + 1);
         }
 
         if (r == l) {
             ++l;
             ++r;
-            // cerr << "l: " << l << ", r: " << r << endl;
             continue;
         }
 
         l = r;
-        // cerr << "l: " << l << ", r: " << r << endl;
     }
 
     return result;
@@ -64,13 +49,13 @@ int main() {
     cin >> t;
     while (t--) {
         int N;
-        ll K;
+        int K;
         cin >> N >> K;
 
-        vector<ll> A(N);
+        vector<int> A(N);
         for (auto &a : A) cin >> a;
 
-        vector<ll> H(N);
+        vector<int> H(N);
         for (auto &h : H) cin >> h;
 
         cout << max_interesting_length(A, H, K) << '\n';
