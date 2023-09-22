@@ -20,7 +20,7 @@ int max_interesting_length(const vector<int> &A, const vector<int> &H,
     int r{};
     int result{ranges::any_of(A, [K](const int a) { return a <= K; }) ? 1 : 0};
 
-    while (l < sz(A)) {
+    for (;;) {
         if (l == sz(A) - 1) break;
 
         while (r + 1 <= sz(A) - 1 && (H[r] % H[r + 1]) == 0 &&
