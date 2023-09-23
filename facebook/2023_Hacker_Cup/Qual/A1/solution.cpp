@@ -1,11 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 bool is_possible(const int S, const int D, const int K) {
     const array<int, 2> inventory{(S + D) * 2, S + 2 * D};
     const array<int, 2> need{K + 1, K};
