@@ -16,7 +16,8 @@ int main() {
     int Q, K;
     cin >> Q >> K;
 
-    vector<vector<mint>> D(Q, vector<mint>(K + 1, 0));
+    vector<vector<mint>> T(Q, vector<mint>(K + 1, 0));
+    vector<vector<mint>> P(Q, vector<mint>(K + 1, 0));
     vector<int> inventory;
     inventory.reserve(Q / 2 + 1);
     unordered_set<int> deleted_indices;
@@ -35,13 +36,16 @@ int main() {
         cin >> op >> x;
 
         if (op == '+') {
+            for (int i = 0; i < sz(inventory); ++i) {
+                if (deleted_indices.contains(i)) continue;
+            }
 
+            inventory.push_back(x);
         } else {
             assert(op == '-');
             deleted_indices.insert(index_to_delete(x));
+            const auto m = sz(inventory);
         }
-
-        cout << D[q][K].val() << '\n';
     }
 
     return 0;
