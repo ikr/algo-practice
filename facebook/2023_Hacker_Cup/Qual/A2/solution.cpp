@@ -2,24 +2,52 @@
 using namespace std;
 
 using ll = long long;
-using pll = pair<ll, ll>;
+
+template <typename T> constexpr T div_ceil(const T x, const T y) {
+    return x ? (1 + (x - 1) / y) : 0;
+}
 
 bool is_K_possible(const ll A, const ll B, const ll C, const ll K) {
-    const auto [x, y] = [&]() -> pll {
-        const auto prefer_double = (B < 2LL * A);
-        if (prefer_double) {
-            const auto b = C / B;
-            const auto r = C % B;
+    vector<pair<ll, ll>> opt;
+    const auto prefer_double = (B < 2LL * A);
+    if (prefer_double) {
+        {
+            const auto b = min(C / B, div_ceil(K, 2LL));
+            const auto r = C - b * B;
             const auto a = r / A;
-            return {a, b};
-        } else {
-            const auto a = C / A;
-            const auto r = C % A;
-            const auto b = r / B;
-            return {a, b};
+            opt.emplace_back(a, b);
         }
-    }();
-    return (x + y) * 2LL >= K + 1 && x + 2 * y >= K;
+        {
+            const auto b = min(C / B, K / 2LL);
+            const auto r = C - b * B;
+            const auto a = r / A;
+            opt.emplace_back(a, b);
+        }
+        {
+            const auto b = min({C / B, K / 2LL - 1LL, 0LL});
+            const auto r = C - b * B;
+            const auto a = r / A;
+            opt.emplace_back(a, b);
+        }
+    } else {
+        {
+            const auto a = min(0LL, C / A - 1LL);
+            const auto r = C - a * A;
+            const auto b = r / B;
+            opt.emplace_back(a, b);
+        }
+        {
+            const auto a = C / A;
+            const auto r = C - a * A;
+            const auto b = r / B;
+            opt.emplace_back(a, b);
+        }
+    }
+
+    for (const auto &[x, y] : opt) {
+        if ((x + y) * 2LL >= K + 1 && x + 2 * y >= K) return true;
+    }
+    return false;
 }
 
 ll max_K(const ll A, const ll B, const ll C) {
