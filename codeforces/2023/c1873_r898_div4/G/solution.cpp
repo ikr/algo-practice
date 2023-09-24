@@ -26,14 +26,13 @@ int max_coins(const string &xs) {
         const auto [x, f] = rle[i];
         if (x != 'A') continue;
 
-        if (i && rle[i - 1].first == 'B') {
-            rle[i].first = 'B';
+        if (i && rle[i - 1].first == 'B' && rle[i - 1].second) {
             result += f;
             continue;
         }
 
-        if (i < sz(rle) - 1 && rle[i + 1].first == 'B') {
-            rle[i + 1].first = 'C';
+        if (i < sz(rle) - 1 && rle[i + 1].first == 'B' && rle[i + 1].second) {
+            --rle[i + 1].second;
             result += f;
         }
     }
