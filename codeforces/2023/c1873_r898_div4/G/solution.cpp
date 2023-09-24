@@ -1,6 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -20,21 +36,28 @@ vector<pair<char, int>> run_length_encode(const string &xs) {
 
 int max_coins(const string &xs) {
     auto rle = run_length_encode(xs);
+    cerr << rle << endl;
+    priority_queue<pair<int, int>> pq;
+    for (int i = 0; i < sz(rle); ++i) {
+        if (rle[i].first == 'A') pq.emplace(rle[i].second, i);
+    }
+
     int result{};
 
-    for (int i = 0; i < sz(rle); ++i) {
-        const auto [x, f] = rle[i];
-        if (x != 'A') continue;
+    while (!empty(pq)) {
+        const auto [f, i] = pq.top();
+        cerr << "f:" << f << " i:" << i << endl;
+        pq.pop();
 
         if (i && rle[i - 1].first == 'B' && rle[i - 1].second) {
+            --rle[i - 1].second;
             result += f;
-            continue;
-        }
-
-        if (i < sz(rle) - 1 && rle[i + 1].first == 'B' && rle[i + 1].second) {
+        } else if (i < sz(rle) - 1 && rle[i + 1].first == 'B' &&
+                   rle[i + 1].second) {
             --rle[i + 1].second;
             result += f;
         }
+        cerr << rle << endl;
     }
 
     return result;
