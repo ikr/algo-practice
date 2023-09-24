@@ -6,36 +6,39 @@ template <typename T> constexpr int inof(const T x) {
 }
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int max_coins(const string &xs) {
-    if (sz(xs) == 1) return 0;
-
-    vector<int> ch(sz(xs), 0);
-    vector<int> id(sz(xs), 0);
-
-    const string p0{xs[0], xs[1]};
-    if (p0 == "AB" || p0 == "BA") ch[1] = 1;
-
-    for (int i = 2; i < sz(xs); ++i) {
-        const string pre{xs[i - 2], xs[i - 1]};
-        const string cur{xs[i - 1], xs[i]};
-
-        if (cur == "AB") {
-            ch[i] = id[i - 1] + 1;
-            id[i] = max(ch[i - 1], id[i - 1]);
-        } else if (cur == "BA") {
-            if (pre == "AB") {
-                ch[i] = max(id[i - 1] + 1, ch[i - 1] + 1);
-            } else {
-                ch[i] = id[i - 1] + 1;
-            }
-            id[i] = max(ch[i - 1], id[i - 1]);
+vector<pair<char, int>> run_length_encode(const string &xs) {
+    vector<pair<char, int>> ans{{xs[0], 1}};
+    for (int i = 1; i < sz(xs); ++i) {
+        if (xs[i] == ans.back().first) {
+            ++(ans.back().second);
         } else {
-            if (pre == "AB" && cur[1] == 'A') ch[i] = ch[i - 1] + 1;
-            id[i] = max(ch[i - 1], id[i - 1]);
+            ans.emplace_back(xs[i], 1);
+        }
+    }
+    return ans;
+}
+
+int max_coins(const string &xs) {
+    auto rle = run_length_encode(xs);
+    int result{};
+
+    for (int i = 0; i < sz(rle); ++i) {
+        const auto [x, f] = rle[i];
+        if (x != 'A') continue;
+
+        if (i && rle[i - 1].first == 'B') {
+            rle[i].first = 'B';
+            result += f;
+            continue;
+        }
+
+        if (i < sz(rle) - 1 && rle[i + 1].first == 'B') {
+            rle[i + 1].first = 'C';
+            result += f;
         }
     }
 
-    return max(ch.back(), id.back());
+    return result;
 }
 
 int main() {
