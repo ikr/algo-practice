@@ -7,6 +7,23 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+int oracle(const vector<int> &a, const vector<int> &h, const int mx) {
+    const auto n = sz(a);
+    int ans = 0;
+    for (int l = 0, r = 0, cur = 0; l < n;) {
+        if (r < l) {
+            r = l;
+            cur = 0;
+        }
+        while (r < n && cur + a[r] <= mx && (r == l || h[r - 1] % h[r] == 0)) {
+            cur += a[r++];
+        }
+        ans = max(ans, r - l);
+        cur -= a[l++];
+    }
+    return ans;
+}
+
 int max_interesting_length(const vector<int> &A, const vector<int> &H,
                            const int K) {
     vector<int> ss(sz(A));
@@ -21,6 +38,7 @@ int max_interesting_length(const vector<int> &A, const vector<int> &H,
     int result{ranges::any_of(A, [K](const int a) { return a <= K; }) ? 1 : 0};
 
     for (;;) {
+        assert(l <= r);
         if (l == sz(A) - 1) break;
 
         while (r + 1 <= sz(A) - 1 && (H[r] % H[r + 1]) == 0 &&
@@ -58,7 +76,14 @@ int main() {
         vector<int> H(N);
         for (auto &h : H) cin >> h;
 
-        cout << max_interesting_length(A, H, K) << '\n';
+        const auto result = max_interesting_length(A, H, K);
+        const auto oresult = oracle(A, H, K);
+
+        if (result != oresult) {
+            cerr << "WA: " << result << " != " << oresult << endl;
+        }
+
+        cout << result << '\n';
     }
 
     return 0;
