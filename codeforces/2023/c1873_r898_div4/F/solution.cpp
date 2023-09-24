@@ -12,30 +12,43 @@ int max_interesting_length(const vector<int> &A, const vector<int> &H,
     vector<int> ss(sz(A) + 1, 0);
     partial_sum(cbegin(A), cend(A), begin(ss) + 1);
 
-    int l{};
-    int r{};
-    int result{ranges::any_of(A, [K](const int a) { return a <= K; }) ? 1 : 0};
+    const auto is_possible = [&](const int interval_size) -> bool {
+        for (int l{}, r{};;) {
+            assert(l <= r);
+            if (l == sz(A) - 1) break;
 
-    for (;;) {
-        assert(l <= r);
-        if (l == sz(A) - 1) break;
+            while (r + 1 <= sz(A) - 1 && (H[r] % (long long)H[r + 1]) == 0LL &&
+                   ss[r + 2] - ss[l] <= K) {
+                ++r;
+                if (r - l + 1 == interval_size) return true;
+            }
 
-        while (r + 1 <= sz(A) - 1 && (H[r] % (long long)H[r + 1]) == 0LL &&
-               ss[r + 2] - ss[l] <= K) {
-            ++r;
-            result = max(result, r - l + 1);
+            if (r == l) {
+                ++l;
+                ++r;
+                continue;
+            }
+
+            l = r;
         }
 
-        if (r == l) {
-            ++l;
-            ++r;
-            continue;
-        }
+        return false;
+    };
 
-        l = r;
+    int lo{ranges::any_of(A, [K](const int a) { return a <= K; }) ? 1 : 0};
+    if (!lo) return 0;
+    int hi{sz(A) + 1};
+
+    while (lo + 1 < hi) {
+        const auto mid = midpoint(lo, hi);
+        if (is_possible(mid)) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
     }
 
-    return result;
+    return lo;
 }
 
 int main() {
