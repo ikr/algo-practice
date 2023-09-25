@@ -20,57 +20,18 @@ vector<pair<char, int>> run_length_encode(const string &xs) {
 }
 
 int max_coins(const string &xs) {
-    auto rle = run_length_encode(xs);
-    int result{};
+    const auto rle = run_length_encode(xs);
+    if (sz(rle) == 1) return 0;
 
-    const auto sweep_left_edge_Bs = [&]() {
-        for (int i = 0; i < sz(rle) - 1; ++i) {
-            if (rle[i].first != 'B') continue;
-            if (i && rle[i - 1].first == 'A') continue;
-            if (rle[i + 1].first != 'A') continue;
+    vector<int> a_lengths;
+    for (const auto &[x, len] : rle) {
+        if (x == 'A') a_lengths.push_back(len);
+    }
+    ranges::sort(a_lengths);
+    const auto A = accumulate(cbegin(a_lengths), cend(a_lengths), 0);
 
-            result += rle[i + 1].second;
-            rle[i].first = 'C';
-            rle[i + 1].first = 'B';
-        }
-    };
-
-    const auto sweep_mid_Bs = [&]() {
-        for (int i = 1; i < sz(rle) - 1;) {
-            if (rle[i].first != 'B' || rle[i - 1].first != 'A' ||
-                rle[i + 1].first != 'A') {
-                ++i;
-            } else {
-                if (rle[i].second > 1) {
-                    result += rle[i - 1].second + rle[i + 1].second;
-                    rle[i - 1].first = 'C';
-                    rle[i + 1].first = 'C';
-                } else {
-                    if (rle[i - 1].second >= rle[i + 1].second) {
-                        result += rle[i - 1].second;
-                        rle[i - 1].first = 'B';
-                        rle[i].first = 'C';
-                    } else {
-                        result += rle[i + 1].second;
-                        rle[i + 1].first = 'B';
-                        rle[i].first = 'C';
-                    }
-                }
-                i += 2;
-            }
-        }
-    };
-
-    sweep_left_edge_Bs();
-    ranges::reverse(rle);
-    sweep_left_edge_Bs();
-
-    sweep_mid_Bs();
-    sweep_left_edge_Bs();
-    ranges::reverse(rle);
-    sweep_left_edge_Bs();
-
-    return result;
+    if (rle[0].first == 'B' || rle.back().first == 'B') return A;
+    return A - a_lengths[0];
 }
 
 int main() {
