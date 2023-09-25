@@ -30,8 +30,8 @@ int max_coins(const string &xs) {
             if (rle[i + 1].first != 'A') continue;
 
             result += rle[i + 1].second;
-            --rle[i].second;
-            rle[i + 1].first = 'C';
+            rle[i].first = 'C';
+            rle[i + 1].first = 'B';
         }
     };
 
@@ -43,8 +43,18 @@ int max_coins(const string &xs) {
             } else {
                 if (rle[i].second > 1) {
                     result += rle[i - 1].second + rle[i + 1].second;
+                    rle[i - 1].first = 'C';
+                    rle[i + 1].first = 'C';
                 } else {
-                    result += max(rle[i - 1].second, rle[i + 1].second);
+                    if (rle[i - 1].second >= rle[i + 1].second) {
+                        result += rle[i - 1].second;
+                        rle[i - 1].first = 'B';
+                        rle[i].first = 'C';
+                    } else {
+                        result += rle[i + 1].second;
+                        rle[i + 1].first = 'B';
+                        rle[i].first = 'C';
+                    }
                 }
                 i += 2;
             }
@@ -56,6 +66,10 @@ int max_coins(const string &xs) {
     sweep_left_edge_Bs();
 
     sweep_mid_Bs();
+    sweep_left_edge_Bs();
+    ranges::reverse(rle);
+    sweep_left_edge_Bs();
+
     return result;
 }
 
