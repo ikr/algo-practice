@@ -36,30 +36,41 @@ vector<pair<char, int>> run_length_encode(const string &xs) {
 
 int max_coins(const string &xs) {
     auto rle = run_length_encode(xs);
-    cerr << rle << endl;
-    priority_queue<pair<int, int>> pq;
-    for (int i = 0; i < sz(rle); ++i) {
-        if (rle[i].first == 'A') pq.emplace(rle[i].second, i);
-    }
-
     int result{};
 
-    while (!empty(pq)) {
-        const auto [f, i] = pq.top();
-        cerr << "f:" << f << " i:" << i << endl;
-        pq.pop();
+    const auto sweep_left_edge_Bs = [&]() {
+        for (int i = 0; i < sz(rle) - 1; ++i) {
+            if (rle[i].first != 'B') continue;
+            if (i && rle[i - 1].first == 'A') continue;
+            if (rle[i + 1].first != 'A') continue;
 
-        if (i && rle[i - 1].first == 'B' && rle[i - 1].second) {
-            --rle[i - 1].second;
-            result += f;
-        } else if (i < sz(rle) - 1 && rle[i + 1].first == 'B' &&
-                   rle[i + 1].second) {
-            --rle[i + 1].second;
-            result += f;
+            result += rle[i + 1].second;
+            --rle[i].second;
+            rle[i + 1].first = 'C';
         }
-        cerr << rle << endl;
-    }
+    };
 
+    const auto sweep_mid_Bs = [&]() {
+        for (int i = 1; i < sz(rle) - 1;) {
+            if (rle[i].first != 'B' || rle[i - 1].first != 'A' ||
+                rle[i + 1].first != 'A') {
+                ++i;
+            } else {
+                if (rle[i].second > 1) {
+                    result += rle[i - 1].second + rle[i + 1].second;
+                } else {
+                    result += max(rle[i - 1].second, rle[i + 1].second);
+                }
+                i += 2;
+            }
+        }
+    };
+
+    sweep_left_edge_Bs();
+    ranges::reverse(rle);
+    sweep_left_edge_Bs();
+
+    sweep_mid_Bs();
     return result;
 }
 
