@@ -19,10 +19,24 @@ vector<pair<char, int>> run_length_encode(const string &xs) {
     return ans;
 }
 
-int max_coins(const string &xs) {
-    const auto rle = run_length_encode(xs);
-    if (sz(rle) == 1) return 0;
+vector<vector<pair<char, int>>>
+slice_on_multi_Bs(const vector<pair<char, int>> &rle) {
+    vector<vector<pair<char, int>>> result;
+    result.push_back({});
 
+    for (const auto &[x, f] : rle) {
+        if (x == 'B' && f > 1) {
+            result.back().push_back({'B', 1});
+            result.push_back({{'B', 1}});
+        } else {
+            result.back().push_back({x, f});
+        }
+    }
+
+    return result;
+}
+
+int max_coins(const vector<pair<char, int>> &rle) {
     vector<int> a_lengths;
     for (const auto &[x, len] : rle) {
         if (x == 'A') a_lengths.push_back(len);
@@ -32,6 +46,16 @@ int max_coins(const string &xs) {
 
     if (rle[0].first == 'B' || rle.back().first == 'B') return A;
     return A - a_lengths[0];
+}
+
+int max_coins(const string &xs) {
+    const auto rle = run_length_encode(xs);
+    if (sz(rle) == 1) return 0;
+
+    const auto slices = slice_on_multi_Bs(rle);
+    return accumulate(
+        cbegin(slices), cend(slices), 0,
+        [](const int acc, const auto &x) { return acc + max_coins(x); });
 }
 
 int main() {
