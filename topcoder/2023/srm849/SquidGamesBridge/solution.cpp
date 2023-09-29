@@ -2,50 +2,37 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
-    return xs.cbegin();
-}
-template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
-    return xs.cend();
-}
-
 namespace kactl { // https://github.com/kth-competitive-programming/kactl/blob/main/content/number-theory/Eratosthenes.h
-#define rep(i, a, b) for (int i = a; i < (b); ++i)
-constexpr int MAX_PR = 10'000'000;
-static bitset<MAX_PR> isprime;
-vector<int> eratosthenes_sieve(const int lim) {
+static constexpr int UpperBound = 10'000'000;
+static auto IsPrime = []() -> bitset<UpperBound> {
+    bitset<UpperBound> isprime;
     isprime.set();
     isprime[0] = isprime[1] = 0;
-    for (int i = 4; i < lim; i += 2) isprime[i] = 0;
-    for (int i = 3; i * i < lim; i += 2)
-        if (isprime[i])
-            for (int j = i * i; j < lim; j += i * 2) isprime[j] = 0;
-    vector<int> pr;
-    rep(i, 2, lim) if (isprime[i]) pr.push_back(i);
-    return pr;
-}
-} // namespace kactl
-
-static const auto Ps = []() -> vector<int> {
-    return kactl::eratosthenes_sieve(1'000'000);
+    for (int i = 4; i < UpperBound; i += 2) isprime[i] = 0;
+    for (int i = 3; i * i < UpperBound; i += 2) {
+        if (isprime[i]) {
+            for (int j = i * i; j < UpperBound; j += i * 2) {
+                isprime[j] = 0;
+            }
+        }
+    }
+    return isprime;
 }();
+} // namespace kactl
 
 struct SquidGamesBridge final {
     int cross(int P, const int S) const {
-        const auto for_sure = max(0, P - S);
-        P -= for_sure;
+        int fallen{};
+        for (int iplayer{}, isection{}; isection < S; ++isection) {
+            while (iplayer < P &&
+                   (iplayer % 2 == 0) != kactl::IsPrime[isection]) {
+                ++iplayer;
+                ++fallen;
+            }
 
-        const auto lefts =
-            inof(lower_bound(xbegin(Ps), xend(Ps), P) - xbegin(Ps));
-        const auto even_fell = P / 2 - lefts;
-        const auto odd_fell = P / 2 - (P - lefts);
-
-        return for_sure + (P - even_fell - odd_fell);
+            if (iplayer == P) break;
+        }
+        return P - fallen;
     }
 };
 
