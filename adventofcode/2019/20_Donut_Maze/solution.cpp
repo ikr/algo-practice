@@ -104,6 +104,26 @@ int main() {
         return {lh, *src, *dst};
     }();
 
-    cerr << "Number of loopholes: " << sz(loopholes) << endl;
+    vector<vector<int>> D(sz(grid), vector<int>(sz(grid[0]), -1));
+    D[source.first][source.second] = 0;
+    queue<Coord> q;
+    q.push(source);
+
+    while (!empty(q)) {
+        const auto roco0 = q.front();
+        q.pop();
+
+        for (const auto &delta : Directions) {
+            auto roco = roco0 + delta;
+            if (cell_at(grid, roco) == '.' || loopholes.contains(roco)) {
+                if (loopholes.contains(roco)) roco = loopholes.at(roco);
+                if (D[roco.first][roco.second] != -1) continue;
+                D[roco.first][roco.second] = D[roco0.first][roco0.second] + 1;
+                q.push(roco);
+            }
+        }
+    }
+
+    cout << D[destination.first][destination.second] << '\n';
     return 0;
 }
