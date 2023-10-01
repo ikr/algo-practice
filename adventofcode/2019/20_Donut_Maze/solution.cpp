@@ -13,28 +13,6 @@ struct Portal final {
     Coord hallway_coord;
 };
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-ostream &operator<<(ostream &dest, const Portal &p) {
-    dest << "P(L:" << p.label_code << " O:" << p.own_coord
-         << " H:" << p.hallway_coord << ')';
-    return dest;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -87,14 +65,45 @@ int main() {
         if (!empty(line)) grid.push_back(line);
     }
 
-    vector<Portal> portals;
-    for (int ro = 1; ro < sz(grid) - 1; ++ro) {
-        for (int co = 1; co < sz(grid[ro]) - 1; ++co) {
-            if (const auto p = portal_at(grid, {ro, co}); p) {
-                portals.push_back(*p);
+    const auto [loopholes, source,
+                destination] = [&]() -> tuple<map<Coord, Coord>, Coord, Coord> {
+        map<Coord, Coord> lh;
+        optional<Coord> src, dst;
+        unordered_map<int, Portal> portals_by_label_code;
+
+        for (int ro = 1; ro < sz(grid) - 1; ++ro) {
+            for (int co = 1; co < sz(grid[ro]) - 1; ++co) {
+                const auto p = portal_at(grid, {ro, co});
+                if (!p) continue;
+
+                if (p->label_code == 0) {
+                    assert(!src);
+                    src = p->hallway_coord;
+                    continue;
+                }
+
+                if (p->label_code == Az * Az - 1) {
+                    assert(!dst);
+                    dst = p->hallway_coord;
+                    continue;
+                }
+
+                if (portals_by_label_code.contains(p->label_code)) {
+                    const auto p_ = portals_by_label_code.at(p->label_code);
+                    lh.emplace(p->own_coord, p_.hallway_coord);
+                    lh.emplace(p_.own_coord, p->hallway_coord);
+                    portals_by_label_code.erase(p->label_code);
+                } else {
+                    portals_by_label_code.emplace(p->label_code, *p);
+                }
             }
         }
-    }
-    cerr << portals << endl;
+        assert(empty(portals_by_label_code));
+
+        assert(src && dst);
+        return {lh, *src, *dst};
+    }();
+
+    cerr << "Number of loopholes: " << sz(loopholes) << endl;
     return 0;
 }
