@@ -3,6 +3,7 @@ using namespace std;
 
 using Coord = pair<int, int>;
 using Label = string;
+enum class Edge { Outer, Inner };
 static constexpr int Az = 'Z' - 'A' + 1;
 
 static const array<Coord, 4> Directions{Coord{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
@@ -11,6 +12,7 @@ struct Portal final {
     int label_code;
     Coord own_coord;
     Coord hallway_coord;
+    Edge edge;
 };
 
 template <typename T> constexpr int inof(const T x) {
@@ -45,6 +47,16 @@ optional<Portal> portal_at(const vector<string> &grid, const Coord &roco) {
     const auto [ro, co] = roco;
     if (!is_letter(grid[ro][co])) return nullopt;
 
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+    const auto portal_edge = [&](const Coord &coord0,
+                                 const Coord &coord) -> Edge {
+        const auto [r, c] = min(coord0, coord);
+        const auto [R, C] = max(coord0, coord);
+        return r == 0 || c == 0 || R == H - 1 || C == W - 1 ? Edge::Outer
+                                                            : Edge::Inner;
+    };
+
     for (const auto &dir : Directions) {
         const auto [ro0, co0] = roco - dir;
         const auto [ro1, co1] = roco + dir;
@@ -52,7 +64,10 @@ optional<Portal> portal_at(const vector<string> &grid, const Coord &roco) {
         if (is_letter(grid[ro0][co0]) && grid[ro1][co1] == '.') {
             const auto a = cell_at(grid, min(roco, roco - dir));
             const auto b = cell_at(grid, max(roco, roco - dir));
-            return Portal{label_code({a, b}), {ro, co}, {ro1, co1}};
+            return Portal{label_code({a, b}),
+                          {ro, co},
+                          {ro1, co1},
+                          portal_edge({ro0, co0}, roco)};
         }
     }
 
@@ -77,19 +92,21 @@ int main() {
                 if (!p) continue;
 
                 if (p->label_code == 0) {
-                    assert(!src);
+                    assert(!src && p->edge == Edge::Outer);
                     src = p->hallway_coord;
                     continue;
                 }
 
                 if (p->label_code == Az * Az - 1) {
-                    assert(!dst);
+                    assert(!dst && p->edge == Edge::Outer);
                     dst = p->hallway_coord;
                     continue;
                 }
 
                 if (portals_by_label_code.contains(p->label_code)) {
                     const auto p_ = portals_by_label_code.at(p->label_code);
+                    assert(p->edge != p_.edge);
+
                     lh.emplace(p->own_coord, p_.hallway_coord);
                     lh.emplace(p_.own_coord, p->hallway_coord);
                     portals_by_label_code.erase(p->label_code);
