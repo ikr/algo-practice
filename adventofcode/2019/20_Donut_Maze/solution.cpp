@@ -5,6 +5,7 @@ using Coord = pair<int, int>;
 using Label = string;
 enum class Edge { Outer, Inner };
 static constexpr int Az = 'Z' - 'A' + 1;
+static constexpr int LevelsUpperBound = 1000;
 
 static const array<Coord, 4> Directions{Coord{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
@@ -80,9 +81,10 @@ int main() {
         if (!empty(line)) grid.push_back(line);
     }
 
-    const auto [loopholes, source,
-                destination] = [&]() -> tuple<map<Coord, Coord>, Coord, Coord> {
-        map<Coord, Coord> lh;
+    const auto [outer_loopholes, inner_loopholes, source, destination] =
+        [&]() -> tuple<map<Coord, Coord>, map<Coord, Coord>, Coord, Coord> {
+        map<Coord, Coord> olh;
+        map<Coord, Coord> ilh;
         optional<Coord> src, dst;
         unordered_map<int, Portal> portals_by_label_code;
 
@@ -107,8 +109,14 @@ int main() {
                     const auto p_ = portals_by_label_code.at(p->label_code);
                     assert(p->edge != p_.edge);
 
-                    lh.emplace(p->own_coord, p_.hallway_coord);
-                    lh.emplace(p_.own_coord, p->hallway_coord);
+                    if (p->edge == Edge::Outer) {
+                        olh.emplace(p->own_coord, p_.hallway_coord);
+                        ilh.emplace(p_.own_coord, p->hallway_coord);
+                    } else {
+                        ilh.emplace(p->own_coord, p_.hallway_coord);
+                        olh.emplace(p_.own_coord, p->hallway_coord);
+                    }
+
                     portals_by_label_code.erase(p->label_code);
                 } else {
                     portals_by_label_code.emplace(p->label_code, *p);
@@ -118,29 +126,47 @@ int main() {
         assert(empty(portals_by_label_code));
 
         assert(src && dst);
-        return {lh, *src, *dst};
+        return {olh, ilh, *src, *dst};
     }();
 
-    vector<vector<int>> D(sz(grid), vector<int>(sz(grid[0]), -1));
-    D[source.first][source.second] = 0;
-    queue<Coord> q;
-    q.push(source);
+    vector<vector<vector<int>>> D(
+        LevelsUpperBound,
+        vector<vector<int>>(sz(grid), vector<int>(sz(grid[0]), -1)));
+
+    D[0][source.first][source.second] = 0;
+    queue<pair<int, Coord>> q;
+    q.emplace(0, source);
 
     while (!empty(q)) {
-        const auto roco0 = q.front();
+        const auto [level0, roco0] = q.front();
         q.pop();
 
         for (const auto &delta : Directions) {
             auto roco = roco0 + delta;
-            if (cell_at(grid, roco) == '.' || loopholes.contains(roco)) {
-                if (loopholes.contains(roco)) roco = loopholes.at(roco);
-                if (D[roco.first][roco.second] != -1) continue;
-                D[roco.first][roco.second] = D[roco0.first][roco0.second] + 1;
-                q.push(roco);
+
+            if (cell_at(grid, roco) == '.') {
+                if (D[level0][roco.first][roco.second] != -1) continue;
+                D[level0][roco.first][roco.second] =
+                    D[level0][roco0.first][roco0.second] + 1;
+                q.emplace(level0, roco);
+
+            } else if (level0 && outer_loopholes.contains(roco)) {
+                roco = outer_loopholes.at(roco);
+                if (D[level0 - 1][roco.first][roco.second] != -1) continue;
+                D[level0 - 1][roco.first][roco.second] =
+                    D[level0][roco0.first][roco0.second] + 1;
+                q.emplace(level0 - 1, roco);
+            } else if (level0 + 1 < LevelsUpperBound &&
+                       inner_loopholes.contains(roco)) {
+                roco = inner_loopholes.at(roco);
+                if (D[level0 + 1][roco.first][roco.second] != -1) continue;
+                D[level0 + 1][roco.first][roco.second] =
+                    D[level0][roco0.first][roco0.second] + 1;
+                q.emplace(level0 + 1, roco);
             }
         }
     }
 
-    cout << D[destination.first][destination.second] << '\n';
+    cout << D[0][destination.first][destination.second] << '\n';
     return 0;
 }
