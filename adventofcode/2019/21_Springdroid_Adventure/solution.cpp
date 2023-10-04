@@ -158,6 +158,10 @@ int main() {
 
              "NOT C T", "AND D T", "OR T J",
 
+             "OR A T", "OR B T", "NOT T T", "OR T J",
+
+             "NOT A T", "AND D T", "OR T J",
+
              "WALK"});
         int i{};
 
