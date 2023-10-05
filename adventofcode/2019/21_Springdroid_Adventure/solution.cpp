@@ -153,16 +153,10 @@ int main() {
     }();
 
     {
-        const string springscript = combine_lines(
-            {"NOT A J", "NOT B T", "AND T J", "NOT C T", "AND T J",
+        const string springscript =
+            combine_lines({"NOT C T", "NOT A J", "OR T J", "AND D J",
 
-             "NOT C T", "AND D T", "OR T J",
-
-             "OR A T", "OR B T", "NOT T T", "OR T J",
-
-             "NOT A T", "AND D T", "OR T J",
-
-             "WALK"});
+                           "RUN"});
         int i{};
 
         const auto input = [&]() -> optional<ll> {
@@ -175,8 +169,8 @@ int main() {
                 cout << '\n' << x << '\n';
             } else {
                 if (x == 10 && prev_x == 10) {
-                    this_thread::sleep_for(chrono::milliseconds(250));
-                    printf("\033[%d;%dH", 0, 0);
+                    this_thread::sleep_for(chrono::milliseconds(300));
+                    printf("\033[%d;%dH", 4, 0);
                 } else {
                     cout << static_cast<char>(x);
                 }
