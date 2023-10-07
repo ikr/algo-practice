@@ -65,13 +65,13 @@ vector<ull> factor(ull n) {
 }
 } // namespace kactl
 
-vector<ull> try_combining(const vector<ull> &fs) {
+vector<ull> try_combining(const ull s0, const vector<ull> &fs) {
     vector<ull> ans;
     const auto recur = [&](const auto self, const vector<ull> &xs) -> void {
         if (!empty(ans)) return;
         const auto s = accumulate(cbegin(xs), cend(xs), 0ULL);
-        if (s > 41ULL) return;
-        if (s == 41ULL) {
+        if (s > s0) return;
+        if (s == s0) {
             ans = xs;
             return;
         }
@@ -98,8 +98,17 @@ vector<ull> solve(const ull x0) {
     auto s = accumulate(cbegin(fs), cend(fs), 0ULL);
     if (s > 41ULL) return {};
 
-    const auto opt = try_combining(fs);
-    if (!empty(opt)) return opt;
+    for (ull s0 = 41; s0 >= 4; --s0) {
+        auto opt = try_combining(s0, fs);
+        if (!empty(opt)) {
+            auto total = accumulate(cbegin(opt), cend(opt), 0ULL);
+            while (total < 41ULL) {
+                opt.push_back(1);
+                ++total;
+            }
+            return opt;
+        }
+    }
 
     while (s < 41ULL) {
         fs.push_back(1);
