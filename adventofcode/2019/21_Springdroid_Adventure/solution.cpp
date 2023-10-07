@@ -154,7 +154,12 @@ int main() {
 
     {
         const string springscript =
-            combine_lines({"NOT C T", "NOT A J", "OR T J", "AND D J",
+            combine_lines({"NOT E T", "NOT H J", "AND T J", "NOT J J",
+                           "NOT C T", "AND D T", "AND T J",
+
+                           "NOT B T", "AND D T", "OR T J",
+
+                           "NOT A T", "AND D T", "OR T J",
 
                            "RUN"});
         int i{};
