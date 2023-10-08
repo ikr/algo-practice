@@ -78,9 +78,11 @@ vector<ull> try_combining(const ull s0, const vector<ull> &fs) {
 
         for (int i = 0; i < sz(xs) - 1; ++i) {
             for (int j = i + 1; j < sz(xs); ++j) {
-                auto ys = xs;
                 const auto a = xs[i];
                 const auto b = xs[j];
+                if (s - a - b + a * b > s0) continue;
+
+                auto ys = xs;
                 ys.erase(cbegin(ys) + j);
                 ys.erase(cbegin(ys) + i);
                 ys.push_back(a * b);
