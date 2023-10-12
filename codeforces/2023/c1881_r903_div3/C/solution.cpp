@@ -17,36 +17,46 @@ int min_ops(const vector<string> &G) {
         }
     }
 
-    const auto fix_first = [&]() -> int {
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < sz(G[i]); ++j) {
-                const auto x = D[i][j];
-                const auto y = D[n - 1 - i][j];
-                if (x == y) continue;
+    vector<vector<int>> A(n, vector(n, 0));
 
-                const auto d = abs(x - y);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < sz(G[i]); ++j) {
+            const auto x = D[i][j] + A[i][j];
+            const auto y = D[n - 1 - j][i] + A[n - 1 - j][i];
+            if (x == y) continue;
 
-                if (x < y) {
-                    D[i][j] += d;
-                    return d;
-                } else {
-                    D[n - 1 - i][j] += d;
-                    return d;
-                }
+            const auto d = abs(x - y);
+
+            if (x < y) {
+                A[i][j] += d;
+            } else {
+                A[n - 1 - j][i] += d;
             }
         }
-
-        return 0;
-    };
-
-    int ans{};
-
-    for (;;) {
-        const auto d = fix_first();
-        if (d == 0) break;
-        ans += d;
     }
 
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < sz(G[i]); ++j) {
+            const auto x = D[i][j] + A[i][j];
+            const auto y = D[n - 1 - j][i] + A[n - 1 - j][i];
+            if (x == y) continue;
+
+            const auto d = abs(x - y);
+
+            if (x < y) {
+                A[i][j] += d;
+            } else {
+                A[n - 1 - j][i] += d;
+            }
+        }
+    }
+
+    int ans = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < sz(G[i]); ++j) {
+            ans += A[i][j];
+        }
+    }
     return ans;
 }
 
