@@ -30,6 +30,8 @@ string reversed(string x) {
 int min_ops(const string &x, const string &s) {
     if (x.find(s) != x.npos) return 0;
 
+    if ((x + x).find(s) != (x + x).npos) return 1;
+
     if (is_y_just_x_repeated(s, x) || is_y_just_x_repeated(reversed(s), x)) {
         int d = sz(x);
         int k{};
