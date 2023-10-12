@@ -77,21 +77,8 @@ bool is_possible(const vector<ull> &xs) {
     for (const auto [_, f] : fs) {
         fss.push_back(f);
     }
-    if (ranges::all_of(fss, [&](const auto f) { return f % sz(xs) == 0; })) {
-        return true;
-    }
 
-    const ll m = sz(ys);
-    for (const auto [_, f] : fs) {
-        const auto r = f % m;
-        if (r <= ones) {
-            ones -= r;
-            continue;
-        }
-
-        return false;
-    }
-    return true;
+    return ranges::all_of(fss, [&](const auto f) { return f % sz(xs) == 0; });
 }
 
 int main() {
