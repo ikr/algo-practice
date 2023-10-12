@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -22,34 +24,16 @@ template <class... Ts> struct overloaded : Ts... {
     using Ts::operator()...;
 };
 
-static constexpr int DeckSize = 10007;
+static constexpr ll DeckSize = 10007;
 
-vector<int> skipped(const vector<int> &xs, const int k) {
-    vector<int> ans(sz(xs));
-    for (int i = 0; i < sz(xs); ++i) {
-        ans[(i * k) % sz(xs)] = xs[i];
-    }
-    return ans;
-}
-
-int main() {
-    vector<Op> ops;
-
-    for (string line; getline(cin, line);) {
-        if (empty(line)) continue;
-
-        if (line == "deal into new stack") {
-            ops.push_back(Reverse{});
-        } else if (line.starts_with("cut")) {
-            const auto k = stoi(line.substr(4));
-            ops.push_back(Rotate{k});
-        } else if (line.starts_with("deal with increment")) {
-            const auto k = stoi(line.substr(20));
-            ops.push_back(Skip{k});
-        } else {
-            assert(false && "Invalid operation description");
+ll brute_force_card_at_position_m(const vector<Op> &ops, const ll m) {
+    const auto skipped = [](const vector<int> &xs, const int k) -> vector<int> {
+        vector<int> ans(sz(xs));
+        for (int i = 0; i < sz(xs); ++i) {
+            ans[(i * k) % sz(xs)] = xs[i];
         }
-    }
+        return ans;
+    };
 
     vector<int> xs(DeckSize);
     iota(begin(xs), end(xs), 0);
@@ -73,7 +57,29 @@ int main() {
               op);
     }
 
-    const auto result = ranges::find(xs, 2019) - cbegin(xs);
+    return xs[m];
+}
+
+int main() {
+    vector<Op> ops;
+
+    for (string line; getline(cin, line);) {
+        if (empty(line)) continue;
+
+        if (line == "deal into new stack") {
+            ops.push_back(Reverse{});
+        } else if (line.starts_with("cut")) {
+            const auto k = stoi(line.substr(4));
+            ops.push_back(Rotate{k});
+        } else if (line.starts_with("deal with increment")) {
+            const auto k = stoi(line.substr(20));
+            ops.push_back(Skip{k});
+        } else {
+            assert(false && "Invalid operation description");
+        }
+    }
+
+    const auto result = brute_force_card_at_position_m(ops, 6850);
     cout << result << '\n';
     return 0;
 }
