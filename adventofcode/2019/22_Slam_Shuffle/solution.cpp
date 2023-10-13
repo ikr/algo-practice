@@ -26,7 +26,9 @@ template <class... Ts> struct overloaded : Ts... {
 
 static constexpr ll DeckSize = 10007;
 
-ll brute_force_card_at_position_m(const vector<Op> &ops, const ll m) {
+ll brute_force_card_at_m(const vector<Op> &ops, const ll m) {
+    assert(DeckSize < 100'000'000);
+
     const auto skipped = [](const vector<int> &xs, const int k) -> vector<int> {
         vector<int> ans(sz(xs));
         for (int i = 0; i < sz(xs); ++i) {
@@ -60,6 +62,35 @@ ll brute_force_card_at_position_m(const vector<Op> &ops, const ll m) {
     return xs[m];
 }
 
+ll source_position(const Op &op, const ll m) {
+    const auto unrotated = [&](const ll k, const ll i) -> {
+        if (i < DeckSize - k) {
+            return k + i;
+        } else {
+            return m - (DeckSize - k);
+        }
+    };
+
+    return visit(overloaded{[&]([[maybe_unused]] const Reverse &rev) -> ll {
+                                return DeckSize - 1 - m;
+                            },
+                            [&](const Rotate &rot) -> ll {
+                                if (rot.k > 0) {
+                                    return unrotated(rot.k, m);
+                                } else {
+                                    assert(rot.k < 0);
+                                    return unrotated(DeckSize - rot.k, m);
+                                }
+                            },
+                            [&](const Skip &skp) -> ll {
+                                assert(skp.k > 0);
+                                return -1;
+                            }},
+                 op);
+}
+
+ll card_at_m(const vector<Op> &ops, const ll m) { return -1; }
+
 int main() {
     vector<Op> ops;
 
@@ -79,7 +110,7 @@ int main() {
         }
     }
 
-    const auto result = brute_force_card_at_position_m(ops, 6850);
+    const auto result = brute_force_card_at_m(ops, 6850);
     cout << result << '\n';
     return 0;
 }
