@@ -2,6 +2,15 @@
 using namespace std;
 
 using ll = long long;
+using i128 = __int128_t;
+
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
+
+template <typename T> constexpr ll i128of(const T x) {
+    return static_cast<i128>(x);
+}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -25,6 +34,19 @@ template <class... Ts> struct overloaded : Ts... {
 };
 
 static constexpr ll DeckSize = 10007;
+
+// https://github.com/kth-competitive-programming/kactl
+namespace kactl {
+static constexpr ll mod = DeckSize;
+ll modpow(ll b, ll e) {
+    ll ans = 1;
+    for (; e; b = b * b % mod, e /= 2)
+        if (e & 1) ans = ans * b % mod;
+    return ans;
+}
+}; // namespace kactl
+
+ll modinv(const ll x) { return kactl::modpow(x, DeckSize - 2); }
 
 ll brute_force_card_at_m(const vector<Op> &ops, const ll m) {
     assert(DeckSize < 100'000'000);
@@ -63,7 +85,7 @@ ll brute_force_card_at_m(const vector<Op> &ops, const ll m) {
 }
 
 ll source_position(const Op &op, const ll m) {
-    const auto unrotated = [&](const ll k, const ll i) -> {
+    const auto unrotated = [&](const ll k, const ll i) -> ll {
         if (i < DeckSize - k) {
             return k + i;
         } else {
@@ -84,12 +106,18 @@ ll source_position(const Op &op, const ll m) {
                             },
                             [&](const Skip &skp) -> ll {
                                 assert(skp.k > 0);
-                                return -1;
+                                return (i128of(m) * i128of(modinv(skp.k))) %
+                                       i128of(DeckSize);
                             }},
                  op);
 }
 
-ll card_at_m(const vector<Op> &ops, const ll m) { return -1; }
+ll card_at_m(const vector<Op> &ops, ll m) {
+    for (const auto &op : ops | views::reverse) {
+        m = source_position(op, m);
+    }
+    return m;
+}
 
 int main() {
     vector<Op> ops;
@@ -110,7 +138,7 @@ int main() {
         }
     }
 
-    const auto result = brute_force_card_at_m(ops, 6850);
-    cout << result << '\n';
+    cout << brute_force_card_at_m(ops, 6850) << '\n';
+    cout << card_at_m(ops, 6850) << '\n';
     return 0;
 }
