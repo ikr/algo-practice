@@ -89,7 +89,7 @@ ll source_position(const Op &op, const ll m) {
         if (i < DeckSize - k) {
             return k + i;
         } else {
-            return m - (DeckSize - k);
+            return i - (DeckSize - k);
         }
     };
 
