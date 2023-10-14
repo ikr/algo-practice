@@ -101,7 +101,7 @@ ll source_position(const Op &op, const ll m) {
                                     return unrotated(rot.k, m);
                                 } else {
                                     assert(rot.k < 0);
-                                    return unrotated(DeckSize - rot.k, m);
+                                    return unrotated(DeckSize + rot.k, m);
                                 }
                             },
                             [&](const Skip &skp) -> ll {
