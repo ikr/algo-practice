@@ -8,7 +8,7 @@ template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
 }
 
-template <typename T> constexpr ll i128of(const T x) {
+template <typename T> constexpr i128 i128of(const T x) {
     return static_cast<i128>(x);
 }
 
@@ -33,58 +33,22 @@ template <class... Ts> struct overloaded : Ts... {
     using Ts::operator()...;
 };
 
-static constexpr ll DeckSize = 10007;
+static constexpr ll DeckSize = 119315717514047LL;
 
 // https://github.com/kth-competitive-programming/kactl
 namespace kactl {
 static constexpr ll mod = DeckSize;
 ll modpow(ll b, ll e) {
     ll ans = 1;
-    for (; e; b = b * b % mod, e /= 2)
-        if (e & 1) ans = ans * b % mod;
+    for (; e; b = llof(i128of(b) * b % i128of(mod)), e /= 2)
+        if (e & 1) ans = llof((i128of(ans) * b) % i128of(mod));
     return ans;
 }
 }; // namespace kactl
 
 ll modinv(const ll x) { return kactl::modpow(x, DeckSize - 2); }
 
-ll brute_force_card_at_m(const vector<Op> &ops, const ll m) {
-    assert(DeckSize < 100'000'000);
-
-    const auto skipped = [](const vector<int> &xs, const int k) -> vector<int> {
-        vector<int> ans(sz(xs));
-        for (int i = 0; i < sz(xs); ++i) {
-            ans[(i * k) % sz(xs)] = xs[i];
-        }
-        return ans;
-    };
-
-    vector<int> xs(DeckSize);
-    iota(begin(xs), end(xs), 0);
-
-    for (const auto &op : ops) {
-        visit(overloaded{[&]([[maybe_unused]] const Reverse &rev) {
-                             ranges::reverse(xs);
-                         },
-                         [&](const Rotate &rot) {
-                             if (rot.k > 0) {
-                                 rotate(begin(xs), begin(xs) + rot.k, end(xs));
-                             } else {
-                                 assert(rot.k < 0);
-                                 rotate(begin(xs), end(xs) + rot.k, end(xs));
-                             }
-                         },
-                         [&](const Skip &skp) {
-                             assert(skp.k > 0);
-                             xs = skipped(xs, skp.k);
-                         }},
-              op);
-    }
-
-    return xs[m];
-}
-
-ll source_position(const Op &op, const ll m) {
+ll source_index(const Op &op, const ll m) {
     const auto unrotated = [&](const ll k, const ll i) -> ll {
         if (i < DeckSize - k) {
             return k + i;
@@ -106,15 +70,15 @@ ll source_position(const Op &op, const ll m) {
                             },
                             [&](const Skip &skp) -> ll {
                                 assert(skp.k > 0);
-                                return (i128of(m) * i128of(modinv(skp.k))) %
-                                       i128of(DeckSize);
+                                return llof((i128of(m) * modinv(skp.k)) %
+                                            i128of(DeckSize));
                             }},
                  op);
 }
 
-ll card_at_m(const vector<Op> &ops, ll m) {
+ll source_index_for_one_complete_shuffle(const vector<Op> &ops, ll m) {
     for (const auto &op : ops | views::reverse) {
-        m = source_position(op, m);
+        m = source_index(op, m);
     }
 
     return m;
@@ -139,7 +103,6 @@ int main() {
         }
     }
 
-    cout << brute_force_card_at_m(ops, 6850) << '\n';
-    cout << card_at_m(ops, 6850) << '\n';
+    cout << source_index_for_one_complete_shuffle(ops, 6850) << '\n';
     return 0;
 }
