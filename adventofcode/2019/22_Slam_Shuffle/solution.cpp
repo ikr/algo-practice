@@ -84,6 +84,40 @@ ll source_index_for_one_complete_shuffle(const vector<Op> &ops, ll m) {
     return m;
 }
 
+template <typename T>
+bool is_at(const vector<T> &haystack, const vector<T> &needle, const int i) {
+    for (int j = 0; j < sz(needle); ++j) {
+        if (haystack[i + j] != needle[j]) return false;
+    }
+
+    return true;
+}
+
+template <typename T> int tail_period(const vector<T> &xs) {
+    const auto marker_size = 4;
+    const vector marker(cend(xs) - marker_size, cend(xs));
+    assert(is_at(xs, marker, sz(xs) - marker_size));
+
+    for (int i = sz(xs) - marker_size - 1; i >= 0; --i) {
+        if (is_at(xs, marker, i)) {
+            return sz(xs) - marker_size - i;
+        }
+    }
+
+    return -1;
+}
+
+void explore(const vector<Op> &ops, const ll m) {
+    vector<ll> xs;
+    auto cur = m;
+    for (int i = 1; i <= 100'000; ++i) {
+        const auto cur_ = source_index_for_one_complete_shuffle(ops, cur);
+        xs.push_back((cur_ - cur + DeckSize) % DeckSize);
+        cur = cur_;
+    }
+    cerr << "Period: " << tail_period(xs) << endl;
+}
+
 int main() {
     vector<Op> ops;
 
@@ -103,6 +137,7 @@ int main() {
         }
     }
 
-    cout << source_index_for_one_complete_shuffle(ops, 6850) << '\n';
+    cout << source_index_for_one_complete_shuffle(ops, 2020) << '\n';
+    explore(ops, 2020);
     return 0;
 }
