@@ -48,7 +48,7 @@ ll modpow(ll b, ll e) {
 
 ll modinv(const ll x) { return kactl::modpow(x, DeckSize - 2); }
 
-ll brute_force_card_at_m(const vector<Op> &ops, const ll m) {
+ll brute_force_card_at_m(const vector<Op> &ops, const ll m, const ll reps) {
     assert(DeckSize < 100'000'000);
 
     const auto skipped = [](const vector<int> &xs, const int k) -> vector<int> {
@@ -62,23 +62,26 @@ ll brute_force_card_at_m(const vector<Op> &ops, const ll m) {
     vector<int> xs(DeckSize);
     iota(begin(xs), end(xs), 0);
 
-    for (const auto &op : ops) {
-        visit(overloaded{[&]([[maybe_unused]] const Reverse &rev) {
-                             ranges::reverse(xs);
-                         },
-                         [&](const Rotate &rot) {
-                             if (rot.k > 0) {
-                                 rotate(begin(xs), begin(xs) + rot.k, end(xs));
-                             } else {
-                                 assert(rot.k < 0);
-                                 rotate(begin(xs), end(xs) + rot.k, end(xs));
-                             }
-                         },
-                         [&](const Skip &skp) {
-                             assert(skp.k > 0);
-                             xs = skipped(xs, skp.k);
-                         }},
-              op);
+    for (int i = 0; i < reps; ++i) {
+        for (const auto &op : ops) {
+            visit(overloaded{
+                      [&]([[maybe_unused]] const Reverse &rev) {
+                          ranges::reverse(xs);
+                      },
+                      [&](const Rotate &rot) {
+                          if (rot.k > 0) {
+                              rotate(begin(xs), begin(xs) + rot.k, end(xs));
+                          } else {
+                              assert(rot.k < 0);
+                              rotate(begin(xs), end(xs) + rot.k, end(xs));
+                          }
+                      },
+                      [&](const Skip &skp) {
+                          assert(skp.k > 0);
+                          xs = skipped(xs, skp.k);
+                      }},
+                  op);
+        }
     }
 
     return xs[m];
@@ -112,11 +115,17 @@ ll source_position(const Op &op, const ll m) {
                  op);
 }
 
-ll card_at_m(const vector<Op> &ops, ll m) {
+ll card_at_m(const vector<Op> &ops, const ll m0, const ll reps) {
+    assert(reps > 0LL);
+    auto m = m0;
     for (const auto &op : ops | views::reverse) {
         m = source_position(op, m);
     }
-    return m;
+
+    const auto delta = (m - m0 + DeckSize) % DeckSize;
+    return (i128of(m0) + (i128of(delta) * i128of(reps)) % i128of(DeckSize) +
+            i128of(DeckSize)) %
+           i128of(DeckSize);
 }
 
 int main() {
@@ -138,7 +147,7 @@ int main() {
         }
     }
 
-    cout << brute_force_card_at_m(ops, 6850) << '\n';
-    cout << card_at_m(ops, 6850) << '\n';
+    cout << brute_force_card_at_m(ops, 6850, 2) << '\n';
+    cout << card_at_m(ops, 6850, 2) << '\n';
     return 0;
 }
