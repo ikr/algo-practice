@@ -38,17 +38,22 @@ static constexpr ll DeckSize = 119315717514047LL;
 // https://github.com/kth-competitive-programming/kactl
 namespace kactl {
 static constexpr ll mod = DeckSize;
-ll modpow(ll b, ll e) {
+
+constexpr ll modmul(const ll x, const ll y) {
+    return llof((i128of(x) * y) % i128of(mod));
+}
+
+constexpr ll modpow(ll b, ll e) {
     ll ans = 1;
-    for (; e; b = llof(i128of(b) * b % i128of(mod)), e /= 2)
-        if (e & 1) ans = llof((i128of(ans) * b) % i128of(mod));
+    for (; e; b = modmul(b, b), e /= 2)
+        if (e & 1) ans = modmul(ans, b);
     return ans;
 }
+
+constexpr ll modinv(const ll x) { return modpow(x, DeckSize - 2); }
 }; // namespace kactl
 
-ll modinv(const ll x) { return kactl::modpow(x, DeckSize - 2); }
-
-ll source_index(const Op &op, const ll m) {
+ll source_index(const Op &op, const ll x) {
     const auto unrotated = [&](const ll k, const ll i) -> ll {
         if (i < DeckSize - k) {
             return k + i;
@@ -58,30 +63,42 @@ ll source_index(const Op &op, const ll m) {
     };
 
     return visit(overloaded{[&]([[maybe_unused]] const Reverse &rev) -> ll {
-                                return DeckSize - 1 - m;
+                                return DeckSize - 1 - x;
                             },
                             [&](const Rotate &rot) -> ll {
                                 if (rot.k > 0) {
-                                    return unrotated(rot.k, m);
+                                    return unrotated(rot.k, x);
                                 } else {
                                     assert(rot.k < 0);
-                                    return unrotated(DeckSize + rot.k, m);
+                                    return unrotated(DeckSize + rot.k, x);
                                 }
                             },
                             [&](const Skip &skp) -> ll {
                                 assert(skp.k > 0);
-                                return llof((i128of(m) * modinv(skp.k)) %
-                                            i128of(DeckSize));
+                                return kactl::modmul(x, kactl::modinv(skp.k));
                             }},
                  op);
 }
 
-ll source_index(const vector<Op> &ops, ll m) {
-    for (const auto &op : ops | views::reverse) {
-        m = source_index(op, m);
-    }
+static constexpr ll ShufflesNum = 101741582076661LL;
+static constexpr ll X = 2020;
 
-    return m;
+ll source_index(const vector<Op> &ops, ll x) {
+    for (const auto &op : ops | views::reverse) x = source_index(op, x);
+    return x;
+}
+
+ll solve(const vector<Op> &ops) {
+    const auto b = source_index(ops, 0);
+    const auto a = (source_index(ops, 1) - b + DeckSize) % DeckSize;
+    assert(a != 1LL);
+
+    const auto An = kactl::modpow(a, ShufflesNum);
+    const auto q = (1 - a + DeckSize) % DeckSize;
+    const auto p = (1 - An + DeckSize) % DeckSize;
+    const auto Sn = kactl::modmul(b, kactl::modmul(p, kactl::modinv(q)));
+
+    return (kactl::modmul(An, X) + Sn) % DeckSize;
 }
 
 int main() {
@@ -103,6 +120,6 @@ int main() {
         }
     }
 
-    cout << source_index(ops, 2020) << '\n';
+    cout << solve(ops) << '\n';
     return 0;
 }
