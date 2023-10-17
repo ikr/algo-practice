@@ -53,7 +53,7 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
 }
 
 // Halts immediately if input returns a nullopt
-void run(vector<ll> &xs, const function<optional<ll>(void)> input,
+void run(vector<ll> &xs, const function<ll(void)> input,
          const function<void(ll)> output) {
     xs.resize(100'000, 0);
     int rbase{};
@@ -95,12 +95,8 @@ void run(vector<ll> &xs, const function<optional<ll>(void)> input,
                 deref(m1, p1) * deref(m2, p2);
         } else if (oc == Opcode::INP) {
             const auto p1 = xs[i++];
-
             assert(m1 != Mode::IMM);
-            const auto maybe_val = input();
-            if (!maybe_val) return;
-
-            xs[m1 == Mode::REL ? (rbase + p1) : p1] = *maybe_val;
+            xs[m1 == Mode::REL ? (rbase + p1) : p1] = input();
         } else if (oc == Opcode::OUT) {
             const auto p1 = xs[i++];
             output(deref(m1, p1));
@@ -140,6 +136,23 @@ void run(vector<ll> &xs, const function<optional<ll>(void)> input,
 }
 } // namespace intcode
 
+static constexpr int NicsNum = 50;
+
+struct Transmit final {
+    ll address;
+    pair<ll, ll> xy;
+};
+
+struct Terminate final {
+    ll result;
+};
+
+using Output = variant<Transmit, Terminate>;
+
+template <class... Ts> struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
 int main() {
     const auto rom = [&]() -> vector<ll> {
         string line;
@@ -151,6 +164,57 @@ int main() {
                   [](const auto &x) { return stoll(x); });
         return result;
     }();
+
+    vector<vector<ll>> ram(NicsNum, rom);
+    vector<queue<ll>> istream(NicsNum);
+    for (int i = 0; i < NicsNum; ++i) istream[i].push(i);
+
+    const auto tick = [&](const int i) -> Output {
+        const auto input = [&]() -> ll {
+            if (istream[i].empty()) return -1;
+            const auto result = istream[i].front();
+            istream[i].pop();
+            return result;
+        };
+
+        optional<ll> a, x, y;
+        const auto output = [&](const ll v) {
+            if (!a) {
+                a = v;
+            } else if (!x) {
+                x = v;
+            } else if (!y) {
+                y = v;
+            } else {
+                assert(false && "Too many values put out");
+            }
+        };
+
+        intcode::run(ram[i], input, output);
+        assert(a && x && y);
+
+        if (*a == 255) return Terminate{*y};
+        return Transmit{*a, {*x, *y}};
+    };
+
+    for (int i = 0;; i = (i + 1) % NicsNum) {
+        const auto output = tick(i);
+        const auto go_on =
+            visit(overloaded{
+                      [&](const Transmit &t) -> bool {
+                          assert(0 <= t.address && t.address < NicsNum);
+                          istream[t.address].push(t.xy.first);
+                          istream[t.address].push(t.xy.second);
+                          return true;
+                      },
+                      [&](const Terminate &t) -> bool {
+                          cout << t.result << '\n';
+                          return false;
+                      },
+                  },
+                  output);
+        if (!go_on) break;
+    }
 
     return 0;
 }
