@@ -138,21 +138,6 @@ void run(vector<ll> &xs, const function<ll(void)> input,
 
 static constexpr int NicsNum = 50;
 
-struct Transmit final {
-    ll address;
-    pair<ll, ll> xy;
-};
-
-struct Terminate final {
-    ll result;
-};
-
-using Output = variant<Transmit, Terminate>;
-
-template <class... Ts> struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-
 int main() {
     const auto rom = [&]() -> vector<ll> {
         string line;
@@ -169,7 +154,7 @@ int main() {
     vector<queue<ll>> istream(NicsNum);
     for (int i = 0; i < NicsNum; ++i) istream[i].push(i);
 
-    const auto tick = [&](const int i) -> Output {
+    const auto tick = [&](const int i) -> void {
         const auto input = [&]() -> ll {
             if (istream[i].empty()) return -1;
             const auto result = istream[i].front();
@@ -177,44 +162,29 @@ int main() {
             return result;
         };
 
-        optional<ll> a, x, y;
-        const auto output = [&](const ll v) {
+        optional<ll> a, x;
+        const auto output = [&](const ll v) -> void {
             if (!a) {
                 a = v;
             } else if (!x) {
                 x = v;
-            } else if (!y) {
-                y = v;
             } else {
-                assert(false && "Too many values put out");
+                const ll y = v;
+                assert(0 <= a && a < NicsNum);
+                istream[*a].push(*x);
+                istream[*a].push(y);
+
+                a.reset();
+                x.reset();
             }
         };
 
         intcode::run(ram[i], input, output);
-        assert(a && x && y);
-
-        if (*a == 255) return Terminate{*y};
-        return Transmit{*a, {*x, *y}};
     };
 
     for (int i = 0;; i = (i + 1) % NicsNum) {
-        const auto output = tick(i);
-        const auto go_on =
-            visit(overloaded{
-                      [&](const Transmit &t) -> bool {
-                          assert(0 <= t.address && t.address < NicsNum);
-                          istream[t.address].push(t.xy.first);
-                          istream[t.address].push(t.xy.second);
-                          return true;
-                      },
-                      [&](const Terminate &t) -> bool {
-                          cout << t.result << '\n';
-                          return false;
-                      },
-                  },
-                  output);
-        if (!go_on) break;
+        cerr << "i:" << i << endl;
+        tick(i);
     }
-
     return 0;
 }
