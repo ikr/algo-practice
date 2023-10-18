@@ -53,8 +53,8 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
 }
 
 // Halts immediately if input returns a nullopt
-void run(vector<ll> &xs, const function<ll(void)> input,
-         const function<void(ll)> output) {
+int run(vector<ll> &xs, int i, const function<ll(void)> input,
+        const function<void(ll)> output) {
     xs.resize(100'000, 0);
     int rbase{};
 
@@ -74,7 +74,8 @@ void run(vector<ll> &xs, const function<ll(void)> input,
         return 0;
     };
 
-    for (int i = 0; 0 <= i && i < sz(xs);) {
+    int outed{};
+    while (0 <= i && i < sz(xs)) {
         const auto [oc, m1, m2, m3] = parse_op(xs[i++]);
 
         if (oc == Opcode::ADD) {
@@ -96,10 +97,14 @@ void run(vector<ll> &xs, const function<ll(void)> input,
         } else if (oc == Opcode::INP) {
             const auto p1 = xs[i++];
             assert(m1 != Mode::IMM);
-            xs[m1 == Mode::REL ? (rbase + p1) : p1] = input();
+            const auto val = input();
+            if (val == -1LL) return i - 1;
+            xs[m1 == Mode::REL ? (rbase + p1) : p1] = val;
         } else if (oc == Opcode::OUT) {
             const auto p1 = xs[i++];
             output(deref(m1, p1));
+            ++outed;
+            if (outed == 3) return i;
         } else if (oc == Opcode::JPT) {
             const auto p1 = xs[i++];
             const auto p2 = xs[i++];
@@ -128,11 +133,12 @@ void run(vector<ll> &xs, const function<ll(void)> input,
             const auto p1 = xs[i++];
             rbase += inof(deref(m1, p1));
         } else if (oc == Opcode::HLT) {
-            break;
+            return i - 1;
         } else {
             assert(false && "Invalid opcode");
         }
     }
+    return 0;
 }
 } // namespace intcode
 
@@ -151,14 +157,15 @@ int main() {
     }();
 
     vector<vector<ll>> ram(NicsNum, rom);
-    vector<queue<ll>> istream(NicsNum);
-    for (int i = 0; i < NicsNum; ++i) istream[i].push(i);
+    vector<int> ii(NicsNum, 0);
+    vector<queue<ll>> io(NicsNum);
+    for (int i = 0; i < NicsNum; ++i) io[i].push(i);
 
     const auto tick = [&](const int i) -> void {
         const auto input = [&]() -> ll {
-            if (istream[i].empty()) return -1;
-            const auto result = istream[i].front();
-            istream[i].pop();
+            if (io[i].empty()) return -1;
+            const auto result = io[i].front();
+            io[i].pop();
             return result;
         };
 
@@ -171,15 +178,15 @@ int main() {
             } else {
                 const ll y = v;
                 assert(0 <= a && a < NicsNum);
-                istream[*a].push(*x);
-                istream[*a].push(y);
+                io[*a].push(*x);
+                io[*a].push(y);
 
                 a.reset();
                 x.reset();
             }
         };
 
-        intcode::run(ram[i], input, output);
+        ii[i] = intcode::run(ram[i], ii[i], input, output);
     };
 
     for (int i = 0;; i = (i + 1) % NicsNum) {
