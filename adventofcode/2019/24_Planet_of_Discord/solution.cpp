@@ -1,20 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using CodesByLevel = map<int, int>;
+using Coord = pair<int, int>;
+static constexpr int Size = 5;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-static constexpr int Size = 5;
-
 constexpr bool in_tor(const int ro, const int co) {
     return 0 <= ro && ro < Size && 0 <= co && co < Size &&
            !(ro == 2 && co == 2);
 }
 
-int code_of(const vector<string> &grid) {
+constexpr int code_of(const vector<string> &grid) {
     int result{};
     for (int ro = 0; ro < Size; ++ro) {
         for (int co = 0; co < Size; ++co) {
@@ -25,7 +27,7 @@ int code_of(const vector<string> &grid) {
     return result;
 }
 
-int popcount_north(const int code) {
+constexpr int popcount_north(const int code) {
     int result{};
     const auto ro = 0;
     for (int co = 0; co < Size; ++co) {
@@ -34,7 +36,7 @@ int popcount_north(const int code) {
     return result;
 }
 
-int popcount_east(const int code) {
+constexpr int popcount_east(const int code) {
     int result{};
     const auto co = Size - 1;
     for (int ro = 0; ro < Size; ++ro) {
@@ -43,7 +45,7 @@ int popcount_east(const int code) {
     return result;
 }
 
-int popcount_south(const int code) {
+constexpr int popcount_south(const int code) {
     int result{};
     const auto ro = Size - 1;
     for (int co = 0; co < Size; ++co) {
@@ -52,7 +54,7 @@ int popcount_south(const int code) {
     return result;
 }
 
-int popcount_west(const int code) {
+constexpr int popcount_west(const int code) {
     int result{};
     const auto co = 0;
     for (int ro = 0; ro < Size; ++ro) {
@@ -61,10 +63,17 @@ int popcount_west(const int code) {
     return result;
 }
 
-using CodesByLevel = unordered_map<int, int>;
-using Coord = pair<int, int>;
+constexpr int popcount_outer(const int code) {
+    return popcount_north(code) + popcount_east(code) + popcount_south(code) +
+           popcount_west(code);
+}
 
-int same_level_neighs(const auto code, const Coord roco) {
+constexpr int popcount_inner(const int code) {
+    const auto bits = (1 << 7) | (1 << 11) | (1 << 13) | (1 << 17);
+    return __builtin_popcount(bits & code);
+}
+
+int same_level_neighs(const int code, const Coord roco) {
     const auto [ro, co] = roco;
     int result{};
     for (const auto &[dro, dco] :
@@ -171,32 +180,34 @@ int neighs(const CodesByLevel &world, const int level, const Coord &roco) {
     return result;
 }
 
-int neighs(const vector<string> &grid, const int ro, const int co) {
-    int result{};
-    for (const auto &[dro, dco] :
-         vector<pair<int, int>>{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}) {
-        if (in_tor(ro + dro, co + dco) && grid[ro + dro][co + dco] == '#') {
-            ++result;
-        }
-    }
-    return result;
-}
+CodesByLevel new_gen(const CodesByLevel &world) {
+    assert(!empty(world));
+    auto lo = cbegin(world)->first;
+    auto clo = cbegin(world)->second;
+    if (popcount_outer(clo)) --lo;
 
-vector<string> new_gen(const vector<string> &grid) {
-    vector<string> result(grid);
+    auto hi = crbegin(world)->first;
+    auto chi = crbegin(world)->second;
+    if (popcount_inner(chi)) ++hi;
 
-    for (int ro = 0; ro < Size; ++ro) {
-        for (int co = 0; co < Size; ++co) {
-            const auto n = neighs(grid, ro, co);
+    CodesByLevel result;
+    for (auto l = lo; l <= hi; ++l) {
+        result[l] = world.contains(l) ? world.at(l) : 0;
 
-            if (grid[ro][co] == '#' && n != 1) {
-                result[ro][co] = '.';
-            } else if (grid[ro][co] == '.' && (n == 1 || n == 2)) {
-                result[ro][co] = '#';
+        for (int ro = 0; ro < Size; ++ro) {
+            for (int co = 0; co < Size; ++co) {
+                if (ro == 2 && co == 2) continue;
+                const auto n = neighs(world, l, {ro, co});
+                const auto x = ro * Size + co;
+
+                if ((world.at(l) & (1 << x)) && n != 1) {
+                    result[l] ^= (1 << x);
+                } else if (!(world.at(l) & (1 << x)) && (n == 1 || n == 2)) {
+                    result[l] |= (1 << x);
+                }
             }
         }
     }
-
     return result;
 }
 
@@ -208,5 +219,14 @@ int main() {
     }
 
     CodesByLevel world{{0, code_of(grid)}};
+    for (int i = 0; i < 10; ++i) {
+        world = new_gen(world);
+    }
+
+    int result{};
+    for (const auto &[_, code] : world) {
+        result += __builtin_popcount(code);
+    }
+    cout << result << '\n';
     return 0;
 }
