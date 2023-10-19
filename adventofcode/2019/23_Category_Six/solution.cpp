@@ -161,6 +161,8 @@ int main() {
     vector<queue<ll>> io(NicsNum);
     for (int i = 0; i < NicsNum; ++i) io[i].push(i);
 
+    optional<ll> nat;
+
     const auto tick = [&](const int i) -> void {
         const auto input = [&]() -> ll {
             if (io[i].empty()) return -1;
@@ -178,16 +180,26 @@ int main() {
             } else {
                 const ll y = v;
                 if (*a == 255) {
-                    cout << y << endl;
-                    exit(0);
+                    if (ranges::all_of(
+                            io, [](const auto &q) { return empty(q); })) {
+                        if (nat && *nat == y) {
+                            cout << y << endl;
+                            exit(0);
+                        } else {
+                            nat = y;
+                            io[0].push(*x);
+                            io[0].push(y);
+                            a.reset();
+                            x.reset();
+                        }
+                    }
+                } else {
+                    assert(0 <= a && a < NicsNum);
+                    io[*a].push(*x);
+                    io[*a].push(y);
+                    a.reset();
+                    x.reset();
                 }
-
-                assert(0 <= a && a < NicsNum);
-                io[*a].push(*x);
-                io[*a].push(y);
-
-                a.reset();
-                x.reset();
             }
         };
 
