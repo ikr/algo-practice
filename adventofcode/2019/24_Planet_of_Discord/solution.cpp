@@ -21,7 +21,7 @@ constexpr int code_of(const vector<string> &grid) {
     for (int ro = 0; ro < Size; ++ro) {
         for (int co = 0; co < Size; ++co) {
             if (ro == 2 && co == 2) continue;
-            if (grid[ro][co] == '#') result |= 1 << (ro * Size + co);
+            if (grid[ro][co] == '#') result |= (1 << (ro * Size + co));
         }
     }
     return result;
@@ -31,7 +31,7 @@ constexpr int popcount_north(const int code) {
     int result{};
     const auto ro = 0;
     for (int co = 0; co < Size; ++co) {
-        if (code & (ro * Size + co)) ++result;
+        if (code & (1 << (ro * Size + co))) ++result;
     }
     return result;
 }
@@ -49,7 +49,7 @@ constexpr int popcount_south(const int code) {
     int result{};
     const auto ro = Size - 1;
     for (int co = 0; co < Size; ++co) {
-        if (code & (ro * Size + co)) ++result;
+        if (code & (1 << (ro * Size + co))) ++result;
     }
     return result;
 }
@@ -219,7 +219,7 @@ int main() {
     }
 
     CodesByLevel world{{0, code_of(grid)}};
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 200; ++i) {
         world = new_gen(world);
     }
 
