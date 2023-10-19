@@ -98,8 +98,8 @@ int run(vector<ll> &xs, int i, const function<ll(void)> input,
             const auto p1 = xs[i++];
             assert(m1 != Mode::IMM);
             const auto val = input();
-            if (val == -1LL) return i - 1;
             xs[m1 == Mode::REL ? (rbase + p1) : p1] = val;
+            if (val == -1LL) return i;
         } else if (oc == Opcode::OUT) {
             const auto p1 = xs[i++];
             output(deref(m1, p1));
@@ -177,6 +177,11 @@ int main() {
                 x = v;
             } else {
                 const ll y = v;
+                if (*a == 255) {
+                    cout << y << endl;
+                    exit(0);
+                }
+
                 assert(0 <= a && a < NicsNum);
                 io[*a].push(*x);
                 io[*a].push(y);
