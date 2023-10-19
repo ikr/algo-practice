@@ -180,7 +180,7 @@ int neighs(const CodesByLevel &world, const int level, const Coord &roco) {
     return result;
 }
 
-CodesByLevel new_gen(const CodesByLevel &world) {
+CodesByLevel new_gen(CodesByLevel world) {
     assert(!empty(world));
     auto lo = cbegin(world)->first;
     auto clo = cbegin(world)->second;
@@ -192,7 +192,7 @@ CodesByLevel new_gen(const CodesByLevel &world) {
 
     CodesByLevel result;
     for (auto l = lo; l <= hi; ++l) {
-        result[l] = world.contains(l) ? world.at(l) : 0;
+        result[l] = world[l];
 
         for (int ro = 0; ro < Size; ++ro) {
             for (int co = 0; co < Size; ++co) {
