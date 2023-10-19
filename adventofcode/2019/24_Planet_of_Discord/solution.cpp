@@ -228,5 +228,7 @@ int main() {
         result += __builtin_popcount(code);
     }
     cout << result << '\n';
+    cerr << "lo:" << cbegin(world)->first << " hi:" << crbegin(world)->first
+         << endl;
     return 0;
 }
