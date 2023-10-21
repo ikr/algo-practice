@@ -34,32 +34,6 @@ vector<ll> distances_by_car_from_0(const vector<vector<ll>> &D, const ll A) {
     return ans;
 }
 
-ll distance_by_train_to_N_minus_1(const vector<vector<ll>> &D, const ll B,
-                                  const ll C, const int s) {
-    const int N = sz(D);
-    vector<ll> ans(N, Inf);
-    ans[s] = 0;
-
-    set<pair<ll, int>> q;
-    q.emplace(0, s);
-
-    while (!empty(q)) {
-        const auto v = cbegin(q)->second;
-        q.erase(cbegin(q));
-
-        for (int to = 0; to < N; ++to) {
-            const auto len = D[v][to] * B + C;
-            if (ans[v] + len < ans[to]) {
-                q.erase({ans[to], to});
-                ans[to] = ans[v] + len;
-                q.emplace(ans[to], to);
-            }
-        }
-    }
-
-    return ans.back();
-}
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -75,13 +49,33 @@ int main() {
         for (auto &x : row) cin >> x;
     }
 
-    ll result = Inf;
-    const auto d1 = distances_by_car_from_0(D, A);
-    for (int i = 0; i < N; ++i) {
-        result =
-            min(result, d1[i] + distance_by_train_to_N_minus_1(D, B, C, i));
+    const auto D1 = distances_by_car_from_0(D, A);
+
+    vector<ll> D2(N, Inf);
+    for (int v = 0; v < N; ++v) {
+        D2[v] = D[v][N - 1] * B + C;
+    }
+    vector<bool> u(N, false);
+
+    for (int i = 0; i < N; i++) {
+        int v = -1;
+        for (int j = 0; j < N; j++) {
+            if (!u[j] && (v == -1 || D2[j] < D2[v])) v = j;
+        }
+
+        if (D2[v] == Inf) break;
+
+        u[v] = true;
+        for (int from = 0; from < N; ++from) {
+            const auto len = D[from][v] * B + C;
+            if (len + D2[from] < D2[v]) D2[v] = D2[from] + len;
+        }
     }
 
+    ll result = Inf;
+    for (int v = 0; v < N; ++v) {
+        result = min(result, D1[v] + D2[v]);
+    }
     cout << result << '\n';
     return 0;
 }
