@@ -32,7 +32,7 @@ optional<int> monotonic_pivot_index(const vector<int> &A,
 
     int i = 1;
     for (; i < n; ++i) {
-        if ((A[i] < B[i]) != (A[0] < B[0])) break;
+        if (A[i] == B[i] || (A[i] < B[i]) != (A[0] < B[0])) break;
     }
 
     if (i == n) {
@@ -49,9 +49,46 @@ optional<int> monotonic_pivot_index(const vector<int> &A,
     }
 }
 
+template <typename T> bool is_palindrome(const vector<T> &xs) {
+    const auto n = sz(xs);
+    for (int i = 0; i < n / 2; ++i) {
+        if (xs[i] != xs[n - 1 - i]) return false;
+    }
+    return true;
+}
+
+template <typename T>
+bool are_cross_palindromes(const vector<T> &xs, const vector<T> &ys) {
+    const auto n = sz(xs);
+    assert(sz(ys) == n);
+    for (int i = 0; i < n / 2; ++i) {
+        if (xs[i] != ys[n - 1 - i]) return false;
+        if (ys[i] != xs[n - 1 - i]) return false;
+    }
+    return true;
+}
+
+bool confirm_reversability(vector<int> A, vector<int> B, const int i0) {
+    const auto n = sz(A);
+    if (i0 == n) return is_palindrome(A) && is_palindrome(B);
+
+    vector<int> A_(cbegin(A) + i0, cend(A));
+    vector<int> B_(cbegin(B) + i0, cend(B));
+
+    reverse(begin(A), begin(A) + i0);
+    reverse(begin(B), begin(B) + i0);
+
+    A_.insert(cend(A_), cbegin(B), cbegin(B) + i0);
+    B_.insert(cend(B_), cbegin(A), cbegin(A) + i0);
+    return is_palindrome(A_) && is_palindrome(B_);
+}
+
 optional<int> ops_to_meta(vector<int> A, vector<int> B) {
     const auto i0 = monotonic_pivot_index(A, B);
     if (!i0) return nullopt;
+    return *i0;
+
+    if (confirm_reversability(std::move(A), std::move(B), *i0)) return 1;
     return nullopt;
 }
 
