@@ -86,10 +86,37 @@ bool confirm_reversability(vector<int> A, vector<int> B, const int i0) {
 optional<int> ops_to_meta(vector<int> A, vector<int> B) {
     const auto i0 = monotonic_pivot_index(A, B);
     if (!i0) return nullopt;
-    return *i0;
 
-    if (confirm_reversability(std::move(A), std::move(B), *i0)) return 1;
-    return nullopt;
+    const auto n = sz(A);
+    if (*i0 == n / 2) {
+        if (are_cross_palindromes(A, B)) return 0;
+    }
+
+    if (*i0 == n) {
+        int result{};
+        if (A[0] > B[0]) {
+            ranges::reverse(A);
+            ranges::reverse(B);
+            swap(A, B);
+            result += n;
+        }
+
+        const auto p = n / 2;
+        vector<int> A_(cbegin(A) + p, cend(A));
+        vector<int> B_(cbegin(B) + p, cend(B));
+
+        reverse(begin(A), begin(A) + p);
+        reverse(begin(B), begin(B) + p);
+
+        A_.insert(cend(A_), cbegin(B), cbegin(B) + p);
+        B_.insert(cend(B_), cbegin(A), cbegin(A) + p);
+
+        if (!are_cross_palindromes(A_, B_)) return nullopt;
+        result += n / 2;
+        return result;
+    }
+
+    return -2;
 }
 
 int main() {
