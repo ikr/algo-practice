@@ -43,8 +43,7 @@ tuple<Opcode, Mode, Mode, Mode> parse_op(ll op) {
             static_cast<Mode>(m2), static_cast<Mode>(m3)};
 }
 
-// Halts immediately if input returns a nullopt
-void run(vector<ll> &xs, const function<optional<ll>(void)> input,
+void run(vector<ll> &xs, const function<ll(void)> input,
          const function<void(ll)> output) {
     xs.resize(100'000, 0);
     int rbase{};
@@ -86,12 +85,8 @@ void run(vector<ll> &xs, const function<optional<ll>(void)> input,
                 deref(m1, p1) * deref(m2, p2);
         } else if (oc == Opcode::INP) {
             const auto p1 = xs[i++];
-
             assert(m1 != Mode::IMM);
-            const auto maybe_val = input();
-            if (!maybe_val) return;
-
-            xs[m1 == Mode::REL ? (rbase + p1) : p1] = *maybe_val;
+            xs[m1 == Mode::REL ? (rbase + p1) : p1] = input();
         } else if (oc == Opcode::OUT) {
             const auto p1 = xs[i++];
             output(deref(m1, p1));
@@ -131,23 +126,12 @@ void run(vector<ll> &xs, const function<optional<ll>(void)> input,
 }
 } // namespace intcode
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int main() {
     const auto rom = [&]() -> vector<ll> {
         string line;
-        cin >> line;
+        ifstream("in1") >> line;
 
         const auto tokens = split(",", line);
-        cerr << tokens << endl;
         vector<ll> result(sz(tokens));
         transform(cbegin(tokens), cend(tokens), begin(result),
                   [](const auto &x) { return stoll(x); });
@@ -155,14 +139,11 @@ int main() {
     }();
 
     queue<ll> q;
-    const auto input = [&]() -> optional<ll> {
+    const auto input = [&]() -> ll {
         if (empty(q)) {
             string xs;
-            cin >> xs;
-
-            for (const auto x : xs) {
-                q.push(static_cast<ll>(x));
-            }
+            getline(cin, xs);
+            for (const auto x : xs) q.push(static_cast<ll>(x));
             q.push(10);
         }
 
