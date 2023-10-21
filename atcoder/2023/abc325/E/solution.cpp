@@ -15,21 +15,19 @@ vector<ll> distances_by_car_from_0(const vector<vector<ll>> &D, const ll A) {
     const int N = sz(D);
     vector<ll> ans(N, Inf);
     ans[0] = 0;
+    vector<bool> u(N, false);
 
-    set<pair<ll, int>> q;
-    q.emplace(0, 0);
+    for (int i = 0; i < N; i++) {
+        int v = -1;
+        for (int j = 0; j < N; j++) {
+            if (!u[j] && (v == -1 || ans[j] < ans[v])) v = j;
+        }
+        if (ans[v] == Inf) break;
 
-    while (!empty(q)) {
-        const auto v = cbegin(q)->second;
-        q.erase(cbegin(q));
-
+        u[v] = true;
         for (int to = 0; to < N; ++to) {
             const auto len = D[v][to] * A;
-            if (ans[v] + len < ans[to]) {
-                q.erase({ans[to], to});
-                ans[to] = ans[v] + len;
-                q.emplace(ans[to], to);
-            }
+            if (ans[v] + len < ans[to]) ans[to] = ans[v] + len;
         }
     }
 
