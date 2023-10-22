@@ -11,6 +11,7 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 bool is_possible(const string &xs, int k) {
     array<int, Az> freq{};
+    freq.fill(0);
     for (const auto x : xs) ++freq[x - 'a'];
 
     int evs{};
