@@ -9,7 +9,7 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-bool is_possible(const string &xs, const int k) {
+bool is_possible(const string &xs, int k) {
     array<int, Az> freq{};
     for (const auto x : xs) ++freq[x - 'a'];
 
@@ -26,11 +26,27 @@ bool is_possible(const string &xs, const int k) {
     if (sz(ods) < 2) return true;
     ranges::sort(ods);
 
-    vector<int> ss(sz(ods));
-    partial_sum(cbegin(ods), cend(ods), begin(ss));
+    for (auto &o : ods) {
+        const auto d = min(k, o);
+        o -= d;
+        k -= d;
+    }
 
-    const auto i0 = inof(lower_bound(cbegin(ss), cend(ss), k) - cbegin(ss));
-    return (i0 >= sz(ss) - 2);
+    vector<int> ods_;
+    for (const auto o : ods) {
+        if (o % 2) {
+            ods_.push_back(o);
+        } else {
+            evs += o;
+        }
+    }
+
+    if (k) {
+        assert(empty(ods_));
+        return true;
+    }
+
+    return sz(ods_) < 2;
 }
 
 int main() {
