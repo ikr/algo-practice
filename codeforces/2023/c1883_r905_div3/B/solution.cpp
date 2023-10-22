@@ -23,20 +23,20 @@ bool is_possible(const string &xs, int k) {
         }
     }
 
-    ranges::sort(ods);
+    sort(rbegin(ods), rend(ods));
 
-    for (auto &o : ods) {
-        const auto d = min(k, o);
-        o -= d;
+    for (auto &f : ods) {
+        const auto d = min(k, 1);
+        f -= d;
         k -= d;
     }
 
     vector<int> ods_;
-    for (const auto o : ods) {
-        if (o % 2) {
-            ods_.push_back(o);
+    for (const auto f : ods) {
+        if (f % 2) {
+            ods_.push_back(f);
         } else {
-            evs += o;
+            evs += f;
         }
     }
 
