@@ -52,9 +52,7 @@ int main() {
     const auto D1 = distances_by_car_from_0(D, A);
 
     vector<ll> D2(N, Inf);
-    for (int v = 0; v < N; ++v) {
-        D2[v] = D[v][N - 1] * B + C;
-    }
+    D2[N - 1] = 0;
     vector<bool> u(N, false);
 
     for (int i = 0; i < N; i++) {
@@ -68,7 +66,7 @@ int main() {
         u[v] = true;
         for (int from = 0; from < N; ++from) {
             const auto len = D[from][v] * B + C;
-            if (len + D2[from] < D2[v]) D2[v] = D2[from] + len;
+            if (len + D2[v] < D2[from]) D2[from] = D2[v] + len;
         }
     }
 
