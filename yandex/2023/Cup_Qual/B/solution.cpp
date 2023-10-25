@@ -24,7 +24,17 @@ int main() {
     }
     ranges::sort(xs);
 
-    const auto result = abs(xs[0].second - xs[m - 1].second);
-    cout << result << '\n';
+    auto lo = xs[0].second;
+    auto hi = lo;
+
+    int taken{};
+    for (const auto &[x, i] : xs) {
+        ++taken;
+        lo = min(lo, i);
+        hi = max(hi, i);
+        if (taken == m) break;
+    }
+
+    cout << (hi - lo + 1) << '\n';
     return 0;
 }
