@@ -1,12 +1,55 @@
+#include <atcoder/modint>
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
+using ull = unsigned long long;
+using mint = atcoder::modint1000000007;
+using Freq = array<mint, 8 * sizeof(ull)>;
 
-static constexpr ll M = 1'000'000'007;
+Freq brute_force_bit_counts(const ull n) {
+    Freq fs{};
+    for (ull k = 1; k <= n; ++k) {
+        for (ull i = 0; i < 64; ++i) {
+            if (k & (1ULL << i)) ++fs[i];
+        }
+    }
+    return fs;
+}
 
-ll sum_of_ands(const ll n) {
-    array<ll, 63> fs{};
+constexpr int mlog2(const ull x) {
+    return 8 * sizeof(ull) - __builtin_clzll(x) - 1;
+}
+
+Freq bit_counts(const ull n) {
+    const auto x = mlog2(n);
+    Freq fs{};
+    for (int i = 0; i <= x; ++i) {
+        fs[i] = mint{2}.pow(x);
+    }
+
+    return fs;
+}
+
+ostream &operator<<(ostream &os, const mint x) {
+    os << x.val();
+    return os;
+}
+
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+ull sum_of_ands(const ull n) {
+    cerr << bit_counts(n) << endl;
+    cerr << brute_force_bit_counts(n) << endl;
+    assert(bit_counts(n) == brute_force_bit_counts(n));
     return 0;
 }
 
@@ -17,7 +60,7 @@ int main() {
     int T;
     cin >> T;
     while (T--) {
-        ll n;
+        ull n;
         cin >> n;
         cout << sum_of_ands(n) << '\n';
     }
