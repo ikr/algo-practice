@@ -23,8 +23,15 @@ constexpr int mlog2(const ull x) {
 Freq bit_counts(const ull n) {
     const auto x = mlog2(n);
     Freq fs{};
-    for (int i = 0; i <= x; ++i) {
+
+    for (int i = 0; i < x; ++i) {
         fs[i] = mint{2}.pow(x);
+    }
+
+    for (int i = x; i >= 0; --i) {
+        const auto mask = (1ULL << (i + 1)) - 1ULL;
+        const auto m = n & mask;
+        if ((1ULL << x) & m) fs[i] += m - (1ULL << i) + 1;
     }
 
     return fs;
