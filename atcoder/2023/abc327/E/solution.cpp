@@ -18,7 +18,7 @@ double optimal_rating(const vector<int> &P) {
     for (int j = 0; j < n; ++j) D[j][1] = P[j];
 
     for (int j = 1; j < n; ++j) {
-        for (int k = 2; k <= n && k <= j + 1; ++k) {
+        for (int k = 1; k <= n && k <= j + 1; ++k) {
             D[j][k] = max(D[j - 1][k], 0.9 * D[j - 1][k - 1] + P[j]);
         }
     }
