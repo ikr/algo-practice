@@ -9,8 +9,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-constexpr double one_contest_rating(const double p) { return p - 1200.0; }
-
 double optimal_rating(const vector<int> &P) {
     const auto n = sz(P);
 
@@ -27,24 +25,20 @@ double optimal_rating(const vector<int> &P) {
     // D[j][k] is the maximum rating when choosing exactly k contests such that
     // their index in P is at most j.
     vector<vector<double>> D(n, vector<double>(n + 1, -INF));
-    for (int j = 0; j < n; ++j) D[j][1] = one_contest_rating(P[j]);
+    for (int j = 0; j < n; ++j) D[j][1] = P[j];
 
     for (int j = 1; j < n; ++j) {
-        for (int k = 2; k <= n; ++k) {
+        for (int k = 2; k <= n && k <= j + 1; ++k) {
             D[j][k] = D[j - 1][k];
-
-            auto R = (D[j - 1][k - 1] + (1200.0 / sqrt(k - 1.0))) * kds[k - 1];
-            R *= 0.9;
-            R += P[j];
-            R /= kds[k];
-            R -= 1200.0 / sqrt(k + 0.0);
-            D[j][k] = max(D[j][k], R);
+            D[j][k] = max(D[j][k], 0.9 * D[j - 1][k - 1] + P[j]);
         }
     }
 
     double ans = -INF;
     for (const auto &row : D) {
-        for (const auto x : row) ans = max(ans, x);
+        for (int k = 1; k <= n; ++k) {
+            ans = max(ans, row[k] / kds[k] - (1200.0 / sqrt(k)));
+        }
     }
     return ans;
 }
