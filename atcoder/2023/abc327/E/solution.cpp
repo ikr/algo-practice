@@ -12,16 +12,6 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 double optimal_rating(const vector<int> &P) {
     const auto n = sz(P);
 
-    vector<double> kds(n + 1, 0.0);
-    kds[1] = 1.0;
-    {
-        double m = 1.0;
-        for (int i = 2; i <= n; ++i) {
-            m *= 0.9;
-            kds[i] = kds[i - 1] + m;
-        }
-    }
-
     // D[j][k] is the maximum rating when choosing exactly k contests such that
     // their index in P is at most j.
     vector<vector<double>> D(n, vector<double>(n + 1, -INF));
@@ -30,6 +20,16 @@ double optimal_rating(const vector<int> &P) {
     for (int j = 1; j < n; ++j) {
         for (int k = 2; k <= n && k <= j + 1; ++k) {
             D[j][k] = max(D[j - 1][k], 0.9 * D[j - 1][k - 1] + P[j]);
+        }
+    }
+
+    vector<double> kds(n + 1, 0.0);
+    kds[1] = 1.0;
+    {
+        double m = 1.0;
+        for (int i = 2; i <= n; ++i) {
+            m *= 0.9;
+            kds[i] = kds[i - 1] + m;
         }
     }
 
