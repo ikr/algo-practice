@@ -15,11 +15,14 @@ double optimal_rating(const vector<int> &P) {
     // D[j][k] is the maximum rating when choosing exactly k contests such that
     // their index in P is at most j.
     vector<vector<double>> D(n, vector<double>(n + 1, -INF));
-    for (int j = 0; j < n; ++j) D[j][1] = P[j];
+    D[0][1] = P[0];
+    for (int j = 1; j < n; ++j) {
+        D[j][1] = max(D[j - 1][1], 0.0 + P[j]);
+    }
 
     for (int j = 1; j < n; ++j) {
-        for (int k = 1; k <= n && k <= j + 1; ++k) {
-            D[j][k] = max({D[j][1], D[j - 1][k], 0.9 * D[j - 1][k - 1] + P[j]});
+        for (int k = 2; k <= n && k <= j + 1; ++k) {
+            D[j][k] = max(D[j - 1][k], 0.9 * D[j - 1][k - 1] + P[j]);
         }
     }
 
