@@ -22,14 +22,13 @@ int next_letter(const array<set<int>, 3> &idx, const int i0) {
 
 bool apply_op(array<set<int>, 3> &idx) {
     for (const auto i : idx[0]) {
-        const auto it = idx[0].upper_bound(i);
+        if (next_letter(idx, i) != 1) continue;
         const auto jt = idx[1].upper_bound(i);
-        if (jt == cend(idx[1])) return false;
-        if (*jt != i + 1) continue;
+        assert(jt != cend(idx[1]));
 
+        if (next_letter(idx, *jt) != 2) continue;
         const auto kt = idx[2].upper_bound(*jt);
-        if (kt == cend(idx[2])) return false;
-        if (*kt != *jt + 1) continue;
+        assert(kt != cend(idx[2]));
 
         idx[0].erase(i);
         idx[1].erase(*jt);
