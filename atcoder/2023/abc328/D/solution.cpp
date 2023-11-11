@@ -21,22 +21,30 @@ int next_letter(const array<set<int>, 3> &idx, const int i0) {
 }
 
 bool apply_op(array<set<int>, 3> &idx) {
-    for (const auto i : idx[0]) {
-        if (next_letter(idx, i) != 1) continue;
-        const auto jt = idx[1].upper_bound(i);
+    bool reduced = false;
+    for (auto it = cbegin(idx[0]); it != cend(idx[0]);) {
+        if (next_letter(idx, *it) != 1) {
+            ++it;
+            continue;
+        }
+        const auto jt = idx[1].upper_bound(*it);
         assert(jt != cend(idx[1]));
 
-        if (next_letter(idx, *jt) != 2) continue;
+        if (next_letter(idx, *jt) != 2) {
+            ++it;
+            continue;
+        }
         const auto kt = idx[2].upper_bound(*jt);
         assert(kt != cend(idx[2]));
 
-        idx[0].erase(i);
+        it = idx[0].erase(it);
+        if (!empty(idx[0]) && it != cbegin(idx[0])) --it;
         idx[1].erase(*jt);
         idx[2].erase(*kt);
-        return true;
+        reduced = true;
     }
 
-    return false;
+    return reduced;
 }
 
 string reconstruct(const array<set<int>, 3> &idx) {
