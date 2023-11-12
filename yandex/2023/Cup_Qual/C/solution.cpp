@@ -20,20 +20,28 @@ constexpr int mlog2(const ull x) {
     return 8 * sizeof(ull) - __builtin_clzll(x) - 1;
 }
 
+constexpr optional<int> next_set_bit_index(const ull x, const int i) {
+    for (int j = i + 1; j < 64; ++j) {
+        if (x & (1ULL << j)) return j;
+    }
+    return nullopt;
+}
+
 Freq bit_counts(const ull N) {
     const auto X = mlog2(N);
     Freq fs{};
-
-    for (int i = 0; i < X; ++i) {
-        fs[i] = mint{2}.pow(X - 1);
-    }
+    if (X) fill(begin(fs), begin(fs) + X, mint{2}.pow(X - 1));
 
     for (int x = X; x >= 0; --x) {
-        if (N & (1 << x)) {
+        const auto y = next_set_bit_index(N, x);
+        if (y) {
+            assert(*y > x);
+            fs[x] += mint{2}.pow(*y - 1);
+        }
+
+        if (N & (1ULL << x)) {
             const auto n = (N >> x) << x;
             fs[x] += N - n + 1;
-        } else {
-            fs[x] *= 2;
         }
     }
 
