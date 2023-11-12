@@ -28,13 +28,15 @@ Freq bit_counts(const ull N) {
         fs[i] = mint{2}.pow(X - 1);
     }
 
-    for (int x = X; x >= 1; --x) {
-        const auto mask = (1ULL << (x + 1)) - 1ULL;
-        const auto n = N & mask;
-        fs[x] += n - ((1ULL << x) - 1ULL);
+    for (int x = X; x >= 0; --x) {
+        if (N & (1 << x)) {
+            const auto n = (N >> x) << x;
+            fs[x] += N - n + 1;
+        } else {
+            fs[x] *= 2;
+        }
     }
 
-    if (N & 1) ++fs[0];
     return fs;
 }
 
