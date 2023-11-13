@@ -2,14 +2,20 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
 using ull = unsigned long long;
 using mint = atcoder::modint1000000007;
 using Freq = array<mint, 8 * sizeof(ull)>;
 
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
 Freq brute_force_bit_counts(const ull n) {
     Freq fs{};
     for (ull k = 1; k <= n; ++k) {
-        for (ull i = 0; i < 64; ++i) {
+        for (int i = 0; i < sz(fs); ++i) {
             if (k & (1ULL << i)) ++fs[i];
         }
     }
@@ -27,22 +33,27 @@ constexpr optional<int> next_set_bit_index(const ull x, const int i) {
     return nullopt;
 }
 
-Freq bit_counts(const ull N) {
+Freq bit_counts(const ll N) {
     const auto X = mlog2(N);
     Freq fs{};
-    if (X) fill(begin(fs), begin(fs) + X, mint{2}.pow(X - 1));
+    // if (X) fill(begin(fs), begin(fs) + X, mint{2}.pow(X - 1));
 
     for (int x = X; x >= 0; --x) {
-        const auto y = next_set_bit_index(N, x);
-        if (y) {
-            assert(*y > x);
-            fs[x] += mint{2}.pow(*y - 1);
-        }
+        auto a = (N >> (x + 1)) << x;
+        a += max(0LL, N - a * 2LL - (1LL << x));
+        fs[x] = a;
+        if (N & (1ULL << x)) ++fs[x];
 
-        if (N & (1ULL << x)) {
-            const auto n = (N >> x) << x;
-            fs[x] += N - n + 1;
-        }
+        // const auto y = next_set_bit_index(N, x);
+        // if (y) {
+        //     assert(*y > x);
+        //     fs[x] += mint{2}.pow(*y - 1);
+        // }
+
+        // if (N & (1ULL << x)) {
+        //     const auto n = (N >> x) << x;
+        //     fs[x] += N - n + 1;
+        // }
     }
 
     return fs;
@@ -64,11 +75,19 @@ ostream &operator<<(ostream &os, const array<T, N> &xs) {
     return os;
 }
 
-ull sum_of_ands(const ull n) {
-    cerr << bit_counts(n) << endl;
-    cerr << brute_force_bit_counts(n) << endl;
-    assert(bit_counts(n) == brute_force_bit_counts(n));
-    return 0;
+int sum_of_ands(const ull n) {
+    // cerr << bit_counts(n) << endl;
+    // cerr << brute_force_bit_counts(n) << endl;
+    // assert(bit_counts(n) == brute_force_bit_counts(n));
+
+    const auto fs = bit_counts(n);
+    mint ans{};
+
+    for (int i = 0; i < sz(fs); ++i) {
+        ans += fs[i].pow(2) * mint{2}.pow(i);
+    };
+
+    return ans.val();
 }
 
 int main() {
