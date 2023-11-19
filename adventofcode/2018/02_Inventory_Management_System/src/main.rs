@@ -1,7 +1,5 @@
+use itertools::Itertools;
 use std::io::{self, BufRead};
-
-const AZ: usize = (b'z' - b'a' + 1) as usize;
-type Freqs = [i32; AZ];
 
 fn read_input() -> Vec<String> {
     let mut xs = Vec::new();
@@ -11,32 +9,31 @@ fn read_input() -> Vec<String> {
     xs
 }
 
-fn letter_frequences(xs: &str) -> Freqs {
-    let mut freqs = [0; AZ];
-    for c in xs.bytes() {
-        freqs[usize::from(c - b'a')] += 1;
+fn diffs_count(a: &String, b: &String) -> i32 {
+    let mut count = 0;
+    for (x, y) in a.chars().zip(b.chars()) {
+        if x != y {
+            count += 1;
+        }
     }
-    freqs
+    count
 }
 
-fn count_occurances(xs: &Freqs, value: i32) -> i32 {
-    xs.iter().filter(|&&x| x == value).count() as i32
+fn common(a: &String, b: &String) -> String {
+    let mut result = String::new();
+    for (x, y) in a.chars().zip(b.chars()) {
+        if x == y {
+            result.push(x);
+        }
+    }
+    result
 }
 
 fn main() {
     let xs = read_input();
-    let fs = xs.iter().map(|x| letter_frequences(x)).collect::<Vec<_>>();
-
-    let mut twos = 0;
-    let mut threes = 0;
-    for f in fs {
-        if count_occurances(&f, 2) > 0 {
-            twos += 1;
-        }
-        if count_occurances(&f, 3) > 0 {
-            threes += 1;
+    for (a, b) in xs.iter().tuple_combinations() {
+        if diffs_count(a, b) == 1 {
+            println!("{}", common(a, b));
         }
     }
-
-    println!("{}", twos * threes);
 }
