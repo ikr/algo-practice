@@ -120,17 +120,17 @@ fn main() {
     let mut hi_id = 0;
     let mut hi = 0;
 
-    for (id, &xs) in &sleep_minutes_by_guard_id {
-        let s = xs.iter().fold(0, |a, &b| a + b);
+    for (&id, &xs) in &sleep_minutes_by_guard_id {
+        let s = xs.iter().fold(0, |a, b| a + b);
 
         if s > hi {
-            hi_id = *id;
+            hi_id = id;
             hi = s;
         }
     }
 
     let xs = sleep_minutes_by_guard_id.get(&hi_id).unwrap();
     let m = xs.iter().max().unwrap();
-    let i = xs.iter().position(|&x| x == *m).unwrap();
+    let i = xs.iter().position(|x| x == m).unwrap();
     println!("{}", usize::from(hi_id) * usize::from(i - 60));
 }
