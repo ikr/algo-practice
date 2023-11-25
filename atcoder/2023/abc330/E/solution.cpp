@@ -1,6 +1,32 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T1, typename T2>
+ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
+    os << '(' << x.first << ' ' << x.second << ')';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -112,11 +138,13 @@ int main() {
         A[index] = new_value;
     };
 
+    cerr << "ii: " << ii << endl;
     for (int k = 1; k <= Q; ++k) {
         int ik, xk;
         cin >> ik >> xk;
         --ik;
         change(ik, xk);
+        cerr << "ii: " << ii << endl;
         cout << mex() << '\n';
     }
 
