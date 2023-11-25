@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+static constexpr int Az = 26;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -11,10 +13,7 @@ constexpr bool react(const char x, const char y) {
     return x != y && tolower(x) == tolower(y);
 }
 
-int main() {
-    string xs;
-    cin >> xs;
-
+string chain_react(const string &xs) {
     string ys;
     for (const auto x : xs) {
         if (!ys.empty() && react(ys.back(), x)) {
@@ -23,7 +22,28 @@ int main() {
             ys.push_back(x);
         }
     }
+    return ys;
+}
 
-    cout << ys << '\n' << sz(ys) << '\n';
+string omit_Aa(const string &xs, const char A) {
+    string ys;
+    for (const auto x : xs) {
+        if (x != A && x != tolower(A)) ys.push_back(x);
+    }
+    return ys;
+}
+
+int main() {
+    string xs;
+    cin >> xs;
+
+    int lo = INT_MAX;
+    for (char A = 'A'; A < 'A' + Az; ++A) {
+        const auto ys = omit_Aa(xs, A);
+        const auto zs = chain_react(ys);
+        lo = min(lo, sz(zs));
+    }
+
+    cout << lo << '\n';
     return 0;
 }
