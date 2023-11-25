@@ -76,7 +76,8 @@ int main() {
     };
 
     const auto add_to_intervals = [&](const int x) -> void {
-        const auto it = ii.lower_bound({x, x});
+        auto it = ii.lower_bound({x, x});
+        if (it == cend(ii)) --it;
         const auto jt = it == cbegin(ii) ? it : prev(it);
 
         const auto [a, b] = *it;
