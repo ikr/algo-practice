@@ -3,6 +3,8 @@ using namespace std;
 
 using Coord = pair<int, int>;
 
+static constexpr int LIM = 10000;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -65,38 +67,22 @@ int main() {
     const auto y_lo = *ranges::min_element(ys);
     const auto y_hi = *ranges::max_element(ys);
 
-    const auto is_edge_point = [&](const int i) {
-        return i == indices_sorted_by_x[0] || i == indices_sorted_by_x.back() ||
-               i == indices_sorted_by_y[0] || i == indices_sorted_by_y.back();
+    const auto sum_of_distances = [&](const Coord xy) -> int {
+        return accumulate(cbegin(points), cend(points), 0,
+                          [xy](const int acc, const Coord p) {
+                              return acc + manhattan_distance(xy, p);
+                          });
     };
 
-    const auto closest_point_index = [&](const Coord xy) -> optional<int> {
-        multimap<int, int> center_indices_by_distance;
-
-        for (int i = 0; i < n; ++i) {
-            const auto d = manhattan_distance(xy, points[i]);
-            center_indices_by_distance.emplace(d, i);
-        }
-
-        assert(!empty(center_indices_by_distance));
-        const auto [d, i] = *cbegin(center_indices_by_distance);
-        if (center_indices_by_distance.count(d) > 1) return nullopt;
-        return is_edge_point(i) ? nullopt : optional{i};
-    };
-
-    map<Coord, int> centers;
+    map<Coord, int> sum_of_distances_by_xy;
 
     for (int x = x_lo; x <= x_hi; ++x) {
         for (int y = y_lo; y <= y_hi; ++y) {
-            const auto i = closest_point_index({x, y});
-            if (!i) continue;
-            centers.emplace(Coord{x, y}, *i);
+            const auto sd = sum_of_distances(Coord{x, y});
+            if (sd < LIM) sum_of_distances_by_xy[{x, y}] = sd;
         }
     }
 
-    vector<int> freq(n, 0);
-    for (const auto &[_, i] : centers) ++freq[i];
-
-    cout << *ranges::max_element(freq) << '\n';
+    cout << sz(sum_of_distances_by_xy) << '\n';
     return 0;
 }
