@@ -20,12 +20,6 @@ constexpr Coord rotate(const Coord xy) {
     return {x + y, x - y};
 }
 
-template <typename T> int index_of(const vector<T> &xs, const T x) {
-    const auto it = find(cbegin(xs), cend(xs), x);
-    assert(it != cend(xs));
-    return inof(it - cbegin(xs));
-}
-
 constexpr int manhattan_distance(const Coord a, const Coord b) {
     const auto [ax, ay] = a;
     const auto [bx, by] = b;
@@ -56,17 +50,53 @@ int main() {
         return rotated_points[i].second < rotated_points[j].second;
     });
 
-    const auto x_lo = rotated_points[indices_sorted_by_x[0]].first;
-    const auto x_hi = rotated_points[indices_sorted_by_x.back()].first;
-    const auto y_lo = rotated_points[indices_sorted_by_y[0]].second;
-    const auto y_hi = rotated_points[indices_sorted_by_y.back()].second;
+    const auto xs = array{points[indices_sorted_by_x[0]].first,
+                          points[indices_sorted_by_x.back()].first,
+                          points[indices_sorted_by_y[0]].first,
+                          points[indices_sorted_by_y.back()].first};
 
-    for (int i = 0; i < n; ++i) {
-        const auto j = index_of(indices_sorted_by_x, i);
-        if (j == 0 || j == n - 1) continue;
-        const auto k = index_of(indices_sorted_by_y, i);
-        if (k == 0 || k == n - 1) continue;
+    const auto ys = array{points[indices_sorted_by_x[0]].second,
+                          points[indices_sorted_by_x.back()].second,
+                          points[indices_sorted_by_y[0]].second,
+                          points[indices_sorted_by_y.back()].second};
+
+    const auto x_lo = *ranges::min_element(xs);
+    const auto x_hi = *ranges::max_element(xs);
+    const auto y_lo = *ranges::min_element(ys);
+    const auto y_hi = *ranges::max_element(ys);
+
+    const auto is_edge_point = [&](const int i) {
+        return i == indices_sorted_by_x[0] || i == indices_sorted_by_x.back() ||
+               i == indices_sorted_by_y[0] || i == indices_sorted_by_y.back();
+    };
+
+    const auto closest_point_index = [&](const Coord xy) -> optional<int> {
+        multimap<int, int> center_indices_by_distance;
+
+        for (int i = 0; i < n; ++i) {
+            const auto d = manhattan_distance(xy, points[i]);
+            center_indices_by_distance.emplace(d, i);
+        }
+
+        assert(!empty(center_indices_by_distance));
+        const auto [d, i] = *cbegin(center_indices_by_distance);
+        if (center_indices_by_distance.count(d) > 1) return nullopt;
+        return is_edge_point(i) ? nullopt : optional{i};
+    };
+
+    map<Coord, int> centers;
+
+    for (int x = x_lo; x <= x_hi; ++x) {
+        for (int y = y_lo; y <= y_hi; ++y) {
+            const auto i = closest_point_index({x, y});
+            if (!i) continue;
+            centers.emplace(Coord{x, y}, *i);
+        }
     }
 
+    vector<int> freq(n, 0);
+    for (const auto &[_, i] : centers) ++freq[i];
+
+    cout << *ranges::max_element(freq) << '\n';
     return 0;
 }
