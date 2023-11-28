@@ -23,26 +23,21 @@ string deterministic_toposort(const int n, const vector<pii> &edges) {
         ++deg[v];
     }
 
-    set<int> stash;
-    queue<int> q;
+    set<int> pq;
 
     for (int u = 0; u < n; ++u) {
-        if (deg[u] == 0) stash.insert(u);
+        if (deg[u] == 0) pq.insert(u);
     }
-    for (const auto u : stash) q.push(u);
-    stash.clear();
 
     string result;
-    while (!empty(q)) {
-        const auto u = q.front();
-        q.pop();
+    while (!empty(pq)) {
+        const auto u = *cbegin(pq);
+        pq.erase(cbegin(pq));
         result += chof('A' + u);
 
         for (const auto v : adj[u]) {
-            if (--deg[v] == 0) stash.insert(v);
+            if (--deg[v] == 0) pq.insert(v);
         }
-        for (const auto v : stash) q.push(v);
-        stash.clear();
     }
     return result;
 }
