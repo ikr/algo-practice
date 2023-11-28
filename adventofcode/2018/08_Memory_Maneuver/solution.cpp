@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -23,6 +13,23 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
+struct Node final {
+    vector<Node> children;
+    vector<int> metadata;
+};
+
+Node encode(vector<int>::const_iterator it) {
+    const auto num_children = *it;
+    ++it;
+    vector<Node> children(num_children);
+
+    const auto num_metadata = *it;
+    ++it;
+    vector<int> metadata(num_metadata);
+
+    return {children, metadata};
+}
+
 int main() {
     string input;
     getline(cin, input);
@@ -31,6 +38,5 @@ int main() {
     vector<int> xs(sz(tokens));
     ranges::transform(tokens, begin(xs), [](const auto &s) { return stoi(s); });
 
-    cerr << xs << endl;
     return 0;
 }
