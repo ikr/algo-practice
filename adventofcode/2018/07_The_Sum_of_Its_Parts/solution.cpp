@@ -1,17 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using pii = pair<int, int>;
 
 static const string Pref{"Step "};
@@ -41,23 +30,37 @@ int total_work_time_seconds(const int n, const vector<pii> &edges) {
         if (deg[u] == 0) pq.insert(u);
     }
 
-    array<int, NumWorkers> worker_time{};
-    cerr << worker_time << endl;
+    int seconds_total{};
+    vector<pii> remaining_work; // (effort, u)
 
-    while (!empty(pq)) {
-        const auto u = *cbegin(pq);
-        pq.erase(cbegin(pq));
+    while (!empty(pq) || !empty(remaining_work)) {
+        while (!empty(pq) && sz(remaining_work) < NumWorkers) {
+            const auto u = *cbegin(pq);
+            pq.erase(cbegin(pq));
+            remaining_work.emplace_back(BaseSeconds + u + 1, u);
+            continue;
+        }
 
-        const auto it = ranges::min_element(worker_time);
-        *it += BaseSeconds + u + 1;
-        cerr << worker_time << endl;
+        if (!empty(remaining_work)) {
+            sort(rbegin(remaining_work), rend(remaining_work));
+            const auto elapsed = remaining_work.back().first;
+            seconds_total += elapsed;
 
-        for (const auto v : adj[u]) {
-            if (--deg[v] == 0) pq.insert(v);
+            while (!empty(remaining_work) &&
+                   remaining_work.back().first == elapsed) {
+                const auto u = remaining_work.back().second;
+                remaining_work.pop_back();
+
+                for (const auto v : adj[u]) {
+                    if (--deg[v] == 0) pq.insert(v);
+                }
+            }
+
+            for (auto &[effort, u] : remaining_work) effort -= elapsed;
         }
     }
 
-    return *ranges::max_element(worker_time);
+    return seconds_total;
 }
 
 int main() {
