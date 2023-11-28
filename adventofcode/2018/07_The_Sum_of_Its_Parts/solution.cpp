@@ -5,8 +5,8 @@ using pii = pair<int, int>;
 
 static const string Pref{"Step "};
 static const string Suff{"X can begin."};
-static constexpr int BaseSeconds = 0;
-static constexpr int NumWorkers = 2;
+static constexpr int BaseSeconds = 60;
+static constexpr int NumWorkers = 5;
 
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
