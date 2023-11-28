@@ -1,6 +1,17 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using pii = pair<int, int>;
 
 static const string Pref{"Step "};
@@ -30,20 +41,23 @@ int total_work_time_seconds(const int n, const vector<pii> &edges) {
         if (deg[u] == 0) pq.insert(u);
     }
 
-    vector<int> work(n, BaseSeconds);
-    iota(begin(work), end(work), BaseSeconds + 1);
+    array<int, NumWorkers> worker_time{};
+    cerr << worker_time << endl;
 
-    int result{};
     while (!empty(pq)) {
         const auto u = *cbegin(pq);
         pq.erase(cbegin(pq));
-        // ??
+
+        const auto it = ranges::min_element(worker_time);
+        *it += BaseSeconds + u + 1;
+        cerr << worker_time << endl;
 
         for (const auto v : adj[u]) {
             if (--deg[v] == 0) pq.insert(v);
         }
     }
-    return result;
+
+    return *ranges::max_element(worker_time);
 }
 
 int main() {
