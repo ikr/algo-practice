@@ -5,6 +5,8 @@ using pii = pair<int, int>;
 
 static const string Pref{"Step "};
 static const string Suff{"X can begin."};
+static constexpr int BaseSeconds = 0;
+static constexpr int NumWorkers = 2;
 
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
@@ -14,7 +16,7 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-string deterministic_toposort(const int n, const vector<pii> &edges) {
+int total_work_time_seconds(const int n, const vector<pii> &edges) {
     vector<vector<int>> adj(n);
     vector<int> deg(n);
 
@@ -24,16 +26,18 @@ string deterministic_toposort(const int n, const vector<pii> &edges) {
     }
 
     set<int> pq;
-
     for (int u = 0; u < n; ++u) {
         if (deg[u] == 0) pq.insert(u);
     }
 
-    string result;
+    vector<int> work(n, BaseSeconds);
+    iota(begin(work), end(work), BaseSeconds + 1);
+
+    int result{};
     while (!empty(pq)) {
         const auto u = *cbegin(pq);
         pq.erase(cbegin(pq));
-        result += chof('A' + u);
+        // ??
 
         for (const auto v : adj[u]) {
             if (--deg[v] == 0) pq.insert(v);
@@ -54,6 +58,6 @@ int main() {
         n = max(n, max(U, V) - 'A' + 1);
     }
 
-    cout << deterministic_toposort(n, edges) << '\n';
+    cout << total_work_time_seconds(n, edges) << '\n';
     return 0;
 }
