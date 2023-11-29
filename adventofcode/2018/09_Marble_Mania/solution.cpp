@@ -24,7 +24,7 @@ vector<string> static_re_matches(const string &pattern_str,
     regex_match(input, m, pattern);
     assert(!empty(m));
 
-    vector<string> result(m.size() - 1);
+    vector<string> result(size(m) - 1);
     transform(cbegin(m) + 1, cend(m), begin(result),
               [](const auto &x) { return x.str(); });
     return result;
