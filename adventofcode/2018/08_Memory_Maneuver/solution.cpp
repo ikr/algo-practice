@@ -18,14 +18,12 @@ struct Node final {
     vector<int> metadata;
 };
 
-Node encode(vector<int>::const_iterator it) {
-    const auto num_children = *it;
-    ++it;
-    vector<Node> children(num_children);
+Node encode(vector<int>::const_iterator &it) {
+    vector<Node> children(*it++);
+    vector<int> metadata(*it++);
 
-    const auto num_metadata = *it;
-    ++it;
-    vector<int> metadata(num_metadata);
+    for (auto &child : children) child = encode(it);
+    for (auto &x : metadata) x = *it++;
 
     return {children, metadata};
 }
@@ -38,5 +36,20 @@ int main() {
     vector<int> xs(sz(tokens));
     ranges::transform(tokens, begin(xs), [](const auto &s) { return stoi(s); });
 
+    auto it = cbegin(xs);
+    const auto root = encode(it);
+    assert(it == cend(xs));
+
+    const auto metadata_total = [&](const auto self, const Node &node) -> int {
+        const auto result =
+            accumulate(cbegin(node.metadata), cend(node.metadata), 0);
+
+        return accumulate(cbegin(node.children), cend(node.children), result,
+                          [&](const int acc, const Node &child) {
+                              return acc + self(self, child);
+                          });
+    };
+
+    cout << metadata_total(metadata_total, root) << '\n';
     return 0;
 }
