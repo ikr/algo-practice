@@ -40,16 +40,22 @@ int main() {
     const auto root = encode(it);
     assert(it == cend(xs));
 
-    const auto metadata_total = [&](const auto self, const Node &node) -> int {
-        const auto result =
-            accumulate(cbegin(node.metadata), cend(node.metadata), 0);
+    const auto value_of_node = [&](const auto self, const Node &node) -> int {
+        if (empty(node.children)) {
+            return accumulate(cbegin(node.metadata), cend(node.metadata), 0);
+        }
 
-        return accumulate(cbegin(node.children), cend(node.children), result,
-                          [&](const int acc, const Node &child) {
-                              return acc + self(self, child);
+        const auto nc = sz(node.children);
+
+        return accumulate(cbegin(node.metadata), cend(node.metadata), 0,
+                          [&](const int acc, const int p) {
+                              const auto i = p - 1;
+                              return (0 <= i && i < nc)
+                                         ? (acc + self(self, node.children[i]))
+                                         : acc;
                           });
     };
 
-    cout << metadata_total(metadata_total, root) << '\n';
+    cout << value_of_node(value_of_node, root) << '\n';
     return 0;
 }
