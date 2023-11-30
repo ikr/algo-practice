@@ -1,31 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
+using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using Coord = pair<int, int>;
-
-static const string InputPattern{
-    R"(^position=<( ?-?\d+), ( ?-?\d+)> velocity=<( ?-?\d+), ( ?-?\d+)>$)"};
-
-template <typename T>
-constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
-    return {a.first + b.first, a.second + b.second};
-}
+using Coord = complex<ll>;
+constexpr ll X(const Coord coord) { return coord.real(); }
+constexpr ll Y(const Coord coord) { return coord.imag(); }
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -46,13 +26,56 @@ vector<string> static_re_matches(const string &pattern_str,
     return result;
 }
 
+constexpr bool are_adjacent(const Coord a, const Coord b) {
+    return norm(a - b) == 1;
+}
+
+static const string InputPattern{
+    R"(^position=<( ?-?\d+), ( ?-?\d+)> velocity=<( ?-?\d+), ( ?-?\d+)>$)"};
+
 int main() {
+    vector<Coord> P;
+    vector<Coord> V;
+
     for (string line; getline(cin, line);) {
         const auto tokens = static_re_matches(InputPattern, line);
-        const Coord position{stoi(tokens[0]), stoi(tokens[1])};
-        const Coord velocity{stoi(tokens[2]), stoi(tokens[3])};
-        cerr << position << ' ' << velocity << endl;
+        P.emplace_back(stoi(tokens[0]), stoi(tokens[1]));
+        V.emplace_back(stoi(tokens[2]), stoi(tokens[3]));
     }
 
+    const auto tick = [&]() -> void {
+        ranges::transform(P, V, P.begin(),
+                          [](const auto p, const auto v) { return p + v; });
+    };
+
+    const auto enough_of_points_have_a_neighbor = [&]() -> bool {
+        return inof(ranges::count_if(P, [&](const auto p) {
+                   return ranges::any_of(
+                       P, [&](const auto q) { return are_adjacent(p, q); });
+               })) > sz(P) * 4 / 5;
+    };
+
+    for (;;) {
+        if (enough_of_points_have_a_neighbor()) break;
+        tick();
+    }
+
+    const auto ox = X(*ranges::min_element(
+        P, [](const auto p, const auto q) { return X(p) < X(q); }));
+
+    const auto oy = Y(*ranges::min_element(
+        P, [](const auto p, const auto q) { return Y(p) < Y(q); }));
+
+    const auto H = 32;
+    const auto W = 64;
+
+    vector<string> grid(H, string(W, ' '));
+    for (const auto &p : P) {
+        grid[Y(p) - oy][X(p) - ox] = '#';
+    }
+
+    for (const auto &row : grid) {
+        cout << row << '\n';
+    }
     return 0;
 }
