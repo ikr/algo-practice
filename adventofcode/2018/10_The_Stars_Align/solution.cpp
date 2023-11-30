@@ -55,9 +55,11 @@ int main() {
                })) > sz(P) * 4 / 5;
     };
 
+    int elapsed{};
     for (;;) {
         if (enough_of_points_have_a_neighbor()) break;
         tick();
+        ++elapsed;
     }
 
     const auto ox = X(*ranges::min_element(
@@ -77,5 +79,6 @@ int main() {
     for (const auto &row : grid) {
         cout << row << '\n';
     }
+    cout << elapsed << " ticks total\n";
     return 0;
 }
