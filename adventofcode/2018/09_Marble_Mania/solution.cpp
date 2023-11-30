@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
 using iter = list<int>::const_iterator;
 
 template <typename T> constexpr int inof(const T x) {
@@ -22,7 +23,7 @@ vector<string> static_re_matches(const string &pattern_str,
     return result;
 }
 
-int winning_score(const int players, const int last_marble) {
+ll winning_score(const int players, const int last_marble) {
     list<int> circle{0};
 
     const auto step_cw = [&](const iter i) -> iter {
@@ -51,10 +52,10 @@ int winning_score(const int players, const int last_marble) {
         return i_ == cend(circle) ? cbegin(circle) : i_;
     };
 
-    vector<int> score(players, 0);
+    vector<ll> score(players, 0);
     iter i = cbegin(circle);
 
-    for (int marble = 1; marble <= last_marble; ++marble) {
+    for (int marble = 1; marble <= last_marble * 100; ++marble) {
         if (marble % 23) {
             i = insert_before(step_cw(step_cw(i)), marble);
         } else {
