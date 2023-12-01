@@ -21,6 +21,37 @@ int main() {
     int grid_serial_number;
     cin >> grid_serial_number;
 
-    cerr << cell_power_level({101, 153}, 71) << endl;
+    vector<vector<int>> grid(300, vector<int>(300, 0));
+    for (int i = 0; i < sz(grid); ++i) {
+        for (int j = 0; j < sz(grid[i]); ++j) {
+            grid[i][j] = cell_power_level({i + 1, j + 1}, grid_serial_number);
+        }
+    }
+
+    const auto box_power = [&](const Coord top_left) -> int {
+        const auto [i0, j0] = top_left;
+        int result{};
+
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                result += grid[i0 + i][j0 + j];
+            }
+        }
+
+        return result;
+    };
+
+    int hi{INT_MIN};
+    Coord ans{0, 0};
+    for (int i = 0; i < sz(grid) - 2; ++i) {
+        for (int j = 0; j < sz(grid[i]) - 2; ++j) {
+            const auto bp = box_power({i, j});
+            if (bp > hi) {
+                hi = bp;
+                ans = {i + 1, j + 1};
+            }
+        }
+    }
+    cout << hi << ' ' << ans.first << ',' << ans.second << '\n';
     return 0;
 }
