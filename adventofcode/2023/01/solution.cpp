@@ -1,16 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -53,7 +43,6 @@ int main() {
     int result{};
     for (string line; getline(cin, line);) {
         const auto [a, b] = edge_nums(line);
-        cerr << line << ' ' << a << ' ' << b << endl;
         const auto cur = to_string(a) + to_string(b);
         result += stoi(string{cur[0], cur.back()});
     }
