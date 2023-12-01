@@ -3,13 +3,7 @@ using namespace std;
 
 using Coord = pair<int, int>;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-int cell_power_level(const Coord xy, const int grid_serial_number) {
+constexpr int cell_power_level(const Coord xy, const int grid_serial_number) {
     const auto [x, y] = xy;
     const auto rack_id = x + 10;
     const auto a = (rack_id * y + grid_serial_number) * rack_id;
@@ -18,40 +12,65 @@ int cell_power_level(const Coord xy, const int grid_serial_number) {
 }
 
 int main() {
+    const auto n = 300;
     int grid_serial_number;
     cin >> grid_serial_number;
 
-    vector<vector<int>> grid(300, vector<int>(300, 0));
-    for (int i = 0; i < sz(grid); ++i) {
-        for (int j = 0; j < sz(grid[i]); ++j) {
+    vector<vector<int>> grid(n, vector<int>(n, 0));
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
             grid[i][j] = cell_power_level({i + 1, j + 1}, grid_serial_number);
         }
     }
 
-    const auto box_power = [&](const Coord top_left) -> int {
-        const auto [i0, j0] = top_left;
-        int result{};
+    auto ss = grid;
+    for (int i = 1; i < n; ++i) {
+        ss[i][0] += ss[i - 1][0];
+        ss[0][i] += ss[0][i - 1];
+    }
 
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 3; ++j) {
-                result += grid[i0 + i][j0 + j];
-            }
+    for (int i = 1; i < n; ++i) {
+        for (int j = 1; j < n; ++j) {
+            ss[i][j] += ss[i - 1][j] + ss[i][j - 1] - ss[i - 1][j - 1];
         }
+    }
 
-        return result;
+    const auto square_sum = [&](const Coord left_top, const int d) -> int {
+        const auto [x0, y0] = left_top;
+        assert(0 <= x0 && x0 < n);
+        assert(0 <= y0 && y0 < n);
+
+        const auto x1 = x0 + d - 1;
+        assert(0 <= x1 && x1 < n);
+        const auto y1 = y0 + d - 1;
+        assert(0 <= y1 && y1 < n);
+
+        auto a = ss[x1][y1];
+        if (y0) a -= ss[x1][y0 - 1];
+        if (x0) a -= ss[x0 - 1][y1];
+        if (x0 && y0) a += ss[x0 - 1][y0 - 1];
+        return a;
     };
 
-    int hi{INT_MIN};
-    Coord ans{0, 0};
-    for (int i = 0; i < sz(grid) - 2; ++i) {
-        for (int j = 0; j < sz(grid[i]) - 2; ++j) {
-            const auto bp = box_power({i, j});
-            if (bp > hi) {
-                hi = bp;
-                ans = {i + 1, j + 1};
+    int hi = INT_MIN;
+    int left = -1;
+    int top = -1;
+    int side = -1;
+
+    for (int d = 1; d <= n; ++d) {
+        for (int i = 0; i + d <= n; ++i) {
+            for (int j = 0; j + d <= n; ++j) {
+                const auto candidate = square_sum({i, j}, d);
+                if (candidate > hi) {
+                    hi = candidate;
+                    left = i + 1;
+                    top = j + 1;
+                    side = d;
+                }
             }
         }
     }
-    cout << hi << ' ' << ans.first << ',' << ans.second << '\n';
+
+    cout << left << ',' << top << ',' << side << '\n';
     return 0;
 }
