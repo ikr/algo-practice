@@ -13,17 +13,33 @@ fun main() {
     val dn = Array<Int>(Hi + 1) { 0 }
     val bo = Array<Int>(Hi + 1) { 0 }
 
-    for (i in 1..Hi) {
-        no[i] = no[i - 1] + (if (fs[i] > 0) 1 else 0)
-        if (fs[i - 1] > 0) {
-            no[i] = maxOf(no[i], up[i - 1])
-        } else {
-            no[i] = maxOf(no[i], up[i - 1] + (if (fs[i] > 0) 1 else 0))
+    no[1] = if (fs[1] > 0) 1 else 0
+    up[1] = if (fs[1] > 1) 2 else 1
+    dn[1] = 0
+    bo[1] = 0
+
+    for (i in 2..Hi) {
+        val pre = maxOf(no[i - 1], up[i - 1], dn[i - 1], bo[i - 1])
+
+        if (fs[i] == 0) {
+            no[i] = pre
+            continue
         }
 
-        up[i] = TODO()
-        dn[i] = TODO()
-        bo[i] = TODO()
+        if (fs[i - 1] == 0) {
+            no[i] = pre + 1
+            up[i] = pre + (if (fs[i] == 1) 1 else 2)
+            dn[i] = pre + (if (fs[i] == 1) 1 else 2)
+            if (fs[i] == 3) {
+                bo[i] = pre + 3
+            }
+            continue
+        }
+
+        // no[i] = TODO()
+        // up[i] = TODO()
+        // dn[i] = TODO()
+        // bo[i] = TODO()
     }
 
     println(maxOf(no.last(), up.last(), dn.last(), bo.last()))
