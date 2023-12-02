@@ -8,9 +8,25 @@ fun main() {
         if (fs[x] < 3) fs[x]++
     }
 
+    val no = Array<Int>(Hi + 1) { 0 }
     val up = Array<Int>(Hi + 1) { 0 }
     val dn = Array<Int>(Hi + 1) { 0 }
     val bo = Array<Int>(Hi + 1) { 0 }
+
+    for (i in 1..Hi) {
+        no[i] = no[i - 1] + (if (fs[i] > 0) 1 else 0)
+        if (fs[i - 1] > 0) {
+            no[i] = maxOf(no[i], up[i - 1])
+        } else {
+            no[i] = maxOf(no[i], up[i - 1] + (if (fs[i] > 0) 1 else 0))
+        }
+
+        up[i] = TODO()
+        dn[i] = TODO()
+        bo[i] = TODO()
+    }
+
+    println(maxOf(no.last(), up.last(), dn.last(), bo.last()))
 }
 
 private fun readLn() = readLine()!!
