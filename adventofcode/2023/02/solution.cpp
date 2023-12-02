@@ -1,27 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -72,13 +51,22 @@ vector<map<string, int>> parse_subs(const string &s) {
     return result;
 }
 
-bool is_possible(const map<string, int> &inventory,
-                 const map<string, int> &sub) {
-    return all_of(cbegin(sub), cend(sub), [&](const auto &kv) {
-        const auto it = inventory.find(kv.first);
-        return it != cend(inventory) && it->second >= kv.second;
-    });
+map<string, int> take_maximum(map<string, int> xs, const map<string, int> &ys) {
+    for (const auto &[k, v] : ys) {
+        xs[k] = max(xs[k], v);
+    }
+    return xs;
 }
+
+map<string, int> min_possible_inventory(const vector<map<string, int>> &game) {
+    map<string, int> result;
+    for (const auto &sub : game) {
+        result = take_maximum(result, sub);
+    }
+    return result;
+}
+
+using ll = long long;
 
 int main() {
     vector<vector<map<string, int>>> games;
@@ -88,16 +76,13 @@ int main() {
         games.push_back(parse_subs(parts[0]));
     }
 
-    const map<string, int> inventory{{"red", 12}, {"green", 13}, {"blue", 14}};
-
-    int result{};
+    ll result{};
     for (int i = 0; i < sz(games); ++i) {
-        const auto id = i + 1;
-        if (all_of(cbegin(games[i]), cend(games[i]), [&](const auto &sub) {
-                return is_possible(inventory, sub);
-            })) {
-            result += id;
-        }
+        auto inv = min_possible_inventory(games[i]);
+        ll cur = inv["red"];
+        cur *= inv["green"];
+        cur *= inv["blue"];
+        result += cur;
     }
     cout << result << '\n';
     return 0;
