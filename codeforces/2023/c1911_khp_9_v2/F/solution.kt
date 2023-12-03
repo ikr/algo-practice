@@ -14,6 +14,7 @@ fun bruteForce(xs: List<Int>): Int {
         run {
             val acc_ = acc + k
             if (i == ys.size - 1) {
+                if (acc_.size > result) println(acc_)
                 result = maxOf(result, acc_.size)
             } else {
                 recur(i + 1, acc_)
@@ -23,6 +24,7 @@ fun bruteForce(xs: List<Int>): Int {
         run {
             val acc_ = acc + (if (f > 1) setOf(k, k + 1) else setOf(k + 1))
             if (i == ys.size - 1) {
+                if (acc_.size > result) println(acc_)
                 result = maxOf(result, acc_.size)
             } else {
                 recur(i + 1, acc_)
@@ -32,6 +34,7 @@ fun bruteForce(xs: List<Int>): Int {
         if (k > 1) {
             val acc_ = acc + (if (f > 1) setOf(k, k - 1) else setOf(k - 1))
             if (i == ys.size - 1) {
+                if (acc_.size > result) println(acc_)
                 result = maxOf(result, acc_.size)
             } else {
                 recur(i + 1, acc_)
@@ -41,6 +44,7 @@ fun bruteForce(xs: List<Int>): Int {
         if (k > 1 && f > 1) {
             val acc_ = acc + (if (f == 2) setOf(k - 1, k + 1) else setOf(k - 1, k, k + 1))
             if (i == ys.size - 1) {
+                if (acc_.size > result) println(acc_)
                 result = maxOf(result, acc_.size)
             } else {
                 recur(i + 1, acc_)
@@ -69,8 +73,6 @@ fun main() {
 
     no[1] = if (fs[1] > 0) 1 else 0
     up[1] = if (fs[1] > 1) 2 else 1
-    dn[1] = 0
-    bo[1] = 0
 
     for (i in 2..Hi) {
         val pre = maxOf(no[i - 1], up[i - 1], dn[i - 1], bo[i - 1])
@@ -126,7 +128,7 @@ fun main() {
                     )
         }
         if (bo[i - 1] > 0) {
-            assert(fs[i] >= 2)
+            assert(fs[i - 1] >= 2)
             dn[i] =
                     maxOf(
                             dn[i],
