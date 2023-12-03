@@ -107,7 +107,7 @@ fun main() {
 
         dn[i] = no[i - 1] + (if (fs[i] == 1) 0 else 1)
         if (up[i - 1] > 0) {
-            dn[i] = maxOf(dn[i], up[i - 1] + 1)
+            dn[i] = maxOf(dn[i], up[i - 1] + (if (fs[i - 1] == 1) 1 else 0))
         }
         if (dn[i - 1] > 0) {
             dn[i] =
@@ -134,12 +134,12 @@ fun main() {
                             dn[i],
                             bo[i - 1] +
                                     when (fs[i - 1] to fs[i]) {
-                                        2 to 1 -> 0
+                                        2 to 1 -> 1
                                         2 to 2 -> 1
                                         2 to 3 -> 1
                                         3 to 1 -> 0
-                                        3 to 2 -> 1
-                                        else -> 1 // 3 to 3
+                                        3 to 2 -> 0
+                                        else -> 0 // 3 to 3
                                     }
                     )
         }
@@ -162,7 +162,7 @@ fun main() {
                     )
         }
         if (dn[i - 1] > 0) {
-            bo[i] = maxOf(bo[i], dn[i - 1] + fs[i])
+            bo[i] = maxOf(bo[i], dn[i - 1] + (if (fs[i - 1] == 1) fs[i] else (fs[i] - 1)))
         }
         if (bo[i - 1] > 0) {
             bo[i] =
