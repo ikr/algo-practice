@@ -1,32 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-vector<string> static_re_matches(const string &pattern_str,
-                                 const string &input) {
-    static const regex pattern{pattern_str};
-    smatch m;
-    regex_match(input, m, pattern);
-    assert(!empty(m));
-
-    vector<string> result(size(m) - 1);
-    transform(cbegin(m) + 1, cend(m), begin(result),
-              [](const auto &x) { return x.str(); });
-    return result;
-}
-
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
                           sregex_token_iterator{});
 }
-
-static const string LinePattern = R"(^Game \d+: (.+)$)";
 
 map<string, int> parse_sub(const string &s) {
     map<string, int> result;
@@ -66,24 +45,19 @@ map<string, int> min_possible_inventory(const vector<map<string, int>> &game) {
     return result;
 }
 
-using ll = long long;
-
 int main() {
     vector<vector<map<string, int>>> games;
 
     for (string line; getline(cin, line);) {
-        const auto parts = static_re_matches(LinePattern, line);
-        games.push_back(parse_subs(parts[0]));
+        const auto parts = split(": ", line);
+        games.push_back(parse_subs(parts[1]));
     }
 
-    ll result{};
-    for (int i = 0; i < sz(games); ++i) {
-        auto inv = min_possible_inventory(games[i]);
-        ll cur = inv["red"];
-        cur *= inv["green"];
-        cur *= inv["blue"];
-        result += cur;
-    }
-    cout << result << '\n';
+    cout << transform_reduce(cbegin(games), cend(games), 0, plus<>{},
+                             [](const auto &game) {
+                                 auto inv = min_possible_inventory(game);
+                                 return inv["red"] * inv["green"] * inv["blue"];
+                             })
+         << '\n';
     return 0;
 }
