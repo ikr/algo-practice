@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -48,32 +32,51 @@ constexpr bool in_bounds(const vector<string> &grid, const int r0,
     return 0 <= r0 && r0 < sz(grid) && 0 <= c0 && c0 < sz(grid[r0]);
 }
 
-constexpr bool neighs_a_symbol(const vector<string> &grid, const int r0,
-                               const int c0) {
-    for (const auto dr : {-1, 0, 1}) {
-        for (const auto dc : {-1, 0, 1}) {
-            if (!dr && !dc) continue;
-            const auto r = r0 + dr;
-            const auto c = c0 + dc;
-            if (!in_bounds(grid, r, c)) continue;
-            if (grid[r][c] != '.' && !isdigit(grid[r][c])) return true;
-        }
-    }
-    return false;
-}
-
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) grid.push_back(line);
 
-    int result{};
+    map<pair<int, int>, string> idx;
+    map<pair<int, int>, pair<int, int>> num_coords;
+
     for (int r = 0; r < sz(grid); ++r) {
         const auto nums = locate_numbers(grid[r]);
         for (const auto &[c, s] : nums) {
-            if (neighs_a_symbol(grid, r, c) ||
-                neighs_a_symbol(grid, r, c + sz(s) - 1)) {
-                result += stoi(s);
+            idx.emplace(pair{r, c}, s);
+            num_coords.emplace(pair{r, c}, pair{r, c});
+            num_coords.emplace(pair{r, c + sz(s) - 1}, pair{r, c});
+        }
+    }
+
+    const auto adjacent_nums = [&](const int r0,
+                                   const int c0) -> set<pair<int, int>> {
+        set<pair<int, int>> result;
+        for (const auto dr : {-1, 0, 1}) {
+            for (const auto dc : {-1, 0, 1}) {
+                if (!dr && !dc) continue;
+                const auto r = r0 + dr;
+                const auto c = c0 + dc;
+                if (!in_bounds(grid, r, c)) continue;
+
+                const auto it = num_coords.find(pair{r, c});
+                if (it == cend(num_coords)) continue;
+                result.insert(it->second);
             }
+        }
+        return result;
+    };
+
+    int result{};
+
+    for (int r = 0; r < sz(grid); ++r) {
+        for (int c = 0; c < sz(grid[r]); ++c) {
+            if (grid[r][c] != '*') continue;
+            const auto an = adjacent_nums(r, c);
+            if (sz(an) != 2) continue;
+
+            const auto x = stoi(idx.at(*cbegin(an)));
+            const auto y = stoi(idx.at(*crbegin(an)));
+            result += x * y;
         }
     }
 
