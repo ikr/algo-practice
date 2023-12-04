@@ -55,6 +55,7 @@ fun main() {
     val n = readInt()
     val xs = readInts()
     assert(xs.size == n)
+    println(bruteForce(xs))
 
     val fs = Array<Int>(Hi + 1) { 0 }
     for (x in xs) {
