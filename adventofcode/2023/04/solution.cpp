@@ -26,8 +26,7 @@ vector<string> split(const string &delim_regex, const string &s) {
 }
 
 int main() {
-    ll result{};
-
+    vector<int> wins;
     for (string line; getline(cin, line);) {
         const auto a = split(":\\s+", line);
         const auto b = split("\\s+\\|\\s+", a[1]);
@@ -43,19 +42,20 @@ int main() {
                           [](const string &s) { return stoi(s); });
 
         const auto winning_set = set(cbegin(winning), cend(winning));
-        ll k{};
+        int k{};
         for (const auto x : posession) {
-            if (winning_set.contains(x)) {
-                if (k) {
-                    k *= 2;
-                } else {
-                    k = 1;
-                }
-            }
+            if (winning_set.contains(x)) ++k;
         }
-        result += k;
+        wins.push_back(k);
     }
 
-    cout << result << '\n';
+    vector<int> mul(sz(wins), 1);
+    for (int i = 0; i < sz(wins); ++i) {
+        for (int j = i + 1; j <= i + wins[i]; ++j) {
+            mul[j] += mul[i];
+        }
+    }
+
+    cout << accumulate(cbegin(mul), cend(mul), 0L) << '\n';
     return 0;
 }
