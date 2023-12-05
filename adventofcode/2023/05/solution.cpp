@@ -72,7 +72,7 @@ vector<pll> ab_without_cd(const pll &ab, const pll &cd) {
     assert(xy);
     if (*xy == ab) return {};
     const auto [x, y] = *xy;
-    assert(x < y);
+    assert(x <= y);
 
     const auto [a, b] = ab;
     if (x == a) return {{y + 1, b}};
@@ -90,6 +90,11 @@ ll map_value(const pll &src_range, const pll &dst_range, const ll x) {
     return a1 + d;
 }
 
+pll map_interval(const pll &src_range, const pll &dst_range, const pll &xy) {
+    return {map_value(src_range, dst_range, xy.first),
+            map_value(src_range, dst_range, xy.second)};
+}
+
 vector<pll> map_intervals(const vector<pll> &src_ranges,
                           const vector<pll> &dst_ranges, vector<pll> A) {
     assert(sz(src_ranges) == sz(dst_ranges));
@@ -97,11 +102,22 @@ vector<pll> map_intervals(const vector<pll> &src_ranges,
 
     for (int i = 0; i < sz(src_ranges); ++i) {
         vector<pll> A_;
+
         for (const auto &ab : A) {
             const auto xy = intersection(ab, src_ranges[i]);
+            if (xy) {
+                B.push_back(map_interval(src_ranges[i], dst_ranges[i], *xy));
+                const auto cuts = ab_without_cd(ab, *xy);
+                A_.insert(cend(A_), cbegin(cuts), cend(cuts));
+            } else {
+                A_.push_back(ab);
+            }
         }
+
+        swap(A, A_);
     }
 
+    B.insert(cend(B), cbegin(A), cend(A));
     return B;
 }
 
@@ -111,11 +127,12 @@ int main() {
     const vector<ll> seeds_src = parse_ints(line.substr(sz(string{"seeds: "})));
     assert(sz(seeds_src) % 2 == 0);
 
-    vector<pll> seeds;
+    vector<pll> intervals;
     for (int i = 0; i < sz(seeds_src); i += 2) {
-        seeds.emplace_back(seeds_src[i], seeds_src[i + 1]);
+        intervals.emplace_back(seeds_src[i],
+                               seeds_src[i] + seeds_src[i + 1] - 1);
     }
-    assert(sz(seeds) == sz(seeds_src) / 2);
+    assert(sz(intervals) == sz(seeds_src) / 2);
 
     getline(cin, line);
     getline(cin, line);
@@ -152,5 +169,15 @@ int main() {
         {lt_light_ranges, lt_temp_ranges}, {th_temp_ranges, th_hum_ranges},
         {hl_hum_ranges, hl_loc_ranges}};
 
+    ranges::sort(intervals);
+    cerr << intervals << endl;
+
+    for (const auto &[src_ranges, dst_ranges] : stages) {
+        intervals = map_intervals(src_ranges, dst_ranges, intervals);
+        ranges::sort(intervals);
+        cerr << intervals << endl;
+    }
+
+    cout << intervals[0].first << endl;
     return 0;
 }
