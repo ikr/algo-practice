@@ -101,13 +101,15 @@ vector<pll> ab_without_cd(const pll &ab, const pll &cd) {
     return {{a, x - 1}, {y + 1, b}};
 }
 
-vector<pll> map_interval(const vector<pll> &src_ranges,
-                         const vector<pll> &dst_ranges, const pll xy) {
+vector<pll> map_intervals(const vector<pll> &src_ranges,
+                          const vector<pll> &dst_ranges, vector<pll> A) {
     assert(sz(src_ranges) == sz(dst_ranges));
-    vector<pll> result;
+    vector<pll> B;
+
     for (int i = 0; i < sz(src_ranges); ++i) {
     }
-    return result;
+
+    return B;
 }
 
 int main() {
@@ -144,21 +146,11 @@ int main() {
     assert(line == "humidity-to-location map:");
     const auto [hl_loc_ranges, hl_hum_ranges] = read_and_parse_range_lines();
 
-    ll result = LONG_LONG_MAX;
-    for (const auto seed : seeds) {
-        const auto soil = map_value(ss_seed_ranges, ss_soil_ranges, seed);
-        const auto fert = map_value(sf_soil_ranges, sf_fert_ranges, soil);
-        const auto wat = map_value(fw_fert_ranges, fw_wat_ranges, fert);
-        const auto light = map_value(wl_wat_ranges, wl_light_ranges, wat);
-        const auto temp = map_value(lt_light_ranges, lt_temp_ranges, light);
-        const auto hum = map_value(th_temp_ranges, th_hum_ranges, temp);
-        const auto loc = map_value(hl_hum_ranges, hl_loc_ranges, hum);
-        cerr << "seed: " << seed << " soil:" << soil << " fert:" << fert
-             << " wat:" << wat << " light:" << light << " temp:" << temp
-             << " hum:" << hum << " loc:" << loc << endl;
+    const vector<pair<vector<pll>, vector<pll>>> stages{
+        {ss_seed_ranges, ss_soil_ranges},  {sf_soil_ranges, sf_fert_ranges},
+        {fw_fert_ranges, fw_wat_ranges},   {wl_wat_ranges, wl_light_ranges},
+        {lt_light_ranges, lt_temp_ranges}, {th_temp_ranges, th_hum_ranges},
+        {hl_hum_ranges, hl_loc_ranges}};
 
-        result = min(result, loc);
-    }
-    cout << result << '\n';
     return 0;
 }
