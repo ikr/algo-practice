@@ -75,6 +75,41 @@ ll map_value(const vector<pll> &src_ranges, const vector<pll> &dst_ranges,
     return a1 + d;
 }
 
+constexpr optional<pll> intersection(const pll &ab, const pll &cd) {
+    const auto [a, b] = ab;
+    const auto [c, d] = cd;
+    assert(a <= b);
+    assert(c <= d);
+    if (b < c || d < a) return nullopt;
+
+    array xs{a, b, c, d};
+    ranges::sort(xs);
+    return pll{xs[1], xs[2]};
+}
+
+vector<pll> ab_without_cd(const pll &ab, const pll &cd) {
+    const auto xy = intersection(ab, cd);
+    assert(xy);
+    if (*xy == ab) return {};
+    const auto [x, y] = *xy;
+    assert(x < y);
+
+    const auto [a, b] = ab;
+    if (x == a) return {{y + 1, b}};
+    if (y == b) return {{a, x - 1}};
+    assert(a < x && y < b);
+    return {{a, x - 1}, {y + 1, b}};
+}
+
+vector<pll> map_interval(const vector<pll> &src_ranges,
+                         const vector<pll> &dst_ranges, const pll xy) {
+    assert(sz(src_ranges) == sz(dst_ranges));
+    vector<pll> result;
+    for (int i = 0; i < sz(src_ranges); ++i) {
+    }
+    return result;
+}
+
 int main() {
     string line;
     getline(cin, line);
