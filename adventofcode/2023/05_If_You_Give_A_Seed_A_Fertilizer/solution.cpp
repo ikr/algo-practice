@@ -4,22 +4,6 @@ using namespace std;
 using ll = long long;
 using pll = pair<ll, ll>;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
@@ -169,15 +153,11 @@ int main() {
         {lt_light_ranges, lt_temp_ranges}, {th_temp_ranges, th_hum_ranges},
         {hl_hum_ranges, hl_loc_ranges}};
 
-    ranges::sort(intervals);
-    cerr << intervals << endl;
-
     for (const auto &[src_ranges, dst_ranges] : stages) {
         intervals = map_intervals(src_ranges, dst_ranges, intervals);
-        ranges::sort(intervals);
-        cerr << intervals << endl;
     }
 
+    ranges::sort(intervals);
     cout << intervals[0].first << endl;
     return 0;
 }
