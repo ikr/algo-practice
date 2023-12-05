@@ -55,26 +55,6 @@ pair<vector<pll>, vector<pll>> read_and_parse_range_lines() {
     return {a, b};
 }
 
-optional<int> index_of_containing_range(const vector<pll> &ranges, const ll x) {
-    for (int i = 0; i < sz(ranges); ++i) {
-        const auto [l, r] = ranges[i];
-        if (l <= x && x <= r) return i;
-    }
-    return nullopt;
-}
-
-ll map_value(const vector<pll> &src_ranges, const vector<pll> &dst_ranges,
-             const ll x) {
-    const auto i = index_of_containing_range(src_ranges, x);
-    if (!i) return x;
-
-    const auto a0 = src_ranges[*i].first;
-    const auto d = x - a0;
-
-    const auto a1 = dst_ranges[*i].first;
-    return a1 + d;
-}
-
 constexpr optional<pll> intersection(const pll &ab, const pll &cd) {
     const auto [a, b] = ab;
     const auto [c, d] = cd;
@@ -101,12 +81,25 @@ vector<pll> ab_without_cd(const pll &ab, const pll &cd) {
     return {{a, x - 1}, {y + 1, b}};
 }
 
+ll map_value(const pll &src_range, const pll &dst_range, const ll x) {
+    const auto [a0, b0] = src_range;
+    assert(a0 <= x && x <= b0);
+
+    const auto d = x - a0;
+    const auto a1 = dst_range.first;
+    return a1 + d;
+}
+
 vector<pll> map_intervals(const vector<pll> &src_ranges,
                           const vector<pll> &dst_ranges, vector<pll> A) {
     assert(sz(src_ranges) == sz(dst_ranges));
     vector<pll> B;
 
     for (int i = 0; i < sz(src_ranges); ++i) {
+        vector<pll> A_;
+        for (const auto &ab : A) {
+            const auto xy = intersection(ab, src_ranges[i]);
+        }
     }
 
     return B;
@@ -115,7 +108,14 @@ vector<pll> map_intervals(const vector<pll> &src_ranges,
 int main() {
     string line;
     getline(cin, line);
-    const vector<ll> seeds = parse_ints(line.substr(sz(string{"seeds: "})));
+    const vector<ll> seeds_src = parse_ints(line.substr(sz(string{"seeds: "})));
+    assert(sz(seeds_src) % 2 == 0);
+
+    vector<pll> seeds;
+    for (int i = 0; i < sz(seeds_src); i += 2) {
+        seeds.emplace_back(seeds_src[i], seeds_src[i + 1]);
+    }
+    assert(sz(seeds) == sz(seeds_src) / 2);
 
     getline(cin, line);
     getline(cin, line);
