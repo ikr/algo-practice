@@ -63,7 +63,7 @@ optional<int> index_of_containing_range(const vector<pll> &ranges, const ll x) {
     return nullopt;
 }
 
-ll map_value(const vector<pll> &dst_ranges, const vector<pll> &src_ranges,
+ll map_value(const vector<pll> &src_ranges, const vector<pll> &dst_ranges,
              const ll x) {
     const auto i = index_of_containing_range(src_ranges, x);
     if (!i) return x;
@@ -83,31 +83,31 @@ int main() {
     getline(cin, line);
     getline(cin, line);
     assert(line == "seed-to-soil map:");
-    const auto [ss_seed_ranges, ss_soil_ranges] = read_and_parse_range_lines();
+    const auto [ss_soil_ranges, ss_seed_ranges] = read_and_parse_range_lines();
 
     getline(cin, line);
     assert(line == "soil-to-fertilizer map:");
-    const auto [sf_soil_ranges, sf_fert_ranges] = read_and_parse_range_lines();
+    const auto [sf_fert_ranges, sf_soil_ranges] = read_and_parse_range_lines();
 
     getline(cin, line);
     assert(line == "fertilizer-to-water map:");
-    const auto [fw_fert_ranges, fw_wat_ranges] = read_and_parse_range_lines();
+    const auto [fw_wat_ranges, fw_fert_ranges] = read_and_parse_range_lines();
 
     getline(cin, line);
     assert(line == "water-to-light map:");
-    const auto [wl_wat_ranges, wl_light_ranges] = read_and_parse_range_lines();
+    const auto [wl_light_ranges, wl_wat_ranges] = read_and_parse_range_lines();
 
     getline(cin, line);
     assert(line == "light-to-temperature map:");
-    const auto [lt_light_ranges, lt_temp_ranges] = read_and_parse_range_lines();
+    const auto [lt_temp_ranges, lt_light_ranges] = read_and_parse_range_lines();
 
     getline(cin, line);
     assert(line == "temperature-to-humidity map:");
-    const auto [th_temp_ranges, th_hum_ranges] = read_and_parse_range_lines();
+    const auto [th_hum_ranges, th_temp_ranges] = read_and_parse_range_lines();
 
     getline(cin, line);
     assert(line == "humidity-to-location map:");
-    const auto [hl_hum_ranges, hl_loc_ranges] = read_and_parse_range_lines();
+    const auto [hl_loc_ranges, hl_hum_ranges] = read_and_parse_range_lines();
 
     ll result = LONG_LONG_MAX;
     for (const auto seed : seeds) {
