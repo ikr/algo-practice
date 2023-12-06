@@ -46,17 +46,24 @@ vector<int> parse_ints(const string &src) {
     return result;
 }
 
+template <typename T> string join(const string &glue, const vector<T> &tokens) {
+    string ans;
+
+    for (const auto &t : tokens) {
+        if (!ans.empty()) ans += glue;
+        ans += to_string(t);
+    }
+
+    return ans;
+}
+
 static const string LinePattern = R"(^[A-Za-z]+:\s+(\d.+)$)";
 
-int winning_times_count(const int t1, const int D) {
-    const auto traveled = [&](const int t0) -> int {
-        return t0 * t1 - t0 * t0;
-    };
+ll winning_times_count(const ll t1, const ll D) {
+    const auto traveled = [&](const ll t0) -> ll { return t0 * t1 - t0 * t0; };
 
-    int result{};
-    for (int t0 = 0; t0 <= t1; ++t0) {
-        cerr << "t1:" << t1 << " D:" << D << " t0:" << t0
-             << " d:" << traveled(t0) << endl;
+    ll result{};
+    for (ll t0 = 0; t0 <= t1; ++t0) {
         if (traveled(t0) > D) ++result;
     }
     return result;
@@ -79,11 +86,9 @@ int main() {
     }();
     assert(sz(ts) == sz(ds));
 
-    int result{1};
-    for (int i = 0; i < sz(ts); ++i) {
-        cerr << winning_times_count(ts[i], ds[i]) << endl;
-        result *= winning_times_count(ts[i], ds[i]);
-    }
-    cout << result << '\n';
+    const auto t1 = stoll(join("", ts));
+    const auto D = stoll(join("", ds));
+
+    cout << winning_times_count(t1, D) << '\n';
     return 0;
 }
