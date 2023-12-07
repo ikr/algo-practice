@@ -23,7 +23,7 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-static const string Alpha{"23456789TJQKA"};
+static const string Alpha{"J23456789TQKA"};
 
 int card_index(const char x) {
     const auto i = Alpha.find(x);
@@ -60,6 +60,28 @@ HandType hand_type(const string &hand) {
     return HandType::HIGH_CARD;
 }
 
+HandType best_hand_type(const string &hand) {
+    int js{};
+    string without_js;
+    for (const auto c : hand) {
+        if (c == 'J') {
+            ++js;
+        } else {
+            without_js.push_back(c);
+        }
+    }
+
+    vector<string> opts;
+    for (const char j : string{"23456789TQKA"}) {
+        const auto cur = without_js + string(js, j);
+        opts.push_back(cur);
+    }
+    ranges::sort(opts, [](const auto &x, const auto &y) {
+        return inof(hand_type(x)) < inof(hand_type(y));
+    });
+    return hand_type(opts.back());
+}
+
 vector<int> numeric_hand(const string &hand) {
     vector<int> ans(sz(hand));
     ranges::transform(hand, begin(ans), card_index);
@@ -68,7 +90,7 @@ vector<int> numeric_hand(const string &hand) {
 
 vector<int> hand_ordinal(const string &hand) {
     auto result = numeric_hand(hand);
-    result.insert(cbegin(result), inof(hand_type(hand)));
+    result.insert(cbegin(result), inof(best_hand_type(hand)));
     return result;
 }
 
