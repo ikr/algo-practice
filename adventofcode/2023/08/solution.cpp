@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     os << '(' << x.first << ' ' << x.second << ')';
@@ -34,6 +36,37 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+ll steps_for(const string &instrs, const vector<pair<int, int>> &g,
+             const int id) {
+    int steps{};
+    auto u = id;
+
+    while (u % 26 != 25) {
+        for (const auto &instr : instrs) {
+            if (instr == 'L') {
+                u = g[u].first;
+            } else {
+                assert(instr == 'R');
+                u = g[u].second;
+            }
+            ++steps;
+            if (u % 26 == 25) break;
+        }
+    }
+    cerr << "steps for " << id << ": " << steps << endl;
+    return steps;
+}
+
+int v_id(const string &x) {
+    int m = 1;
+    int result{};
+    for (const auto c : x | ranges::views::reverse) {
+        result += m * inof(c - 'A');
+        m *= 26;
+    }
+    return result;
+}
+
 int main() {
     string instrs;
     getline(cin, instrs);
@@ -42,46 +75,25 @@ int main() {
     getline(cin, sep);
     assert(empty(sep));
 
-    map<string, vector<string>> g;
+    vector<pair<int, int>> g(20'000);
 
-    set<string> starting_s;
-    set<string> ending_s;
+    set<int> starting_s;
 
     for (string line; getline(cin, line);) {
         const auto u = line.substr(0, 3);
         const auto v1 = line.substr(7, 3);
         const auto v2 = line.substr(12, 3);
-        g.emplace(u, vector{v1, v2});
+        g[v_id(u)] = pair{v_id(v1), v_id(v2)};
 
-        if (u.back() == 'A') starting_s.insert(u);
-        if (v1.back() == 'Z') ending_s.insert(v1);
-        if (v2.back() == 'Z') ending_s.insert(v2);
+        if (u.back() == 'A') starting_s.insert(v_id(u));
     }
-    assert(sz(starting_s) == sz(ending_s));
-    cerr << "sz:" << sz(starting_s) << endl;
 
-    const vector<string> starting(cbegin(starting_s), cend(starting_s));
-    const vector<string> ending(cbegin(ending_s), cend(ending_s));
-
-    cerr << "starting:" << starting << " ending:" << ending << endl;
-
-    int steps{};
-    auto cur = starting;
-    while (cur != ending) {
-        for (const auto &instr : instrs) {
-            for (auto &u : cur) {
-                if (instr == 'L') {
-                    u = g[u][0];
-                } else {
-                    assert(instr == 'R');
-                    u = g[u][1];
-                }
-            }
-            ranges::sort(cur);
-            ++steps;
-            cerr << "cur:" << cur << " steps:" << steps << endl;
-        }
-    }
-    cout << steps << '\n';
+    const vector<int> starting(cbegin(starting_s), cend(starting_s));
+    vector<ll> steps(sz(starting));
+    ranges::transform(starting, begin(steps),
+                      [&](const auto id) { return steps_for(instrs, g, id); });
+    cout << accumulate(cbegin(steps), cend(steps), 1LL,
+                       [](const ll acc, const ll x) { return lcm(acc, x); })
+         << '\n';
     return 0;
 }
