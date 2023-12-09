@@ -1,22 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const deque<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<deque<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -55,7 +39,6 @@ int continue_seq_to_left(const deque<int> &xs) {
     for (int i = sz(g) - 1; i >= 1; --i) {
         g[i - 1].push_front(g[i - 1][0] - g[i][0]);
     }
-    cerr << g << endl << endl;
     return g[0][0];
 }
 
