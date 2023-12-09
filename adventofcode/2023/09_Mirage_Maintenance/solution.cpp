@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+template <typename T> ostream &operator<<(ostream &os, const deque<T> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
         if (i != xs.cbegin()) os << ' ';
@@ -12,7 +12,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+ostream &operator<<(ostream &os, const vector<deque<T>> &xss) {
     for (const auto &xs : xss) os << xs << '\n';
     return os;
 }
@@ -23,48 +23,47 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<int> parse_ints(const string &s) {
+deque<int> parse_ints(const string &s) {
     regex r(" ");
     const auto tokens =
         vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
                        sregex_token_iterator{});
-    vector<int> result(sz(tokens));
+    deque<int> result(sz(tokens));
     ranges::transform(tokens, begin(result),
                       [](const string &t) { return stoi(t); });
     return result;
 }
 
-vector<int> adj_diffs(const vector<int> &xs) {
-    vector<int> result(sz(xs) - 1);
+deque<int> adj_diffs(const deque<int> &xs) {
+    deque<int> result(sz(xs) - 1);
     ranges::transform(xs | views::drop(1), xs, begin(result),
                       [](const int y, const int x) { return y - x; });
     return result;
 }
 
-constexpr bool all_same(const vector<int> &xs) {
+constexpr bool all_same(const deque<int> &xs) {
     assert(!empty(xs));
     return ranges::all_of(xs, [&](const int x) { return x == xs[0]; });
 }
 
-int continue_seq(const vector<int> &xs) {
-    vector<vector<int>> g{xs};
+int continue_seq_to_left(const deque<int> &xs) {
+    vector<deque<int>> g{xs};
     while (!all_same(g.back())) {
         g.push_back(adj_diffs(g.back()));
     }
 
     for (int i = sz(g) - 1; i >= 1; --i) {
-        g[i - 1].push_back(g[i - 1].back() + g[i].back());
+        g[i - 1].push_front(g[i - 1][0] - g[i][0]);
     }
     cerr << g << endl << endl;
-    return g[0].back();
+    return g[0][0];
 }
 
 int main() {
     int result{};
     for (string line; getline(cin, line);) {
         const auto xs = parse_ints(line);
-        cerr << xs << endl;
-        result += continue_seq(xs);
+        result += continue_seq_to_left(xs);
     }
     cout << result << '\n';
     return 0;
