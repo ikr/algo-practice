@@ -1,23 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T, size_t N>
-ostream &operator<<(ostream &os, const array<T, N> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using Coord = pair<int, int>;
 
 template <typename T>
@@ -179,8 +162,6 @@ int main() {
                 add_to(lefts, neighs(path[i], {West + South}));
                 add_to(rights, neighs(path[i], {East, North, East + North}));
             } else {
-                cerr << path[i - 1] << ' ' << cell(path[i - 1]) << " -> "
-                     << path[i] << ' ' << cell(path[i]) << endl;
                 assert(false && "Can't go North");
             }
             break;
