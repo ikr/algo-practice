@@ -93,12 +93,23 @@ int main() {
     };
 
     const auto S = start_coord(grid);
-    for (const auto &d : Deltas) {
-        if (is_connected(S, d)) {
-            cerr << S << " to " << (S + d) << endl;
-        }
-    }
-    cerr << adjacent(S) << endl;
+    vector<vector<int>> dist(H, vector<int>(W, -1));
+    dist[S.first][S.second] = 0;
 
+    const auto recur = [&](const auto self, const Coord u) -> void {
+        assert(dist[u.first][u.second] != -1);
+        for (const auto &v : adjacent(u)) {
+            if (dist[v.first][v.second] != -1) continue;
+            dist[v.first][v.second] = dist[u.first][u.second] + 1;
+            self(self, v);
+        }
+    };
+    recur(recur, S);
+
+    int result{};
+    for (const auto &row : dist) {
+        for (const auto d : row) result = max(result, d);
+    }
+    cout << (result + 1) / 2 << '\n';
     return 0;
 }
