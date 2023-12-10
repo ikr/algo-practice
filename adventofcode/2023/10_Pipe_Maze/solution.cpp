@@ -7,6 +7,17 @@ ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     return os;
 }
 
+template <typename T, size_t N>
+ostream &operator<<(ostream &os, const array<T, N> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using Coord = pair<int, int>;
 
 template <typename T>
@@ -55,6 +66,14 @@ Coord start_coord(const vector<string> &grid) {
 
 void add_to(set<Coord> &dst, const vector<Coord> &src) {
     dst.insert(cbegin(src), cend(src));
+}
+
+char resolve_angle(const Coord d1, const Coord d2) {
+    const map<pair<Coord, Coord>, char> m{
+        {{South, West}, 'J'}, {{South, East}, 'L'}, {{North, West}, '7'},
+        {{North, East}, 'F'}, {{East, North}, 'J'}, {{East, South}, '7'},
+        {{West, North}, 'L'}, {{West, South}, 'F'}};
+    return m.at({d1, d2});
 }
 
 int main() {
@@ -124,19 +143,8 @@ int main() {
     vector<Coord> path;
     for (const auto &[_, u] : path_idx) path.push_back(u);
     assert(path[0] == S);
-    array starting_angle{direction(path[1] - path[0]),
-                         direction(path[0] - path.back())};
-    ranges::sort(starting_angle);
-    if (starting_angle == array{0, 1}) {
-        grid[S.first][S.second] = 'L';
-    } else if (starting_angle == array{0, 3}) {
-        grid[S.first][S.second] = 'J';
-    } else if (starting_angle == array{1, 2}) {
-        grid[S.first][S.second] = 'F';
-    } else {
-        assert((starting_angle == array{2, 3}));
-        grid[S.first][S.second] = '7';
-    }
+    grid[S.first][S.second] =
+        resolve_angle(path[0] - path.back(), path[1] - path[0]);
     path.push_back(S);
 
     const auto neighs = [&](const Coord u,
@@ -217,5 +225,19 @@ int main() {
         }
     }
 
+    for (const auto &src : {lefts, rights}) {
+        auto visited = src;
+
+        const auto flood_fill = [&](const auto self, const Coord u) -> void {
+            for (const auto &d : Deltas) {
+                const auto v = u + d;
+                if (cell(v) != '.' || visited.contains(v)) continue;
+                visited.insert(v);
+                self(self, v);
+            }
+        };
+        for (const auto &u : src) flood_fill(flood_fill, u);
+        cout << sz(visited) << '\n';
+    }
     return 0;
 }
