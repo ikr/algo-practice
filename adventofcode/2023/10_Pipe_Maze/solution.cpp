@@ -151,7 +151,11 @@ int main() {
                             const vector<Coord> &ds) -> vector<Coord> {
         vector<Coord> result;
         for (const auto &d : ds) {
-            if (cell(u + d) == '.') result.push_back(u + d);
+            const auto v = u + d;
+
+            if (in_bounds(v) && dist[v.first][v.second] == -1) {
+                result.push_back(u + d);
+            }
         }
         return result;
     };
@@ -231,7 +235,10 @@ int main() {
         const auto flood_fill = [&](const auto self, const Coord u) -> void {
             for (const auto &d : Deltas) {
                 const auto v = u + d;
-                if (cell(v) != '.' || visited.contains(v)) continue;
+                if (!in_bounds(v)) continue;
+                if (dist[v.first][v.second] != -1 || visited.contains(v)) {
+                    continue;
+                }
                 visited.insert(v);
                 self(self, v);
             }
