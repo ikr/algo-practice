@@ -7,22 +7,6 @@ ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     return os;
 }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 using Coord = pair<int, int>;
 
 template <typename T>
@@ -30,18 +14,33 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
+template <typename T>
+constexpr pair<T, T> operator-(const pair<T, T> a, const pair<T, T> b) {
+    return {a.first - b.first, a.second - b.second};
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
-static const vector<Coord> Deltas{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+
+static constexpr pair North{-1, 0};
+static constexpr pair East{0, 1};
+static constexpr pair South{1, 0};
+static constexpr pair West{0, -1};
+static const vector<Coord> Deltas{North, East, South, West};
 
 static const unordered_map<char, vector<Coord>> ConnectionDeltas{
     {'|', {{-1, 0}, {1, 0}}}, {'-', {{0, -1}, {0, 1}}},
     {'L', {{-1, 0}, {0, 1}}}, {'J', {{-1, 0}, {0, -1}}},
     {'7', {{1, 0}, {0, -1}}}, {'F', {{1, 0}, {0, 1}}}};
 
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+int direction(const Coord delta) {
+    const auto i = inof(ranges::find(Deltas, delta) - Deltas.begin());
+    assert(i < sz(Deltas));
+    return i;
+}
 
 Coord start_coord(const vector<string> &grid) {
     for (int ro = 0; ro < sz(grid); ++ro) {
@@ -52,6 +51,10 @@ Coord start_coord(const vector<string> &grid) {
 
     assert(false && "Start missing");
     return {-1, -1};
+}
+
+void add_to(set<Coord> &dst, const vector<Coord> &src) {
+    dst.insert(cbegin(src), cend(src));
 }
 
 int main() {
@@ -112,49 +115,107 @@ int main() {
     };
     recur(recur, S);
 
-    cerr << dist << endl << endl;
-
-    const auto is_vborder = [&](const Coord u) {
-        const auto [ro, co] = u;
-        return dist[ro][co] != -1 &&
-               string{"|LJ7FS"}.find(grid[ro][co]) != string::npos;
-    };
-
-    const auto is_hborder = [&](const Coord u) {
-        const auto [ro, co] = u;
-        return dist[ro][co] != -1 &&
-               string{"-LJ7FS"}.find(grid[ro][co]) != string::npos;
-    };
-
-    vector<vector<int>> hparity(H, vector<int>(W, 0));
-    for (int ro = 0; ro < H; ++ro) {
-        int cur{};
-        for (int co = 0; co < W; ++co) {
-            if (is_vborder({ro, co})) ++cur;
-            hparity[ro][co] = cur;
-        }
-    }
-
-    vector<vector<int>> vparity(H, vector<int>(W, 0));
-    for (int co = 0; co < W; ++co) {
-        int cur{};
-        for (int ro = 0; ro < H; ++ro) {
-            if (is_hborder({ro, co})) ++cur;
-            vparity[ro][co] = cur;
-        }
-    }
-    cerr << hparity << endl << endl << vparity << endl << endl;
-
-    int result{};
+    map<int, Coord> path_idx;
     for (int ro = 0; ro < H; ++ro) {
         for (int co = 0; co < W; ++co) {
-            if (grid[ro][co] == '.' && (hparity[ro][co] % 2) &&
-                (vparity[ro][co] % 2)) {
-                cerr << "Inner: " << Coord{ro, co} << endl;
-                ++result;
+            if (dist[ro][co] != -1) path_idx[dist[ro][co]] = {ro, co};
+        }
+    }
+    vector<Coord> path;
+    for (const auto &[_, u] : path_idx) path.push_back(u);
+    assert(path[0] == S);
+    array starting_angle{direction(path[1] - path[0]),
+                         direction(path[0] - path.back())};
+    ranges::sort(starting_angle);
+    if (starting_angle == array{0, 1}) {
+        grid[S.first][S.second] = 'L';
+    } else if (starting_angle == array{0, 3}) {
+        grid[S.first][S.second] = 'J';
+    } else if (starting_angle == array{1, 2}) {
+        grid[S.first][S.second] = 'F';
+    } else {
+        assert((starting_angle == array{2, 3}));
+        grid[S.first][S.second] = '7';
+    }
+    path.push_back(S);
+
+    const auto neighs = [&](const Coord u,
+                            const vector<Coord> &ds) -> vector<Coord> {
+        vector<Coord> result;
+        for (const auto &d : ds) {
+            if (cell(u + d) == '.') result.push_back(u + d);
+        }
+        return result;
+    };
+
+    set<Coord> lefts;
+    set<Coord> rights;
+
+    for (int i = 1; i < sz(path); ++i) {
+        const auto [ro, co] = path[i];
+        const auto c = grid[ro][co];
+
+        switch (direction(path[i] - path[i - 1])) {
+        case 0: // North
+            if (c == '|') {
+                add_to(lefts, neighs(path[i], {West}));
+                add_to(rights, neighs(path[i], {East}));
+            } else if (c == 'F') {
+                add_to(lefts, neighs(path[i], {West, North, West + North}));
+                add_to(rights, neighs(path[i], {East + South}));
+            } else if (c == '7') {
+                add_to(lefts, neighs(path[i], {West + South}));
+                add_to(rights, neighs(path[i], {East, North, East + North}));
+            } else {
+                cerr << path[i - 1] << ' ' << cell(path[i - 1]) << " -> "
+                     << path[i] << ' ' << cell(path[i]) << endl;
+                assert(false && "Can't go North");
             }
+            break;
+        case 1: // East
+            if (c == '-') {
+                add_to(lefts, neighs(path[i], {North}));
+                add_to(rights, neighs(path[i], {South}));
+            } else if (c == 'J') {
+                add_to(lefts, neighs(path[i], {North + West}));
+                add_to(rights, neighs(path[i], {South, East, South + East}));
+            } else if (c == '7') {
+                add_to(lefts, neighs(path[i], {North, East, North + East}));
+                add_to(rights, neighs(path[i], {South + West}));
+            } else {
+                assert(false && "Can't go East");
+            }
+            break;
+        case 2: // South
+            if (c == '|') {
+                add_to(lefts, neighs(path[i], {East}));
+                add_to(rights, neighs(path[i], {West}));
+            } else if (c == 'J') {
+                add_to(lefts, neighs(path[i], {East, South, South + East}));
+                add_to(rights, neighs(path[i], {North + West}));
+            } else if (c == 'L') {
+                add_to(lefts, neighs(path[i], {North + East}));
+                add_to(rights, neighs(path[i], {West, South, South + West}));
+            } else {
+                assert(false && "Can't go South");
+            }
+            break;
+        default: // West
+            if (c == '-') {
+                add_to(lefts, neighs(path[i], {South}));
+                add_to(rights, neighs(path[i], {North}));
+            } else if (c == 'F') {
+                add_to(lefts, neighs(path[i], {South + East}));
+                add_to(rights, neighs(path[i], {North, West, North + West}));
+            } else if (c == 'L') {
+                add_to(lefts, neighs(path[i], {South, West, South + West}));
+                add_to(rights, neighs(path[i], {North + East}));
+            } else {
+                assert(false && "Can't go Worth");
+            }
+            break;
         }
     }
-    cout << result << '\n';
+
     return 0;
 }
