@@ -17,6 +17,12 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
 using Coord = pair<int, int>;
 
 template <typename T>
@@ -106,10 +112,49 @@ int main() {
     };
     recur(recur, S);
 
-    int result{};
-    for (const auto &row : dist) {
-        for (const auto d : row) result = max(result, d);
+    cerr << dist << endl << endl;
+
+    const auto is_vborder = [&](const Coord u) {
+        const auto [ro, co] = u;
+        return dist[ro][co] != -1 &&
+               string{"|LJ7FS"}.find(grid[ro][co]) != string::npos;
+    };
+
+    const auto is_hborder = [&](const Coord u) {
+        const auto [ro, co] = u;
+        return dist[ro][co] != -1 &&
+               string{"-LJ7FS"}.find(grid[ro][co]) != string::npos;
+    };
+
+    vector<vector<int>> hparity(H, vector<int>(W, 0));
+    for (int ro = 0; ro < H; ++ro) {
+        int cur{};
+        for (int co = 0; co < W; ++co) {
+            if (is_vborder({ro, co})) ++cur;
+            hparity[ro][co] = cur;
+        }
     }
-    cout << (result + 1) / 2 << '\n';
+
+    vector<vector<int>> vparity(H, vector<int>(W, 0));
+    for (int co = 0; co < W; ++co) {
+        int cur{};
+        for (int ro = 0; ro < H; ++ro) {
+            if (is_hborder({ro, co})) ++cur;
+            vparity[ro][co] = cur;
+        }
+    }
+    cerr << hparity << endl << endl << vparity << endl << endl;
+
+    int result{};
+    for (int ro = 0; ro < H; ++ro) {
+        for (int co = 0; co < W; ++co) {
+            if (grid[ro][co] == '.' && (hparity[ro][co] % 2) &&
+                (vparity[ro][co] % 2)) {
+                cerr << "Inner: " << Coord{ro, co} << endl;
+                ++result;
+            }
+        }
+    }
+    cout << result << '\n';
     return 0;
 }
