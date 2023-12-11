@@ -3,7 +3,7 @@ using namespace std;
 
 using ll = long long;
 using Coord = pair<int, int>;
-static constexpr ll Stretch = 2;
+static constexpr ll Stretch = 1000000;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
