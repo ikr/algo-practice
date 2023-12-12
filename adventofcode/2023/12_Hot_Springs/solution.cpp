@@ -78,6 +78,10 @@ int arrangements_count(const string &pattern, const vector<int> &digest) {
     return result;
 }
 
+constexpr ll ipow(const ll base, const int exp) {
+    return exp == 0 ? 1 : base * ipow(base, exp - 1);
+}
+
 int main() {
     vector<string> patterns;
     vector<vector<int>> digests;
@@ -90,26 +94,28 @@ int main() {
 
     ll result{};
     for (int i = 0; i < sz(patterns); ++i) {
-        ll cur{};
+        const auto a = arrangements_count(patterns[i], digests[i]);
+        const auto al = arrangements_count(patterns[i] + "?", digests[i]);
+        const auto ar = arrangements_count("?" + patterns[i], digests[i]);
+
+        const auto cur = [&]() -> ll {
+            if (al == a && ar == a) return ipow(a, 5);
+            if (al != a && ar == a) return ipow(al, 4) * a;
+            if (al == a && ar != a) return a * ipow(ar, 4);
+            return 0;
+        }();
+
         for (int bits = 0; bits < (1 << 4); ++bits) {
-            string candidate = patterns[i];
-
-            const auto pl = patterns[i] + "?";
-            const auto pr = "?" + patterns[i];
-
-            const auto a = arrangements_count(patterns[i], digests[i]);
-            const auto al = arrangements_count(pl, digests[i]);
-            const auto ar = arrangements_count(pr, digests[i]);
-
             const ll lefts = __builtin_popcount(bits);
             const ll rights = 4 - lefts;
 
-            ll x = a;
-            for (int k = 1; k <= lefts; ++k) x *= al;
-            for (int k = 1; k <= rights; ++k) x *= ar;
-            cur += x;
+            // ll x = a;
+            // for (int k = 1; k <= lefts; ++k) x *= al;
+            // for (int k = 1; k <= rights; ++k) x *= ar;
+            // cur += x;
         }
-        cerr << cur << endl;
+        cerr << " a:" << a << " al:" << al << " ar:" << ar << " cur:" << cur
+             << endl;
     }
     cout << result << '\n';
     return 0;
