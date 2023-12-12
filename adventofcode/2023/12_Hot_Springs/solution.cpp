@@ -52,39 +52,31 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
                     pattern[i + d] == '?') &&
                    (i == 0 || pattern[i - 1] == '.' || pattern[i - 1] == '?');
         }();
-        // cerr << "is_match_possible(" << i << ", " << d << ") = " << result
-        //      << endl;
-        return result;
-    };
 
-    const auto possible_shifts_starting_at = [&](const int i,
-                                                 const int d) -> int {
-        assert(is_match_possible(i, d));
-        int result{};
-        while (is_match_possible(i + result + 1, d)) ++result;
-        cerr << "possible " << d << " shifts starting at " << i << ": "
-             << result << endl;
+        // cerr << "match = " << result << " for i:" << i << " d:" << d << endl;
         return result;
     };
 
     vector<vector<ll>> memo(n + 2, vector(m + 1, -1LL));
 
-    const auto recur = [&](const auto self, int i, const int j) -> ll {
+    const auto recur = [&](const auto self, const int i, const int j) -> ll {
         if (memo[i][j] != -1) return memo[i][j];
         return memo[i][j] = [&]() -> ll {
-            while (i < n && pattern[i] == '.') ++i;
             if (i >= n && j >= m) return 1LL;
-            if (i >= n || j >= m) return 0LL;
-
-            while (i < n && !is_match_possible(i, digest[j])) ++i;
-            if (i == n) return 0LL;
-
-            const auto ss = possible_shifts_starting_at(i, digest[j]);
-            ll ans{};
-            for (int s = 0; s <= ss; ++s) {
-                ans += self(self, i + s + digest[j] + 1, j + 1);
+            if (j >= m) {
+                if (pattern[i] == '#') return 0;
+                return self(self, i + 1, j);
             }
-            return ans;
+            if (i >= n) return 0;
+
+            if (pattern[i] == '.') return self(self, i + 1, j);
+
+            if (is_match_possible(i, digest[j])) {
+                return self(self, i + digest[j] + 1, j + 1) +
+                       self(self, i + 1, j);
+            } else {
+                return self(self, i + 1, j);
+            }
         }();
     };
 
@@ -92,6 +84,57 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
     cerr << memo << endl;
     return result;
 }
+
+namespace brute {
+vector<int> wildcard_indices(const string &s) {
+    vector<int> ans;
+    for (int i = 0; i < sz(s); ++i) {
+        if (s[i] == '?') ans.push_back(i);
+    }
+    return ans;
+}
+
+vector<pair<char, int>> run_length_encode(const string &xs) {
+    vector<pair<char, int>> ans{{xs[0], 1}};
+    for (int i = 1; i < sz(xs); ++i) {
+        if (xs[i] == ans.back().first) {
+            ++(ans.back().second);
+        } else {
+            ans.emplace_back(xs[i], 1);
+        }
+    }
+    return ans;
+}
+
+bool confirm_match(const vector<int> &digest, const string &src) {
+    const auto src_rle = run_length_encode(src);
+    vector<int> candidate;
+    for (const auto &[c, n] : src_rle) {
+        if (c == '#') {
+            candidate.push_back(n);
+        }
+    }
+    return digest == candidate;
+}
+
+int arrangements_count(const string &pattern, const vector<int> &digest) {
+    const auto wi = wildcard_indices(pattern);
+    int result{};
+    for (int bits = 0; bits < (1 << sz(wi)); ++bits) {
+        string candidate = pattern;
+        for (int i = 0; i < sz(wi); ++i) {
+            if (bits & (1 << i)) {
+                candidate[wi[i]] = '#';
+            } else {
+                candidate[wi[i]] = '.';
+            }
+        }
+
+        if (confirm_match(digest, candidate)) ++result;
+    }
+    return result;
+}
+} // namespace brute
 
 int main() {
     vector<string> patterns;
@@ -106,6 +149,13 @@ int main() {
     ll result{};
     for (int i = 0; i < sz(patterns); ++i) {
         const auto cur = arrangements_count(patterns[i], digests[i]);
+        const auto org = brute::arrangements_count(patterns[i], digests[i]);
+        if (cur != org) {
+            cerr << "mismatch for " << patterns[i] << " " << digests[i] << endl;
+            cerr << "cur: " << cur << endl;
+            cerr << "org: " << org << endl;
+            return 0;
+        }
         cerr << "cur:" << cur << endl;
         result += cur;
     }
