@@ -82,6 +82,16 @@ constexpr ll ipow(const ll base, const int exp) {
     return exp == 0 ? 1 : base * ipow(base, exp - 1);
 }
 
+bool head_fixed(const string &pattern, const vector<int> &digest) {
+    const auto rle = run_length_encode(pattern);
+    return rle[0].first == '#' && rle[0].second == digest[0];
+}
+
+bool tail_fixed(const string &pattern, const vector<int> &digest) {
+    const auto rle = run_length_encode(pattern);
+    return rle.back().first == '#' && rle.back().second == digest.back();
+}
+
 int main() {
     vector<string> patterns;
     vector<vector<int>> digests;
@@ -95,33 +105,34 @@ int main() {
     ll result{};
     for (int i = 0; i < sz(patterns); ++i) {
         const auto a = arrangements_count(patterns[i], digests[i]);
-        const auto al = arrangements_count(patterns[i] + "?", digests[i]);
-        const auto ar = arrangements_count("?" + patterns[i], digests[i]);
+        const auto asuff = arrangements_count(patterns[i] + "?", digests[i]);
+        const auto apref = arrangements_count("?" + patterns[i], digests[i]);
 
         const auto cur = [&]() -> ll {
-            if (patterns[i][0] == '#' || patterns[i].back() == '#') {
+            if (head_fixed(patterns[i], digests[i]) ||
+                tail_fixed(patterns[i], digests[i])) {
                 return ipow(a, 5);
             }
-            if (al == a && ar == a) return ipow(a, 5);
-            if (al != a && ar == a) return ipow(al, 4) * a;
-            if (al == a && ar != a) return a * ipow(ar, 4);
-            assert(al != a && ar != a);
+            if (asuff == a && apref == a) return ipow(a, 5);
+            if (asuff != a && apref == a) return ipow(asuff, 4) * a;
+            if (asuff == a && apref != a) return a * ipow(apref, 4);
+            assert(asuff != a && apref != a);
 
             ll ans{};
             for (int bits = 0; bits < (1 << 4); ++bits) {
-                const ll lefts = __builtin_popcount(bits);
-                const ll rights = 4 - lefts;
+                const ll suffs = __builtin_popcount(bits);
+                const ll prefs = 4 - suffs;
 
                 ll x = a;
-                for (int k = 1; k <= lefts; ++k) x *= al;
-                for (int k = 1; k <= rights; ++k) x *= ar;
+                for (int k = 1; k <= suffs; ++k) x *= asuff;
+                for (int k = 1; k <= prefs; ++k) x *= apref;
                 ans += x;
             }
             return ans;
         }();
 
-        cerr << " a:" << a << " al:" << al << " ar:" << ar << " cur:" << cur
-             << endl;
+        cerr << " a:" << a << " al:" << asuff << " ar:" << apref
+             << " cur:" << cur << endl;
         result += cur;
     }
     cout << result << '\n';
