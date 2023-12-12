@@ -99,23 +99,30 @@ int main() {
         const auto ar = arrangements_count("?" + patterns[i], digests[i]);
 
         const auto cur = [&]() -> ll {
+            if (patterns[i][0] == '#' || patterns[i].back() == '#') {
+                return ipow(a, 5);
+            }
             if (al == a && ar == a) return ipow(a, 5);
             if (al != a && ar == a) return ipow(al, 4) * a;
             if (al == a && ar != a) return a * ipow(ar, 4);
-            return 0;
+            assert(al != a && ar != a);
+
+            ll ans{};
+            for (int bits = 0; bits < (1 << 4); ++bits) {
+                const ll lefts = __builtin_popcount(bits);
+                const ll rights = 4 - lefts;
+
+                ll x = a;
+                for (int k = 1; k <= lefts; ++k) x *= al;
+                for (int k = 1; k <= rights; ++k) x *= ar;
+                ans += x;
+            }
+            return ans;
         }();
 
-        for (int bits = 0; bits < (1 << 4); ++bits) {
-            const ll lefts = __builtin_popcount(bits);
-            const ll rights = 4 - lefts;
-
-            // ll x = a;
-            // for (int k = 1; k <= lefts; ++k) x *= al;
-            // for (int k = 1; k <= rights; ++k) x *= ar;
-            // cur += x;
-        }
         cerr << " a:" << a << " al:" << al << " ar:" << ar << " cur:" << cur
              << endl;
+        result += cur;
     }
     cout << result << '\n';
     return 0;
