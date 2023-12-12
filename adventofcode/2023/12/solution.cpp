@@ -127,7 +127,26 @@ int main() {
 
     ll result{};
     for (int i = 0; i < sz(patterns); ++i) {
-        result += arrangements_count(patterns[i], digests[i]);
+        ll cur{};
+        for (int bits = 0; bits < (1 << 4); ++bits) {
+            string candidate = patterns[i];
+
+            const auto pl = patterns[i] + "?";
+            const auto pr = "?" + patterns[i];
+
+            const auto a = arrangements_count(patterns[i], digests[i]);
+            const auto al = arrangements_count(pl, digests[i]);
+            const auto ar = arrangements_count(pr, digests[i]);
+
+            const ll lefts = __builtin_popcount(bits);
+            const ll rights = 4 - lefts;
+
+            ll x = a;
+            for (int k = 1; k <= lefts; ++k) x *= al;
+            for (int k = 1; k <= rights; ++k) x *= ar;
+            cur += x;
+        }
+        cerr << cur << endl;
     }
     cout << result << '\n';
     return 0;
