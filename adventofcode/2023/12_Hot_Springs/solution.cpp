@@ -44,10 +44,17 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
     const auto m = sz(digest);
 
     const auto is_match_possible = [&](const int i, const int d) -> bool {
-        if (i + d > n) return false;
-        return all_of(cbegin(pattern) + i, cbegin(pattern) + i + d,
-                      [](const char c) { return c == '#' || c == '?'; }) &&
-               (i + d == n || pattern[i + d] == '.' || pattern[i + d] == '?');
+        const auto result = [&]() {
+            if (i + d > n) return false;
+            return all_of(cbegin(pattern) + i, cbegin(pattern) + i + d,
+                          [](const char c) { return c == '#' || c == '?'; }) &&
+                   (i + d == n || pattern[i + d] == '.' ||
+                    pattern[i + d] == '?') &&
+                   (i == 0 || pattern[i - 1] == '.' || pattern[i - 1] == '?');
+        }();
+        // cerr << "is_match_possible(" << i << ", " << d << ") = " << result
+        //      << endl;
+        return result;
     };
 
     const auto possible_shifts_starting_at = [&](const int i,
@@ -55,10 +62,12 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
         assert(is_match_possible(i, d));
         int result{};
         while (is_match_possible(i + result + 1, d)) ++result;
+        cerr << "possible " << d << " shifts starting at " << i << ": "
+             << result << endl;
         return result;
     };
 
-    vector<vector<ll>> memo(2 * n, vector(2 * m, -1LL));
+    vector<vector<ll>> memo(n + 2, vector(m + 1, -1LL));
 
     const auto recur = [&](const auto self, int i, const int j) -> ll {
         if (memo[i][j] != -1) return memo[i][j];
