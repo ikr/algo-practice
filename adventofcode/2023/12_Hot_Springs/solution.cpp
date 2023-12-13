@@ -80,7 +80,7 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
     };
 
     const auto result = recur(recur, 0, 0);
-    cerr << memo << endl;
+    // cerr << memo << endl;
     return result;
 }
 
@@ -147,14 +147,20 @@ int main() {
 
     ll result{};
     for (int i = 0; i < sz(patterns); ++i) {
-        const auto cur = arrangements_count(patterns[i], digests[i]);
-        const auto org = brute::arrangements_count(patterns[i], digests[i]);
-        if (cur != org) {
-            cerr << "mismatch for " << patterns[i] << " " << digests[i] << endl;
-            cerr << "cur: " << cur << endl;
-            cerr << "org: " << org << endl;
-            return 0;
-        }
+        auto p = patterns[i];
+        for (int j = 1; j <= 4; ++j) p += "?" + patterns[i];
+
+        vector<int> d = digests[i];
+        for (int j = 1; j <= 4; ++j)
+            d.insert(cend(d), cbegin(digests[i]), cend(digests[i]));
+
+        const auto cur = arrangements_count(p, d);
+        // const auto org = brute::arrangements_count(patterns[i], digests[i]);
+        // if (cur != org) {
+        //     cerr << "mismatch for " << patterns[i] << " " << digests[i] <<
+        //     endl; cerr << "cur: " << cur << endl; cerr << "org: " << org <<
+        //     endl; return 0;
+        // }
         cerr << "cur:" << cur << endl;
         result += cur;
     }
