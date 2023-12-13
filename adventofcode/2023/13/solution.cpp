@@ -128,6 +128,12 @@ pii last_element(const map<int, int> &m) {
     return *prev((cend(m)));
 }
 
+int digest(const pii rc, const pii rr) {
+    if (rr.first == -1) return (rc.first + 1);
+    if (rc.first == -1) return 100 * (rr.first + 1);
+    return rc.second > rr.second ? (rc.first + 1) : (100 * (rr.first + 1));
+}
+
 int main() {
     vector<vector<string>> grids(1);
 
@@ -142,6 +148,8 @@ int main() {
     int result{};
 
     for (const auto &grid0 : grids) {
+        const auto rc0 = common_reflection_col(grid0);
+        const auto rr0 = common_reflection_col(transpose(grid0));
         auto grid = grid0;
 
         map<int, int> col_reflections_by_size;
@@ -149,24 +157,23 @@ int main() {
 
         for (int r = 0; r < sz(grid); ++r) {
             for (int c = 0; c < sz(grid[r]); ++c) {
-                grid[r][c] = grid[r][c] == '.' ? '#' : '.';
+                grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+                const auto rc = common_reflection_col(grid);
+                const auto rr = common_reflection_col(transpose(grid));
+                grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
 
-                const auto rco = common_reflection_col(grid);
-                if (rco.first != -1) {
-                    col_reflections_by_size[rco.second] = rco.first;
-                }
+                if (((rc.first != -1) || (rr.first != -1)) &&
+                    digest(rc0, rr0) != digest(rc, rr)) {
+                    if (rc.first != -1) {
+                        col_reflections_by_size[rc.second] = rc.first;
+                    }
 
-                const auto grid_ = transpose(grid);
-                const auto rro = common_reflection_col(grid_);
-                if (rro.first != -1) {
-                    row_reflections_by_size[rro.second] = rro.first;
+                    if (rr.first != -1) {
+                        row_reflections_by_size[rr.second] = rr.first;
+                    }
                 }
             }
         }
-
-        cerr << "column_reflections_by_size: " << col_reflections_by_size
-             << endl;
-        cerr << "row_reflections_by_size: " << row_reflections_by_size << endl;
 
         assert(!empty(row_reflections_by_size) ||
                !empty(col_reflections_by_size));
@@ -184,6 +191,10 @@ int main() {
                     100 * (last_element(row_reflections_by_size).second + 1);
             }
         }
+
+        cerr << "column_reflections_by_size: " << col_reflections_by_size
+             << endl;
+        cerr << "row_reflections_by_size: " << row_reflections_by_size << endl;
     }
     cout << result << '\n';
     return 0;
