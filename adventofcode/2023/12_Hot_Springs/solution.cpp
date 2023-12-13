@@ -3,22 +3,6 @@ using namespace std;
 
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -84,57 +68,6 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
     return result;
 }
 
-namespace brute {
-vector<int> wildcard_indices(const string &s) {
-    vector<int> ans;
-    for (int i = 0; i < sz(s); ++i) {
-        if (s[i] == '?') ans.push_back(i);
-    }
-    return ans;
-}
-
-vector<pair<char, int>> run_length_encode(const string &xs) {
-    vector<pair<char, int>> ans{{xs[0], 1}};
-    for (int i = 1; i < sz(xs); ++i) {
-        if (xs[i] == ans.back().first) {
-            ++(ans.back().second);
-        } else {
-            ans.emplace_back(xs[i], 1);
-        }
-    }
-    return ans;
-}
-
-bool confirm_match(const vector<int> &digest, const string &src) {
-    const auto src_rle = run_length_encode(src);
-    vector<int> candidate;
-    for (const auto &[c, n] : src_rle) {
-        if (c == '#') {
-            candidate.push_back(n);
-        }
-    }
-    return digest == candidate;
-}
-
-int arrangements_count(const string &pattern, const vector<int> &digest) {
-    const auto wi = wildcard_indices(pattern);
-    int result{};
-    for (int bits = 0; bits < (1 << sz(wi)); ++bits) {
-        string candidate = pattern;
-        for (int i = 0; i < sz(wi); ++i) {
-            if (bits & (1 << i)) {
-                candidate[wi[i]] = '#';
-            } else {
-                candidate[wi[i]] = '.';
-            }
-        }
-
-        if (confirm_match(digest, candidate)) ++result;
-    }
-    return result;
-}
-} // namespace brute
-
 int main() {
     vector<string> patterns;
     vector<vector<int>> digests;
@@ -154,15 +87,7 @@ int main() {
         for (int j = 1; j <= 4; ++j)
             d.insert(cend(d), cbegin(digests[i]), cend(digests[i]));
 
-        const auto cur = arrangements_count(p, d);
-        // const auto org = brute::arrangements_count(patterns[i], digests[i]);
-        // if (cur != org) {
-        //     cerr << "mismatch for " << patterns[i] << " " << digests[i] <<
-        //     endl; cerr << "cur: " << cur << endl; cerr << "org: " << org <<
-        //     endl; return 0;
-        // }
-        cerr << "cur:" << cur << endl;
-        result += cur;
+        result += arrangements_count(p, d);
     }
     cout << result << '\n';
     return 0;
