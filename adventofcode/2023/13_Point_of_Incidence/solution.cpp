@@ -20,11 +20,12 @@ vector<string> transpose(const vector<string> &m) {
     return ans;
 }
 
-bool is_palindrome(const string &xs) {
-    assert(sz(xs) % 2 == 0);
-    auto ys = xs;
-    ranges::reverse(ys);
-    return xs == ys;
+int smudges_count(const string &xs) {
+    int result{};
+    for (int i = 0, j = sz(xs) - 1; i < j; ++i, --j) {
+        result += xs[i] != xs[j];
+    }
+    return result;
 }
 
 bool are_columns_mirrored(const vector<string> &grid, const int c0,
@@ -34,9 +35,11 @@ bool are_columns_mirrored(const vector<string> &grid, const int c0,
     if (lc < 0 || rc >= sz(grid[0])) return false;
     if (lc != 0 && rc != sz(grid[0]) - 1) return false;
 
-    return ranges::all_of(grid, [&](const string &row) {
-        return is_palindrome(row.substr(lc, 2 * d0));
-    });
+    int ss{};
+    for (const auto &row : grid) {
+        ss += smudges_count(row.substr(lc, 2 * d0));
+    }
+    return ss == 1;
 }
 
 int reflection_col(const vector<string> &grid) {
