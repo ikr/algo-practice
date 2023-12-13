@@ -1,56 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const vector<string> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-using pii = pair<int, int>;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -71,6 +21,7 @@ vector<string> transpose(const vector<string> &m) {
 }
 
 bool is_palindrome(const string &xs) {
+    assert(sz(xs) % 2 == 0);
     auto ys = xs;
     ranges::reverse(ys);
     return xs == ys;
@@ -88,25 +39,21 @@ bool are_columns_mirrored(const vector<string> &grid, const int c0,
     });
 }
 
-pii reflection_col(const vector<string> &grid) {
+int reflection_col(const vector<string> &grid) {
     const auto W = sz(grid[0]);
     for (int d = W / 2 + 1; d >= 1; --d) {
         for (int c = 0; c < W; ++c) {
-            if (are_columns_mirrored(grid, c, d)) return {c, d};
+            if (are_columns_mirrored(grid, c, d)) return c;
         }
     }
-    return {-1, -1};
+    return -1;
 }
 
-int digest(const pii rc, const pii rr) {
-    if (rc.first == -1 && rr.first == -1) return 0;
-    if (rr.first == -1) return (rc.first + 1);
-    if (rc.first == -1) return 100 * (rr.first + 1);
-    return rc.second > rr.second ? (rc.first + 1) : (100 * (rr.first + 1));
-}
-
-void flip_a_smudge(vector<string> &grid, const int ro, const int co) {
-    grid[ro][co] = (grid[ro][co] == '.') ? '#' : '.';
+int digest(const int rc, const int rr) {
+    if (rc == -1 && rr == -1) return 0;
+    if (rr == -1) return rc + 1;
+    assert(rc == -1);
+    return 100 * (rr + 1);
 }
 
 int main() {
@@ -122,41 +69,10 @@ int main() {
 
     int result{};
 
-    for (const auto &grid0 : grids) {
-        const auto rc0 = reflection_col(grid0);
-        const auto rr0 = reflection_col(transpose(grid0));
-        cerr << "\nGrid:\n" << grid0 << endl;
-        cerr << "Was: " << rc0 << ' ' << rr0 << " digest:" << digest(rc0, rr0)
-             << endl;
-
-        auto grid = grid0;
-
-        const auto cur = [&]() -> int {
-            for (int r = 0; r < sz(grid); ++r) {
-                for (int c = 0; c < sz(grid[r]); ++c) {
-                    flip_a_smudge(grid, r, c);
-                    auto rc = reflection_col(grid);
-                    auto rr = reflection_col(transpose(grid));
-                    flip_a_smudge(grid, r, c);
-
-                    if (rc.first != -1 || rr.first != -1) {
-                        cerr << "Found: " << rc << ' ' << rr
-                             << " digest:" << digest(rc, rr) << endl;
-                    }
-
-                    if (rc == rc0) rc = pii{-1, -1};
-                    if (rr == rr0) rr = pii{-1, -1};
-
-                    if (rc.first != -1 || rr.first != -1) {
-                        return digest(rc, rr);
-                    }
-                }
-            }
-            assert(false && "Found nothing");
-            return digest(rc0, rr0);
-        }();
-
-        result += cur;
+    for (const auto &grid : grids) {
+        const auto rc = reflection_col(grid);
+        const auto rr = reflection_col(transpose(grid));
+        result += digest(rc, rr);
     }
     cout << result << '\n';
     return 0;
