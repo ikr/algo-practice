@@ -129,6 +129,7 @@ pii last_element(const map<int, int> &m) {
 }
 
 int digest(const pii rc, const pii rr) {
+    if (rc.first == -1 && rr.first == -1) return 0;
     if (rr.first == -1) return (rc.first + 1);
     if (rc.first == -1) return 100 * (rr.first + 1);
     return rc.second > rr.second ? (rc.first + 1) : (100 * (rr.first + 1));
@@ -150,51 +151,35 @@ int main() {
     for (const auto &grid0 : grids) {
         const auto rc0 = common_reflection_col(grid0);
         const auto rr0 = common_reflection_col(transpose(grid0));
+        cerr << "Was: " << rc0 << ' ' << rr0 << " digest:" << digest(rc0, rr0)
+             << endl;
         auto grid = grid0;
 
-        map<int, int> col_reflections_by_size;
-        map<int, int> row_reflections_by_size;
+        const auto cur = [&]() -> int {
+            for (int r = 0; r < sz(grid); ++r) {
+                for (int c = 0; c < sz(grid[r]); ++c) {
+                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+                    auto rc = common_reflection_col(grid);
+                    auto rr = common_reflection_col(transpose(grid));
+                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
 
-        for (int r = 0; r < sz(grid); ++r) {
-            for (int c = 0; c < sz(grid[r]); ++c) {
-                grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
-                const auto rc = common_reflection_col(grid);
-                const auto rr = common_reflection_col(transpose(grid));
-                grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
-
-                if (((rc.first != -1) || (rr.first != -1)) &&
-                    digest(rc0, rr0) != digest(rc, rr)) {
-                    if (rc.first != -1) {
-                        col_reflections_by_size[rc.second] = rc.first;
+                    if (rc.first != -1 || rr.first != -1) {
+                        cerr << "Found: " << rc << ' ' << rr
+                             << " digest:" << digest(rc, rr) << endl;
                     }
 
-                    if (rr.first != -1) {
-                        row_reflections_by_size[rr.second] = rr.first;
+                    if (rc == rc0) rc = pii{-1, -1};
+                    if (rr == rr0) rr = pii{-1, -1};
+
+                    if (rc.first != -1 || rr.first != -1) {
+                        return digest(rc, rr);
                     }
                 }
             }
-        }
+            return digest(rc0, rr0);
+        }();
 
-        assert(!empty(row_reflections_by_size) ||
-               !empty(col_reflections_by_size));
-
-        if (empty(row_reflections_by_size)) {
-            result += last_element(col_reflections_by_size).second + 1;
-        } else if (empty(col_reflections_by_size)) {
-            result += 100 * (last_element(row_reflections_by_size).second + 1);
-        } else {
-            if (last_element(col_reflections_by_size).first >
-                last_element(row_reflections_by_size).first) {
-                result += last_element(col_reflections_by_size).second + 1;
-            } else {
-                result +=
-                    100 * (last_element(row_reflections_by_size).second + 1);
-            }
-        }
-
-        cerr << "column_reflections_by_size: " << col_reflections_by_size
-             << endl;
-        cerr << "row_reflections_by_size: " << row_reflections_by_size << endl;
+        result += cur;
     }
     cout << result << '\n';
     return 0;
