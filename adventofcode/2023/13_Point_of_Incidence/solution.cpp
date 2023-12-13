@@ -70,57 +70,32 @@ vector<string> transpose(const vector<string> &m) {
     return ans;
 }
 
-int reflection_size(const string &xs, const int i0) {
-    const auto in_bounds = [&](const int i) { return 0 <= i && i < sz(xs); };
-
-    int result{};
-    int l = i0, r = i0 + 1;
-    while (in_bounds(l) && in_bounds(r) && xs[l] == xs[r]) {
-        result++;
-        --l;
-        ++r;
-    }
-    return result;
+bool is_palindrome(const string &xs) {
+    auto ys = xs;
+    ranges::reverse(ys);
+    return xs == ys;
 }
 
-vector<pii> reflections(const string &xs) {
-    vector<pii> ans;
-    for (int i = 0; i < sz(xs); ++i) {
-        const auto rs = reflection_size(xs, i);
-        if (rs) ans.emplace_back(i, rs);
-    }
-    return ans;
+bool are_columns_mirrored(const vector<string> &grid, const int c0,
+                          const int d0) {
+    const auto lc = c0 - d0 + 1;
+    const auto rc = c0 + d0;
+    if (lc < 0 || rc >= sz(grid[0])) return false;
+    if (lc != 0 && rc != sz(grid[0]) - 1) return false;
+
+    return ranges::all_of(grid, [&](const string &row) {
+        return is_palindrome(row.substr(lc, 2 * d0));
+    });
 }
 
-pii common_reflection_col(const vector<string> &grid) {
-    vector<vector<pii>> row_reflections(sz(grid));
-    row_reflections[0] = reflections(grid[0]);
-    map<int, int> ds_by_col;
-    for (const auto &[co, d] : row_reflections[0]) ds_by_col[co] = d;
-
-    for (int ro = 1; ro < sz(grid); ++ro) {
-        row_reflections[ro] = reflections(grid[ro]);
-        set<int> cols;
-
-        for (const auto &[co, d] : row_reflections[ro]) {
-            if (ds_by_col.contains(co) && ds_by_col[co] != d) {
-                ds_by_col.erase(co);
-            }
-            cols.insert(co);
-        }
-
-        for (auto it = cbegin(ds_by_col); it != cend(ds_by_col);) {
-            if (!cols.contains(it->first)) {
-                it = ds_by_col.erase(it);
-            } else {
-                ++it;
-            }
+pii reflection_col(const vector<string> &grid) {
+    const auto W = sz(grid[0]);
+    for (int d = W / 2 + 1; d >= 1; --d) {
+        for (int c = 0; c < W; ++c) {
+            if (are_columns_mirrored(grid, c, d)) return {c, d};
         }
     }
-
-    return empty(ds_by_col)
-               ? pii{-1, -1}
-               : pii{cbegin(ds_by_col)->first, cbegin(ds_by_col)->second};
+    return {-1, -1};
 }
 
 pii last_element(const map<int, int> &m) {
@@ -149,39 +124,40 @@ int main() {
     int result{};
 
     for (const auto &grid0 : grids) {
-        const auto rc0 = common_reflection_col(grid0);
-        const auto rr0 = common_reflection_col(transpose(grid0));
+        const auto rc0 = reflection_col(grid0);
+        const auto rr0 = reflection_col(transpose(grid0));
         cerr << "Grid:\n" << grid0 << endl;
         cerr << "Was: " << rc0 << ' ' << rr0 << " digest:" << digest(rc0, rr0)
              << endl;
-        auto grid = grid0;
+        result += digest(rc0, rr0);
+        // auto grid = grid0;
 
-        const auto cur = [&]() -> int {
-            for (int r = 0; r < sz(grid); ++r) {
-                for (int c = 0; c < sz(grid[r]); ++c) {
-                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
-                    auto rc = common_reflection_col(grid);
-                    auto rr = common_reflection_col(transpose(grid));
-                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+        // const auto cur = [&]() -> int {
+        //     for (int r = 0; r < sz(grid); ++r) {
+        //         for (int c = 0; c < sz(grid[r]); ++c) {
+        //             grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+        //             auto rc = reflection_col(grid);
+        //             auto rr = reflection_col(transpose(grid));
+        //             grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
 
-                    if (rc.first != -1 || rr.first != -1) {
-                        cerr << "Found: " << rc << ' ' << rr
-                             << " digest:" << digest(rc, rr) << endl;
-                    }
+        //             if (rc.first != -1 || rr.first != -1) {
+        //                 cerr << "Found: " << rc << ' ' << rr
+        //                      << " digest:" << digest(rc, rr) << endl;
+        //             }
 
-                    if (rc == rc0) rc = pii{-1, -1};
-                    if (rr == rr0) rr = pii{-1, -1};
+        //             if (rc == rc0) rc = pii{-1, -1};
+        //             if (rr == rr0) rr = pii{-1, -1};
 
-                    if (rc.first != -1 || rr.first != -1) {
-                        return digest(rc, rr);
-                    }
-                }
-            }
-            assert(false && "Found nothing");
-            return digest(rc0, rr0);
-        }();
+        //             if (rc.first != -1 || rr.first != -1) {
+        //                 return digest(rc, rr);
+        //             }
+        //         }
+        //     }
+        //     assert(false && "Found nothing");
+        //     return digest(rc0, rr0);
+        // }();
 
-        result += cur;
+        // result += cur;
     }
     cout << result << '\n';
     return 0;
