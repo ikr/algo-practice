@@ -151,6 +151,7 @@ int main() {
     for (const auto &grid0 : grids) {
         const auto rc0 = common_reflection_col(grid0);
         const auto rr0 = common_reflection_col(transpose(grid0));
+        cerr << "Grid:\n" << grid0 << endl;
         cerr << "Was: " << rc0 << ' ' << rr0 << " digest:" << digest(rc0, rr0)
              << endl;
         auto grid = grid0;
@@ -176,6 +177,7 @@ int main() {
                     }
                 }
             }
+            assert(false && "Found nothing");
             return digest(rc0, rr0);
         }();
 
