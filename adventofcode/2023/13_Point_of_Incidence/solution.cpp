@@ -126,38 +126,39 @@ int main() {
     for (const auto &grid0 : grids) {
         const auto rc0 = reflection_col(grid0);
         const auto rr0 = reflection_col(transpose(grid0));
-        cerr << "Grid:\n" << grid0 << endl;
+        cerr << "\nGrid:\n" << grid0 << endl;
         cerr << "Was: " << rc0 << ' ' << rr0 << " digest:" << digest(rc0, rr0)
              << endl;
-        result += digest(rc0, rr0);
-        // auto grid = grid0;
 
-        // const auto cur = [&]() -> int {
-        //     for (int r = 0; r < sz(grid); ++r) {
-        //         for (int c = 0; c < sz(grid[r]); ++c) {
-        //             grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
-        //             auto rc = reflection_col(grid);
-        //             auto rr = reflection_col(transpose(grid));
-        //             grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+        auto grid = grid0;
 
-        //             if (rc.first != -1 || rr.first != -1) {
-        //                 cerr << "Found: " << rc << ' ' << rr
-        //                      << " digest:" << digest(rc, rr) << endl;
-        //             }
+        const auto cur = [&]() -> int {
+            for (int r = 0; r < sz(grid); ++r) {
+                for (int c = 0; c < sz(grid[r]); ++c) {
+                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+                    auto rc = reflection_col(grid);
+                    auto rr = reflection_col(transpose(grid));
+                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
 
-        //             if (rc == rc0) rc = pii{-1, -1};
-        //             if (rr == rr0) rr = pii{-1, -1};
+                    if (rc.first != -1 || rr.first != -1) {
+                        cerr << "Found: " << rc << ' ' << rr
+                             << " digest:" << digest(rc, rr) << endl;
+                    }
 
-        //             if (rc.first != -1 || rr.first != -1) {
-        //                 return digest(rc, rr);
-        //             }
-        //         }
-        //     }
-        //     assert(false && "Found nothing");
-        //     return digest(rc0, rr0);
-        // }();
+                    if (rc == rc0) rc = pii{-1, -1};
+                    if (rr == rr0) rr = pii{-1, -1};
 
-        // result += cur;
+                    if (rc.first != -1 || rr.first != -1) {
+                        return digest(rc, rr);
+                    }
+                }
+            }
+            // assert(false && "Found nothing");
+            cerr << "Found nothing :(" << endl;
+            return digest(rc0, rr0);
+        }();
+
+        result += cur;
     }
     cout << result << '\n';
     return 0;
