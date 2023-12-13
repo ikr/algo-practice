@@ -110,6 +110,10 @@ int digest(const pii rc, const pii rr) {
     return rc.second > rr.second ? (rc.first + 1) : (100 * (rr.first + 1));
 }
 
+void flip_a_smudge(vector<string> &grid, const int ro, const int co) {
+    grid[ro][co] = (grid[ro][co] == '.') ? '#' : '.';
+}
+
 int main() {
     vector<vector<string>> grids(1);
 
@@ -135,10 +139,10 @@ int main() {
         const auto cur = [&]() -> int {
             for (int r = 0; r < sz(grid); ++r) {
                 for (int c = 0; c < sz(grid[r]); ++c) {
-                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+                    flip_a_smudge(grid, r, c);
                     auto rc = reflection_col(grid);
                     auto rr = reflection_col(transpose(grid));
-                    grid[r][c] = ((grid[r][c] == '.') ? '#' : '.');
+                    flip_a_smudge(grid, r, c);
 
                     if (rc.first != -1 || rr.first != -1) {
                         cerr << "Found: " << rc << ' ' << rr
@@ -153,8 +157,7 @@ int main() {
                     }
                 }
             }
-            // assert(false && "Found nothing");
-            cerr << "Found nothing :(" << endl;
+            assert(false && "Found nothing");
             return digest(rc0, rr0);
         }();
 
