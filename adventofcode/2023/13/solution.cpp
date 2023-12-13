@@ -23,9 +23,30 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     return os;
 }
 
-void print_grid(const vector<string> &grid) {
-    for (const auto &row : grid) cerr << row << endl;
-    cerr << endl;
+ostream &operator<<(ostream &os, const vector<string> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
 }
 
 using pii = pair<int, int>;
@@ -72,40 +93,37 @@ vector<pii> reflections(const string &xs) {
 }
 
 pii common_reflection_col(const vector<string> &grid) {
-    const auto H = sz(grid);
-    const auto W = sz(grid[0]);
+    vector<vector<pii>> row_reflections(sz(grid));
+    row_reflections[0] = reflections(grid[0]);
+    map<int, int> ds_by_col;
+    for (const auto &[co, d] : row_reflections[0]) ds_by_col[co] = d;
 
-    vector<vector<pii>> rs(sz(grid));
-    for (int ro = 0; ro < H; ++ro) {
-        rs[ro] = reflections(grid[ro]);
-    }
+    for (int ro = 1; ro < sz(grid); ++ro) {
+        row_reflections[ro] = reflections(grid[ro]);
+        set<int> cols;
 
-    cerr << "grid:" << endl;
-    print_grid(grid);
-    cerr << "reflections: \n" << rs << endl;
+        for (const auto &[co, d] : row_reflections[ro]) {
+            if (ds_by_col.contains(co) && ds_by_col[co] != d) {
+                ds_by_col.erase(co);
+            }
+            cols.insert(co);
+        }
 
-    const auto common_co = [&]() -> int {
-        for (int co = 0; co < W; ++co) {
-            if (ranges::all_of(rs, [&](const auto &row) {
-                    return ranges::any_of(
-                        row, [&](const auto &p) { return p.first == co; });
-                })) {
-                return co;
+        for (auto it = cbegin(ds_by_col); it != cend(ds_by_col);) {
+            if (!cols.contains(it->first)) {
+                it = ds_by_col.erase(it);
+            } else {
+                ++it;
             }
         }
-        return -1;
-    }();
-
-    if (common_co == -1) return {-1, -1};
-
-    int d{};
-    for (const auto &row : rs) {
-        for (const auto &[co, s] : row) {
-            d = max(d, s);
-        }
     }
 
-    return {common_co, d};
+    cerr << "grid:\n" << grid << "\nds_by_col: " << ds_by_col << endl;
+
+    assert(sz(ds_by_col) <= 1);
+    return empty(ds_by_col)
+               ? pii{-1, -1}
+               : pii{cbegin(ds_by_col)->first, cbegin(ds_by_col)->second};
 }
 
 int main() {
@@ -125,7 +143,6 @@ int main() {
         const auto rco = common_reflection_col(grid);
         const auto grid_ = transpose(grid);
         const auto rro = common_reflection_col(grid_);
-        cerr << rco << ' ' << rro << endl;
 
         assert(rco.first != -1 || rro.first != -1);
 
