@@ -118,12 +118,14 @@ pii common_reflection_col(const vector<string> &grid) {
         }
     }
 
-    cerr << "grid:\n" << grid << "\nds_by_col: " << ds_by_col << endl;
-
-    assert(sz(ds_by_col) <= 1);
     return empty(ds_by_col)
                ? pii{-1, -1}
                : pii{cbegin(ds_by_col)->first, cbegin(ds_by_col)->second};
+}
+
+pii last_element(const map<int, int> &m) {
+    assert(!empty(m));
+    return *prev((cend(m)));
 }
 
 int main() {
@@ -139,17 +141,48 @@ int main() {
 
     int result{};
 
-    for (const auto &grid : grids) {
-        const auto rco = common_reflection_col(grid);
-        const auto grid_ = transpose(grid);
-        const auto rro = common_reflection_col(grid_);
+    for (const auto &grid0 : grids) {
+        auto grid = grid0;
 
-        assert(rco.first != -1 || rro.first != -1);
+        map<int, int> col_reflections_by_size;
+        map<int, int> row_reflections_by_size;
 
-        if (rco.second > rro.second) {
-            result += (rco.first + 1);
+        for (int r = 0; r < sz(grid); ++r) {
+            for (int c = 0; c < sz(grid[r]); ++c) {
+                grid[r][c] = grid[r][c] == '.' ? '#' : '.';
+
+                const auto rco = common_reflection_col(grid);
+                if (rco.first != -1) {
+                    col_reflections_by_size[rco.second] = rco.first;
+                }
+
+                const auto grid_ = transpose(grid);
+                const auto rro = common_reflection_col(grid_);
+                if (rro.first != -1) {
+                    row_reflections_by_size[rro.second] = rro.first;
+                }
+            }
+        }
+
+        cerr << "column_reflections_by_size: " << col_reflections_by_size
+             << endl;
+        cerr << "row_reflections_by_size: " << row_reflections_by_size << endl;
+
+        assert(!empty(row_reflections_by_size) ||
+               !empty(col_reflections_by_size));
+
+        if (empty(row_reflections_by_size)) {
+            result += last_element(col_reflections_by_size).second + 1;
+        } else if (empty(col_reflections_by_size)) {
+            result += 100 * (last_element(row_reflections_by_size).second + 1);
         } else {
-            result += 100 * (rro.first + 1);
+            if (last_element(col_reflections_by_size).first >
+                last_element(row_reflections_by_size).first) {
+                result += last_element(col_reflections_by_size).second + 1;
+            } else {
+                result +=
+                    100 * (last_element(row_reflections_by_size).second + 1);
+            }
         }
     }
     cout << result << '\n';
