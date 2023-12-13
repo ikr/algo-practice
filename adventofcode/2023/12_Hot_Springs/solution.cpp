@@ -37,7 +37,6 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
                    (i == 0 || pattern[i - 1] == '.' || pattern[i - 1] == '?');
         }();
 
-        // cerr << "match = " << result << " for i:" << i << " d:" << d << endl;
         return result;
     };
 
@@ -64,7 +63,6 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
     };
 
     const auto result = recur(recur, 0, 0);
-    // cerr << memo << endl;
     return result;
 }
 
