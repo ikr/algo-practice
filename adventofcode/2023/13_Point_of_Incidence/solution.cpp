@@ -98,11 +98,6 @@ pii reflection_col(const vector<string> &grid) {
     return {-1, -1};
 }
 
-pii last_element(const map<int, int> &m) {
-    assert(!empty(m));
-    return *prev((cend(m)));
-}
-
 int digest(const pii rc, const pii rr) {
     if (rc.first == -1 && rr.first == -1) return 0;
     if (rr.first == -1) return (rc.first + 1);
