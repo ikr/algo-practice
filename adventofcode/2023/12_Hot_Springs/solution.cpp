@@ -69,12 +69,11 @@ ll arrangements_count(const string &pattern, const vector<int> &digest) {
             }
             if (i >= n) return 0;
 
-            if (pattern[i] == '.') return self(self, i + 1, j);
-
             if (is_match_possible(i, digest[j])) {
-                return self(self, i + digest[j] + 1, j + 1) +
-                       self(self, i + 1, j);
+                const auto a = self(self, i + digest[j] + 1, j + 1);
+                return pattern[i] == '#' ? a : (a + self(self, i + 1, j));
             } else {
+                if (pattern[i] == '#') return 0;
                 return self(self, i + 1, j);
             }
         }();
