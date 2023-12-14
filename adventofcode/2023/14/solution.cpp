@@ -131,35 +131,17 @@ int total_load_north(vector<string> grid) {
     return total_load_west(grid);
 }
 
-int total_load_east(const vector<string> &grid) {
-    const auto W = sz(grid[0]);
-    int result{};
-    for (auto &row : grid) {
-        for (int co = 0; co < W; ++co) {
-            if (row[co] == 'O') {
-                result += co + 1;
-            }
-        }
-    }
-    return result;
-}
-
-int total_load_south(vector<string> grid) {
-    grid = transpose(grid);
-    return total_load_east(grid);
-}
-
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) grid.push_back(line);
 
-    for (int i = 1; i <= 3; ++i) {
+    for (long long i = 1; i <= 1'000'000'000LL; ++i) {
         roll_all_north(grid);
         roll_all_west(grid);
         roll_all_south(grid);
         roll_all_east(grid);
-        cerr << grid << endl << endl;
     }
 
+    cout << total_load_north(grid) << '\n';
     return 0;
 }
