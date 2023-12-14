@@ -89,23 +89,28 @@ string shift_stones_left(string xs) {
     return xs;
 }
 
-int main() {
-    vector<string> grid;
-    for (string line; getline(cin, line);) grid.push_back(line);
-    grid = transpose(grid);
+void roll_all_left(vector<string> &grid) {
+    ranges::transform(grid, grid.begin(), shift_stones_left);
+}
 
+int total_load(const vector<string> &grid) {
     const auto W = sz(grid[0]);
     int result{};
     for (auto &row : grid) {
-        row = shift_stones_left(row);
         for (int co = 0; co < W; ++co) {
             if (row[co] == 'O') {
                 result += W - co;
             }
         }
     }
+    return result;
+}
+
+int main() {
+    vector<string> grid;
+    for (string line; getline(cin, line);) grid.push_back(line);
     grid = transpose(grid);
-    cerr << grid << '\n';
-    cout << result << '\n';
+    roll_all_left(grid);
+    cout << total_load(grid) << '\n';
     return 0;
 }
