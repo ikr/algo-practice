@@ -1,11 +1,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
+using ll = long long;
+
+static constexpr ll Cycles = 1000000000LL;
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
@@ -14,33 +12,6 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
         os << *i;
     }
     os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
     return os;
 }
 
@@ -131,17 +102,47 @@ int total_load_north(vector<string> grid) {
     return total_load_west(grid);
 }
 
+template <typename T>
+bool is_at(const vector<T> &haystack, const vector<T> &needle, const int i) {
+    for (int j = 0; j < sz(needle); ++j) {
+        if (haystack[i + j] != needle[j]) return false;
+    }
+
+    return true;
+}
+
+template <typename T> int tail_period(const vector<T> &xs) {
+    const auto marker_size = 32;
+    const vector marker(cend(xs) - marker_size, cend(xs));
+    assert(is_at(xs, marker, sz(xs) - marker_size));
+
+    for (int i = sz(xs) - marker_size - 1; i >= 0; --i) {
+        if (is_at(xs, marker, i)) {
+            return sz(xs) - marker_size - i;
+        }
+    }
+
+    return -1;
+}
+
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) grid.push_back(line);
 
-    for (long long i = 1; i <= 1'000'000'000LL; ++i) {
+    vector<int> xs;
+    for (int i = 1; i <= 1000; ++i) {
         roll_all_north(grid);
         roll_all_west(grid);
         roll_all_south(grid);
         roll_all_east(grid);
+        xs.push_back(total_load_north(grid));
     }
 
-    cout << total_load_north(grid) << '\n';
+    const ll P = tail_period(xs);
+    vector<int> cycle(P);
+    for (int i = 0; i < P; ++i) cycle[P - 1 - i] = xs[sz(xs) - 1 - i];
+    cerr << cycle << endl;
+    const auto last_cycle_begin_index = sz(xs) - P;
+    cout << cycle[(Cycles - 1 - last_cycle_begin_index) % P] << '\n';
     return 0;
 }
