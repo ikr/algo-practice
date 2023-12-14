@@ -5,21 +5,6 @@ using ll = long long;
 
 static constexpr ll Cycles = 1000000000LL;
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const vector<string> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -141,7 +126,6 @@ int main() {
     const ll P = tail_period(xs);
     vector<int> cycle(P);
     for (int i = 0; i < P; ++i) cycle[P - 1 - i] = xs[sz(xs) - 1 - i];
-    cerr << cycle << endl;
     const auto last_cycle_begin_index = sz(xs) - P;
     cout << cycle[(Cycles - 1 - last_cycle_begin_index) % P] << '\n';
     return 0;
