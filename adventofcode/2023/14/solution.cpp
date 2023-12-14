@@ -68,7 +68,7 @@ vector<string> transpose(const vector<string> &m) {
     return ans;
 }
 
-string shift_stones_left(string xs) {
+void roll_west(string &xs) {
     const auto slide_left = [&](int i) {
         assert(xs[i] == 'O');
         for (;;) {
@@ -81,19 +81,39 @@ string shift_stones_left(string xs) {
     int i = 0;
     for (;;) {
         const auto is = xs.find('O', i);
-        if (is == string::npos) return xs;
+        if (is == string::npos) return;
         slide_left(inof(is));
         ++i;
     }
-
-    return xs;
 }
 
-void roll_all_left(vector<string> &grid) {
-    ranges::transform(grid, grid.begin(), shift_stones_left);
+void roll_east(string &xs) {
+    ranges::reverse(xs);
+    roll_west(xs);
+    ranges::reverse(xs);
 }
 
-int total_load(const vector<string> &grid) {
+void roll_all_west(vector<string> &grid) {
+    for (auto &row : grid) roll_west(row);
+}
+
+void roll_all_east(vector<string> &grid) {
+    for (auto &row : grid) roll_east(row);
+}
+
+void roll_all_north(vector<string> &grid) {
+    grid = transpose(grid);
+    roll_all_west(grid);
+    grid = transpose(grid);
+}
+
+void roll_all_south(vector<string> &grid) {
+    grid = transpose(grid);
+    roll_all_east(grid);
+    grid = transpose(grid);
+}
+
+int total_load_west(const vector<string> &grid) {
     const auto W = sz(grid[0]);
     int result{};
     for (auto &row : grid) {
@@ -106,11 +126,40 @@ int total_load(const vector<string> &grid) {
     return result;
 }
 
+int total_load_north(vector<string> grid) {
+    grid = transpose(grid);
+    return total_load_west(grid);
+}
+
+int total_load_east(const vector<string> &grid) {
+    const auto W = sz(grid[0]);
+    int result{};
+    for (auto &row : grid) {
+        for (int co = 0; co < W; ++co) {
+            if (row[co] == 'O') {
+                result += co + 1;
+            }
+        }
+    }
+    return result;
+}
+
+int total_load_south(vector<string> grid) {
+    grid = transpose(grid);
+    return total_load_east(grid);
+}
+
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) grid.push_back(line);
-    grid = transpose(grid);
-    roll_all_left(grid);
-    cout << total_load(grid) << '\n';
+
+    for (int i = 1; i <= 3; ++i) {
+        roll_all_north(grid);
+        roll_all_west(grid);
+        roll_all_south(grid);
+        roll_all_east(grid);
+        cerr << grid << endl << endl;
+    }
+
     return 0;
 }
