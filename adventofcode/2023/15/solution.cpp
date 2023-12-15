@@ -1,28 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 vector<string> split(const string &delim_regex, const string &s) {
     regex r(delim_regex);
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
@@ -49,10 +27,10 @@ using Lens = pair<string, int>;
 using Box = vector<Lens>;
 
 int index_in_a_box(const Box &box, const string &label) {
-    for (int i = 0; i < sz(box); ++i) {
-        if (box[i].first == label) return i;
-    }
-    return -1;
+    return inof(
+        ranges::find_if(box,
+                        [&](const auto &lens) { return lens.first == label; }) -
+        cbegin(box));
 }
 
 int main() {
@@ -65,14 +43,14 @@ int main() {
     const auto remove_lens = [&](const string &label) {
         auto &box = boxes[lhash(label)];
         const auto i = index_in_a_box(box, label);
-        if (i != -1) box.erase(cbegin(box) + i);
+        if (i != sz(box)) box.erase(cbegin(box) + i);
     };
 
     const auto set_lens = [&](const string &label, const int flength) {
         const auto h = lhash(label);
         auto &box = boxes[h];
         const auto i = index_in_a_box(box, label);
-        if (i != -1) {
+        if (i != sz(box)) {
             box[i].second = flength;
         } else {
             box.emplace_back(label, flength);
@@ -82,18 +60,16 @@ int main() {
     for (const auto &t : tokens) {
         if (t.back() == '-') {
             const auto label = t.substr(0, sz(t) - 1);
-            cerr << "remove " << label << endl;
             remove_lens(label);
         } else {
             const auto parts = split("=", t);
             const auto label = parts[0];
             const auto flength = stoi(parts[1]);
-            cerr << "Set " << label << " to " << flength << endl;
             set_lens(label, flength);
         }
     }
 
-    long long result{};
+    int result{};
     for (int ib = 0; ib < sz(boxes); ++ib) {
         for (int il = 0; il < sz(boxes[ib]); ++il) {
             const auto cur = (ib + 1) * (il + 1) * boxes[ib][il].second;
