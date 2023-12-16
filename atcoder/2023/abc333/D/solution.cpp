@@ -56,11 +56,18 @@ int main() {
         g[v].push_back(u);
     }
 
-    const auto ss = subtree_sizes(g);
-    int result{INT_MAX};
-    for (const auto v : g[0]) {
-        result = min(result, ss[v]);
+    if (sz(g[0]) == 1) {
+        cout << 1 << '\n';
+        return 0;
     }
-    cout << result << '\n';
+
+    const auto ss = subtree_sizes(g);
+    vector<int> xs;
+    xs.reserve(sz(g[0]));
+    for (const auto v : g[0]) xs.push_back(ss[v]);
+    ranges::sort(xs);
+    xs.pop_back();
+
+    cout << (accumulate(cbegin(xs), cend(xs), 0L) + 1) << '\n';
     return 0;
 }
