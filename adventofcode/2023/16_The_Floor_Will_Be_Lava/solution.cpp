@@ -171,8 +171,26 @@ int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) grid.push_back(line);
 
-    const auto result = simpilate_and_return_energized_tiles_count(
-        grid, Beam{Coord{0, -1}, Dir::Right});
-    cout << result << endl;
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+    int result{};
+
+    for (int r = 0; r < H; ++r) {
+        result = max({result,
+                      simpilate_and_return_energized_tiles_count(
+                          grid, Beam{Coord{r, -1}, Dir::Right}),
+                      simpilate_and_return_energized_tiles_count(
+                          grid, Beam{Coord{r, W}, Dir::Left})});
+    }
+
+    for (int c = 0; c < W; ++c) {
+        result = max({result,
+                      simpilate_and_return_energized_tiles_count(
+                          grid, Beam{Coord{-1, c}, Dir::Down}),
+                      simpilate_and_return_energized_tiles_count(
+                          grid, Beam{Coord{H, c}, Dir::Up})});
+    }
+
+    cout << result << '\n';
     return 0;
 }
