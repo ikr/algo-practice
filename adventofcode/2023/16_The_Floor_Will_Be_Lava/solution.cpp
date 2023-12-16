@@ -113,8 +113,8 @@ vector<Dir> hit_dash(const Dir dir) {
     }
 }
 
-vector<Dir> hit(const Dir dir, const char cell) {
-    switch (cell) {
+vector<Dir> hit(const Dir dir, const char tile) {
+    switch (tile) {
     case '/':
         return {hit_slash(dir)};
     case '\\':
@@ -124,18 +124,15 @@ vector<Dir> hit(const Dir dir, const char cell) {
     case '-':
         return hit_dash(dir);
     default:
-        assert(cell == '.');
+        assert(tile == '.');
         return {dir};
     }
 }
 
 using Beam = pair<Coord, Dir>;
 
-int main() {
-    vector<string> grid;
-    for (string line; getline(cin, line);) grid.push_back(line);
-    cerr << grid << endl;
-
+int simpilate_and_return_energized_tiles_count(const vector<string> &grid,
+                                               const Beam &beam0) {
     const auto H = sz(grid);
     const auto W = sz(grid[0]);
     const auto in_bounds = [=](const Coord roco) {
@@ -145,7 +142,7 @@ int main() {
 
     vector<vector<int>> space(H, vector(W, 0));
     queue<Beam> q;
-    q.emplace(Coord{0, -1}, Dir::Right);
+    q.push(beam0);
 
     while (!empty(q)) {
         const auto [u, dir] = q.front();
@@ -160,14 +157,22 @@ int main() {
 
         for (const auto v : hit(dir, grid[r][c])) q.emplace(dst, v);
     }
-    cerr << space << endl;
 
     int result{};
     for (const auto &row : space) {
-        for (const auto cell : row) {
-            result += (cell != 0);
+        for (const auto tile : row) {
+            result += (tile != 0);
         }
     }
+    return result;
+}
+
+int main() {
+    vector<string> grid;
+    for (string line; getline(cin, line);) grid.push_back(line);
+
+    const auto result = simpilate_and_return_energized_tiles_count(
+        grid, Beam{Coord{0, -1}, Dir::Right});
     cout << result << endl;
     return 0;
 }
