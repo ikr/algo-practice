@@ -1,33 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-ostream &operator<<(ostream &os, const vector<string> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 using Coord = pair<int, int>;
 
 enum class Dir { Up, Right, Down, Left };
