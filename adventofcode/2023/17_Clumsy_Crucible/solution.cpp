@@ -20,10 +20,17 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 using Coord = pair<int, int>;
 using Edge = pair<int, int>;
 
+enum class Dir { Up, Right, Down, Left };
 static constexpr array Delta{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
                              Coord{0, -1}};
 
 constexpr int Inf = 1'000'000'000;
+
+constexpr Dir dir_of(const Coord delta) {
+    const int i = static_cast<int>(ranges::find(Delta, delta) - cbegin(Delta));
+    assert(0 <= 1 && i < ssize(Delta));
+    return static_cast<Dir>(i);
+}
 
 template <typename T>
 ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
@@ -43,14 +50,40 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
 }
 
 template <typename T>
+constexpr pair<T, T> operator-(const pair<T, T> a, const pair<T, T> b) {
+    return {a.first + b.first, a.second + b.second};
+}
+
+template <typename T>
 constexpr pair<T, T> scaled_by(const pair<T, T> ab, const T k) {
     return {k * ab.first, k * ab.second};
 }
 
-int min_heat_loss_dijkstra(const vector<vector<Edge>> &graph) {
+constexpr Coord coord_of(const int W, const int id) {
+    if (id == -1) return {-1, -1};
+    const int r = id / W;
+    const int c = id % W;
+    return {r, c};
+}
+
+constexpr Coord make_unit(Coord rc) {
+    if (rc.first) rc.first = 1;
+    if (rc.second) rc.second = 1;
+    return rc;
+}
+
+constexpr bool same_direction_twice(const Coord delta1, const Coord delta2) {
+    return make_unit(delta1) == make_unit(delta2);
+}
+
+int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
     const auto n = sz(graph);
+
     vector<int> D(n, Inf);
     D[0] = 0;
+
+    vector<int> P(n, -1);
+
     set<pair<int, int>> q;
     q.emplace(0, 0);
 
@@ -59,9 +92,15 @@ int min_heat_loss_dijkstra(const vector<vector<Edge>> &graph) {
         q.erase(q.begin());
 
         for (const auto &[to, len] : graph[v]) {
-            if (D[v] + len < D[to]) {
+            const auto da = coord_of(W, v) - coord_of(W, P[v]);
+            const auto db = coord_of(W, to) - coord_of(W, v);
+            cerr << "da:" << da << " db:" << db
+                 << " sdt:" << same_direction_twice(da, db) << endl;
+
+            if (D[v] + len < D[to] && !same_direction_twice(da, db)) {
                 q.erase({D[to], to});
                 D[to] = D[v] + len;
+                P[to] = v;
                 q.emplace(D[to], to);
             }
         }
@@ -123,6 +162,6 @@ int main() {
         }
     }
 
-    cout << min_heat_loss_dijkstra(graph) << '\n';
+    cout << min_heat_loss_dijkstra(W, graph) << '\n';
     return 0;
 }
