@@ -31,17 +31,10 @@ ostream &operator<<(ostream &os, const vector<string> &xss) {
 using Coord = pair<int, int>;
 using Edge = pair<int, int>;
 
-enum class Dir { Up, Right, Down, Left };
 static constexpr array Delta{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
                              Coord{0, -1}};
 
 constexpr int Inf = 1'000'000'000;
-
-constexpr Dir dir_of(const Coord delta) {
-    const int i = static_cast<int>(ranges::find(Delta, delta) - cbegin(Delta));
-    assert(0 <= 1 && i < ssize(Delta));
-    return static_cast<Dir>(i);
-}
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
