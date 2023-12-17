@@ -17,6 +17,11 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+ostream &operator<<(ostream &os, const vector<string> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
 using Coord = pair<int, int>;
 using Edge = pair<int, int>;
 
@@ -51,7 +56,7 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
 
 template <typename T>
 constexpr pair<T, T> operator-(const pair<T, T> a, const pair<T, T> b) {
-    return {a.first + b.first, a.second + b.second};
+    return {a.first - b.first, a.second - b.second};
 }
 
 template <typename T>
@@ -59,25 +64,30 @@ constexpr pair<T, T> scaled_by(const pair<T, T> ab, const T k) {
     return {k * ab.first, k * ab.second};
 }
 
-constexpr Coord coord_of(const int W, const int id) {
-    if (id == -1) return {-1, -1};
-    const int r = id / W;
-    const int c = id % W;
-    return {r, c};
+constexpr int signum(const int x) {
+    if (x < 0) return -1;
+    return x > 0 ? 1 : 0;
 }
 
 constexpr Coord make_unit(Coord rc) {
-    if (rc.first) rc.first = 1;
-    if (rc.second) rc.second = 1;
+    rc.first = signum(rc.first);
+    rc.second = signum(rc.second);
     return rc;
 }
 
-constexpr bool same_direction_twice(const Coord delta1, const Coord delta2) {
-    return make_unit(delta1) == make_unit(delta2);
+constexpr bool same_axis_twice(const Coord delta1, const Coord delta2) {
+    return make_unit(delta1) == make_unit(delta2) ||
+           make_unit(delta1) == make_unit(scaled_by(delta2, -1));
 }
 
 int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
     const auto n = sz(graph);
+    const auto coord_of = [W](const int id) -> Coord {
+        if (id == -1) return {-1, -1};
+        const int r = id / W;
+        const int c = id % W;
+        return {r, c};
+    };
 
     vector<int> D(n, Inf);
     D[0] = 0;
@@ -92,12 +102,13 @@ int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
         q.erase(q.begin());
 
         for (const auto &[to, len] : graph[v]) {
-            const auto da = coord_of(W, v) - coord_of(W, P[v]);
-            const auto db = coord_of(W, to) - coord_of(W, v);
-            cerr << "da:" << da << " db:" << db
-                 << " sdt:" << same_direction_twice(da, db) << endl;
+            const auto da = coord_of(v) - coord_of(P[v]);
+            const auto db = coord_of(to) - coord_of(v);
+            // cerr << "P[v]:" << coord_of(P[v]) << " v:" << coord_of(v)
+            //      << " to:" << coord_of(to) << " da:" << da << " db:" << db
+            //      << " sat:" << same_axis_twice(da, db) << endl;
 
-            if (D[v] + len < D[to] && !same_direction_twice(da, db)) {
+            if (D[v] + len < D[to] && !same_axis_twice(da, db)) {
                 q.erase({D[to], to});
                 D[to] = D[v] + len;
                 P[to] = v;
@@ -105,6 +116,20 @@ int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
             }
         }
     }
+
+    vector<int> path{n - 1};
+    while (path.back() != 0) path.push_back(P[path.back()]);
+    path.pop_back();
+    ranges::reverse(path);
+    path.pop_back();
+    const int H = n / W;
+
+    vector<string> grid(H, string(W, '.'));
+    for (int i = 0; i < sz(path); ++i) {
+        const auto [r, c] = coord_of(path[i]);
+        grid[r][c] = static_cast<char>('0' + (i % 10));
+    }
+    cerr << grid << endl;
 
     return D.back();
 }
