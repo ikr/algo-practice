@@ -28,6 +28,17 @@ ostream &operator<<(ostream &os, const vector<string> &xss) {
     return os;
 }
 
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 using Coord = pair<int, int>;
 using Edge = pair<int, int>;
 
@@ -90,6 +101,8 @@ int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
     set<pair<int, int>> q;
     q.emplace(0, 0);
 
+    map<Coord, vector<Coord>> considered;
+
     while (!empty(q)) {
         int v = q.begin()->second;
         q.erase(q.begin());
@@ -102,6 +115,8 @@ int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
             //      << " sat:" << same_axis_twice(da, db) << endl;
             if (same_axis_twice(da, db)) continue;
 
+            considered[coord_of(v)].push_back(coord_of(to));
+
             if (D[v] + len < D[to]) {
                 q.erase({D[to], to});
                 D[to] = D[v] + len;
@@ -110,6 +125,7 @@ int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
             }
         }
     }
+    // cerr << "D: " << D << endl;
 
     vector<int> path{n - 1};
     while (path.back() != 0) path.push_back(P[path.back()]);
@@ -124,6 +140,8 @@ int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
         grid[r][c] = static_cast<char>('0' + (i % 10));
     }
     cerr << grid << endl;
+
+    cerr << considered[Coord{1, 3}] << endl;
 
     return D.back();
 }
@@ -181,7 +199,7 @@ int main() {
         }
     }
 
-    cerr << graph << endl;
+    // cerr << graph << endl;
 
     cout << min_heat_loss_dijkstra(W, graph) << '\n';
     return 0;
