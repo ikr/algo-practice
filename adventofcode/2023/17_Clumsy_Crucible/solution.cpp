@@ -18,9 +18,12 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 }
 
 using Coord = pair<int, int>;
+using Edge = pair<int, int>;
 
 static constexpr array Delta{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
                              Coord{0, -1}};
+
+constexpr int Inf = 1'000'000'000;
 
 template <typename T>
 ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
@@ -42,6 +45,29 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
 template <typename T>
 constexpr pair<T, T> scaled_by(const pair<T, T> ab, const T k) {
     return {k * ab.first, k * ab.second};
+}
+
+int min_heat_loss_dijkstra(const vector<vector<Edge>> &graph) {
+    const auto n = sz(graph);
+    vector<int> D(n, Inf);
+    D[0] = 0;
+    set<pair<int, int>> q;
+    q.emplace(0, 0);
+
+    while (!empty(q)) {
+        int v = q.begin()->second;
+        q.erase(q.begin());
+
+        for (const auto &[to, len] : graph[v]) {
+            if (D[v] + len < D[to]) {
+                q.erase({D[to], to});
+                D[to] = D[v] + len;
+                q.emplace(D[to], to);
+            }
+        }
+    }
+
+    return D.back();
 }
 
 int main() {
@@ -82,6 +108,21 @@ int main() {
         return result;
     };
 
-    cerr << adjacent_coord_losses({0, 0}) << endl;
+    const auto id_of = [&](const Coord rc) -> int {
+        const auto [r, c] = rc;
+        return r * W + c;
+    };
+
+    vector<vector<Edge>> graph(H * W);
+    for (int r = 0; r < H; ++r) {
+        for (int c = 0; c < W; ++c) {
+            const auto rc = Coord{r, c};
+            for (const auto &[rc_, heat_loss] : adjacent_coord_losses(rc)) {
+                graph[id_of(rc)].emplace_back(id_of(rc_), heat_loss);
+            }
+        }
+    }
+
+    cout << min_heat_loss_dijkstra(graph) << '\n';
     return 0;
 }
