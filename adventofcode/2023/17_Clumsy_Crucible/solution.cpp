@@ -184,8 +184,13 @@ int main() {
             const auto dir = dir_of(delta);
             if (dir0 == dir || dir0 == opposite(dir)) continue;
             int current_heat_loss{};
-
             for (int steps = 1; steps <= 3; ++steps) {
+                const auto shift = scaled_by(delta, steps);
+                if (!in_bounds(rc0 + shift)) break;
+                current_heat_loss += heat_loss_at(rc0 + shift);
+            }
+
+            for (int steps = 4; steps <= 10; ++steps) {
                 const auto shift = scaled_by(delta, steps);
                 if (!in_bounds(rc0 + shift)) break;
                 current_heat_loss += heat_loss_at(rc0 + shift);
