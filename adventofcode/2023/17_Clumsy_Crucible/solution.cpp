@@ -119,6 +119,43 @@ constexpr pair<T, T> scaled_by(const pair<T, T> ab, const T k) {
     return {k * ab.first, k * ab.second};
 }
 
+int min_heat_loss_dijkstra(const Coord dim,
+                           const map<Vert, vector<Edge>> &graph) {
+    const auto [H, W] = dim;
+    map<Vert, int> D;
+    for (int r = 0; r < H; ++r) {
+        for (int c = 0; c < W; ++c) {
+            for (const auto dir : {Dir::Up, Dir::Right, Dir::Down, Dir::Left}) {
+                const auto u = Vert{{r, c}, dir};
+                D[u] = Inf;
+            }
+        }
+    }
+
+    D[Vert{{0, 0}, Dir::Right}] = 0;
+    D[Vert{{0, 0}, Dir::Down}] = 0;
+
+    set<pair<int, Vert>> q;
+    q.emplace(0, Vert{{0, 0}, Dir::Right});
+    q.emplace(0, Vert{{0, 0}, Dir::Down});
+
+    while (!empty(q)) {
+        const auto v = cbegin(q)->second;
+        q.erase(cbegin(q));
+
+        for (const auto &[to, len] : graph.at(v)) {
+            if (D.at(v) + len < D.at(to)) {
+                q.erase({D.at(to), to});
+                D[to] = D.at(v) + len;
+                q.emplace(D.at(to), to);
+            }
+        }
+    }
+
+    return min(D.at(Vert{{H - 1, W - 1}, Dir::Down}),
+               D.at(Vert{{H - 1, W - 1}, Dir::Right}));
+}
+
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) {
@@ -169,5 +206,6 @@ int main() {
         }
     }
 
+    cout << min_heat_loss_dijkstra({H, W}, graph) << '\n';
     return 0;
 }
