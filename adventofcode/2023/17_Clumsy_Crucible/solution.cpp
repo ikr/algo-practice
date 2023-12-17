@@ -17,6 +17,12 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
 ostream &operator<<(ostream &os, const vector<string> &xss) {
     for (const auto &xs : xss) os << xs << '\n';
     return os;
@@ -35,12 +41,6 @@ constexpr Dir dir_of(const Coord delta) {
     const int i = static_cast<int>(ranges::find(Delta, delta) - cbegin(Delta));
     assert(0 <= 1 && i < ssize(Delta));
     return static_cast<Dir>(i);
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
 }
 
 template <typename T> constexpr int inof(const T x) {
@@ -107,8 +107,9 @@ int min_heat_loss_dijkstra(const int W, const vector<vector<Edge>> &graph) {
             // cerr << "P[v]:" << coord_of(P[v]) << " v:" << coord_of(v)
             //      << " to:" << coord_of(to) << " da:" << da << " db:" << db
             //      << " sat:" << same_axis_twice(da, db) << endl;
+            if (same_axis_twice(da, db)) continue;
 
-            if (D[v] + len < D[to] && !same_axis_twice(da, db)) {
+            if (D[v] + len < D[to]) {
                 q.erase({D[to], to});
                 D[to] = D[v] + len;
                 P[to] = v;
@@ -186,6 +187,8 @@ int main() {
             }
         }
     }
+
+    cerr << graph << endl;
 
     cout << min_heat_loss_dijkstra(W, graph) << '\n';
     return 0;
