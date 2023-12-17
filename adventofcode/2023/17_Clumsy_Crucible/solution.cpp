@@ -1,71 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const vector<string> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
 using Coord = pair<int, int>;
 enum class Dir { Up, Right, Down, Left };
 using Vert = pair<Coord, Dir>;
 using Edge = pair<Vert, int>;
-
-ostream &operator<<(ostream &os, const Dir &d) {
-    const auto a = [&]() -> string {
-        switch (d) {
-        case Dir::Up:
-            return "U";
-        case Dir::Right:
-            return "R";
-        case Dir::Down:
-            return "D";
-        default:
-            assert(d == Dir::Left);
-            return "L";
-        }
-    }();
-    cout << a;
-    return os;
-}
-
-ostream &operator<<(ostream &os, const Vert &u) {
-    os << '(' << u.first << ' ' << u.second << ')';
-    return os;
-}
 
 static constexpr array Delta{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
                              Coord{0, -1}};
@@ -92,12 +31,6 @@ constexpr Dir opposite(const Dir dir) {
     }
 }
 
-constexpr Coord delta_of(const Dir dir) {
-    const int i = static_cast<int>(dir);
-    assert(0 <= i && i < ssize(Delta));
-    return Delta[i];
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -107,11 +40,6 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
-}
-
-template <typename T>
-constexpr pair<T, T> operator-(const pair<T, T> a, const pair<T, T> b) {
-    return {a.first - b.first, a.second - b.second};
 }
 
 template <typename T>
