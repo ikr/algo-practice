@@ -173,7 +173,21 @@ int main() {
         const auto [dir, distance] = decode_step(token);
         path.push_back(path.back() + scaled_by(delta_of(dir), distance));
     }
-
+    path.pop_back();
+    ranges::reverse(path);
     cerr << path << endl;
+
+    const auto p_at = [&](const int i) -> Coord {
+        if (i == sz(path)) return path[0];
+        if (i == sz(path) + 1) return path[1];
+        return path[i];
+    };
+
+    ll result{};
+    for (int i = 1; i <= sz(path); ++i) {
+        result += 1LL * p_at(i).first *
+                  (0LL + p_at(i + 1).second - p_at(i - 1).second);
+    }
+    cout << (result / 2LL) << '\n';
     return 0;
 }
