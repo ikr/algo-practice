@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
     if (!o) {
         os << "nullopt";
@@ -136,6 +138,11 @@ ostream &operator<<(ostream &os, const Dir &d) {
     return os;
 }
 
+template <typename T>
+constexpr pair<T, T> scaled_by(const pair<T, T> ab, const T k) {
+    return {k * ab.first, k * ab.second};
+}
+
 pair<Dir, int> decode_step(const string &src) {
     const auto distance = stoi(src.substr(0, 5), nullptr, 16);
     const auto dir = [&]() -> Dir {
@@ -156,11 +163,17 @@ pair<Dir, int> decode_step(const string &src) {
 }
 
 int main() {
+    vector<Coord> path{{0, 0}};
+
     for (string line; getline(cin, line);) {
         auto token = line.substr(sz(line) - 7);
         token.pop_back();
         cerr << token << ' ' << decode_step(token) << endl;
+
+        const auto [dir, distance] = decode_step(token);
+        path.push_back(path.back() + scaled_by(delta_of(dir), distance));
     }
 
+    cerr << path << endl;
     return 0;
 }
