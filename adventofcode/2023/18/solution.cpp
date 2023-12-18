@@ -3,15 +3,6 @@ using namespace std;
 
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
-    if (!o) {
-        os << "nullopt";
-    } else {
-        os << *o;
-    }
-    return os;
-}
-
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     os << '(' << x.first << ' ' << x.second << ')';
@@ -28,45 +19,13 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-ostream &operator<<(ostream &os, const vector<string> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-using Coord = pair<int, int>;
+using Coord = pair<ll, ll>;
 
 enum class Dir { Up, Right, Down, Left };
 static constexpr array Delta{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
@@ -87,37 +46,6 @@ constexpr Coord delta_of(const Dir dir) {
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
-}
-
-static constexpr int Limit = 100'000;
-
-optional<int> limited_flood_fill_size(const vector<Coord> &path,
-                                      const Coord u0) {
-    set<Coord> visited(cbegin(path), cend(path));
-    queue<Coord> q;
-    q.push(u0);
-    while (!empty(q)) {
-        const auto u = q.front();
-        q.pop();
-
-        for (const auto &delta : Delta) {
-            const auto v = u + delta;
-            if (visited.contains(v)) continue;
-            visited.insert(v);
-            if (sz(visited) > Limit) return nullopt;
-            q.push(v);
-        }
-    }
-    return sz(visited);
-}
-
-int solve(const vector<Coord> &path) {
-    for (const auto &src :
-         {Coord{-1, -1}, Coord{1, 1}, Coord{-1, 1}, Coord{1, -1}}) {
-        const auto a = limited_flood_fill_size(path, src);
-        if (a) return *a;
-    }
-    return -1;
 }
 
 ostream &operator<<(ostream &os, const Dir &d) {
@@ -143,8 +71,8 @@ constexpr pair<T, T> scaled_by(const pair<T, T> ab, const T k) {
     return {k * ab.first, k * ab.second};
 }
 
-pair<Dir, int> decode_step(const string &src) {
-    const auto distance = stoi(src.substr(0, 5), nullptr, 16);
+pair<Dir, ll> decode_step(const string &src) {
+    const auto distance = stoll(src.substr(0, 5), nullptr, 16);
     const auto dir = [&]() -> Dir {
         switch (src.back()) {
         case '3':
@@ -173,21 +101,15 @@ int main() {
         const auto [dir, distance] = decode_step(token);
         path.push_back(path.back() + scaled_by(delta_of(dir), distance));
     }
-    path.pop_back();
+
     ranges::reverse(path);
     cerr << path << endl;
 
-    const auto p_at = [&](const int i) -> Coord {
-        if (i == sz(path)) return path[0];
-        if (i == sz(path) + 1) return path[1];
-        return path[i];
-    };
-
-    ll result{};
-    for (int i = 1; i <= sz(path); ++i) {
-        result += 1LL * p_at(i).first *
-                  (0LL + p_at(i + 1).second - p_at(i - 1).second);
+    ll total{};
+    for (int i = 0; i < sz(path) - 1; ++i) {
+        total += 1LL * path[i].first * path[i + 1].second -
+                 1LL * path[i].second * path[i + 1].first;
     }
-    cout << (result / 2LL) << '\n';
+    cout << (total / 2LL) << '\n';
     return 0;
 }
