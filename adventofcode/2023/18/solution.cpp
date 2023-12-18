@@ -58,12 +58,6 @@ ostream &operator<<(ostream &os, const vector<string> &xss) {
     return os;
 }
 
-vector<string> split(const string &delim_regex, const string &s) {
-    regex r(delim_regex);
-    return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
-                          sregex_token_iterator{});
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -104,7 +98,7 @@ optional<int> limited_flood_fill_size(const vector<Coord> &path,
         const auto u = q.front();
         q.pop();
 
-        for (const auto delta : Delta) {
+        for (const auto &delta : Delta) {
             const auto v = u + delta;
             if (visited.contains(v)) continue;
             visited.insert(v);
@@ -124,33 +118,49 @@ int solve(const vector<Coord> &path) {
     return -1;
 }
 
-int main() {
-    vector<Coord> path{{0, 0}};
-    Coord cur{0, 0};
-    for (string line; getline(cin, line);) {
-        const auto parts = split(" ", line);
-
-        const auto dir = [&]() -> Dir {
-            switch (parts[0][0]) {
-            case 'U':
-                return Dir::Up;
-            case 'R':
-                return Dir::Right;
-            case 'D':
-                return Dir::Down;
-            default:
-                assert(parts[0][0] == 'L');
-                return Dir::Left;
-            }
-        }();
-
-        const auto distance = stoi(parts[1]);
-        for (int i = 1; i <= distance; ++i) {
-            cur = cur + delta_of(dir);
-            if (cur != path[0]) path.push_back(cur);
+ostream &operator<<(ostream &os, const Dir &d) {
+    const auto a = [&]() -> string {
+        switch (d) {
+        case Dir::Up:
+            return "U";
+        case Dir::Right:
+            return "R";
+        case Dir::Down:
+            return "D";
+        default:
+            assert(d == Dir::Left);
+            return "L";
         }
+    }();
+    cout << a;
+    return os;
+}
+
+pair<Dir, int> decode_step(const string &src) {
+    const auto distance = stoi(src.substr(0, 5), nullptr, 16);
+    const auto dir = [&]() -> Dir {
+        switch (src.back()) {
+        case '3':
+            return Dir::Up;
+        case '0':
+            return Dir::Right;
+        case '1':
+            return Dir::Down;
+        case '2':
+            return Dir::Left;
+        default:
+            assert(false);
+        }
+    }();
+    return {dir, distance};
+}
+
+int main() {
+    for (string line; getline(cin, line);) {
+        auto token = line.substr(sz(line) - 7);
+        token.pop_back();
+        cerr << token << ' ' << decode_step(token) << endl;
     }
 
-    cout << solve(path) << '\n';
     return 0;
 }
