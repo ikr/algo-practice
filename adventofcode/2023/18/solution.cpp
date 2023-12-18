@@ -48,6 +48,11 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
+template <typename T>
+constexpr pair<T, T> operator-(const pair<T, T> a, const pair<T, T> b) {
+    return {a.first - b.first, a.second - b.second};
+}
+
 ostream &operator<<(ostream &os, const Dir &d) {
     const auto a = [&]() -> string {
         switch (d) {
@@ -101,6 +106,14 @@ int main() {
         const auto [dir, distance] = decode_step(token);
         path.push_back(path.back() + scaled_by(delta_of(dir), distance));
     }
+    assert(path[0] == path.back());
+
+    ll border{};
+    for (int i = 1; i < sz(path); ++i) {
+        const auto [dx, dy] = path[i] - path[i - 1];
+        border += abs(dx) + abs(dy);
+    }
+    cerr << "border:" << border << endl;
 
     ranges::reverse(path);
     cerr << path << endl;
@@ -110,6 +123,6 @@ int main() {
         total += 1LL * path[i].first * path[i + 1].second -
                  1LL * path[i].second * path[i + 1].first;
     }
-    cout << (total / 2LL) << '\n';
+    cout << (total + border) / 2LL + 1 << '\n';
     return 0;
 }
