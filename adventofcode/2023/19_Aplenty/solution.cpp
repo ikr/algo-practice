@@ -55,12 +55,13 @@ enum class Cat { x, m, a, s };
 enum class Cmp { lt, gt };
 using Dest = string;
 
-struct Cond final {
+struct Pred final {
     Cat cat;
     Cmp cmp;
     int val;
-    Dest dest;
 };
+
+using Cond = pair<Pred, Dest>;
 
 using Rule = variant<Cond, Dest>;
 using Part = array<int, 4>;
@@ -102,9 +103,8 @@ ostream &operator<<(ostream &os, const Cmp &c) {
     return os;
 }
 
-ostream &operator<<(ostream &os, const Cond &c) {
-    os << '(' << c.cat << ' ' << c.cmp << ' ' << c.val << " ⇒ " << c.dest
-       << ')';
+ostream &operator<<(ostream &os, const Pred &p) {
+    os << '|' << p.cat << ' ' << p.cmp << ' ' << p.val << '|';
     return os;
 }
 
@@ -135,8 +135,9 @@ Cmp parse_cmp(const char c) {
 Cond parse_cond(const string &src) {
     const auto tokens =
         re_matches(R"(^([xmas])(<|>)([0-9]+):([a-z]+|[AR])$)", src);
-    return Cond{parse_cat(tokens[0][0]), parse_cmp(tokens[1][0]),
-                stoi(tokens[2]), tokens[3]};
+    return Cond{
+        Pred{parse_cat(tokens[0][0]), parse_cmp(tokens[1][0]), stoi(tokens[2])},
+        tokens[3]};
 }
 
 Rule parse_rule(const string &src) {
@@ -191,12 +192,13 @@ Dest new_dest(const vector<Rule> &rules, const Part &part) {
     for (const auto &r : rules) {
         const auto outcome =
             visit(dispatch{[&](const Cond &c) -> optional<Dest> {
-                               const auto part_val = part[inof(c.cat)];
-                               if (c.cmp == Cmp::lt && part_val < c.val) {
-                                   return c.dest;
+                               const auto [p, dest] = c;
+                               const auto part_val = part[inof(p.cat)];
+                               if (p.cmp == Cmp::lt && part_val < p.val) {
+                                   return dest;
                                }
-                               if (c.cmp == Cmp::gt && part_val > c.val) {
-                                   return c.dest;
+                               if (p.cmp == Cmp::gt && part_val > p.val) {
+                                   return dest;
                                }
                                return nullopt;
                            },
