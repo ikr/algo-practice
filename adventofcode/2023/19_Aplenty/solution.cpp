@@ -63,7 +63,7 @@ struct Pred final {
 
 using Cond = pair<Pred, Dest>;
 
-using Rule = variant<Cond, Dest>;
+using Ruleset = pair<vector<Cond>, Dest>;
 using Part = array<int, 4>;
 
 template <class... Ts> struct dispatch : Ts... {
@@ -164,26 +164,15 @@ Cond parse_cond(const string &src) {
         tokens[3]};
 }
 
-Rule parse_rule(const string &src) {
-    if (src.find(':') == string::npos) return src;
-    return parse_cond(src);
-}
-
-ostream &operator<<(ostream &os, const Rule &r) {
-    visit(dispatch{[&](const Cond &c) { os << c; },
-                   [&](const Dest &d) { os << "Dest:" << d; }},
-          r);
-    return os;
-}
-
-vector<Rule> parse_rules(const string &src) {
+Ruleset parse_ruleset(const string &src) {
     const auto tokens = split(",", src);
-    vector<Rule> result(sz(tokens));
-    ranges::transform(tokens, begin(result), parse_rule);
-    return result;
+    assert(sz(tokens) > 1);
+    vector<Cond> conds(sz(tokens) - 1);
+    transform(cbegin(tokens), prev(cend(tokens)), begin(conds), parse_cond);
+    return {conds, tokens.back()};
 }
 
-pair<Dest, vector<Rule>> parse_workflow(const string &src) {
+pair<Dest, Ruleset> parse_workflow(const string &src) {
     const auto it = src.find('{');
     assert(it != string::npos);
 
@@ -191,7 +180,7 @@ pair<Dest, vector<Rule>> parse_workflow(const string &src) {
     auto rules_src = src.substr(it + 1);
     rules_src.pop_back();
 
-    return {dest, parse_rules(rules_src)};
+    return {dest, parse_ruleset(rules_src)};
 }
 
 Part parse_part(string src) {
@@ -212,30 +201,18 @@ Part parse_part(string src) {
     return result;
 }
 
-Dest new_dest(const vector<Rule> &rules, const Part &part) {
-    for (const auto &r : rules) {
-        const auto outcome =
-            visit(dispatch{[&](const Cond &c) -> optional<Dest> {
-                               const auto [p, dest] = c;
-                               const auto part_val = part[inof(p.cat)];
-                               if (p.cmp == Cmp::lt && part_val < p.val) {
-                                   return dest;
-                               }
-                               if (p.cmp == Cmp::gt && part_val > p.val) {
-                                   return dest;
-                               }
-                               return nullopt;
-                           },
-                           [&](const Dest &d) -> optional<Dest> { return d; }},
-                  r);
-        if (outcome) return *outcome;
+Dest new_dest(const Ruleset &ruleset, const Part &part) {
+    for (const auto &c : ruleset.first) {
+        const auto [p, dest] = c;
+        const auto part_val = part[inof(p.cat)];
+        if (p.cmp == Cmp::lt && part_val < p.val) return dest;
+        if (p.cmp == Cmp::gt && part_val > p.val) return dest;
     }
-    assert(false && "new_dest");
-    return "";
+    return ruleset.second;
 }
 
 bool process_and_return_acceptance(const Part &part,
-                                   const map<Dest, vector<Rule>> &workflows) {
+                                   const map<Dest, Ruleset> &workflows) {
     Dest cur{"in"};
     while (cur != Accept && cur != Reject) {
         const auto &rules = workflows.at(cur);
@@ -245,7 +222,7 @@ bool process_and_return_acceptance(const Part &part,
 }
 
 int main() {
-    map<Dest, vector<Rule>> workflows;
+    map<Dest, Ruleset> workflows;
 
     for (string line; getline(cin, line);) {
         if (empty(line)) break;
