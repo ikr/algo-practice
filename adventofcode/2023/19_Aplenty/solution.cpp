@@ -7,38 +7,6 @@ template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
 }
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const array<T, 4> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -78,10 +46,6 @@ using Cond = pair<Pred, Dest>;
 using Ruleset = pair<vector<Cond>, Dest>;
 using Part = array<int, 4>;
 
-template <class... Ts> struct dispatch : Ts... {
-    using Ts::operator()...;
-};
-
 static const Dest Accept{"A"};
 static const Dest Reject{"R"};
 
@@ -101,47 +65,6 @@ constexpr Cmp opposite(const Cmp c) {
 
 constexpr Pred negate_pred(const Pred &p) {
     return Pred{p.cat, opposite(p.cmp), p.val};
-}
-
-ostream &operator<<(ostream &os, const Cat &c) {
-    switch (c) {
-    case Cat::x:
-        os << 'x';
-        break;
-    case Cat::m:
-        os << 'm';
-        break;
-    case Cat::a:
-        os << 'a';
-        break;
-    case Cat::s:
-        os << 's';
-        break;
-    }
-    return os;
-}
-
-ostream &operator<<(ostream &os, const Cmp &c) {
-    switch (c) {
-    case Cmp::lt:
-        os << '<';
-        break;
-    case Cmp::gt:
-        os << '>';
-        break;
-    case Cmp::lte:
-        os << "<=";
-        break;
-    case Cmp::gte:
-        os << ">=";
-        break;
-    }
-    return os;
-}
-
-ostream &operator<<(ostream &os, const Pred &p) {
-    os << '|' << p.cat << ' ' << p.cmp << ' ' << p.val << '|';
-    return os;
 }
 
 Cat parse_cat(const char c) {
@@ -299,7 +222,6 @@ int main() {
     for (string line; getline(cin, line);) {
         if (empty(line)) break;
         const auto [dest, rules] = parse_workflow(line);
-        cerr << "dest:" << dest << " rules:" << rules << endl;
         workflows.emplace(dest, rules);
     }
 
@@ -307,7 +229,6 @@ int main() {
 
     for (string line; getline(cin, line);) {
         const auto part = parse_part(line);
-        cerr << "part:" << part << endl;
         parts.push_back(part);
     }
 
@@ -318,15 +239,6 @@ int main() {
         }
     }
     cout << result << '\n';
-
-    for (const auto &[dest, ruleset] : workflows) {
-        cerr << "dest:" << dest << " ruleset:" << ruleset << endl;
-        for (int irule = 0; irule <= sz(ruleset.first); ++irule) {
-            cerr << "predicate " << irule << ": "
-                 << rule_predicate(ruleset, irule)
-                 << " dest:" << rule_dest(ruleset, irule) << endl;
-        }
-    }
 
     vector<vector<Pred>> acceptance_predicates;
 
@@ -345,8 +257,6 @@ int main() {
         }
     };
     recur(recur, {}, "in");
-
-    cerr << "acceptance_predicates:\n" << acceptance_predicates << endl;
 
     ll result2{};
     for (const auto &row : acceptance_predicates) {
