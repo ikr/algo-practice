@@ -27,6 +27,12 @@ template <typename T> ostream &operator<<(ostream &os, const array<T, 4> &xs) {
     return os;
 }
 
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -239,6 +245,11 @@ Dest rule_dest(const Ruleset &ruleset, const int irule) {
                                       : ruleset.first[irule].second;
 }
 
+template <typename T> vector<T> unite(vector<T> a, const vector<T> &b) {
+    a.insert(end(a), cbegin(b), cend(b));
+    return a;
+}
+
 int main() {
     map<Dest, Ruleset> workflows;
 
@@ -273,5 +284,25 @@ int main() {
                  << " dest:" << rule_dest(ruleset, irule) << endl;
         }
     }
+
+    vector<vector<Pred>> acceptance_predicates;
+
+    const auto recur = [&](const auto self, const vector<Pred> &cur,
+                           const Dest &u) -> void {
+        if (u == Accept) {
+            acceptance_predicates.push_back(cur);
+            return;
+        }
+        if (u == Reject) return;
+        assert(workflows.count(u));
+
+        for (int irule = 0; irule <= sz(workflows.at(u).first); ++irule) {
+            self(self, unite(cur, rule_predicate(workflows.at(u), irule)),
+                 rule_dest(workflows.at(u), irule));
+        }
+    };
+    recur(recur, {}, "in");
+
+    cerr << "acceptance_predicates:\n" << acceptance_predicates << endl;
     return 0;
 }
