@@ -52,7 +52,7 @@ vector<string> re_matches(const string &pattern_str, const string &input) {
 }
 
 enum class Cat { x, m, a, s };
-enum class Cmp { lt, gt };
+enum class Cmp { lt, gt, lte, gte };
 using Dest = string;
 
 struct Pred final {
@@ -72,6 +72,24 @@ template <class... Ts> struct dispatch : Ts... {
 
 static const Dest Accept{"A"};
 static const Dest Reject{"R"};
+
+constexpr Cmp opposite(const Cmp c) {
+    switch (c) {
+    case Cmp::lt:
+        return Cmp::gte;
+    case Cmp::gt:
+        return Cmp::lte;
+    case Cmp::lte:
+        return Cmp::gt;
+    default:
+        assert(c == Cmp::gte);
+        return Cmp::lt;
+    }
+}
+
+constexpr Pred negate(const Pred &p) {
+    return Pred{p.cat, opposite(p.cmp), p.val};
+}
 
 ostream &operator<<(ostream &os, const Cat &c) {
     switch (c) {
@@ -98,6 +116,12 @@ ostream &operator<<(ostream &os, const Cmp &c) {
         break;
     case Cmp::gt:
         os << '>';
+        break;
+    case Cmp::lte:
+        os << "<=";
+        break;
+    case Cmp::gte:
+        os << ">=";
         break;
     }
     return os;
