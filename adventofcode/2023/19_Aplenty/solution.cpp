@@ -233,6 +233,12 @@ vector<Pred> rule_predicate(const Ruleset &ruleset, const int irule) {
     return result;
 }
 
+Dest rule_dest(const Ruleset &ruleset, const int irule) {
+    assert(0 <= irule && irule <= sz(ruleset.first));
+    return irule == sz(ruleset.first) ? ruleset.second
+                                      : ruleset.first[irule].second;
+}
+
 int main() {
     map<Dest, Ruleset> workflows;
 
@@ -263,7 +269,8 @@ int main() {
         cerr << "dest:" << dest << " ruleset:" << ruleset << endl;
         for (int irule = 0; irule <= sz(ruleset.first); ++irule) {
             cerr << "predicate " << irule << ": "
-                 << rule_predicate(ruleset, irule) << endl;
+                 << rule_predicate(ruleset, irule)
+                 << " dest:" << rule_dest(ruleset, irule) << endl;
         }
     }
     return 0;
