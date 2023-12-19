@@ -87,7 +87,7 @@ constexpr Cmp opposite(const Cmp c) {
     }
 }
 
-constexpr Pred negate(const Pred &p) {
+constexpr Pred negate_pred(const Pred &p) {
     return Pred{p.cat, opposite(p.cmp), p.val};
 }
 
@@ -221,6 +221,18 @@ bool process_and_return_acceptance(const Part &part,
     return cur == Accept;
 }
 
+vector<Pred> rule_predicate(const Ruleset &ruleset, const int irule) {
+    assert(0 <= irule && irule <= sz(ruleset.first));
+    if (irule == 0) return {ruleset.first[0].first};
+
+    vector<Pred> result(irule);
+    transform(cbegin(ruleset.first), cbegin(ruleset.first) + irule,
+              begin(result),
+              [](const auto &pd) { return negate_pred(pd.first); });
+    if (irule < sz(ruleset.first)) result.push_back(ruleset.first[irule].first);
+    return result;
+}
+
 int main() {
     map<Dest, Ruleset> workflows;
 
@@ -246,5 +258,13 @@ int main() {
         }
     }
     cout << result << '\n';
+
+    for (const auto &[dest, ruleset] : workflows) {
+        cerr << "dest:" << dest << " ruleset:" << ruleset << endl;
+        for (int irule = 0; irule <= sz(ruleset.first); ++irule) {
+            cerr << "predicate " << irule << ": "
+                 << rule_predicate(ruleset, irule) << endl;
+        }
+    }
     return 0;
 }
