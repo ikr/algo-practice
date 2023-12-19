@@ -17,6 +17,16 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const array<T, 4> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -53,13 +63,14 @@ struct Cond final {
 };
 
 using Rule = variant<Cond, Dest>;
+using Part = array<int, 4>;
 
 template <class... Ts> struct dispatch : Ts... {
     using Ts::operator()...;
 };
 
-static const Dest ImmediateAccept{"A"};
-static const Dest ImmediateReject{"R"};
+static const Dest Accept{"A"};
+static const Dest Reject{"R"};
 
 ostream &operator<<(ostream &os, const Cat &c) {
     switch (c) {
@@ -142,7 +153,6 @@ ostream &operator<<(ostream &os, const Rule &r) {
 
 vector<Rule> parse_rules(const string &src) {
     const auto tokens = split(",", src);
-    cerr << "tokens: " << tokens << endl;
     vector<Rule> result(sz(tokens));
     ranges::transform(tokens, begin(result), parse_rule);
     return result;
@@ -159,4 +169,79 @@ pair<Dest, vector<Rule>> parse_workflow(const string &src) {
     return {dest, parse_rules(rules_src)};
 }
 
-int main() { return 0; }
+Part parse_part(string src) {
+    assert(src[0] == '{' && src.back() == '}');
+    src.pop_back();
+    src.erase(cbegin(src));
+
+    const auto tokens = split(",", src);
+    assert(sz(tokens) == 4);
+    assert(tokens[0][0] == 'x');
+    assert(tokens[1][0] == 'm');
+    assert(tokens[2][0] == 'a');
+    assert(tokens[3][0] == 's');
+
+    Part result{};
+    ranges::transform(tokens, begin(result),
+                      [](const auto &x) { return stoi(x.substr(2)); });
+    return result;
+}
+
+Dest new_dest(const vector<Rule> &rules, const Part &part) {
+    for (const auto &r : rules) {
+        const auto outcome =
+            visit(dispatch{[&](const Cond &c) -> optional<Dest> {
+                               const auto part_val = part[inof(c.cat)];
+                               if (c.cmp == Cmp::lt && part_val < c.val) {
+                                   return c.dest;
+                               }
+                               if (c.cmp == Cmp::gt && part_val > c.val) {
+                                   return c.dest;
+                               }
+                               return nullopt;
+                           },
+                           [&](const Dest &d) -> optional<Dest> { return d; }},
+                  r);
+        if (outcome) return *outcome;
+    }
+    assert(false && "new_dest");
+    return "";
+}
+
+bool process_and_return_acceptance(const Part &part,
+                                   const map<Dest, vector<Rule>> &workflows) {
+    Dest cur{"in"};
+    while (cur != Accept && cur != Reject) {
+        const auto &rules = workflows.at(cur);
+        cur = new_dest(rules, part);
+    }
+    return cur == Accept;
+}
+
+int main() {
+    map<Dest, vector<Rule>> workflows;
+
+    for (string line; getline(cin, line);) {
+        if (empty(line)) break;
+        const auto [dest, rules] = parse_workflow(line);
+        cerr << "dest:" << dest << " rules:" << rules << endl;
+        workflows.emplace(dest, rules);
+    }
+
+    vector<Part> parts;
+
+    for (string line; getline(cin, line);) {
+        const auto part = parse_part(line);
+        cerr << "part:" << part << endl;
+        parts.push_back(part);
+    }
+
+    int result{};
+    for (const auto &part : parts) {
+        if (process_and_return_acceptance(part, workflows)) {
+            result += accumulate(cbegin(part), cend(part), 0);
+        }
+    }
+    cout << result << '\n';
+    return 0;
+}
