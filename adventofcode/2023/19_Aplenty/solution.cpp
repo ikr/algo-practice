@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
+
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     os << '(' << x.first << ' ' << x.second << ')';
@@ -250,6 +256,43 @@ template <typename T> vector<T> unite(vector<T> a, const vector<T> &b) {
     return a;
 }
 
+bool is_true(const Pred &p, const int val) {
+    switch (p.cmp) {
+    case Cmp::lt:
+        return val < p.val;
+    case Cmp::gt:
+        return val > p.val;
+    case Cmp::lte:
+        return val <= p.val;
+    default:
+        assert(p.cmp == Cmp::gte);
+        return val >= p.val;
+    }
+}
+
+void conform_to_predicate(const Pred &p, set<int> &xs) {
+    for (auto it = cbegin(xs); it != cend(xs);) {
+        if (is_true(p, *it)) {
+            ++it;
+        } else {
+            it = xs.erase(it);
+        }
+    }
+}
+
+set<int> complete_set() {
+    vector<int> xs(4000);
+    iota(begin(xs), end(xs), 1);
+    return set<int>(cbegin(xs), cend(xs));
+}
+
+array<set<int>, 4> conform_to_predicates(const vector<Pred> &preds) {
+    array<set<int>, 4> result;
+    result.fill(complete_set());
+    for (const auto &p : preds) conform_to_predicate(p, result[inof(p.cat)]);
+    return result;
+}
+
 int main() {
     map<Dest, Ruleset> workflows;
 
@@ -304,5 +347,14 @@ int main() {
     recur(recur, {}, "in");
 
     cerr << "acceptance_predicates:\n" << acceptance_predicates << endl;
+
+    ll result2{};
+    for (const auto &row : acceptance_predicates) {
+        const auto satisfying = conform_to_predicates(row);
+        result2 += accumulate(
+            cbegin(satisfying), cend(satisfying), 1LL,
+            [](const ll acc, const auto &xs) { return acc * llof(sz(xs)); });
+    }
+    cout << result2 << '\n';
     return 0;
 }
