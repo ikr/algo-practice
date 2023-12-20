@@ -142,46 +142,18 @@ int main() {
         return result;
     };
 
-    vector<ll> xs;
     ll result{1};
-    {
-        const auto dr =
-            button_press_nums_causing_signal(Signal{"dr", "kj", Pulse::Hi});
-        cerr << dr << endl;
-        xs.resize(sz(dr));
-        adjacent_difference(cbegin(dr), cend(dr), begin(xs));
-        cerr << xs << endl << endl;
-        result = lcm(result, xs.back());
-    }
 
-    {
-        const auto vn =
-            button_press_nums_causing_signal(Signal{"vn", "kj", Pulse::Hi});
-        cerr << vn << endl;
-        xs.resize(sz(vn));
-        adjacent_difference(cbegin(vn), cend(vn), begin(xs));
-        cerr << xs << endl << endl;
-        result = lcm(result, xs.back());
-    }
+    for (const auto &src : {"dr", "vn", "zx", "ln"}) {
+        const auto presses =
+            button_press_nums_causing_signal(Signal{src, "kj", Pulse::Hi});
+        cerr << presses << endl;
 
-    {
-        const auto zx =
-            button_press_nums_causing_signal(Signal{"zx", "kj", Pulse::Hi});
-        cerr << zx << endl;
-        xs.resize(sz(zx));
-        adjacent_difference(cbegin(zx), cend(zx), begin(xs));
-        cerr << xs << endl << endl;
-        result = lcm(result, xs.back());
-    }
+        vector<int> diffs(sz(presses));
+        adjacent_difference(cbegin(presses), cend(presses), begin(diffs));
+        cerr << diffs << endl << endl;
 
-    {
-        const auto ln =
-            button_press_nums_causing_signal(Signal{"ln", "kj", Pulse::Hi});
-        cerr << ln << endl;
-        xs.resize(sz(ln));
-        adjacent_difference(cbegin(ln), cend(ln), begin(xs));
-        cerr << xs << endl << endl;
-        result = lcm(result, xs.back());
+        result = lcm(result, diffs.back());
     }
 
     cout << result << '\n';
