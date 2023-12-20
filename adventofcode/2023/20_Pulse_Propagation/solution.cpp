@@ -2,6 +2,10 @@
 using namespace std;
 
 using ll = long long;
+enum class MType { Plain, FlipFlop, Conjunction };
+enum class Pulse { Lo, Hi };
+enum class FfState { Off, On };
+using Signal = tuple<string, string, Pulse>;
 
 static constexpr ll PressesLimit = 50'000;
 
@@ -15,19 +19,14 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
-    if (!o) {
-        os << "nullopt";
-    } else {
-        os << *o;
-    }
-    return os;
+vector<string> split(const string &delim_regex, const string &s) {
+    regex r(delim_regex);
+    return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
+                          sregex_token_iterator{});
 }
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
+constexpr FfState opposite(const FfState ffs) {
+    return ffs == FfState::Off ? FfState::On : FfState::Off;
 }
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
@@ -38,82 +37,6 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     }
     os << ']';
     return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
-    return os;
-}
-
-template <typename K, typename V>
-ostream &operator<<(ostream &os, const map<K, V> &m) {
-    os << '{';
-    for (auto i = m.cbegin(); i != m.cend(); ++i) {
-        if (i != m.cbegin()) os << ' ';
-        os << '(' << i->first << ' ' << i->second << ')';
-    }
-    os << '}';
-    return os;
-}
-
-vector<string> split(const string &delim_regex, const string &s) {
-    regex r(delim_regex);
-    return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
-                          sregex_token_iterator{});
-}
-
-enum class MType { Plain, FlipFlop, Conjunction };
-enum class Pulse { Lo, Hi };
-enum class FfState { Off, On };
-using Signal = tuple<string, string, Pulse>;
-
-ostream &operator<<(ostream &os, const MType mt) {
-    switch (mt) {
-    case MType::FlipFlop:
-        os << '%';
-        break;
-    case MType::Conjunction:
-        os << '&';
-        break;
-    default:
-        os << '-';
-    }
-    return os;
-}
-
-ostream &operator<<(ostream &os, const Pulse p) {
-    if (p == Pulse::Hi) {
-        os << "HI";
-    } else {
-        assert(p == Pulse::Lo);
-        os << "LO";
-    }
-    return os;
-}
-
-ostream &operator<<(ostream &os, const FfState ffs) {
-    if (ffs == FfState::On) {
-        os << "ON";
-    } else {
-        assert(ffs == FfState::Off);
-        os << "OFF";
-    }
-    return os;
-}
-
-constexpr FfState opposite(const FfState ffs) {
-    return ffs == FfState::Off ? FfState::On : FfState::Off;
 }
 
 int main() {
@@ -219,8 +142,8 @@ int main() {
         return result;
     };
 
-    vector<int> xs;
-
+    vector<ll> xs;
+    ll result{1};
     {
         const auto dr =
             button_press_nums_causing_signal(Signal{"dr", "kj", Pulse::Hi});
@@ -228,6 +151,7 @@ int main() {
         xs.resize(sz(dr));
         adjacent_difference(cbegin(dr), cend(dr), begin(xs));
         cerr << xs << endl << endl;
+        result = lcm(result, xs.back());
     }
 
     {
@@ -237,6 +161,7 @@ int main() {
         xs.resize(sz(vn));
         adjacent_difference(cbegin(vn), cend(vn), begin(xs));
         cerr << xs << endl << endl;
+        result = lcm(result, xs.back());
     }
 
     {
@@ -246,6 +171,7 @@ int main() {
         xs.resize(sz(zx));
         adjacent_difference(cbegin(zx), cend(zx), begin(xs));
         cerr << xs << endl << endl;
+        result = lcm(result, xs.back());
     }
 
     {
@@ -255,10 +181,9 @@ int main() {
         xs.resize(sz(ln));
         adjacent_difference(cbegin(ln), cend(ln), begin(xs));
         cerr << xs << endl << endl;
+        result = lcm(result, xs.back());
     }
 
-    // In : lcm(3863, 3943, 3989, 4003)
-    // Out: 243221023462303
-
+    cout << result << '\n';
     return 0;
 }
