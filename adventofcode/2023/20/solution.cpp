@@ -3,6 +3,10 @@ using namespace std;
 
 using ll = long long;
 
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -69,6 +73,8 @@ vector<string> split(const string &delim_regex, const string &s) {
 
 enum class MType { Plain, FlipFlop, Conjunction };
 enum class Pulse { Lo, Hi };
+enum class FfState { Off, On };
+using Signal = tuple<string, string, Pulse>;
 
 ostream &operator<<(ostream &os, const MType mt) {
     switch (mt) {
@@ -94,12 +100,27 @@ ostream &operator<<(ostream &os, const Pulse p) {
     return os;
 }
 
+ostream &operator<<(ostream &os, const FfState ffs) {
+    if (ffs == FfState::On) {
+        os << "ON";
+    } else {
+        assert(ffs == FfState::Off);
+        os << "OFF";
+    }
+    return os;
+}
+
+constexpr FfState opposite(const FfState ffs) {
+    return ffs == FfState::Off ? FfState::On : FfState::Off;
+}
+
 int main() {
     map<string, MType> module_types;
     map<string, vector<string>> g;
     map<string, vector<string>> g_;
 
     map<string, map<string, Pulse>> conj_ram;
+    map<string, FfState> ff_states;
 
     for (string line; getline(cin, line);) {
         const auto parts = split(" -> ", line);
@@ -127,14 +148,81 @@ int main() {
     }
 
     for (const auto &[u, mtype] : module_types) {
-        if (mtype != MType::Conjunction) continue;
-        for (const auto &v : g_.at(u)) {
-            conj_ram[u][v] = Pulse::Lo;
+        if (mtype == MType::Conjunction) {
+            for (const auto &v : g_.at(u)) {
+                conj_ram[u][v] = Pulse::Lo;
+            }
+        } else if (mtype == MType::FlipFlop) {
+            ff_states[u] = FfState::Off;
         }
     }
 
     cerr << "types: " << module_types << endl;
     cerr << "g: " << g << endl << "g_:" << g_ << endl;
     cerr << "initial conj_ram: " << conj_ram << endl;
+    cerr << "initial ff_states: " << ff_states << endl;
+
+    int num_hi{};
+    int num_lo{};
+    queue<Signal> q;
+
+    const auto handle_flip_flop_signal = [&](const string &id,
+                                             const Pulse p) -> void {
+        if (p == Pulse::Hi) return;
+
+        const auto current_state = ff_states.at(id);
+        const auto pulse_to_send =
+            current_state == FfState::Off ? Pulse::Hi : Pulse::Lo;
+
+        for (const auto &v : g.at(id)) q.emplace(id, v, pulse_to_send);
+        ff_states[id] = opposite(current_state);
+    };
+
+    const auto handle_conjunction_signal =
+        [&](const string &from_id, const string &id, const Pulse p) -> void {
+        conj_ram[id][from_id] = p;
+
+        const auto pulse_to_send =
+            ranges::all_of(
+                conj_ram[id],
+                [](const auto &kv) { return kv.second == Pulse::Hi; })
+                ? Pulse::Lo
+                : Pulse::Hi;
+
+        for (const auto &v : g.at(id)) q.emplace(id, v, pulse_to_send);
+    };
+
+    const auto handle_signal = [&](const Signal &s) -> void {
+        const auto [u, v, p] = s;
+        if (p == Pulse::Lo) {
+            ++num_lo;
+        } else {
+            ++num_hi;
+        }
+
+        const auto mtype = module_types[v];
+        if (mtype == MType::FlipFlop) {
+            handle_flip_flop_signal(v, p);
+        } else if (mtype == MType::Conjunction) {
+            handle_conjunction_signal(u, v, p);
+        }
+    };
+
+    const auto push_button = [&]() -> void {
+        ++num_lo;
+        for (const auto &id : g["broadcaster"]) q.emplace("", id, Pulse::Lo);
+    };
+
+    for (int k = 1; k <= 1000; ++k) {
+        push_button();
+        while (!empty(q)) {
+            const auto s = q.front();
+            q.pop();
+            handle_signal(s);
+        }
+    }
+
+    cerr << "num_lo:" << num_lo << " num_hi:" << num_hi << endl;
+    cout << llof(num_hi) * llof(num_lo) << '\n';
     return 0;
 }
