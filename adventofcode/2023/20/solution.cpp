@@ -162,8 +162,6 @@ int main() {
     cerr << "initial conj_ram: " << conj_ram << endl;
     cerr << "initial ff_states: " << ff_states << endl;
 
-    int num_hi{};
-    int num_lo{};
     queue<Signal> q;
 
     const auto handle_flip_flop_signal = [&](const string &id,
@@ -192,37 +190,39 @@ int main() {
         for (const auto &v : g.at(id)) q.emplace(id, v, pulse_to_send);
     };
 
-    const auto handle_signal = [&](const Signal &s) -> void {
+    const auto handle_signal_return_continue = [&](const Signal &s) -> bool {
         const auto [u, v, p] = s;
-        if (p == Pulse::Lo) {
-            ++num_lo;
-        } else {
-            ++num_hi;
-        }
 
         const auto mtype = module_types[v];
         if (mtype == MType::FlipFlop) {
             handle_flip_flop_signal(v, p);
         } else if (mtype == MType::Conjunction) {
             handle_conjunction_signal(u, v, p);
+        } else {
+            assert(mtype == MType::Plain);
+            if (v == "rx" && p == Pulse::Lo) return false;
         }
+
+        return true;
     };
 
-    const auto push_button = [&]() -> void {
-        ++num_lo;
+    const auto press_button = [&]() -> void {
         for (const auto &id : g["broadcaster"]) q.emplace("", id, Pulse::Lo);
     };
 
-    for (int k = 1; k <= 1000; ++k) {
-        push_button();
+    ll button_presses{};
+    for (bool cont = true; cont;) {
+        press_button();
+        ++button_presses;
+
         while (!empty(q)) {
             const auto s = q.front();
             q.pop();
-            handle_signal(s);
+            cont = handle_signal_return_continue(s);
+            if (!cont) break;
         }
     }
 
-    cerr << "num_lo:" << num_lo << " num_hi:" << num_hi << endl;
-    cout << llof(num_hi) * llof(num_lo) << '\n';
+    cout << button_presses << '\n';
     return 0;
 }
