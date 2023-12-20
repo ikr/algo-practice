@@ -257,5 +257,8 @@ int main() {
         cerr << xs << endl << endl;
     }
 
+    // In : lcm(3863, 3943, 3989, 4003)
+    // Out: 243221023462303
+
     return 0;
 }
