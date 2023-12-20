@@ -3,6 +3,8 @@ using namespace std;
 
 using ll = long long;
 
+static constexpr ll PressesLimit = 50'000;
+
 template <typename T> constexpr ll llof(const T x) {
     return static_cast<ll>(x);
 }
@@ -125,9 +127,7 @@ int main() {
     for (string line; getline(cin, line);) {
         const auto parts = split(" -> ", line);
         const auto source = parts[0];
-
         const auto tokens = split(", ", parts[1]);
-        cerr << source << " -> " << tokens << endl;
 
         const auto mtype = [&]() -> MType {
             switch (source[0]) {
@@ -157,11 +157,6 @@ int main() {
         }
     }
 
-    cerr << "types: " << module_types << endl;
-    cerr << "g: " << g << endl << "g_:" << g_ << endl;
-    cerr << "initial conj_ram: " << conj_ram << endl;
-    cerr << "initial ff_states: " << ff_states << endl;
-
     queue<Signal> q;
 
     const auto handle_flip_flop_signal = [&](const string &id,
@@ -190,7 +185,7 @@ int main() {
         for (const auto &v : g.at(id)) q.emplace(id, v, pulse_to_send);
     };
 
-    const auto handle_signal_return_continue = [&](const Signal &s) -> bool {
+    const auto handle_signal = [&](const Signal &s) -> void {
         const auto [u, v, p] = s;
 
         const auto mtype = module_types[v];
@@ -198,30 +193,69 @@ int main() {
             handle_flip_flop_signal(v, p);
         } else if (mtype == MType::Conjunction) {
             handle_conjunction_signal(u, v, p);
-        } else {
-            assert(mtype == MType::Plain);
-            if (v == "rx" && p == Pulse::Lo) return false;
         }
-
-        return true;
     };
 
     const auto press_button = [&]() -> void {
         for (const auto &id : g["broadcaster"]) q.emplace("", id, Pulse::Lo);
     };
 
-    ll button_presses{};
-    for (bool cont = true; cont;) {
-        press_button();
-        ++button_presses;
+    const auto button_press_nums_causing_signal =
+        [&](const Signal &expected) -> vector<ll> {
+        vector<ll> result;
+        q = {};
 
-        while (!empty(q)) {
-            const auto s = q.front();
-            q.pop();
-            cont = handle_signal_return_continue(s);
-            if (!cont) break;
+        for (int k = 1; k <= PressesLimit; ++k) {
+            press_button();
+
+            while (!empty(q)) {
+                const auto s = q.front();
+                q.pop();
+                if (s == expected) result.push_back(k);
+                handle_signal(s);
+            }
         }
+
+        return result;
+    };
+
+    vector<int> xs;
+
+    {
+        const auto dr =
+            button_press_nums_causing_signal(Signal{"dr", "kj", Pulse::Hi});
+        cerr << dr << endl;
+        xs.resize(sz(dr));
+        adjacent_difference(cbegin(dr), cend(dr), begin(xs));
+        cerr << xs << endl << endl;
     }
-    cout << button_presses << '\n';
+
+    {
+        const auto vn =
+            button_press_nums_causing_signal(Signal{"vn", "kj", Pulse::Hi});
+        cerr << vn << endl;
+        xs.resize(sz(vn));
+        adjacent_difference(cbegin(vn), cend(vn), begin(xs));
+        cerr << xs << endl << endl;
+    }
+
+    {
+        const auto zx =
+            button_press_nums_causing_signal(Signal{"zx", "kj", Pulse::Hi});
+        cerr << zx << endl;
+        xs.resize(sz(zx));
+        adjacent_difference(cbegin(zx), cend(zx), begin(xs));
+        cerr << xs << endl << endl;
+    }
+
+    {
+        const auto ln =
+            button_press_nums_causing_signal(Signal{"ln", "kj", Pulse::Hi});
+        cerr << ln << endl;
+        xs.resize(sz(ln));
+        adjacent_difference(cbegin(ln), cend(ln), begin(xs));
+        cerr << xs << endl << endl;
+    }
+
     return 0;
 }
