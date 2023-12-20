@@ -222,7 +222,6 @@ int main() {
             if (!cont) break;
         }
     }
-
     cout << button_presses << '\n';
     return 0;
 }
