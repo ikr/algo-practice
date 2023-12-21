@@ -44,6 +44,17 @@ template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
     return os;
 }
 
+template <typename T>
+ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 template <typename K, typename V>
 ostream &operator<<(ostream &os, const map<K, V> &m) {
     os << '{';
@@ -95,28 +106,31 @@ int main() {
         return 0 <= p.first && p.first < H && 0 <= p.second && p.second < W;
     };
 
-    const int MaxSteps = 6;
-    queue<pair<Coord, int>> q;
-    q.emplace(src, 0);
-
-    map<int, unordered_set<int>> by_step;
-    by_step[0] = {src.first * W + src.second};
-
-    while (!q.empty()) {
-        const auto [p, step] = q.front();
-        q.pop();
-
+    const auto adjacent = [&](const Coord p) {
+        vector<Coord> ans;
         for (const auto &d : Delta) {
             const auto np = p + d;
             if (!in_bounds(np)) continue;
             if (grid[np.first][np.second] == '#') continue;
-            if (step + 1 > MaxSteps) continue;
+            ans.push_back(np);
+        }
+        return ans;
+    };
 
-            q.emplace(np, step + 1);
-            by_step[step + 1].insert(np.first * W + np.second);
+    const int MaxSteps = 64;
+
+    map<int, unordered_set<int>> by_step;
+    by_step[0] = {src.first * W + src.second};
+
+    for (int step = 1; step <= MaxSteps; ++step) {
+        for (const auto p : by_step[step - 1]) {
+            for (const auto &np : adjacent({p / W, p % W})) {
+                by_step[step].insert(np.first * W + np.second);
+            }
         }
     }
 
+    cerr << by_step << '\n';
     cout << sz(by_step[MaxSteps]) << '\n';
     return 0;
 }
