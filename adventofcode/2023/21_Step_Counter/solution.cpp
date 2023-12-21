@@ -89,7 +89,7 @@ int main() {
     }
     assert(src.first != -1 && src.second != -1);
 
-    const auto K = sz(grid) + 2;
+    const auto K = 1;
     src = {K / 2 * sz(grid) + src.first, K / 2 * sz(grid[0]) + src.second};
     grid = multigrid(grid, K);
     // grid[src.first][src.second] = 'S';
@@ -97,51 +97,33 @@ int main() {
     const int H = sz(grid);
     const int W = sz(grid[0]);
 
-    const auto adjacent = [&](const Coord p) {
-        vector<Coord> ans;
-        for (const auto &d : Delta) {
-            auto np = p + d;
-            np.first = ((np.first % H) + H) % H;
-            np.second = ((np.second % W) + W) % W;
-            if (grid[np.first][np.second] == '#') continue;
-            ans.push_back(np);
-        }
-        return ans;
-    };
-
-    const int MaxSteps = 500;
-
-    vector<vector<int>> neigh(H, vector(W, 0));
-    for (int r = 0; r < H; ++r) {
-        for (int c = 0; c < W; ++c) {
-            neigh[r][c] = sz(adjacent({r, c}));
-        }
-    }
-
+    const int MaxSteps = 26501365;
     vector<vector<ll>> freq(H, vector(W, 0LL));
     freq[src.first][src.second] = 1;
 
     for (int step = 1; step <= MaxSteps; ++step) {
-        vector<vector<set<ll>>> ff(H, vector<set<ll>>(W));
+        vector<vector<ll>> freq_(H, vector(W, 0LL));
 
         for (int r = 0; r < H; ++r) {
             for (int c = 0; c < W; ++c) {
                 if (grid[r][c] == '#') continue;
-                for (const auto &p : adjacent({r, c})) {
-                    ff[p.first][p.second].insert(freq[r][c]);
+                vector<ll> xs;
+
+                for (const auto &d : Delta) {
+                    auto np = Coord{r, c} + d;
+                    np.first = ((np.first % H) + H) % H;
+                    np.second = ((np.second % W) + W) % W;
+                    if (grid[np.first][np.second] == '#') continue;
+                    xs.push_back(freq[np.first][np.second]);
                 }
+
+                ranges::sort(xs);
+                const auto till = unique(begin(xs), end(xs));
+                freq_[r][c] += accumulate(begin(xs), till, 0LL);
             }
         }
 
-        for (int r = 0; r < H; ++r) {
-            for (int c = 0; c < W; ++c) {
-                if (grid[r][c] == '#') continue;
-                freq[r][c] = 0;
-                for (const auto &x : ff[r][c]) {
-                    freq[r][c] += x;
-                }
-            }
-        }
+        swap(freq, freq_);
     }
 
     ll result{};
