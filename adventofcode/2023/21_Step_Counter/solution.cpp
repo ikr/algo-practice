@@ -83,7 +83,7 @@ template <typename T> size_t combine_hashes(const T &xs) {
     return seed;
 }
 
-static constexpr int WindowSize = 100;
+static constexpr int WindowSize = 512;
 
 template <typename T> void limit_size(deque<T> &xs) {
     if (sz(xs) > WindowSize) xs.pop_front();
@@ -210,7 +210,7 @@ int main() {
         for (auto it = cbegin(tiles); it != cend(tiles);) {
             if (observe_tile_return_can_compress(*it)) {
                 cerr << "Can compress tile " << *it << endl;
-                cerr << last_life_sizes << endl;
+                // cerr << last_life_sizes << endl;
 
                 const auto sizes = last_life_sizes.at(*it);
                 if (step % 2 == 0) {
@@ -243,7 +243,7 @@ int main() {
         return ((step % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
     };
 
-    const int MaxSteps = 100;
+    const int MaxSteps = 500;
     for (int step = 1; step <= MaxSteps; ++step) {
         set<Coord> gen_;
 
@@ -257,15 +257,15 @@ int main() {
         swap(gen_, gen);
         const auto a = life_size_at_current_step(step);
 
-        cerr << "A: step:" << step << " gen_size:" << sz(gen)
-             << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
-             << endl;
+        // cerr << "A: step:" << step << " gen_size:" << sz(gen)
+        //      << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
+        //      << endl;
 
         compress(step);
 
-        cerr << "B: step:" << step << " gen_size:" << sz(gen)
-             << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
-             << endl;
+        // cerr << "B: step:" << step << " gen_size:" << sz(gen)
+        //      << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
+        //      << endl;
 
         const auto b = life_size_at_current_step(step);
         if (a != b) {
