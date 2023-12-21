@@ -161,7 +161,11 @@ int main() {
         }
     };
 
-    const int MaxSteps = 100;
+    const auto life_size_at_current_step = [&](const int step) -> ll {
+        return ((step % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
+    };
+
+    const int MaxSteps = 50;
     for (int step = 1; step <= MaxSteps; ++step) {
         set<Coord> gen_;
 
@@ -173,9 +177,23 @@ int main() {
         }
 
         swap(gen_, gen);
+        const auto a = life_size_at_current_step(step);
+
+        cerr << "A: step:" << step << " gen size:" << sz(gen)
+             << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
+             << endl;
+
         compress(step);
-        cerr << "gen size:" << sz(gen) << " evn_stable:" << evn_stable
-             << " odd_stable:" << odd_stable << endl;
+
+        cerr << "B: step:" << step << " gen size:" << sz(gen)
+             << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
+             << endl;
+
+        const auto b = life_size_at_current_step(step);
+        if (a != b) {
+            cerr << "Discrepancy: a = " << a << " b = " << b << endl;
+        }
+        assert(a == b);
     }
 
     const auto result =
