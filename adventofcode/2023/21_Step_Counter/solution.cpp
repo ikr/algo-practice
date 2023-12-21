@@ -7,6 +7,43 @@ ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
@@ -24,6 +61,10 @@ static constexpr array Delta{Coord{-1, 0}, Coord{0, 1}, Coord{1, 0},
 template <typename T>
 constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
+}
+
+template <typename T> constexpr T div_ceil(const T x, const T y) {
+    return x ? (1 + (x - 1) / y) : 0;
 }
 
 template <typename T> size_t combine_hashes(const T &xs) {
@@ -79,13 +120,32 @@ int main() {
         return ans;
     };
 
+    const auto component_to_tcomponent = [&](const int x) {
+        return x >= 0 ? x / M : -div_ceil(-x, M);
+    };
+    const auto tcomponent_to_component = [&](const int x) { return x * M; };
+
     const auto containing_tile = [&](const Coord p) -> TCoord {
-        return {p.first / M, p.second / M};
+        return {component_to_tcomponent(p.first),
+                component_to_tcomponent(p.second)};
     };
 
     const auto tile_left_top = [&](const TCoord tp) -> Coord {
-        return {tp.first * M, tp.second * M};
+        return {tcomponent_to_component(tp.first),
+                tcomponent_to_component(tp.second)};
     };
+
+    assert((containing_tile(Coord{-M, -M}) == TCoord{-1, -1}));
+    assert((containing_tile(Coord{M, M}) == TCoord{1, 1}));
+    assert((containing_tile(Coord{M + 1, M + 1}) == TCoord{1, 1}));
+    assert((containing_tile(Coord{2 * M - 1, 2 * M - 1}) == TCoord{1, 1}));
+    assert((containing_tile(Coord{2 * M, 2 * M}) == TCoord{2, 2}));
+    assert((containing_tile(Coord{-M - 1, -M - 1}) == TCoord{-2, -2}));
+    assert((tile_left_top({-2, -2}) == Coord(-2 * M, -2 * M)));
+    assert((tile_left_top({1, 1}) == Coord(M, M)));
+    assert((tile_left_top({2, 2}) == Coord(2 * M, 2 * M)));
+    assert((tile_left_top({-1, -1}) == Coord(-M, -M)));
+    assert((tile_left_top({-2, -2}) == Coord(-2 * M, -2 * M)));
 
     set<Coord> gen{src};
 
@@ -134,6 +194,8 @@ int main() {
         for (auto it = cbegin(tiles); it != cend(tiles);) {
             if (observe_tile_return_can_compress(*it)) {
                 cerr << "Can compress tile " << *it << endl;
+                cerr << last_life_sizes << endl;
+
                 const auto sizes = last_life_sizes.at(*it);
                 if (step % 2 == 0) {
                     evn_stable += sizes.back();
@@ -192,6 +254,7 @@ int main() {
         const auto b = life_size_at_current_step(step);
         if (a != b) {
             cerr << "Discrepancy: a = " << a << " b = " << b << endl;
+            cerr << last_life_sizes << endl;
         }
         assert(a == b);
     }
