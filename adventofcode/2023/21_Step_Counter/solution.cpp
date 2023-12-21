@@ -17,6 +17,16 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> ostream &operator<<(ostream &os, const deque<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T>
 ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     for (const auto &xs : xss) os << xs << '\n';
@@ -73,13 +83,18 @@ template <typename T> size_t combine_hashes(const T &xs) {
     return seed;
 }
 
-template <typename T> void limit_size(vector<T> &xs) {
-    if (sz(xs) > 4) xs.erase(cbegin(xs));
+static constexpr int WindowSize = 100;
+
+template <typename T> void limit_size(deque<T> &xs) {
+    if (sz(xs) > WindowSize) xs.pop_front();
 }
 
-template <typename T> bool looped(const vector<T> &xs) {
-    if (sz(xs) < 4) return false;
-    return xs[0] == xs[2] && xs[1] == xs[3];
+template <typename T> bool looped(const deque<T> &xs) {
+    if (sz(xs) < WindowSize) return false;
+    for (int i = 0; i + 2 < sz(xs); ++i) {
+        if (xs[i] != xs[i + 2]) return false;
+    }
+    return true;
 }
 
 int main() {
@@ -157,6 +172,7 @@ int main() {
             for (int c = c0; c < c0 + M; ++c) {
                 if (gen.contains({r, c})) {
                     result.push_back((r - r0) * M + (c - c0));
+                    assert(0 <= result.back() && result.back() < M * M);
                 }
             }
         }
@@ -170,8 +186,8 @@ int main() {
         return result;
     };
 
-    map<TCoord, vector<int>> last_life_sizes;
-    map<TCoord, vector<size_t>> last_life_digests;
+    map<TCoord, deque<int>> last_life_sizes;
+    map<TCoord, deque<size_t>> last_life_digests;
     set<TCoord> compressed;
 
     const auto observe_tile_return_can_compress = [&](const TCoord tp) -> bool {
@@ -227,7 +243,7 @@ int main() {
         return ((step % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
     };
 
-    const int MaxSteps = 50;
+    const int MaxSteps = 100;
     for (int step = 1; step <= MaxSteps; ++step) {
         set<Coord> gen_;
 
@@ -241,13 +257,13 @@ int main() {
         swap(gen_, gen);
         const auto a = life_size_at_current_step(step);
 
-        cerr << "A: step:" << step << " gen size:" << sz(gen)
+        cerr << "A: step:" << step << " gen_size:" << sz(gen)
              << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
              << endl;
 
         compress(step);
 
-        cerr << "B: step:" << step << " gen size:" << sz(gen)
+        cerr << "B: step:" << step << " gen_size:" << sz(gen)
              << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
              << endl;
 
