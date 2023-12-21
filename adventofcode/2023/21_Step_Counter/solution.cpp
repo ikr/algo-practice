@@ -112,6 +112,7 @@ int main() {
 
     map<TCoord, vector<int>> last_life_sizes;
     map<TCoord, vector<size_t>> last_life_digests;
+    set<TCoord> compressed;
 
     const auto observe_tile_return_can_compress = [&](const TCoord tp) -> bool {
         const auto life = tile_life(tp);
@@ -144,6 +145,7 @@ int main() {
 
                 last_life_sizes.erase(*it);
                 last_life_digests.erase(*it);
+                compressed.insert(*it);
                 it = tiles.erase(it);
             } else {
                 ++it;
@@ -164,7 +166,10 @@ int main() {
         set<Coord> gen_;
 
         for (const auto &p : gen) {
-            for (const auto &np : adjacent(p)) gen_.insert(np);
+            for (const auto &np : adjacent(p)) {
+                if (compressed.contains(containing_tile(p))) continue;
+                gen_.insert(np);
+            }
         }
 
         swap(gen_, gen);
