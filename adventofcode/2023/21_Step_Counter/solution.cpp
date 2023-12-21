@@ -83,7 +83,7 @@ template <typename T> size_t combine_hashes(const T &xs) {
     return seed;
 }
 
-static constexpr int WindowSize = 512;
+static constexpr int WindowSize = 6;
 
 template <typename T> void limit_size(deque<T> &xs) {
     if (sz(xs) > WindowSize) xs.pop_front();
@@ -209,7 +209,7 @@ int main() {
         auto tiles = gather_tiles();
         for (auto it = cbegin(tiles); it != cend(tiles);) {
             if (observe_tile_return_can_compress(*it)) {
-                cerr << "Can compress tile " << *it << endl;
+                // cerr << "Can compress tile " << *it << endl;
                 // cerr << last_life_sizes << endl;
 
                 const auto sizes = last_life_sizes.at(*it);
@@ -243,7 +243,7 @@ int main() {
         return ((step % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
     };
 
-    const int MaxSteps = 500;
+    const int MaxSteps = 100;
     for (int step = 1; step <= MaxSteps; ++step) {
         set<Coord> gen_;
 
@@ -274,6 +274,8 @@ int main() {
         }
         assert(a == b);
     }
+
+    cerr << "compressed size:" << sz(compressed) << endl;
 
     const auto result =
         ((MaxSteps % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
