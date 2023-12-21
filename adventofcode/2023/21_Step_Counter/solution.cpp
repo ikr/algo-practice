@@ -97,7 +97,7 @@ int main() {
         return ans;
     };
 
-    const int MaxSteps = 6;
+    const int MaxSteps = 50;
 
     vector<vector<int>> mul(H, vector(W, 0));
     for (int r = 0; r < H; ++r) {
@@ -113,17 +113,22 @@ int main() {
     cerr << freq << endl;
 
     for (int step = 1; step <= MaxSteps; ++step) {
-        vector<vector<ll>> freq_(H, vector(W, 0LL));
+        vector<vector<set<ll>>> ff(H, vector<set<ll>>(W));
 
         for (int r = 0; r < H; ++r) {
             for (int c = 0; c < W; ++c) {
                 for (const auto &p : adjacent({r, c})) {
-                    freq_[p.first][p.second] += freq[r][c];
+                    ff[p.first][p.second].insert(freq[r][c]);
                 }
             }
         }
 
-        swap(freq, freq_);
+        for (int r = 0; r < H; ++r) {
+            for (int c = 0; c < W; ++c) {
+                freq[r][c] = 0;
+                for (const auto &f : ff[r][c]) freq[r][c] += f;
+            }
+        }
         cerr << freq << endl;
     }
 
