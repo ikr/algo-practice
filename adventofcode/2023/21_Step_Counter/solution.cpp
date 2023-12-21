@@ -25,14 +25,8 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     return os;
 }
 
-template <typename T>
-ostream &operator<<(ostream &os, const unordered_set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
+ostream &operator<<(ostream &os, const vector<string> &xss) {
+    for (const auto &xs : xss) os << xs << '\n';
     return os;
 }
 
@@ -63,6 +57,18 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
+vector<string> multigrid(const vector<string> &grid, const int k) {
+    const auto H = sz(grid);
+    const auto W = sz(grid[0]);
+    vector<string> result(H * k, string(W * k, ' '));
+    for (int r = 0; r < H * k; ++r) {
+        for (int c = 0; c < W * k; ++c) {
+            result[r][c] = grid[r % H][c % W];
+        }
+    }
+    return result;
+}
+
 int main() {
     vector<string> grid;
 
@@ -70,20 +76,26 @@ int main() {
         grid.push_back(line);
     }
 
-    const int H = sz(grid);
-    const int W = sz(grid[0]);
     Coord src{-1, -1};
-
-    for (int r = 0; r < H; ++r) {
-        for (int c = 0; c < W; ++c) {
+    for (int r = 0; r < sz(grid); ++r) {
+        for (int c = 0; c < sz(grid[r]); ++c) {
             if (grid[r][c] == 'S') {
                 src = {r, c};
+                grid[r][c] = '.';
                 break;
             }
         }
         if (src.first != -1) break;
     }
     assert(src.first != -1 && src.second != -1);
+
+    const auto K = sz(grid) + 2;
+    src = {K / 2 * sz(grid) + src.first, K / 2 * sz(grid[0]) + src.second};
+    grid = multigrid(grid, K);
+    // grid[src.first][src.second] = 'S';
+
+    const int H = sz(grid);
+    const int W = sz(grid[0]);
 
     const auto adjacent = [&](const Coord p) {
         vector<Coord> ans;
@@ -97,26 +109,24 @@ int main() {
         return ans;
     };
 
-    const int MaxSteps = 50;
+    const int MaxSteps = 500;
 
-    vector<vector<int>> mul(H, vector(W, 0));
+    vector<vector<int>> neigh(H, vector(W, 0));
     for (int r = 0; r < H; ++r) {
         for (int c = 0; c < W; ++c) {
-            if (grid[r][c] == '#') continue;
-            mul[r][c] = sz(adjacent({r, c}));
+            neigh[r][c] = sz(adjacent({r, c}));
         }
     }
-    cerr << mul << endl;
 
     vector<vector<ll>> freq(H, vector(W, 0LL));
     freq[src.first][src.second] = 1;
-    cerr << freq << endl;
 
     for (int step = 1; step <= MaxSteps; ++step) {
         vector<vector<set<ll>>> ff(H, vector<set<ll>>(W));
 
         for (int r = 0; r < H; ++r) {
             for (int c = 0; c < W; ++c) {
+                if (grid[r][c] == '#') continue;
                 for (const auto &p : adjacent({r, c})) {
                     ff[p.first][p.second].insert(freq[r][c]);
                 }
@@ -125,11 +135,13 @@ int main() {
 
         for (int r = 0; r < H; ++r) {
             for (int c = 0; c < W; ++c) {
+                if (grid[r][c] == '#') continue;
                 freq[r][c] = 0;
-                for (const auto &f : ff[r][c]) freq[r][c] += f;
+                for (const auto &x : ff[r][c]) {
+                    freq[r][c] += x;
+                }
             }
         }
-        cerr << freq << endl;
     }
 
     ll result{};
