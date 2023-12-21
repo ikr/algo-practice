@@ -89,7 +89,7 @@ int main() {
     }
     assert(src.first != -1 && src.second != -1);
 
-    const auto K = 1;
+    const auto K = 9;
     src = {K / 2 * sz(grid) + src.first, K / 2 * sz(grid[0]) + src.second};
     grid = multigrid(grid, K);
     // grid[src.first][src.second] = 'S';
@@ -97,41 +97,50 @@ int main() {
     const int H = sz(grid);
     const int W = sz(grid[0]);
 
-    const int MaxSteps = 26501365;
-    vector<vector<ll>> freq(H, vector(W, 0LL));
-    freq[src.first][src.second] = 1;
+    const auto in_bounds = [H, W](const Coord p) {
+        return 0 <= p.first && p.first < H && 0 <= p.second && p.second < W;
+    };
+
+    const auto adjacent = [&](const Coord p) {
+        vector<Coord> ans;
+        for (const auto &d : Delta) {
+            const auto np = p + d;
+            assert(in_bounds(np));
+            if (grid[np.first][np.second] == '#') continue;
+            ans.push_back(np);
+        }
+        return ans;
+    };
+
+    const int MaxSteps = 500;
+    vector<ll> xs;
+    unordered_set<int> gen{src.first * W + src.second};
 
     for (int step = 1; step <= MaxSteps; ++step) {
-        vector<vector<ll>> freq_(H, vector(W, 0LL));
+        unordered_set<int> gen_;
 
-        for (int r = 0; r < H; ++r) {
-            for (int c = 0; c < W; ++c) {
-                if (grid[r][c] == '#') continue;
-                vector<ll> xs;
+        for (const auto p : gen) {
+            const auto r = p / W;
+            const auto c = p % W;
 
-                for (const auto &d : Delta) {
-                    auto np = Coord{r, c} + d;
-                    np.first = ((np.first % H) + H) % H;
-                    np.second = ((np.second % W) + W) % W;
-                    if (grid[np.first][np.second] == '#') continue;
-                    xs.push_back(freq[np.first][np.second]);
-                }
-
-                ranges::sort(xs);
-                const auto till = unique(begin(xs), end(xs));
-                freq_[r][c] += accumulate(begin(xs), till, 0LL);
+            for (const auto &np : adjacent({r, c})) {
+                gen_.insert(np.first * W + np.second);
             }
         }
 
-        swap(freq, freq_);
+        swap(gen, gen_);
+        xs.push_back(sz(gen));
     }
 
-    ll result{};
-    for (int r = 0; r < H; ++r) {
-        for (int c = 0; c < W; ++c) {
-            result += freq[r][c];
+    vector<vector<ll>> xss{xs};
+    for (int k = 1; k <= 2; ++k) {
+        vector<ll> ys(sz(xss.back()) - 1);
+        for (int i = sz(ys) - 1; i >= 0; --i) {
+            ys[i] = xss.back()[i + 1] - xss.back()[i];
         }
+        xss.push_back(ys);
     }
-    cout << result << '\n';
+
+    cerr << xss << endl;
     return 0;
 }
