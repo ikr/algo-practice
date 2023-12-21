@@ -243,7 +243,9 @@ int main() {
         return ((step % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
     };
 
-    const int MaxSteps = 100;
+    vector<ll> memo(M / 2 + 2 * M + 1, 0);
+
+    const int MaxSteps = sz(memo) - 1;
     for (int step = 1; step <= MaxSteps; ++step) {
         set<Coord> gen_;
 
@@ -255,30 +257,55 @@ int main() {
         }
 
         swap(gen_, gen);
-        const auto a = life_size_at_current_step(step);
+        memo[step] = sz(gen);
+        // const auto a = life_size_at_current_step(step);
 
         // cerr << "A: step:" << step << " gen_size:" << sz(gen)
         //      << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
         //      << endl;
 
-        compress(step);
+        // compress(step);
 
         // cerr << "B: step:" << step << " gen_size:" << sz(gen)
         //      << " evn_stable:" << evn_stable << " odd_stable:" << odd_stable
         //      << endl;
 
-        const auto b = life_size_at_current_step(step);
-        if (a != b) {
-            cerr << "Discrepancy: a = " << a << " b = " << b << endl;
-            cerr << last_life_sizes << endl;
-        }
-        assert(a == b);
+        // const auto b = life_size_at_current_step(step);
+        // if (a != b) {
+        //     cerr << "Discrepancy: a = " << a << " b = " << b << endl;
+        //     cerr << last_life_sizes << endl;
+        // }
+        // assert(a == b);
     }
 
-    cerr << "compressed size:" << sz(compressed) << endl;
+    cerr << memo << endl;
 
-    const auto result =
-        ((MaxSteps % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
-    cout << result << '\n';
+    // Interpolation of a quadratic function
+    // https://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html
+    //
+    const auto x1 = 0LL;
+    const auto y1 = memo[M / 2];
+
+    const auto x2 = 1LL;
+    const auto y2 = memo[M / 2 + M];
+
+    const auto x3 = 2LL;
+    const auto y3 = memo[M / 2 + 2 * M];
+
+    const auto F = [&](const ll x) -> ll {
+        return y1 * (x - x2) * (x - x3) / (x1 - x2) * (x1 - x3) +
+               y2 * (x - x1) * (x - x3) / (x2 - x1) * (x2 - x3) +
+               y3 * (x - x1) * (x - x2) / (x3 - x1) * (x3 - x2);
+    };
+
+    const ll FinalStep = 26501365;
+    const auto X = (FinalStep - M / 2) / M;
+    cout << F(X) << '\n';
+
+    // cerr << "compressed size:" << sz(compressed) << endl;
+
+    // const auto result =
+    //     ((MaxSteps % 2 == 0) ? evn_stable : odd_stable) + sz(gen);
+    // cout << result << '\n';
     return 0;
 }
