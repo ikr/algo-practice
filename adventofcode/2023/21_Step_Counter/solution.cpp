@@ -3,15 +3,6 @@ using namespace std;
 
 using ll = long long;
 
-template <typename T> ostream &operator<<(ostream &os, const optional<T> o) {
-    if (!o) {
-        os << "nullopt";
-    } else {
-        os << *o;
-    }
-    return os;
-}
-
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     os << '(' << x.first << ' ' << x.second << ')';
@@ -31,16 +22,6 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 template <typename T>
 ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
-    os << '{';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << '}';
     return os;
 }
 
@@ -97,53 +78,61 @@ int main() {
         for (int c = 0; c < W; ++c) {
             if (grid[r][c] == 'S') {
                 src = {r, c};
+                break;
             }
         }
+        if (src.first != -1) break;
     }
     assert(src.first != -1 && src.second != -1);
-
-    const auto inf_grid_at = [&](const Coord p) -> char {
-        const auto r = ((p.first % H) + H) % H;
-        const auto c = ((p.second % W) + W) % W;
-        return grid[r][c];
-    };
 
     const auto adjacent = [&](const Coord p) {
         vector<Coord> ans;
         for (const auto &d : Delta) {
-            const auto np = p + d;
-            if (inf_grid_at(np) == '#') continue;
+            auto np = p + d;
+            np.first = ((np.first % H) + H) % H;
+            np.second = ((np.second % W) + W) % W;
+            if (grid[np.first][np.second] == '#') continue;
             ans.push_back(np);
         }
         return ans;
     };
 
-    const int MaxSteps = 500;
+    const int MaxSteps = 6;
 
-    map<int, set<Coord>> by_step;
-    by_step[0] = {src};
+    vector<vector<int>> mul(H, vector(W, 0));
+    for (int r = 0; r < H; ++r) {
+        for (int c = 0; c < W; ++c) {
+            if (grid[r][c] == '#') continue;
+            mul[r][c] = sz(adjacent({r, c}));
+        }
+    }
+    cerr << mul << endl;
 
-    vector<int> xs;
+    vector<vector<ll>> freq(H, vector(W, 0LL));
+    freq[src.first][src.second] = 1;
+    cerr << freq << endl;
 
     for (int step = 1; step <= MaxSteps; ++step) {
-        for (const auto &p : by_step[step - 1]) {
-            for (const auto &np : adjacent(p)) {
-                by_step[step].insert(np);
+        vector<vector<ll>> freq_(H, vector(W, 0LL));
+
+        for (int r = 0; r < H; ++r) {
+            for (int c = 0; c < W; ++c) {
+                for (const auto &p : adjacent({r, c})) {
+                    freq_[p.first][p.second] += freq[r][c];
+                }
             }
         }
-        xs.push_back(sz(by_step[step]));
+
+        swap(freq, freq_);
+        cerr << freq << endl;
     }
 
-    vector<int> ys(sz(xs));
-    adjacent_difference(cbegin(xs), cend(xs), begin(ys));
-
-    vector<int> zs(sz(xs));
-    adjacent_difference(cbegin(ys), cend(ys), begin(zs));
-
-    cout << xs << endl;
-    cout << ys << endl;
-    cout << zs << endl;
-
-    cout << sz(by_step[MaxSteps]) << endl;
+    ll result{};
+    for (int r = 0; r < H; ++r) {
+        for (int c = 0; c < W; ++c) {
+            result += freq[r][c];
+        }
+    }
+    cout << result << '\n';
     return 0;
 }
