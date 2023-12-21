@@ -102,35 +102,48 @@ int main() {
     }
     assert(src.first != -1 && src.second != -1);
 
-    const auto in_bounds = [&](const Coord p) {
-        return 0 <= p.first && p.first < H && 0 <= p.second && p.second < W;
+    const auto inf_grid_at = [&](const Coord p) -> char {
+        const auto r = ((p.first % H) + H) % H;
+        const auto c = ((p.second % W) + W) % W;
+        return grid[r][c];
     };
 
     const auto adjacent = [&](const Coord p) {
         vector<Coord> ans;
         for (const auto &d : Delta) {
             const auto np = p + d;
-            if (!in_bounds(np)) continue;
-            if (grid[np.first][np.second] == '#') continue;
+            if (inf_grid_at(np) == '#') continue;
             ans.push_back(np);
         }
         return ans;
     };
 
-    const int MaxSteps = 64;
+    const int MaxSteps = 500;
 
-    map<int, unordered_set<int>> by_step;
-    by_step[0] = {src.first * W + src.second};
+    map<int, set<Coord>> by_step;
+    by_step[0] = {src};
+
+    vector<int> xs;
 
     for (int step = 1; step <= MaxSteps; ++step) {
-        for (const auto p : by_step[step - 1]) {
-            for (const auto &np : adjacent({p / W, p % W})) {
-                by_step[step].insert(np.first * W + np.second);
+        for (const auto &p : by_step[step - 1]) {
+            for (const auto &np : adjacent(p)) {
+                by_step[step].insert(np);
             }
         }
+        xs.push_back(sz(by_step[step]));
     }
 
-    cerr << by_step << '\n';
-    cout << sz(by_step[MaxSteps]) << '\n';
+    vector<int> ys(sz(xs));
+    adjacent_difference(cbegin(xs), cend(xs), begin(ys));
+
+    vector<int> zs(sz(xs));
+    adjacent_difference(cbegin(ys), cend(ys), begin(zs));
+
+    cout << xs << endl;
+    cout << ys << endl;
+    cout << zs << endl;
+
+    cout << sz(by_step[MaxSteps]) << endl;
     return 0;
 }
