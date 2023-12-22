@@ -144,7 +144,7 @@ int main() {
 
     for (;;) {
         if (!shift_one_return_shifted()) break;
-        sort_by_z();
+        // sort_by_z();
     }
 
     int result{};
