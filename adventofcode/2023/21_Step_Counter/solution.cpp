@@ -88,27 +88,27 @@ int main() {
     // Interpolation of a quadratic function
     // https://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html
     //
-    const auto x1 = 0LL;
-    const auto y1 = memo[M / 2];
+    const auto x0 = 0LL;
+    const auto y0 = memo[M / 2];
 
-    const auto x2 = 1LL;
-    const auto y2 = memo[M / 2 + M];
+    const auto x1 = 1LL;
+    const auto y1 = memo[M / 2 + M];
 
-    const auto x3 = 2LL;
-    const auto y3 = memo[M / 2 + 2 * M];
+    const auto x2 = 2LL;
+    const auto y2 = memo[M / 2 + 2 * M];
 
     const auto F = [&](const ll x) -> ll {
-        auto A = y1 * (x - x2) * (x - x3);
-        assert(A % ((x1 - x2) * (x1 - x3)) == 0LL);
-        A /= (x1 - x2) * (x1 - x3);
+        auto A = y0 * (x - x1) * (x - x2);
+        assert(A % ((x0 - x1) * (x0 - x2)) == 0LL);
+        A /= (x0 - x1) * (x0 - x2);
 
-        auto B = y2 * (x - x1) * (x - x3);
-        assert(B % ((x2 - x1) * (x2 - x3)) == 0LL);
-        B /= (x2 - x1) * (x2 - x3);
+        auto B = y1 * (x - x0) * (x - x2);
+        assert(B % ((x1 - x0) * (x1 - x2)) == 0LL);
+        B /= (x1 - x0) * (x1 - x2);
 
-        auto C = y3 * (x - x1) * (x - x2);
-        assert(C % ((x3 - x1) * (x3 - x2)) == 0LL);
-        C /= (x3 - x1) * (x3 - x2);
+        auto C = y2 * (x - x0) * (x - x1);
+        assert(C % ((x2 - x0) * (x2 - x1)) == 0LL);
+        C /= (x2 - x0) * (x2 - x1);
 
         return A + B + C;
     };
