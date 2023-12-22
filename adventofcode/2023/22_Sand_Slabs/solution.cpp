@@ -81,8 +81,8 @@ bool can_shift_down(const set<Point> &voxels, const Brick &b) {
     return true;
 };
 
-bool can_remove(const vector<Brick> &bricks, set<Point> &voxels,
-                const int ibrick) {
+bool has_no_load(const vector<Brick> &bricks, set<Point> &voxels,
+                 const int ibrick) {
     const auto b0 = bricks[ibrick];
     for (const auto &p : b0) voxels.erase(p);
 
@@ -96,6 +96,48 @@ bool can_remove(const vector<Brick> &bricks, set<Point> &voxels,
 
     for (const auto &p : b0) voxels.insert(p);
     return true;
+}
+
+tuple<int, vector<Brick>, set<Point>>
+simulate_removal_return_fallen_bricks_count(vector<Brick> bricks,
+                                            set<Point> voxels,
+                                            const int ibrick) {
+    if (ibrick >= 0) {
+        assert(ibrick < sz(bricks));
+        const auto b0 = bricks[ibrick];
+        bricks.erase(cbegin(bricks) + ibrick);
+        for (const auto &p : b0) voxels.erase(p);
+    }
+
+    const auto shift_down = [&](Brick &b) {
+        for (auto &p : b) {
+            voxels.erase(p);
+            const auto [x, y, z] = p;
+            p = Point{x, y, z - 1};
+            voxels.insert(p);
+        }
+    };
+
+    const auto shift_one_return_shifted_index = [&]() -> optional<int> {
+        for (int i = 0; i < sz(bricks); ++i) {
+            if (can_shift_down(voxels, bricks[i])) {
+                shift_down(bricks[i]);
+                return i;
+            }
+        }
+        return nullopt;
+    };
+
+    unordered_set<int> fallen_brick_indices;
+    for (;;) {
+        const auto i = shift_one_return_shifted_index();
+        if (i) {
+            fallen_brick_indices.insert(*i);
+        } else {
+            break;
+        }
+    }
+    return {sz(fallen_brick_indices), bricks, voxels};
 }
 
 int main() {
@@ -123,34 +165,27 @@ int main() {
 
     sort_by_z();
 
-    const auto shift_down = [&](Brick &b) {
-        for (auto &p : b) {
-            voxels.erase(p);
-            const auto [x, y, z] = p;
-            p = Point{x, y, z - 1};
-            voxels.insert(p);
-        }
-    };
+    int fallen_initially{-1};
+    tie(fallen_initially, bricks, voxels) =
+        simulate_removal_return_fallen_bricks_count(bricks, voxels, -1);
+    cerr << fallen_initially << " fallen initially" << endl;
 
-    const auto shift_one_return_shifted = [&]() -> bool {
-        for (auto &b : bricks) {
-            if (can_shift_down(voxels, b)) {
-                shift_down(b);
-                return true;
-            }
-        }
-        return false;
-    };
+    int result1{};
+    int result2{};
 
-    for (;;) {
-        if (!shift_one_return_shifted()) break;
-        // sort_by_z();
-    }
-
-    int result{};
     for (int i = sz(bricks) - 1; i >= 0; --i) {
-        if (can_remove(bricks, voxels, i)) ++result;
+        if (has_no_load(bricks, voxels, i)) ++result1;
+
+        result2 += get<0>(
+            simulate_removal_return_fallen_bricks_count(bricks, voxels, i));
     }
-    cout << result << '\n';
+
+    cout << "how many bricks could be safely chosen as the one to get "
+            "disintegrated: "
+         << result1 << '\n';
+
+    cout << "sum of the number of other bricks that would fall: " << result2
+         << '\n';
+
     return 0;
 }
