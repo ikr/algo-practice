@@ -4,29 +4,6 @@ using namespace std;
 using Point = tuple<int, int, int>;
 using Brick = vector<Point>;
 
-template <typename T>
-ostream &operator<<(ostream &os, const tuple<T, T, T> &p) {
-    const auto [x, y, z] = p;
-    os << '(' << x << ' ' << y << ' ' << z << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -38,10 +15,6 @@ vector<string> split(const string &delim_regex, const string &s) {
     return vector<string>(sregex_token_iterator(cbegin(s), cend(s), r, -1),
                           sregex_token_iterator{});
 }
-
-constexpr int X(const Point &p) { return get<0>(p); }
-constexpr int Y(const Point &p) { return get<1>(p); }
-constexpr int Z(const Point &p) { return get<2>(p); }
 
 Point parse_point(const string &s) {
     const auto tokens = split(",", s);
@@ -62,7 +35,7 @@ vector<Point> all_voxels(const Point &pa, const Point &pb) {
 }
 
 constexpr tuple<int, int, int> zxy(const Point &p) {
-    return {Z(p), X(p), Y(p)};
+    return {get<2>(p), get<0>(p), get<1>(p)};
 }
 
 constexpr bool cmp_by_z(const Point &p, const Point &q) {
