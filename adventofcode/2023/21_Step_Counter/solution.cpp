@@ -30,33 +30,6 @@ constexpr pair<T, T> operator+(const pair<T, T> a, const pair<T, T> b) {
     return {a.first + b.first, a.second + b.second};
 }
 
-using lll = __int128_t;
-using ulll = __uint128_t;
-
-ostream &operator<<(ostream &dest, const lll value) {
-    ostream::sentry s(dest);
-    if (s) {
-        ulll tmp = value < 0 ? -value : value;
-        char buffer[128];
-        char *d = end(buffer);
-
-        do {
-            --d;
-            *d = "0123456789"[tmp % 10];
-            tmp /= 10;
-        } while (tmp != 0);
-
-        if (value < 0) {
-            --d;
-            *d = '-';
-        }
-
-        const int len = static_cast<int>(end(buffer) - d);
-        if (dest.rdbuf()->sputn(d, len) != len) dest.setstate(ios_base::badbit);
-    }
-    return dest;
-}
-
 int main() {
     vector<string> grid;
     for (string line; getline(cin, line);) {
@@ -144,7 +117,5 @@ int main() {
     const auto X = (FinalStep - M / 2) / M;
     cout << F(X) << '\n';
 
-    const lll boo = 3485762934540395;
-    cerr << (boo * boo) << endl;
     return 0;
 }
