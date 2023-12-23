@@ -43,12 +43,15 @@ int main() {
                            const Roco p) -> void {
         assert(visited[p.first][p.second]);
         if (p == dst) {
-            result =
-                max(result, transform_reduce(cbegin(visited), cend(visited), 0,
-                                             plus<int>{}, [](const auto &row) {
-                                                 return count(cbegin(row),
-                                                              cend(row), true);
-                                             }));
+            const auto potential =
+                transform_reduce(cbegin(visited), cend(visited), 0, plus<int>{},
+                                 [](const auto &row) {
+                                     return count(cbegin(row), cend(row), true);
+                                 });
+            if (potential > result) {
+                cerr << "New record: " << potential << endl;
+                result = potential;
+            }
             return;
         }
 
