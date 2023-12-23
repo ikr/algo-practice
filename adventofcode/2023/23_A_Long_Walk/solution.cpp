@@ -52,11 +52,11 @@ int main() {
 
             if (cell == '#') continue;
 
-            const auto dir = dir_of(delta);
-            if (cell == '>' && dir != Dir::Right) continue;
-            if (cell == 'v' && dir != Dir::Down) continue;
-            if (cell == '<' && dir != Dir::Left) continue;
-            if (cell == '^' && dir != Dir::Up) continue;
+            // const auto dir = dir_of(delta);
+            // if (cell == '>' && dir != Dir::Right) continue;
+            // if (cell == 'v' && dir != Dir::Down) continue;
+            // if (cell == '<' && dir != Dir::Left) continue;
+            // if (cell == '^' && dir != Dir::Up) continue;
 
             ans.push_back(q);
         }
