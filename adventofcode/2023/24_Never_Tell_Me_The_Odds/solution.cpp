@@ -1,76 +1,37 @@
-#include <CGAL/Simple_cartesian.h>
 #include <bits/stdc++.h>
 using namespace std;
 
-using Kernel = CGAL::Simple_cartesian<long double>;
-using Point_2 = Kernel::Point_2;
-using Segment_2 = Kernel::Segment_2;
+using lll = __int128_t;
+using ulll = __uint128_t;
+using Coord = tuple<lll, lll, lll>;
 
-namespace kactl {
-template <class T> int sgn(T x) { return (x > 0) - (x < 0); }
-template <class T> struct Point {
-    typedef Point P;
-    T x, y;
-    explicit Point(T x_ = 0, T y_ = 0) : x(x_), y(y_) {}
-    bool operator<(P p) const { return tie(x, y) < tie(p.x, p.y); }
-    bool operator==(P p) const { return tie(x, y) == tie(p.x, p.y); }
-    P operator+(P p) const { return P(x + p.x, y + p.y); }
-    P operator-(P p) const { return P(x - p.x, y - p.y); }
-    P operator*(T d) const { return P(x * d, y * d); }
-    P operator/(T d) const { return P(x / d, y / d); }
-    T dot(P p) const { return x * p.x + y * p.y; }
-    T cross(P p) const { return x * p.y - y * p.x; }
-    T cross(P a, P b) const { return (a - *this).cross(b - *this); }
-    T dist2() const { return x * x + y * y; }
-    double dist() const { return sqrt((double)dist2()); }
-    // angle to x-axis in interval [-pi, pi]
-    double angle() const { return atan2(y, x); }
-    P unit() const { return *this / dist(); } // makes dist()=1
-    P perp() const { return P(-y, x); }       // rotates +90 degrees
-    P normal() const { return perp().unit(); }
-    // returns point rotated 'a' radians ccw around the origin
-    P rotate(double a) const {
-        return P(x * cos(a) - y * sin(a), x * sin(a) + y * cos(a));
+ostream &operator<<(ostream &dest, const lll value) {
+    ostream::sentry s(dest);
+    if (s) {
+        ulll tmp = value < 0 ? -value : value;
+        char buffer[128];
+        char *d = end(buffer);
+
+        do {
+            --d;
+            *d = "0123456789"[tmp % 10];
+            tmp /= 10;
+        } while (tmp != 0);
+
+        if (value < 0) {
+            --d;
+            *d = '-';
+        }
+
+        const int len = static_cast<int>(end(buffer) - d);
+        if (dest.rdbuf()->sputn(d, len) != len) dest.setstate(ios_base::badbit);
     }
-    friend ostream &operator<<(ostream &os, P p) {
-        return os << "(" << p.x << "," << p.y << ")";
-    }
-};
-
-template <class P> pair<int, P> line_inter(P s1, P e1, P s2, P e2) {
-    auto d = (e1 - s1).cross(e2 - s2);
-    if (d == 0) // if parallel
-        return {-(s1.cross(e1, s2) == 0), P(0, 0)};
-    auto p = s2.cross(e1, e2), q = s2.cross(e2, s1);
-    return {1, (s1 * p + e1 * q) / d};
-}
-} // namespace kactl
-
-using Point2D = kactl::Point<long double>;
-using ll = long long;
-using Coord = tuple<ll, ll, ll>;
-
-// static constexpr long double TestAreaLo = 7;
-// static constexpr long double TestAreaHi = 27;
-
-static constexpr long double TestAreaLo = 200000000000000.0;
-static constexpr long double TestAreaHi = 400000000000000.0;
-
-constexpr bool is_within_test_area(const long double a) {
-    return TestAreaLo <= a && a <= TestAreaHi;
+    return dest;
 }
 
-constexpr bool is_within_test_area(const Point2D &p) {
-    return is_within_test_area(p.x) && is_within_test_area(p.y);
-}
-
-const bool are_codirected(const Point2D &v1, const Point2D &v2) {
-    return v1.dot(v2) > 0.0;
-}
-
-constexpr ll X(const Coord &p) { return get<0>(p); }
-constexpr ll Y(const Coord &p) { return get<1>(p); }
-constexpr ll Z(const Coord &p) { return get<2>(p); }
+constexpr lll X(const Coord &p) { return get<0>(p); }
+constexpr lll Y(const Coord &p) { return get<1>(p); }
+constexpr lll Z(const Coord &p) { return get<2>(p); }
 
 ostream &operator<<(ostream &os, const Coord &p) {
     os << '(' << X(p) << ' ' << Y(p) << ' ' << Z(p) << ')';
@@ -81,10 +42,14 @@ constexpr Coord operator+(const Coord &a, const Coord &b) {
     return {X(a) + X(b), Y(a) + Y(b), Z(a) + Z(b)};
 }
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
+constexpr Coord scaled_by(const Coord &a, const lll k) {
+    return {X(a) * k, Y(a) * k, Z(a) * k};
+};
+
+constexpr lll sqr(const lll a) { return a * a; }
+
+constexpr lll dist2(const Coord &a, const Coord &b) {
+    return sqr(X(a) - X(b)) + sqr(Y(a) - Y(b)) + sqr(Z(a) - Z(b));
 }
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
@@ -126,38 +91,6 @@ int main() {
 
     cerr << initial_locations << endl;
     cerr << velocities << endl;
-
-    int pairwise_intersections_count{};
-    for (int i = 0; i < sz(initial_locations) - 1; ++i) {
-        for (int j = i + 1; j < sz(initial_locations); ++j) {
-            const auto s1 =
-                Point2D(X(initial_locations[i]), Y(initial_locations[i]));
-            const auto v1 = Point2D(X(velocities[i]), Y(velocities[i]));
-
-            const auto s2 =
-                Point2D(X(initial_locations[j]), Y(initial_locations[j]));
-            const auto v2 = Point2D(X(velocities[j]), Y(velocities[j]));
-
-            const auto [outcome, p] =
-                kactl::line_inter(s1, s1 + v1, s2, s2 + v2);
-
-            cerr << "i:" << i << " j:" << j << " outcome:" << outcome
-                 << " p:" << p << endl;
-
-            if (outcome != 0 && is_within_test_area(p) &&
-                are_codirected(p - s1, v1) && are_codirected(p - s2, v2)) {
-                ++pairwise_intersections_count;
-            }
-        }
-    }
-    cout << pairwise_intersections_count << '\n';
-
-    Point_2 p(1, 1), q(10, 10);
-    Segment_2 s(p, q);
-    Point_2 m(5, 9);
-    std::cout << "m = " << m << std::endl;
-    std::cout << "sqdist(Segment_2(p,q), m) = " << CGAL::squared_distance(s, m)
-              << std::endl;
 
     return 0;
 }
