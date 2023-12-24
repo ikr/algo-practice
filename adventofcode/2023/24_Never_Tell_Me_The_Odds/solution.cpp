@@ -1,5 +1,10 @@
+#include <CGAL/Simple_cartesian.h>
 #include <bits/stdc++.h>
 using namespace std;
+
+using Kernel = CGAL::Simple_cartesian<long double>;
+using Point_2 = Kernel::Point_2;
+using Segment_2 = Kernel::Segment_2;
 
 namespace kactl {
 template <class T> int sgn(T x) { return (x > 0) - (x < 0); }
@@ -146,5 +151,13 @@ int main() {
         }
     }
     cout << pairwise_intersections_count << '\n';
+
+    Point_2 p(1, 1), q(10, 10);
+    Segment_2 s(p, q);
+    Point_2 m(5, 9);
+    std::cout << "m = " << m << std::endl;
+    std::cout << "sqdist(Segment_2(p,q), m) = " << CGAL::squared_distance(s, m)
+              << std::endl;
+
     return 0;
 }
