@@ -49,6 +49,46 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
+constexpr pii normalize(const pii ab) {
+    return {min(ab.first, ab.second), max(ab.first, ab.second)};
+}
+
+optional<pii> find_bridge(const vector<vector<int>> &adj,
+                          const set<pii> &skip_edges) {
+    const auto n = sz(adj);
+    optional<pii> result;
+    vector<bool> visited(n, false);
+    vector<int> tin(n, -1);
+    vector<int> low(n, -1);
+    int timer{};
+
+    const auto recur = [&](const auto self, const int p, const int u) -> void {
+        visited[u] = true;
+        tin[u] = low[u] = timer++;
+        for (const auto v : adj[u]) {
+            if (v == p || skip_edges.contains(normalize({u, v}))) {
+                continue;
+            }
+
+            if (visited[v]) {
+                low[u] = min(low[u], tin[v]);
+            } else {
+                self(self, u, v);
+                low[u] = min(low[u], low[v]);
+                if (low[v] > tin[u]) {
+                    result = normalize({u, v});
+                }
+            }
+        }
+    };
+
+    for (int v = 0; v < n; ++v) {
+        if (!visited[v]) recur(recur, -1, v);
+    }
+
+    return result;
+}
+
 int main() {
     vector<string> ids;
     map<string, int> codes_by_id;
@@ -66,40 +106,63 @@ int main() {
         const auto tokens = split(" ", parts[1]);
 
         for (const auto &id : tokens) {
-            edges.emplace_back(assigned_code(parts[0]), assigned_code(id));
+            auto u = assigned_code(parts[0]);
+            auto v = assigned_code(id);
+            cerr << parts[0] << " -> " << id << endl;
+            edges.push_back(normalize({u, v}));
         }
     }
+    ranges::sort(edges);
 
     cerr << "ids: " << ids << endl;
     cerr << "codes_by_id: " << codes_by_id << endl;
-    cerr << "edges: " << edges << endl;
+    cerr << sz(edges) << " edges: " << edges << endl << endl;
 
     const auto n = sz(ids);
 
-    const auto graph_without_3_edges = [&](const int i1, const int i2,
-                                           const int i3) -> atcoder::dsu {
-        atcoder::dsu result(n);
-        for (int i = 0; i < sz(edges); ++i) {
-            if (i != i1 && i != i2 && i != i3) {
-                result.merge(edges[i].first, edges[i].second);
-            }
+    const auto components =
+        [&](const set<int> &skip_edge_indices) -> vector<vector<int>> {
+        atcoder::dsu dsu(n);
+        for (int index = 0; index < sz(edges); ++index) {
+            if (skip_edge_indices.contains(index)) continue;
+            const auto [u, v] = edges[index];
+            dsu.merge(u, v);
         }
-        return result;
+        return dsu.groups();
     };
 
-    for (int i = 0; i < sz(edges) - 2; ++i) {
-        for (int j = 0; j < sz(edges) - 1; ++j) {
-            for (int k = 0; k < sz(edges); ++k) {
-                auto g = graph_without_3_edges(i, j, k);
-                const auto cs = g.groups();
-                if (sz(cs) == 2) {
-                    cerr << "Components in a split: " << sz(cs) << endl;
-                    cerr << cs << endl;
-                    cout << sz(cs[0]) * sz(cs[1]) << '\n';
+    cerr << "Initial components:\n" << components({}) << endl;
+
+    vector<vector<int>> adj(n);
+    for (const auto &[u, v] : edges) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    const auto ijk = [&]() -> optional<tuple<int, int, int>> {
+        for (int i = 0; i < sz(edges) - 1; ++i) {
+            for (int j = i + 1; j < sz(edges); ++j) {
+                const auto bridge = find_bridge(adj, {edges[i], edges[j]});
+                if (bridge) {
+                    const auto k =
+                        inof(ranges::find(edges, *bridge) - cbegin(edges));
+                    return tuple{i, j, k};
                 }
             }
         }
-    }
+        return nullopt;
+    }();
 
+    if (ijk) {
+        const auto [i, j, k] = *ijk;
+        cerr << "Found " << i << ' ' << j << ' ' << k << endl;
+
+        const auto cs = components({i, j, k});
+        cerr << cs << endl;
+        assert(sz(cs) == 2);
+        cout << sz(cs[0]) * sz(cs[1]) << '\n';
+    } else {
+        cerr << "Not found :(" << endl;
+    }
     return 0;
 }
