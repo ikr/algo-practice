@@ -4,8 +4,6 @@ using namespace std;
 
 using pii = pair<int, int>;
 
-static constexpr int NumCodes = 26 * 26 * 26;
-
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
     os << '(' << x.first << ' ' << x.second << ')';
@@ -28,6 +26,17 @@ ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
     return os;
 }
 
+template <typename K, typename V>
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+    os << '{';
+    for (auto i = m.cbegin(); i != m.cend(); ++i) {
+        if (i != m.cbegin()) os << ' ';
+        os << '(' << i->first << ' ' << i->second << ')';
+    }
+    os << '}';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -40,44 +49,36 @@ vector<string> split(const string &delim_regex, const string &s) {
                           sregex_token_iterator{});
 }
 
-constexpr int code_of(const string &id) {
-    assert(sz(id) == 3);
-    int result{};
-    for (int i = 0; i < 3; ++i) {
-        assert('a' <= id[i] && id[i] <= 'z');
-        result *= 26;
-        result += id[i] - 'a';
-    }
-    return result;
-}
-
-vector<int> component_sizes_greagter_than_1(atcoder::dsu g) {
-    const auto cs = g.groups();
-    cerr << cs << endl;
-    vector<int> result;
-    for (const auto &c : cs) {
-        if (sz(c) > 1) {
-            result.push_back(sz(c));
-        }
-    }
-    return result;
-}
-
 int main() {
+    vector<string> ids;
+    map<string, int> codes_by_id;
     vector<pii> edges;
+
+    const auto assigned_code = [&](const string &id) -> int {
+        if (codes_by_id.contains(id)) return codes_by_id.at(id);
+        codes_by_id.emplace(id, sz(ids));
+        ids.push_back(id);
+        return codes_by_id.at(id);
+    };
 
     for (string line; getline(cin, line);) {
         const auto parts = split(": ", line);
         const auto tokens = split(" ", parts[1]);
 
-        vector<int> vcodes(sz(tokens));
-        ranges::transform(tokens, begin(vcodes), code_of);
-        for (const auto vc : vcodes) edges.emplace_back(code_of(parts[0]), vc);
+        for (const auto &id : tokens) {
+            edges.emplace_back(assigned_code(parts[0]), assigned_code(id));
+        }
     }
+
+    cerr << "ids: " << ids << endl;
+    cerr << "codes_by_id: " << codes_by_id << endl;
+    cerr << "edges: " << edges << endl;
+
+    const auto n = sz(ids);
 
     const auto graph_without_3_edges = [&](const int i1, const int i2,
                                            const int i3) -> atcoder::dsu {
-        atcoder::dsu result(NumCodes);
+        atcoder::dsu result(n);
         for (int i = 0; i < sz(edges); ++i) {
             if (i != i1 && i != i2 && i != i3) {
                 result.merge(edges[i].first, edges[i].second);
@@ -89,10 +90,12 @@ int main() {
     for (int i = 0; i < sz(edges) - 2; ++i) {
         for (int j = 0; j < sz(edges) - 1; ++j) {
             for (int k = 0; k < sz(edges); ++k) {
-                const auto ss = component_sizes_greagter_than_1(
-                    graph_without_3_edges(i, j, k));
-                if (sz(ss) == 2) {
-                    cout << accumulate(cbegin(ss), cend(ss), 1) << '\n';
+                auto g = graph_without_3_edges(i, j, k);
+                const auto cs = g.groups();
+                if (sz(cs) == 2) {
+                    cerr << "Components in a split: " << sz(cs) << endl;
+                    cerr << cs << endl;
+                    cout << sz(cs[0]) * sz(cs[1]) << '\n';
                 }
             }
         }
