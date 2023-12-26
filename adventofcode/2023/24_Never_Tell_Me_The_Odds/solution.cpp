@@ -56,55 +56,46 @@ Coord parse_coord(const string &s) {
     return {stoll(token[0]), stoll(token[1]), stoll(token[2])};
 }
 
-int main() {
-    vector<Coord> initial_locations;
-    vector<Coord> velocities;
-
-    for (string line; getline(cin, line);) {
-        const auto parts = split(" @ ", line);
-        initial_locations.push_back(parse_coord(parts[0]));
-        velocities.push_back(parse_coord(parts[1]));
-    }
-    cerr << initial_locations << '\n' << velocities << endl;
-
+void smt_solve(const Coord &p1, const Coord &v1, const Coord &p2,
+               const Coord &v2, const Coord &p3, const Coord &v3) {
     z3::config cfg;
     cfg.set("auto_config", true);
     z3::context c(cfg);
 
     // Input data values
-    auto p1x = c.real_val(initial_locations[0][0]);
-    auto p1y = c.real_val(initial_locations[0][1]);
-    auto p1z = c.real_val(initial_locations[0][2]);
-    auto v1x = c.real_val(velocities[0][0]);
-    auto v1y = c.real_val(velocities[0][1]);
-    auto v1z = c.real_val(velocities[0][2]);
+    auto p1x = c.int_val(p1[0]);
+    auto p1y = c.int_val(p1[1]);
+    auto p1z = c.int_val(p1[2]);
+    auto v1x = c.int_val(v1[0]);
+    auto v1y = c.int_val(v1[1]);
+    auto v1z = c.int_val(v1[2]);
 
-    auto p2x = c.real_val(initial_locations[1][0]);
-    auto p2y = c.real_val(initial_locations[1][1]);
-    auto p2z = c.real_val(initial_locations[1][2]);
-    auto v2x = c.real_val(velocities[1][0]);
-    auto v2y = c.real_val(velocities[1][1]);
-    auto v2z = c.real_val(velocities[1][2]);
+    auto p2x = c.int_val(p2[0]);
+    auto p2y = c.int_val(p2[1]);
+    auto p2z = c.int_val(p2[2]);
+    auto v2x = c.int_val(v2[0]);
+    auto v2y = c.int_val(v2[1]);
+    auto v2z = c.int_val(v2[2]);
 
-    auto p3x = c.real_val(initial_locations[2][0]);
-    auto p3y = c.real_val(initial_locations[2][1]);
-    auto p3z = c.real_val(initial_locations[2][2]);
-    auto v3x = c.real_val(velocities[2][0]);
-    auto v3y = c.real_val(velocities[2][1]);
-    auto v3z = c.real_val(velocities[2][2]);
+    auto p3x = c.int_val(p3[0]);
+    auto p3y = c.int_val(p3[1]);
+    auto p3z = c.int_val(p3[2]);
+    auto v3x = c.int_val(v3[0]);
+    auto v3y = c.int_val(v3[1]);
+    auto v3z = c.int_val(v3[2]);
 
     // Unknowns
-    z3::expr p0x = c.real_const("p0x");
-    z3::expr p0y = c.real_const("p0y");
-    z3::expr p0z = c.real_const("p0z");
+    z3::expr p0x = c.int_const("p0x");
+    z3::expr p0y = c.int_const("p0y");
+    z3::expr p0z = c.int_const("p0z");
 
-    z3::expr v0x = c.real_const("v0x");
-    z3::expr v0y = c.real_const("v0y");
-    z3::expr v0z = c.real_const("v0z");
+    z3::expr v0x = c.int_const("v0x");
+    z3::expr v0y = c.int_const("v0y");
+    z3::expr v0z = c.int_const("v0z");
 
-    z3::expr t1 = c.real_const("t1");
-    z3::expr t2 = c.real_const("t2");
-    z3::expr t3 = c.real_const("t3");
+    z3::expr t1 = c.int_const("t1");
+    z3::expr t2 = c.int_const("t2");
+    z3::expr t3 = c.int_const("t3");
 
     z3::solver s(c);
     // p0 + t1 * v0 = p1 + t1 * v1
@@ -122,21 +113,47 @@ int main() {
     s.add(p2y + t2 * v2y + t3 * v0y == p3y + t3 * v3y);
     s.add(p2z + t2 * v2z + t3 * v0z == p3z + t3 * v3z);
 
-    s.add(t1 > 0);
-    s.add(t2 > 0);
-    s.add(t3 > 0);
+    s.add(t1 >= 0);
+    s.add(t2 >= 0);
+    s.add(t3 >= 0);
 
-    std::cout << "check:" << s.check() << "\n";
-    z3::model m = s.get_model();
-    std::cout << m << "\n";
-    z3::set_param("pp.decimal", true); // set decimal notation
-    std::cout << "model in decimal notation\n";
-    std::cout << m << "\n";
-    z3::set_param("pp.decimal-precision",
-                  50); // increase number of decimal places to 50.
-    std::cout << "model using 50 decimal places\n";
-    std::cout << m << "\n";
-    z3::set_param("pp.decimal", false); // disable decimal notation
+    if (s.check() != z3::sat) return;
+    z3::set_param("pp.decimal", true);
+    auto m = s.get_model();
+    cout << m << "\n\n";
+}
+
+int main() {
+    vector<Coord> initial_locations;
+    vector<Coord> velocities;
+
+    for (string line; getline(cin, line);) {
+        const auto parts = split(" @ ", line);
+        initial_locations.push_back(parse_coord(parts[0]));
+        velocities.push_back(parse_coord(parts[1]));
+    }
+    cerr << initial_locations << '\n' << velocities << endl;
+
+    const auto n = sz(initial_locations);
+    for (int i = 0; i < n - 2; ++i) {
+        for (int j = i + 1; j < n - 1; ++j) {
+            for (int k = j + 1; k < n; ++k) {
+                array indices{i, j, k};
+                do {
+                    const auto p1 = initial_locations[indices[0]];
+                    const auto v1 = velocities[indices[0]];
+
+                    const auto p2 = initial_locations[indices[1]];
+                    const auto v2 = velocities[indices[1]];
+
+                    const auto p3 = initial_locations[indices[2]];
+                    const auto v3 = velocities[indices[2]];
+
+                    smt_solve(p1, v1, p2, v2, p3, v3);
+                } while (next_permutation(begin(indices), end(indices)));
+            }
+        }
+    }
 
     return 0;
 }
