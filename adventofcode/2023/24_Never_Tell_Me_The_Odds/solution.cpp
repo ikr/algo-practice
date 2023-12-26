@@ -1,3 +1,4 @@
+#include "z3++.h"
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -65,5 +66,32 @@ int main() {
         velocities.push_back(parse_coord(parts[1]));
     }
     cerr << initial_locations << '\n' << velocities << endl;
+
+    std::cout << "nonlinear example 1\n";
+    z3::config cfg;
+    cfg.set("auto_config", true);
+    z3::context c(cfg);
+
+    z3::expr x = c.real_const("x");
+    z3::expr y = c.real_const("y");
+    z3::expr z = c.real_const("z");
+
+    z3::solver s(c);
+
+    s.add(x * x + y * y == 1);                        // x^2 + y^2 == 1
+    s.add(x * x * x + z * z * z < c.real_val("1/2")); // x^3 + z^3 < 1/2
+    s.add(z != 0);
+    std::cout << s.check() << "\n";
+    z3::model m = s.get_model();
+    std::cout << m << "\n";
+    z3::set_param("pp.decimal", true); // set decimal notation
+    std::cout << "model in decimal notation\n";
+    std::cout << m << "\n";
+    z3::set_param("pp.decimal-precision",
+                  50); // increase number of decimal places to 50.
+    std::cout << "model using 50 decimal places\n";
+    std::cout << m << "\n";
+    z3::set_param("pp.decimal", false); // disable decimal notation
+
     return 0;
 }
