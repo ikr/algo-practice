@@ -3,30 +3,24 @@ using namespace std;
 
 using ll = long long;
 
-using Coord = tuple<ll, ll, ll>;
-
-constexpr ll X(const Coord &p) { return get<0>(p); }
-constexpr ll Y(const Coord &p) { return get<1>(p); }
-constexpr ll Z(const Coord &p) { return get<2>(p); }
+using Coord = array<ll, 3>;
 
 ostream &operator<<(ostream &os, const Coord &p) {
-    os << '(' << X(p) << ' ' << Y(p) << ' ' << Z(p) << ')';
+    os << '(' << p[0] << ' ' << p[1] << ' ' << p[2] << ')';
     return os;
 }
 
-constexpr Coord operator+(const Coord &a, const Coord &b) {
-    return {X(a) + X(b), Y(a) + Y(b), Z(a) + Z(b)};
+template <typename T> constexpr T operator+(T a, const T &b) {
+    assert(a.size() == b.size());
+    ranges::transform(a, b, begin(a),
+                      [](const auto x, const auto y) { return x + y; });
+    return a;
 }
 
-constexpr Coord scaled_by(const Coord &a, const ll k) {
-    return {X(a) * k, Y(a) * k, Z(a) * k};
+constexpr Coord scaled_by(Coord p, const ll k) {
+    ranges::transform(p, begin(p), [k](const auto a) { return a * k; });
+    return p;
 };
-
-constexpr ll sqr(const ll a) { return a * a; }
-
-constexpr ll dist2(const Coord &a, const Coord &b) {
-    return sqr(X(a) - X(b)) + sqr(Y(a) - Y(b)) + sqr(Z(a) - Z(b));
-}
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
