@@ -103,15 +103,15 @@ void smt_solve(const Coord &p1, const Coord &v1, const Coord &p2,
     s.add(p0y + t1 * v0y == p1y + t1 * v1y);
     s.add(p0z + t1 * v0z == p1z + t1 * v1z);
 
-    // p1 + t1 * v1 + t2 * v0 = p2 + t2 * v2
-    s.add(p1x + t1 * v1x + t2 * v0x == p2x + t2 * v2x);
-    s.add(p1y + t1 * v1y + t2 * v0y == p2y + t2 * v2y);
-    s.add(p1z + t1 * v1z + t2 * v0z == p2z + t2 * v2z);
+    // p1 + t1 * v1 + t2 * v0 = p2 + (t1 + t2) * v2
+    s.add(p1x + t1 * v1x + t2 * v0x == p2x + (t1 + t2) * v2x);
+    s.add(p1y + t1 * v1y + t2 * v0y == p2y + (t1 + t2) * v2y);
+    s.add(p1z + t1 * v1z + t2 * v0z == p2z + (t1 + t2) * v2z);
 
-    // p2 + t2 * v2 + t3 * v0 = p3 + t3 * v3
-    s.add(p2x + t2 * v2x + t3 * v0x == p3x + t3 * v3x);
-    s.add(p2y + t2 * v2y + t3 * v0y == p3y + t3 * v3y);
-    s.add(p2z + t2 * v2z + t3 * v0z == p3z + t3 * v3z);
+    // p2 + (t1 + t2) * v2 + t3 * v0 = p3 + (t1 + t2 + t3) * v3
+    s.add(p2x + (t1 + t2) * v2x + t3 * v0x == p3x + (t1 + t2 + t3) * v3x);
+    s.add(p2y + (t1 + t2) * v2y + t3 * v0y == p3y + (t1 + t2 + t3) * v3y);
+    s.add(p2z + (t1 + t2) * v2z + t3 * v0z == p3z + (t1 + t2 + t3) * v3z);
 
     s.add(t1 >= 0);
     s.add(t2 >= 0);
