@@ -11,15 +11,39 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 bool is_possible(const vector<ll> &xs) {
     const auto n = sz(xs);
-    vector<ll> evs(n, 0);
-    vector<ll> ods(n, 0);
-    for (int i = 0; i < n; ++i) {
-        if (i % 2 == 0) {
-            evs[i] = xs[i];
+    if (n == 1) return false;
+
+    int i = 0;
+    ll ev = xs[0];
+    int j = 1;
+    ll od = xs[1];
+
+    for (;;) {
+        if (ev == od) return true;
+        if (j + 1 >= n) return false;
+
+        auto ev_ = ev;
+        auto od_ = od;
+        if ((j + 1) % 2) {
+            od_ += xs[j + 1];
         } else {
-            ods[i] = xs[i];
+            ev_ += xs[j + 1];
+        }
+
+        if (abs(xs[j] - xs[j + 1]) <= abs(ev_ - od_)) {
+            i = j;
+            j = j + 1;
+            ev = i % 2 ? xs[j] : xs[i];
+            od = i % 2 ? xs[i] : xs[j];
+        } else {
+            ++j;
+            ev = ev_;
+            od = od_;
         }
     }
+
+    assert(false && "/o\\");
+    return false;
 }
 
 int main() {
