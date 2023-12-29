@@ -1,29 +1,8 @@
+#include <atcoder/fenwicktree>
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
 
-template <typename T1, typename T2>
-ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
-    os << '(' << x.first << ' ' << x.second << ')';
-    return os;
-}
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-using namespace __gnu_pbds;
-template <typename T>
-using ordered_set =
-    tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
-
+using ll = long long;
 using pii = pair<int, int>;
 
 template <typename T> constexpr int inof(const T x) {
@@ -32,20 +11,33 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-int num_greetings(vector<pii> AB) {
+ll num_greetings(vector<pii> AB) {
+    vector<int> M;
+    M.reserve(sz(AB) * 2);
+    for (const auto &[a, b] : AB) {
+        M.push_back(a);
+        M.push_back(b);
+    }
+    ranges::sort(M);
+
+    map<int, int> idx;
+    for (int i = 0; i < sz(M); ++i) idx[M[i]] = i;
+
     ranges::sort(AB, [](const auto &lhs, const auto &rhs) {
-        return pair{lhs, lhs.second - lhs.first} <
-               pair{rhs, rhs.second - rhs.first};
+        return lhs.second - lhs.first < rhs.second - rhs.first;
     });
 
-    int result{};
-    ordered_set<int> as;
-    ordered_set<int> bs;
+    ll result{};
+    atcoder::fenwick_tree<int> fw(sz(M));
     for (const auto &[a, b] : AB) {
-        as.insert(a);
-        bs.insert(b);
-        result += min(inof(bs.order_of_key(b)),
-                      sz(as) - inof(as.order_of_key(a) - 1));
+        cerr << "Arrival " << a << " -> " << b << endl;
+        const auto i = idx.at(a);
+        const auto j = idx.at(b);
+        assert(i < j);
+
+        cerr << "Met " << fw.sum(i, j) << " previously arrived" << endl;
+        result += fw.sum(i, j);
+        fw.add(j, 1);
     }
     return result;
 }
