@@ -82,12 +82,24 @@ fn main() {
     skip_input_line();
     let ruleset = read_ruleset();
     let mut state = state_from_source(&iss);
+    println!("{:?}", state);
 
-    for _ in 0..20 {
+    let initial_reps = 1000;
+
+    for _ in 1..=initial_reps {
         state = evolve(&ruleset, &state);
+        println!("{:?}", state);
     }
 
-    let result: i32 = state.iter().sum();
+    let frame_size: i64 = state.len() as i64;
+    let lo0: i64 = state.first().unwrap().clone() as i64;
+    let step: i64 = state.iter().nth(1).unwrap().clone() as i64 - lo0;
+
+    let total_reps = 50000000000i64;
+
+    let lo: i64 = lo0 + total_reps - initial_reps;
+    let hi: i64 = lo + step * (frame_size - 1);
+    let result = frame_size * (lo + hi) / 2i64;
     println!("{}", result);
 }
 
