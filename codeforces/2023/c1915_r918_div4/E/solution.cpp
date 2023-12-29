@@ -29,6 +29,37 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+bool brute_force(const vector<ll> &xs) {
+    const auto n = sz(xs);
+    if (n == 1) return true;
+
+    const auto ev_sum = [&](const int i, const int j) -> ll {
+        assert(i <= j && 0 <= i && j < n);
+        ll result{};
+        for (int k = i; k <= j; ++k) {
+            if (k % 2 == 0) result += xs[k];
+        }
+        return result;
+    };
+
+    const auto od_sum = [&](const int i, const int j) -> ll {
+        assert(i <= j && 0 <= i && j < n);
+        ll result{};
+        for (int k = i; k <= j; ++k) {
+            if (k % 2) result += xs[k];
+        }
+        return result;
+    };
+
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            if (ev_sum(i, j) == od_sum(i, j)) return true;
+        }
+    }
+
+    return false;
+}
+
 bool is_possible(const vector<ll> &xs) {
     const auto n = sz(xs);
     if (n == 1) return false;
@@ -55,7 +86,7 @@ bool is_possible(const vector<ll> &xs) {
         if (i && xs[i - 1] == xs[i]) return true;
         if (oss[i] == ess[i]) return true;
         const auto cur = oss[i] - ess[i];
-        if (dif.contains(-cur)) {
+        if (dif.contains(cur)) {
             // cerr << "i:" << i << " dif:" << dif << endl;
             return true;
         }
@@ -77,6 +108,7 @@ int main() {
         vector<ll> xs(n);
         for (auto &x : xs) cin >> x;
 
+        // assert(is_possible(xs) == brute_force(xs));
         cout << (is_possible(xs) ? "YES" : "NO") << '\n';
     }
 
