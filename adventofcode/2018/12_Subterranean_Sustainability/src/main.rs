@@ -33,9 +33,24 @@ fn parse_rule(s: &str) -> (u8, bool) {
     (parse_neigh_bits(tokens[0]), tokens[1] == "#")
 }
 
+fn read_ruleset() -> [bool; 32] {
+    let mut result: [bool; 32] = [false; 32];
+    for bits in 0..31 {
+        result[bits] = (bits & (1 << 2)) != 0;
+    }
+
+    for line in io::stdin().lock().lines() {
+        let (bits, outcome) = parse_rule(&line.unwrap().trim_end());
+        result[bits as usize] = outcome
+    }
+    result
+}
+
 fn main() {
     println!("{}", read_initial_state_source());
     skip_input_line();
+    let ruleset = read_ruleset();
+    println!("{:?}", ruleset);
 }
 
 #[cfg(test)]
