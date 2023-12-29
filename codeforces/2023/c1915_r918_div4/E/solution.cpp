@@ -52,6 +52,7 @@ bool is_possible(const vector<ll> &xs) {
     set<ll> dif;
 
     for (int i = 0; i < n; ++i) {
+        if (i && xs[i - 1] == xs[i]) return true;
         if (oss[i] == ess[i]) return true;
         const auto cur = oss[i] - ess[i];
         if (dif.contains(-cur)) {
