@@ -36,9 +36,9 @@ fn parse_rule(s: &str) -> (u8, bool) {
 
 fn read_ruleset() -> [bool; 32] {
     let mut result: [bool; 32] = [false; 32];
-    for bits in 0..31 {
-        result[bits] = (bits & (1 << 2)) != 0;
-    }
+    // for bits in 0..31 {
+    //     result[bits] = (bits & (1 << 2)) != 0;
+    // }
 
     for line in io::stdin().lock().lines() {
         let (bits, outcome) = parse_rule(&line.unwrap().trim_end());
@@ -73,8 +73,7 @@ fn evolve(ruleset: &[bool; 32], state: &BTreeSet<i32>) -> BTreeSet<i32> {
     let hi = state.last().unwrap_or(&0).clone();
 
     for i in lo..=hi {
-        let bits = current_bits_at(state, i);
-        if ruleset[bits as usize] {
+        if ruleset[current_bits_at(state, i) as usize] {
             result.insert(i + 2);
         }
     }
@@ -87,6 +86,7 @@ fn main() {
     skip_input_line();
     let ruleset = read_ruleset();
     let mut state = state_from_source(&iss);
+    println!("Initial state: {:?}", state);
 
     for _ in 0..20 {
         state = evolve(&ruleset, &state);
