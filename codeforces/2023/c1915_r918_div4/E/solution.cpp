@@ -13,36 +13,33 @@ bool is_possible(const vector<ll> &xs) {
     const auto n = sz(xs);
     if (n == 1) return false;
 
-    int i = 0;
-    ll ev = xs[0];
-    int j = 1;
-    ll od = xs[1];
-
-    for (;;) {
-        if (ev == od) return true;
-        if (j + 1 >= n) return false;
-
-        auto ev_ = ev;
-        auto od_ = od;
-        if ((j + 1) % 2) {
-            od_ += xs[j + 1];
+    vector<ll> evs(n, 0);
+    vector<ll> ods(n, 0);
+    for (int i = 0; i < n; ++i) {
+        if (i % 2 == 0) {
+            evs[i] = xs[i];
         } else {
-            ev_ += xs[j + 1];
-        }
-
-        if (abs(xs[j] - xs[j + 1]) <= abs(ev_ - od_)) {
-            i = j;
-            j = j + 1;
-            ev = i % 2 ? xs[j] : xs[i];
-            od = i % 2 ? xs[i] : xs[j];
-        } else {
-            ++j;
-            ev = ev_;
-            od = od_;
+            ods[i] = xs[i];
         }
     }
 
-    assert(false && "/o\\");
+    vector<ll> ess(n);
+    partial_sum(cbegin(evs), cend(evs), begin(ess));
+    vector<ll> oss(n);
+    partial_sum(cbegin(ods), cend(ods), begin(oss));
+
+    set<ll> dif;
+
+    for (int i = 0; i < n; ++i) {
+        if (oss[i] == ess[i]) return true;
+
+        const auto cur = oss[i] - ess[i];
+        if (dif.contains(-cur)) return true;
+
+        if (i > 0) {
+            dif.insert(oss[i - 1] - ess[i - 1]);
+        }
+    }
     return false;
 }
 
