@@ -1,6 +1,26 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
+template <typename T> ostream &operator<<(ostream &os, const set<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
@@ -27,18 +47,18 @@ bool is_possible(const vector<ll> &xs) {
     partial_sum(cbegin(evs), cend(evs), begin(ess));
     vector<ll> oss(n);
     partial_sum(cbegin(ods), cend(ods), begin(oss));
+    // cerr << "ess:" << ess << " oss:" << oss << endl;
 
     set<ll> dif;
 
     for (int i = 0; i < n; ++i) {
         if (oss[i] == ess[i]) return true;
-
         const auto cur = oss[i] - ess[i];
-        if (dif.contains(-cur)) return true;
-
-        if (i > 0) {
-            dif.insert(oss[i - 1] - ess[i - 1]);
+        if (dif.contains(-cur)) {
+            // cerr << "i:" << i << " dif:" << dif << endl;
+            return true;
         }
+        if (i > 1) dif.insert(oss[i - 2] - ess[i - 2]);
     }
     return false;
 }
