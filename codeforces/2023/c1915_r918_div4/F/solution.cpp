@@ -24,7 +24,7 @@ ll num_greetings(vector<pii> AB) {
     for (int i = 0; i < sz(M); ++i) idx[M[i]] = i;
 
     ranges::sort(AB, [](const auto &lhs, const auto &rhs) {
-        return lhs.second - lhs.first < rhs.second - rhs.first;
+        return lhs.second < rhs.second;
     });
 
     ll result{};
@@ -34,10 +34,8 @@ ll num_greetings(vector<pii> AB) {
         const auto j = idx.at(b);
         assert(i < j);
 
-        cerr << a << " -> " << b << " met " << fw.sum(i, j)
-             << " previously arrived" << endl;
         result += fw.sum(i, j);
-        fw.add(j, 1);
+        fw.add(i, 1);
     }
     return result;
 }
