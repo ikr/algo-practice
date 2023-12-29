@@ -88,12 +88,13 @@ fn main() {
 
     for _ in 1..=initial_reps {
         state = evolve(&ruleset, &state);
-        println!("{:?}", state);
+        println!("{:?} of size {}", state, state.len());
     }
 
     let frame_size: i64 = state.len() as i64;
     let lo0: i64 = state.first().unwrap().clone() as i64;
     let step: i64 = state.iter().nth(1).unwrap().clone() as i64 - lo0;
+    println!("step: {}", step);
 
     let total_reps = 50000000000i64;
 
