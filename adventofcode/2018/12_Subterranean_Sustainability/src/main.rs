@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::io::{self, BufRead};
 
 const INPUT_PREFIX: &str = "initial state: ";
@@ -46,11 +47,53 @@ fn read_ruleset() -> [bool; 32] {
     result
 }
 
+fn state_from_source(s: &str) -> BTreeSet<i32> {
+    let mut result: BTreeSet<i32> = BTreeSet::new();
+    for (i, c) in s.chars().enumerate() {
+        if c == '#' {
+            result.insert(i as i32);
+        }
+    }
+    result
+}
+
+fn current_bits_at(state: &BTreeSet<i32>, i: i32) -> u8 {
+    let mut result: u8 = 0;
+    for j in 0..5 {
+        if state.contains(&(i + j)) {
+            result |= 1 << j;
+        }
+    }
+    result
+}
+
+fn evolve(ruleset: &[bool; 32], state: &BTreeSet<i32>) -> BTreeSet<i32> {
+    let mut result: BTreeSet<i32> = BTreeSet::new();
+    let lo = state.first().unwrap_or(&0) - 5;
+    let hi = state.last().unwrap_or(&0).clone();
+
+    for i in lo..=hi {
+        let bits = current_bits_at(state, i);
+        if ruleset[bits as usize] {
+            result.insert(i + 2);
+        }
+    }
+    println!("{:?}", result);
+    result
+}
+
 fn main() {
-    println!("{}", read_initial_state_source());
+    let iss = read_initial_state_source();
     skip_input_line();
     let ruleset = read_ruleset();
-    println!("{:?}", ruleset);
+    let mut state = state_from_source(&iss);
+
+    for _ in 0..20 {
+        state = evolve(&ruleset, &state);
+    }
+
+    let result: i32 = state.iter().sum();
+    println!("{}", result);
 }
 
 #[cfg(test)]
