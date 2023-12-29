@@ -30,12 +30,12 @@ ll num_greetings(vector<pii> AB) {
     ll result{};
     atcoder::fenwick_tree<int> fw(sz(M));
     for (const auto &[a, b] : AB) {
-        cerr << "Arrival " << a << " -> " << b << endl;
         const auto i = idx.at(a);
         const auto j = idx.at(b);
         assert(i < j);
 
-        cerr << "Met " << fw.sum(i, j) << " previously arrived" << endl;
+        cerr << a << " -> " << b << " met " << fw.sum(i, j)
+             << " previously arrived" << endl;
         result += fw.sum(i, j);
         fw.add(j, 1);
     }
