@@ -38,7 +38,7 @@ impl Phase {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 struct Loc {
     x: i32,
     y: i32,
@@ -168,9 +168,15 @@ fn carts_collision(carts: &Vec<Cart>) -> Option<Loc> {
     None
 }
 
-fn one_moved(mine: &Mine, carts: &Vec<Cart>, i: usize) -> Vec<Cart> {
-    let mut result: Vec<Cart> = carts.clone();
-    result[i] = mine.moved_cart(&carts[i]);
+fn move_one_by_one_skip_collisions(mine: &Mine, carts: &Vec<Cart>) -> Vec<Cart> {
+    let mut result: Vec<Cart> = Vec::new();
+
+    for cart in carts {
+        result.push(mine.moved_cart(cart));
+        if let Some(loc) = carts_collision(&result) {
+            result = result.iter().filter(|c| c.loc != loc).cloned().collect();
+        }
+    }
     result
 }
 
@@ -180,16 +186,13 @@ fn main() {
     let mine = Mine { grid };
 
     loop {
+        assert!(carts.len() > 1);
         carts.sort_by_key(|c| (c.loc.y, c.loc.x));
-        println!("{:?}", carts);
 
-        for i in 0..carts.len() {
-            let carts_ = one_moved(&mine, &carts, i);
-            if let Some(loc) = carts_collision(&carts_) {
-                println!("{:?}", loc);
-                return;
-            }
-            carts = carts_;
+        carts = move_one_by_one_skip_collisions(&mine, &carts);
+        if carts.len() == 1 {
+            println!("{:?}", carts.get(0).unwrap().loc);
+            break;
         }
     }
 }
