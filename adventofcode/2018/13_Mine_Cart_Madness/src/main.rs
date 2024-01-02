@@ -120,7 +120,11 @@ impl Mine {
         Cart {
             loc: loc_,
             dir: dir_,
-            phase: cart.phase.next(),
+            phase: if c == '+' {
+                cart.phase.next()
+            } else {
+                cart.phase
+            },
         }
     }
 }
