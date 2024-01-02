@@ -1,6 +1,7 @@
+use std::collections::HashSet;
 use std::io::{self, BufRead};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 enum Dir {
     N,
     E,
@@ -20,7 +21,6 @@ impl Dir {
     }
 }
 
-#[derive(Debug)]
 enum Phase {
     Left,
     Straight,
@@ -37,13 +37,12 @@ impl Phase {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone)]
 struct Loc {
     x: i32,
     y: i32,
 }
 
-#[derive(Debug)]
 struct Cart {
     loc: Loc,
     dir: Dir,
@@ -152,6 +151,22 @@ fn extract_carts(grid: &Vec<Vec<char>>) -> Vec<Cart> {
     result
 }
 
+fn carts_collision(carts: &Vec<Cart>) -> Option<Loc> {
+    let mut seen: HashSet<(i32, i32)> = HashSet::new();
+    for cart in carts.iter() {
+        if seen.contains(&(cart.loc.x, cart.loc.y)) {
+            return Some(cart.loc);
+        }
+        seen.insert((cart.loc.x, cart.loc.y));
+    }
+    None
+}
+
 fn main() {
-    println!("{:?}", extract_carts(&read_grid_from_stdin()));
+    let grid = read_grid_from_stdin();
+    let mut carts = extract_carts(&grid);
+    let mine = Mine { grid };
+
+    carts.sort_by_key(|c| (c.loc.y, c.loc.x));
+    let carts_ = carts.iter().map(|cart| mine.moved_cart(cart));
 }
