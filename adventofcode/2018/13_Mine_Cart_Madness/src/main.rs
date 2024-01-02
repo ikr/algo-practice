@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum Dir {
     N,
     E,
@@ -23,8 +23,18 @@ impl Dir {
 #[derive(Debug)]
 enum Phase {
     Left,
-    Straingt,
+    Straight,
     Right,
+}
+
+impl Phase {
+    fn next(&self) -> Phase {
+        match self {
+            Phase::Left => Phase::Straight,
+            Phase::Straight => Phase::Right,
+            Phase::Right => Phase::Left,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -59,6 +69,57 @@ impl Cart {
                 x: self.loc.x - 1,
                 y: self.loc.y,
             },
+        }
+    }
+}
+
+struct Mine {
+    grid: Vec<Vec<char>>,
+}
+
+impl Mine {
+    fn cell(&self, loc: &Loc) -> char {
+        self.grid[loc.y as usize][loc.x as usize]
+    }
+
+    fn moved_cart(&self, cart: &Cart) -> Cart {
+        let loc_ = cart.next_loc();
+        let c = self.cell(&loc_);
+
+        let dir_ = match c {
+            '/' => match cart.dir {
+                Dir::N => Dir::E,
+                Dir::E => Dir::N,
+                Dir::S => Dir::W,
+                Dir::W => Dir::S,
+            },
+            '\\' => match cart.dir {
+                Dir::N => Dir::W,
+                Dir::E => Dir::S,
+                Dir::S => Dir::E,
+                Dir::W => Dir::N,
+            },
+            '+' => match cart.phase {
+                Phase::Left => match cart.dir {
+                    Dir::N => Dir::W,
+                    Dir::E => Dir::N,
+                    Dir::S => Dir::E,
+                    Dir::W => Dir::S,
+                },
+                Phase::Straight => cart.dir,
+                Phase::Right => match cart.dir {
+                    Dir::N => Dir::E,
+                    Dir::E => Dir::S,
+                    Dir::S => Dir::W,
+                    Dir::W => Dir::N,
+                },
+            },
+            _ => cart.dir,
+        };
+        Cart {
+            loc: loc_,
+            dir: dir_,
+            phase: cart.phase.next(),
         }
     }
 }
