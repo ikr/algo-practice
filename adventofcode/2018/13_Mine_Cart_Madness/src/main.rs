@@ -21,6 +21,7 @@ impl Dir {
     }
 }
 
+#[derive(Copy, Clone)]
 enum Phase {
     Left,
     Straight,
@@ -37,12 +38,13 @@ impl Phase {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Loc {
     x: i32,
     y: i32,
 }
 
+#[derive(Copy, Clone)]
 struct Cart {
     loc: Loc,
     dir: Dir,
@@ -162,11 +164,27 @@ fn carts_collision(carts: &Vec<Cart>) -> Option<Loc> {
     None
 }
 
+fn one_moved(mine: &Mine, carts: &Vec<Cart>, i: usize) -> Vec<Cart> {
+    let mut result: Vec<Cart> = carts.clone();
+    result[i] = mine.moved_cart(&carts[i]);
+    result
+}
+
 fn main() {
     let grid = read_grid_from_stdin();
     let mut carts = extract_carts(&grid);
     let mine = Mine { grid };
 
-    carts.sort_by_key(|c| (c.loc.y, c.loc.x));
-    let carts_ = carts.iter().map(|cart| mine.moved_cart(cart));
+    loop {
+        carts.sort_by_key(|c| (c.loc.y, c.loc.x));
+
+        for i in 0..carts.len() {
+            let carts_ = one_moved(&mine, &carts, i);
+            if let Some(loc) = carts_collision(&carts_) {
+                println!("{:?}", loc);
+                return;
+            }
+            carts = carts_;
+        }
+    }
 }
