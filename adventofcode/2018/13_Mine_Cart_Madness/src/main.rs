@@ -38,7 +38,7 @@ impl Phase {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 struct Loc {
     x: i32,
     y: i32,
@@ -158,12 +158,12 @@ fn extract_carts(grid: &Vec<Vec<char>>) -> Vec<Cart> {
 }
 
 fn carts_collision(carts: &Vec<Cart>) -> Option<Loc> {
-    let mut seen: HashSet<(i32, i32)> = HashSet::new();
+    let mut seen: HashSet<Loc> = HashSet::new();
     for cart in carts.iter() {
-        if seen.contains(&(cart.loc.x, cart.loc.y)) {
+        if seen.contains(&cart.loc) {
             return Some(cart.loc);
         }
-        seen.insert((cart.loc.x, cart.loc.y));
+        seen.insert(cart.loc);
     }
     None
 }
@@ -191,7 +191,7 @@ fn main() {
 
         carts = move_one_by_one_skip_collisions(&mine, &carts);
         if carts.len() == 1 {
-            println!("{:?}", carts.get(0).unwrap().loc);
+            println!("{:?}", carts.get(0).unwrap());
             break;
         }
     }
