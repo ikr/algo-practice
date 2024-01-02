@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::io::{self, BufRead};
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 enum Dir {
     N,
     E,
@@ -21,7 +21,7 @@ impl Dir {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 enum Phase {
     Left,
     Straight,
@@ -44,7 +44,7 @@ struct Loc {
     y: i32,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Cart {
     loc: Loc,
     dir: Dir,
@@ -177,6 +177,7 @@ fn main() {
 
     loop {
         carts.sort_by_key(|c| (c.loc.y, c.loc.x));
+        println!("{:?}", carts);
 
         for i in 0..carts.len() {
             let carts_ = one_moved(&mine, &carts, i);
