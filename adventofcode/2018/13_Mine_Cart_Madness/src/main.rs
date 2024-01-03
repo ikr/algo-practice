@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::io::{self, BufRead};
 
 #[derive(Debug, Copy, Clone)]
@@ -157,7 +157,7 @@ fn extract_carts(grid: &Vec<Vec<char>>) -> Vec<Cart> {
     result
 }
 
-fn carts_collision(carts: &Vec<Cart>) -> Option<Loc> {
+fn carts_collision(carts: &VecDeque<Cart>) -> Option<Loc> {
     let mut seen: HashSet<Loc> = HashSet::new();
     for cart in carts.iter() {
         if seen.contains(&cart.loc) {
@@ -169,15 +169,35 @@ fn carts_collision(carts: &Vec<Cart>) -> Option<Loc> {
 }
 
 fn move_one_by_one_skip_collisions(mine: &Mine, carts: &Vec<Cart>) -> Vec<Cart> {
-    let mut result: Vec<Cart> = Vec::new();
+    let mut src: VecDeque<Cart> = VecDeque::from(carts.clone());
+    let mut result: VecDeque<Cart> = VecDeque::new();
 
-    for cart in carts {
-        result.push(mine.moved_cart(cart));
+    while !src.is_empty() {
+        let cart = src.pop_front().unwrap();
+        let moved = mine.moved_cart(&cart);
+
+        let mut collided: bool = false;
+        src.push_back(moved);
+        if let Some(loc) = carts_collision(&src) {
+            src = src.iter().filter(|c| c.loc != loc).cloned().collect();
+            collided = true;
+        } else {
+            src.pop_back();
+        }
+
+        if collided {
+            continue;
+        }
+
+        result.push_back(moved);
         if let Some(loc) = carts_collision(&result) {
             result = result.iter().filter(|c| c.loc != loc).cloned().collect();
         }
     }
-    result
+
+    println!("{:?}", result);
+
+    Vec::from(result)
 }
 
 fn main() {
