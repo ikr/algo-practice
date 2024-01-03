@@ -85,7 +85,6 @@ void smt_solve(const Coord &p1, const Coord &v1, const Coord &p2,
     s.add(t3 >= 0);
 
     if (s.check() != z3::sat) return;
-    z3::set_param("pp.decimal", true);
     auto m = s.get_model();
     cout << m << "\n\n";
 }
