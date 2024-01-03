@@ -1,11 +1,11 @@
 fn main() {
-    let offset: usize = 702831;
+    let marker = "702831";
 
     let mut xs: Vec<u8> = vec![3, 7];
     let mut i: usize = 0;
     let mut j: usize = 1;
 
-    while xs.len() < offset + 10 {
+    for _ in 0..100_000_000 {
         let x = xs[i] + xs[j];
         if x > 9 {
             xs.push(1);
@@ -16,14 +16,9 @@ fn main() {
 
         i = (i + xs[i] as usize + 1) % xs.len();
         j = (j + xs[j] as usize + 1) % xs.len();
-
-        if xs.len() >= offset + 10 {
-            break;
-        }
     }
 
-    let ys = &xs[offset..offset + 10];
-    let result = ys.iter().map(|x| x.to_string()).collect::<String>();
-
-    println!("{}", result);
+    let s = xs.iter().map(|x| x.to_string()).collect::<String>();
+    let pos = s.find(marker).unwrap();
+    println!("{}", pos);
 }
