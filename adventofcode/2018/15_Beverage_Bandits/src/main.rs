@@ -20,6 +20,17 @@ fn dbg_grid(grid: &Vec<Vec<char>>) {
     }
 }
 
+fn grid_with_units_added(
+    mut grid: Vec<Vec<char>>,
+    unit_locs: Vec<Loc>,
+    unit_symbol: char,
+) -> Vec<Vec<char>> {
+    for loc in unit_locs.iter() {
+        grid[loc.ro][loc.co] = unit_symbol;
+    }
+    grid
+}
+
 fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     let mut result: Vec<Vec<char>> = Vec::new();
     for row in grid.iter() {
@@ -33,6 +44,11 @@ fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
         result.push(new_row);
     }
     result
+}
+
+struct Loc {
+    ro: usize,
+    co: usize,
 }
 
 fn main() {
