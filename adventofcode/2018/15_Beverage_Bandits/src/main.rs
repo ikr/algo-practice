@@ -48,9 +48,10 @@ fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     result
 }
 
+#[derive(Eq, Hash, PartialEq)]
 struct Location {
-    row: u8,
-    column: u8,
+    row: usize,
+    column: usize,
 }
 
 struct Unit {
@@ -61,6 +62,26 @@ struct Unit {
 struct Squad {
     units: HashMap<Location, Unit>,
     symbol: char,
+}
+
+impl Squad {
+    fn in_grid(grid: &Vec<Vec<char>>, symbol: char) -> Squad {
+        let mut units: HashMap<Location, Unit> = HashMap::new();
+        for (row, row_vec) in grid.iter().enumerate() {
+            for (column, c) in row_vec.iter().enumerate() {
+                if *c == symbol {
+                    units.insert(
+                        Location { row, column },
+                        Unit {
+                            hit_points: 200,
+                            attack_power: 3,
+                        },
+                    );
+                }
+            }
+        }
+        Squad { units, symbol }
+    }
 }
 
 struct Dungeon {
