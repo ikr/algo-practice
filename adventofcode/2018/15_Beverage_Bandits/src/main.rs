@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 fn read_initial_grid_from_stdin() -> Vec<Vec<char>> {
     let mut result: Vec<Vec<char>> = Vec::new();
     loop {
@@ -22,11 +24,11 @@ fn dbg_grid(grid: &Vec<Vec<char>>) {
 
 fn grid_with_units_added(
     mut grid: Vec<Vec<char>>,
-    unit_locs: Vec<Loc>,
+    unit_locs: Vec<Location>,
     unit_symbol: char,
 ) -> Vec<Vec<char>> {
     for loc in unit_locs.iter() {
-        grid[loc.ro][loc.co] = unit_symbol;
+        grid[loc.row as usize][loc.column as usize] = unit_symbol;
     }
     grid
 }
@@ -46,9 +48,24 @@ fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     result
 }
 
-struct Loc {
-    ro: usize,
-    co: usize,
+struct Location {
+    row: u8,
+    column: u8,
+}
+
+struct Unit {
+    hit_points: u8,
+    attack_power: u8,
+}
+
+struct Squad {
+    units: HashMap<Location, Unit>,
+    symbol: char,
+}
+
+struct Dungeon {
+    grid: Vec<Vec<char>>,
+    squads: [Squad; 2],
 }
 
 fn main() {
