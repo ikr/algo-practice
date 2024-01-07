@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 fn read_initial_grid_from_stdin() -> Vec<Vec<char>> {
     let mut result: Vec<Vec<char>> = Vec::new();
@@ -13,7 +13,7 @@ fn read_initial_grid_from_stdin() -> Vec<Vec<char>> {
     result
 }
 
-fn dbg_grid(grid: &Vec<Vec<char>>) {
+fn dbg_grid(grid: &Vec<Vec<char>>) -> () {
     for row in grid.iter() {
         for c in row.iter() {
             eprint!("{}", c);
@@ -90,17 +90,22 @@ struct Dungeon {
 }
 
 impl Dungeon {
-    fn all_unit_locations(&self) -> VecDeque<Loc> {
-        let mut result: VecDeque<Loc> = VecDeque::new();
+    fn all_unit_locations(&self) -> Vec<Loc> {
+        let mut result: Vec<Loc> = Vec::new();
         for squad in self.squads.iter() {
             for (loc, _) in squad.units.iter() {
-                result.push_back(loc.clone());
+                result.push(loc.clone());
             }
         }
         result
     }
 
-    fn dbg(&self) {
+    fn play_round(&mut self) -> () {
+        let mut q = self.all_unit_locations();
+        q.sort_by_key(|loc| (loc.ro, loc.co));
+    }
+
+    fn dbg(&self) -> () {
         let mut grid = self.grid.clone();
         for squad in self.squads.iter() {
             let locatoins: Vec<Loc> = squad.units.keys().cloned().collect();
