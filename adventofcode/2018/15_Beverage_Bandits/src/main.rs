@@ -90,25 +90,43 @@ struct Dungeon {
 }
 
 impl Dungeon {
-    fn all_unit_locations(&self) -> Vec<Loc> {
-        let mut result: Vec<Loc> = Vec::new();
-        for squad in self.squads.iter() {
-            for (loc, _) in squad.units.iter() {
-                result.push(loc.clone());
-            }
-        }
-        result
-    }
-
     fn play_round(&mut self) -> () {
         let mut q = self.all_unit_locations();
         q.sort_by_key(|loc| (-(loc.ro as i32), -(loc.co as i32)));
         eprintln!("q: {:?}", q);
 
         while !q.is_empty() {
-            let loc = q.pop();
-            eprintln!("loc: {:?}", loc);
+            let loc = q.pop().unwrap();
+            eprintln!("loc: {:?} squad idx: {}", loc, self.squad_index(&loc));
+
+            // TODO
         }
+    }
+
+    fn all_unit_locations(&self) -> Vec<Loc> {
+        let mut result: Vec<Loc> = Vec::new();
+        for squad in self.squads.iter() {
+            result.extend(squad.units.keys().cloned());
+        }
+        result
+    }
+
+    fn squad_index(&self, loc: &Loc) -> usize {
+        for (i, squad) in self.squads.iter().enumerate() {
+            if squad.units.contains_key(loc) {
+                return i;
+            }
+        }
+        panic!("No squad unit at location {:?}", loc);
+    }
+
+    fn cell_at(&self, loc: &Loc) -> char {
+        for squad in self.squads.iter() {
+            if squad.units.contains_key(loc) {
+                return squad.symbol;
+            }
+        }
+        self.grid[loc.ro][loc.co]
     }
 
     fn dbg(&self) -> () {
