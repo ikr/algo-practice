@@ -120,6 +120,21 @@ impl Dungeon {
         panic!("No squad unit at location {:?}", loc);
     }
 
+    fn adjacent(&self, loc: &Loc) -> Vec<Loc> {
+        let mut result: Vec<Loc> = Vec::new();
+        for (ro, co) in [
+            (loc.ro - 1, loc.co),
+            (loc.ro, loc.co + 1),
+            (loc.ro + 1, loc.co),
+            (loc.ro, loc.co - 1),
+        ] {
+            if self.cell_at(&Loc { ro, co }) == '.' {
+                result.push(Loc { ro, co });
+            }
+        }
+        result
+    }
+
     fn cell_at(&self, loc: &Loc) -> char {
         for squad in self.squads.iter() {
             if squad.units.contains_key(loc) {
