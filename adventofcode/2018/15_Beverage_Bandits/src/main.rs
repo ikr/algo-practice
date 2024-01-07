@@ -102,7 +102,13 @@ impl Dungeon {
 
     fn play_round(&mut self) -> () {
         let mut q = self.all_unit_locations();
-        q.sort_by_key(|loc| (loc.ro, loc.co));
+        q.sort_by_key(|loc| (-(loc.ro as i32), -(loc.co as i32)));
+        eprintln!("q: {:?}", q);
+
+        while !q.is_empty() {
+            let loc = q.pop();
+            eprintln!("loc: {:?}", loc);
+        }
     }
 
     fn dbg(&self) -> () {
@@ -124,10 +130,11 @@ fn main() {
 
     let elves = Squad::in_grid(&grid, 'E');
     let goblins = Squad::in_grid(&grid, 'G');
-    let dungeon = Dungeon {
+    let mut dungeon = Dungeon {
         grid: depopulated_grid(&grid),
         squads: [elves, goblins],
     };
 
     dungeon.dbg();
+    dungeon.play_round();
 }
