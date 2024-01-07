@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 fn read_initial_grid_from_stdin() -> Vec<Vec<char>> {
     let mut result: Vec<Vec<char>> = Vec::new();
@@ -24,11 +24,11 @@ fn dbg_grid(grid: &Vec<Vec<char>>) {
 
 fn grid_with_units_added(
     mut grid: Vec<Vec<char>>,
-    unit_locs: Vec<Location>,
+    unit_locs: Vec<Loc>,
     unit_symbol: char,
 ) -> Vec<Vec<char>> {
     for loc in unit_locs.iter() {
-        grid[loc.row as usize][loc.column as usize] = unit_symbol;
+        grid[loc.ro as usize][loc.co as usize] = unit_symbol;
     }
     grid
 }
@@ -48,30 +48,30 @@ fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     result
 }
 
-#[derive(Eq, Hash, PartialEq)]
-struct Location {
-    row: usize,
-    column: usize,
+#[derive(Eq, Hash, PartialEq, Clone, Debug)]
+struct Loc {
+    ro: usize,
+    co: usize,
 }
 
 struct Unit {
-    hit_points: u8,
-    attack_power: u8,
+    hit_points: i32,
+    attack_power: i32,
 }
 
 struct Squad {
-    units: HashMap<Location, Unit>,
+    units: HashMap<Loc, Unit>,
     symbol: char,
 }
 
 impl Squad {
     fn in_grid(grid: &Vec<Vec<char>>, symbol: char) -> Squad {
-        let mut units: HashMap<Location, Unit> = HashMap::new();
-        for (row, row_vec) in grid.iter().enumerate() {
-            for (column, c) in row_vec.iter().enumerate() {
-                if *c == symbol {
+        let mut units: HashMap<Loc, Unit> = HashMap::new();
+        for (ro, row_vec) in grid.iter().enumerate() {
+            for (co, cell) in row_vec.iter().enumerate() {
+                if *cell == symbol {
                     units.insert(
-                        Location { row, column },
+                        Loc { ro, co },
                         Unit {
                             hit_points: 200,
                             attack_power: 3,
@@ -89,8 +89,40 @@ struct Dungeon {
     squads: [Squad; 2],
 }
 
+impl Dungeon {
+    fn all_unit_locations(&self) -> VecDeque<Loc> {
+        let mut result: VecDeque<Loc> = VecDeque::new();
+        for squad in self.squads.iter() {
+            for (loc, _) in squad.units.iter() {
+                result.push_back(loc.clone());
+            }
+        }
+        result
+    }
+
+    fn dbg(&self) {
+        let mut grid = self.grid.clone();
+        for squad in self.squads.iter() {
+            let locatoins: Vec<Loc> = squad.units.keys().cloned().collect();
+            grid = grid_with_units_added(grid, locatoins, squad.symbol);
+        }
+        dbg_grid(&grid);
+    }
+}
+
 fn main() {
     let grid = read_initial_grid_from_stdin();
     dbg_grid(&grid);
+    eprintln!();
     dbg_grid(&depopulated_grid(&grid));
+    eprintln!();
+
+    let elves = Squad::in_grid(&grid, 'E');
+    let goblins = Squad::in_grid(&grid, 'G');
+    let dungeon = Dungeon {
+        grid: depopulated_grid(&grid),
+        squads: [elves, goblins],
+    };
+
+    dungeon.dbg();
 }
