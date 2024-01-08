@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
+
+const INF: i32 = 1_000_000_000;
 
 fn read_initial_grid_from_stdin() -> Vec<Vec<char>> {
     let mut result: Vec<Vec<char>> = Vec::new();
@@ -54,6 +56,7 @@ struct Loc {
     co: usize,
 }
 
+#[derive(Clone)]
 struct Unit {
     hit_points: i32,
     attack_power: i32,
@@ -93,19 +96,36 @@ impl Dungeon {
     fn play_round(&mut self) -> () {
         let mut q = self.all_unit_locations();
         q.sort_by_key(|loc| (-(loc.ro as i32), -(loc.co as i32)));
-        eprintln!("q: {:?}", q);
 
         while !q.is_empty() {
             let loc = q.pop().unwrap();
-            eprintln!(
-                "loc: {:?} squad idx: {} adj: {:?}",
-                loc,
-                self.squad_index(&loc),
-                self.adjacent(&loc)
-            );
-
-            // TODO
+            self.move_unit(&loc);
         }
+    }
+
+    fn move_unit(&mut self, loc: &Loc) -> () {
+        let own_squad_index = self.squad_index(&loc);
+        let other_squad_index = 1 - own_squad_index;
+        let unit = self.squads[own_squad_index].units.get(loc).unwrap().clone();
+
+        let mut alts: HashSet<Loc> = HashSet::new();
+        for u in self.squads[other_squad_index].units.keys() {
+            for v in self.adjacent(u) {
+                alts.insert(v);
+            }
+        }
+
+        let mut alts_vec: Vec<Loc> = alts.into_iter().collect();
+        alts_vec.sort_by_key(|loc| (loc.ro, loc.co));
+        let target = self.closest_of(loc, alts_vec);
+
+        let own_range = self.adjacent(loc);
+        let next_step_loc = self.closest_of(&target, own_range);
+        self.squads[own_squad_index].units.remove(loc);
+        self.squads[own_squad_index]
+            .units
+            .insert(next_step_loc, unit);
+        ()
     }
 
     fn all_unit_locations(&self) -> Vec<Loc> {
@@ -123,6 +143,32 @@ impl Dungeon {
             }
         }
         panic!("No squad unit at location {:?}", loc);
+    }
+
+    fn closest_of(&self, src: &Loc, mut dest: Vec<Loc>) -> Loc {
+        let h = self.grid.len();
+        assert!(h > 0);
+        let w = self.grid[0].len();
+        let mut distance: Vec<Vec<i32>> = vec![vec![INF; w]; h];
+        distance[src.ro][src.co] = 0;
+
+        let mut q: VecDeque<Loc> = VecDeque::new();
+        q.push_back(src.clone());
+
+        while !q.is_empty() {
+            let u = q.pop_front().unwrap();
+            for v in self.adjacent(&u) {
+                if distance[v.ro][v.co] != INF {
+                    continue;
+                }
+                distance[v.ro][v.co] = distance[u.ro][u.co] + 1;
+                q.push_back(v);
+            }
+        }
+
+        assert!(!dest.is_empty());
+        dest.sort_by_key(|loc| distance[loc.ro][loc.co]);
+        dest[0].clone()
     }
 
     fn adjacent(&self, loc: &Loc) -> Vec<Loc> {
@@ -169,5 +215,11 @@ fn main() {
     };
 
     dungeon.dbg();
-    dungeon.play_round();
+    eprintln!();
+
+    for _ in 0..3 {
+        dungeon.play_round();
+        dungeon.dbg();
+        eprintln!();
+    }
 }
