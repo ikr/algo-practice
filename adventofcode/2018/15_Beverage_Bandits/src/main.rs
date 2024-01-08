@@ -112,9 +112,18 @@ impl Dungeon {
 
         while !q.is_empty() {
             let unit_loc = q.pop().unwrap();
+
+            if !self.squads[0].units.contains_key(&unit_loc)
+                && !self.squads[1].units.contains_key(&unit_loc)
+            {
+                continue;
+            }
+
             match self.target_for_an_attack(&unit_loc) {
                 Some(target_loc) => self.attack_with_unit(&unit_loc, &target_loc),
-                None => self.move_unit(&unit_loc),
+                None => {
+                    self.move_unit(&unit_loc);
+                }
             }
         }
     }
@@ -263,8 +272,8 @@ impl Dungeon {
             grid = grid_with_units_added(grid, locatoins, squad.symbol);
         }
         dbg_grid(&grid);
-        eprintln!("{:?}", self.squads[0].units.values());
-        eprintln!("{:?}", self.squads[1].units.values());
+        eprintln!("{:?}", self.squads[0].units);
+        eprintln!("{:?}", self.squads[1].units);
     }
 }
 
@@ -277,9 +286,9 @@ fn main() {
         squads: [elves, goblins],
     };
 
-    for _ in 0..47 {
+    for _ in 0..2 {
         dungeon.play_round();
+        dungeon.dbg();
+        eprintln!();
     }
-
-    dungeon.dbg();
 }
