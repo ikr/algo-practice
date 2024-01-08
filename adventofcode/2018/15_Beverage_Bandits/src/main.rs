@@ -331,7 +331,12 @@ fn main() {
         eprintln!();
 
         if dungeon.is_game_over() {
-            println!("{}", i * dungeon.total_health_points_remaining());
+            println!(
+                "{} * {} = {}",
+                i,
+                dungeon.total_health_points_remaining(),
+                i * dungeon.total_health_points_remaining()
+            );
             break;
         }
     }
