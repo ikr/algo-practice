@@ -197,11 +197,10 @@ impl Dungeon {
         if !alts.is_empty() {
             let mut alts_vec: Vec<Loc> = alts.into_iter().collect();
             alts_vec.sort_by_key(|loc| (loc.ro, loc.co));
-            let target = self.closest_of(loc, alts_vec);
-
+            let target = self.closest_of(loc, alts_vec)?;
             let own_range = self.adjacent_of_kind(loc, '.');
             if !own_range.is_empty() {
-                let next_step_loc = self.closest_of(&target, own_range);
+                let next_step_loc = self.closest_of(&target, own_range)?;
                 self.squads[own_squad_index].units.remove(loc);
                 self.squads[own_squad_index]
                     .units
@@ -250,7 +249,7 @@ impl Dungeon {
         panic!("No squad unit at location {:?}", loc);
     }
 
-    fn closest_of(&self, src: &Loc, mut dest: Vec<Loc>) -> Loc {
+    fn closest_of(&self, src: &Loc, mut dest: Vec<Loc>) -> Option<Loc> {
         let h = self.grid.len();
         assert!(h > 0);
         let w = self.grid[0].len();
@@ -273,7 +272,11 @@ impl Dungeon {
 
         assert!(!dest.is_empty());
         dest.sort_by_key(|loc| distance[loc.ro][loc.co]);
-        dest[0].clone()
+        if distance[dest[0].ro][dest[0].co] != INF {
+            Some(dest[0].clone())
+        } else {
+            None
+        }
     }
 
     fn adjacent_of_kind(&self, loc: &Loc, kind: char) -> Vec<Loc> {
