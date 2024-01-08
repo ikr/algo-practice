@@ -50,6 +50,12 @@ fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     result
 }
 
+fn drop_from(vec: &mut Vec<Loc>, loc: &Loc) -> () {
+    if let Some(i) = vec.iter().position(|x| x == loc) {
+        vec.remove(i);
+    }
+}
+
 #[derive(Eq, Hash, PartialEq, Clone, Debug)]
 struct Loc {
     ro: usize,
@@ -113,19 +119,20 @@ impl Dungeon {
         while !q.is_empty() {
             let unit_loc = q.pop().unwrap();
 
-            // Nope, that's incorrect.
-            if !self.squads[0].units.contains_key(&unit_loc)
-                && !self.squads[1].units.contains_key(&unit_loc)
-            {
-                continue;
-            }
-
             match self.target_for_an_attack(&unit_loc) {
-                Some(target_loc) => self.attack_with_unit(&unit_loc, &target_loc),
+                Some(target_loc) => {
+                    self.attack_with_unit(&unit_loc, &target_loc);
+                    if !self.is_a_unit(&target_loc) {
+                        drop_from(&mut q, &target_loc);
+                    }
+                }
                 None => {
                     if let Some(unit_loc_) = self.move_unit(&unit_loc) {
                         if let Some(target_loc) = self.target_for_an_attack(&unit_loc_) {
                             self.attack_with_unit(&unit_loc_, &target_loc);
+                            if !self.is_a_unit(&target_loc) {
+                                drop_from(&mut q, &target_loc);
+                            }
                         }
                     }
                 }
@@ -214,6 +221,10 @@ impl Dungeon {
             result.extend(squad.units.keys().cloned());
         }
         result
+    }
+
+    fn is_a_unit(&self, loc: &Loc) -> bool {
+        self.squads[0].units.contains_key(&loc) || self.squads[1].units.contains_key(&loc)
     }
 
     fn squad_index(&self, loc: &Loc) -> usize {
