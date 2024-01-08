@@ -112,7 +112,7 @@ struct Dungeon {
 }
 
 impl Dungeon {
-    fn play_round(&mut self) -> () {
+    fn play_round_return_fully_completed(&mut self) -> bool {
         let mut q = self.all_unit_locations();
         q.sort_by_key(|loc| (-(loc.ro as i32), -(loc.co as i32)));
 
@@ -125,6 +125,9 @@ impl Dungeon {
                     if !self.is_a_unit(&target_loc) {
                         drop_from(&mut q, &target_loc);
                     }
+                    if self.is_game_over() {
+                        return q.is_empty();
+                    }
                 }
                 None => {
                     if let Some(unit_loc_) = self.move_unit(&unit_loc) {
@@ -133,11 +136,15 @@ impl Dungeon {
                             if !self.is_a_unit(&target_loc) {
                                 drop_from(&mut q, &target_loc);
                             }
+                            if self.is_game_over() {
+                                return q.is_empty();
+                            }
                         }
                     }
                 }
             }
         }
+        true
     }
 
     fn target_for_an_attack(&self, unit_loc: &Loc) -> Option<Loc> {
@@ -326,16 +333,17 @@ fn main() {
 
     for i in 1..=10_000 {
         eprintln!("{})", i);
-        dungeon.play_round();
+        let full = dungeon.play_round_return_fully_completed();
         dungeon.dbg();
         eprintln!();
 
+        let j = if full { i } else { i - 1 };
         if dungeon.is_game_over() {
             println!(
                 "{} * {} = {}",
-                i,
+                j,
                 dungeon.total_health_points_remaining(),
-                i * dungeon.total_health_points_remaining()
+                j * dungeon.total_health_points_remaining()
             );
             break;
         }
