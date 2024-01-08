@@ -98,14 +98,15 @@ impl Dungeon {
         q.sort_by_key(|loc| (-(loc.ro as i32), -(loc.co as i32)));
 
         while !q.is_empty() {
-            let loc = q.pop().unwrap();
-            if self.attack_target(&loc).is_none() {
-                self.move_unit(&loc);
+            let unit_loc = q.pop().unwrap();
+            match self.target_for_an_attack(&unit_loc) {
+                Some(target_loc) => self.attack_with_unit(&unit_loc, &target_loc),
+                None => self.move_unit(&unit_loc),
             }
         }
     }
 
-    fn attack_target(&self, unit_loc: &Loc) -> Option<Loc> {
+    fn target_for_an_attack(&self, unit_loc: &Loc) -> Option<Loc> {
         let own_squad_index = self.squad_index(&unit_loc);
         let other_squad_index = 1 - own_squad_index;
         let enemy_symbol = self.squads[other_squad_index].symbol;
@@ -113,6 +114,10 @@ impl Dungeon {
         self.adjacent_of_kind(&unit_loc, enemy_symbol)
             .first()
             .cloned()
+    }
+
+    fn attack_with_unit(&mut self, unit_loc: &Loc, target_loc: &Loc) -> () {
+        assert!(self.squad_index(unit_loc) != self.squad_index(target_loc));
     }
 
     fn move_unit(&mut self, loc: &Loc) -> () {
