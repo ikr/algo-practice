@@ -97,7 +97,12 @@ impl Dungeon {
 
         while !q.is_empty() {
             let loc = q.pop().unwrap();
-            eprintln!("loc: {:?} squad idx: {}", loc, self.squad_index(&loc));
+            eprintln!(
+                "loc: {:?} squad idx: {} adj: {:?}",
+                loc,
+                self.squad_index(&loc),
+                self.adjacent(&loc)
+            );
 
             // TODO
         }
@@ -124,9 +129,9 @@ impl Dungeon {
         let mut result: Vec<Loc> = Vec::new();
         for (ro, co) in [
             (loc.ro - 1, loc.co),
+            (loc.ro, loc.co - 1),
             (loc.ro, loc.co + 1),
             (loc.ro + 1, loc.co),
-            (loc.ro, loc.co - 1),
         ] {
             if self.cell_at(&Loc { ro, co }) == '.' {
                 result.push(Loc { ro, co });
@@ -156,11 +161,6 @@ impl Dungeon {
 
 fn main() {
     let grid = read_initial_grid_from_stdin();
-    dbg_grid(&grid);
-    eprintln!();
-    dbg_grid(&depopulated_grid(&grid));
-    eprintln!();
-
     let elves = Squad::in_grid(&grid, 'E');
     let goblins = Squad::in_grid(&grid, 'G');
     let mut dungeon = Dungeon {
