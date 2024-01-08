@@ -322,6 +322,7 @@ fn main() {
     };
 
     for i in 1..=10_000 {
+        eprintln!("{})", i);
         dungeon.play_round();
         dungeon.dbg();
         eprintln!();
