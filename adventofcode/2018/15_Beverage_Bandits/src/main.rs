@@ -227,6 +227,20 @@ impl Dungeon {
         self.squads[0].units.contains_key(&loc) || self.squads[1].units.contains_key(&loc)
     }
 
+    fn is_game_over(&self) -> bool {
+        self.squads[0].units.is_empty() || self.squads[1].units.is_empty()
+    }
+
+    fn total_health_points_remaining(&self) -> i32 {
+        let mut result = 0;
+        for squad in self.squads.iter() {
+            for unit in squad.units.values() {
+                result += unit.hit_points;
+            }
+        }
+        result
+    }
+
     fn squad_index(&self, loc: &Loc) -> usize {
         for (i, squad) in self.squads.iter().enumerate() {
             if squad.units.contains_key(loc) {
@@ -307,9 +321,14 @@ fn main() {
         squads: [elves, goblins],
     };
 
-    for _ in 0..47 {
+    for i in 1..=10_000 {
         dungeon.play_round();
         dungeon.dbg();
         eprintln!();
+
+        if dungeon.is_game_over() {
+            println!("{}", i * dungeon.total_health_points_remaining());
+            break;
+        }
     }
 }
