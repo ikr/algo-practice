@@ -99,8 +99,20 @@ impl Dungeon {
 
         while !q.is_empty() {
             let loc = q.pop().unwrap();
-            self.move_unit(&loc);
+            if self.attack_target(&loc).is_none() {
+                self.move_unit(&loc);
+            }
         }
+    }
+
+    fn attack_target(&self, unit_loc: &Loc) -> Option<Loc> {
+        let own_squad_index = self.squad_index(&unit_loc);
+        let other_squad_index = 1 - own_squad_index;
+        let enemy_symbol = self.squads[other_squad_index].symbol;
+
+        self.adjacent_of_kind(&unit_loc, enemy_symbol)
+            .first()
+            .cloned()
     }
 
     fn move_unit(&mut self, loc: &Loc) -> () {
@@ -110,22 +122,25 @@ impl Dungeon {
 
         let mut alts: HashSet<Loc> = HashSet::new();
         for u in self.squads[other_squad_index].units.keys() {
-            for v in self.adjacent(u) {
+            for v in self.adjacent_of_kind(u, '.') {
                 alts.insert(v);
             }
         }
 
-        let mut alts_vec: Vec<Loc> = alts.into_iter().collect();
-        alts_vec.sort_by_key(|loc| (loc.ro, loc.co));
-        let target = self.closest_of(loc, alts_vec);
+        if !alts.is_empty() {
+            let mut alts_vec: Vec<Loc> = alts.into_iter().collect();
+            alts_vec.sort_by_key(|loc| (loc.ro, loc.co));
+            let target = self.closest_of(loc, alts_vec);
 
-        let own_range = self.adjacent(loc);
-        let next_step_loc = self.closest_of(&target, own_range);
-        self.squads[own_squad_index].units.remove(loc);
-        self.squads[own_squad_index]
-            .units
-            .insert(next_step_loc, unit);
-        ()
+            let own_range = self.adjacent_of_kind(loc, '.');
+            if !own_range.is_empty() {
+                let next_step_loc = self.closest_of(&target, own_range);
+                self.squads[own_squad_index].units.remove(loc);
+                self.squads[own_squad_index]
+                    .units
+                    .insert(next_step_loc, unit);
+            }
+        }
     }
 
     fn all_unit_locations(&self) -> Vec<Loc> {
@@ -157,7 +172,7 @@ impl Dungeon {
 
         while !q.is_empty() {
             let u = q.pop_front().unwrap();
-            for v in self.adjacent(&u) {
+            for v in self.adjacent_of_kind(&u, '.') {
                 if distance[v.ro][v.co] != INF {
                     continue;
                 }
@@ -171,7 +186,7 @@ impl Dungeon {
         dest[0].clone()
     }
 
-    fn adjacent(&self, loc: &Loc) -> Vec<Loc> {
+    fn adjacent_of_kind(&self, loc: &Loc, kind: char) -> Vec<Loc> {
         let mut result: Vec<Loc> = Vec::new();
         for (ro, co) in [
             (loc.ro - 1, loc.co),
@@ -179,7 +194,7 @@ impl Dungeon {
             (loc.ro, loc.co + 1),
             (loc.ro + 1, loc.co),
         ] {
-            if self.cell_at(&Loc { ro, co }) == '.' {
+            if self.cell_at(&Loc { ro, co }) == kind {
                 result.push(Loc { ro, co });
             }
         }
@@ -217,7 +232,7 @@ fn main() {
     dungeon.dbg();
     eprintln!();
 
-    for _ in 0..3 {
+    for _ in 0..4 {
         dungeon.play_round();
         dungeon.dbg();
         eprintln!();
