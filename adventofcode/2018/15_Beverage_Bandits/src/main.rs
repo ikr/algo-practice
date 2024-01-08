@@ -56,10 +56,23 @@ struct Loc {
     co: usize,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Unit {
     hit_points: i32,
     attack_power: i32,
+}
+
+impl Unit {
+    fn attacked(&self, other: &Unit) -> Option<Unit> {
+        if other.hit_points <= self.attack_power {
+            None
+        } else {
+            Some(Unit {
+                hit_points: other.hit_points - self.attack_power,
+                attack_power: other.attack_power,
+            })
+        }
+    }
 }
 
 struct Squad {
@@ -111,13 +124,41 @@ impl Dungeon {
         let other_squad_index = 1 - own_squad_index;
         let enemy_symbol = self.squads[other_squad_index].symbol;
 
-        self.adjacent_of_kind(&unit_loc, enemy_symbol)
-            .first()
-            .cloned()
+        let mut alts = self.adjacent_of_kind(&unit_loc, enemy_symbol);
+        alts.sort_by_key(|loc| {
+            self.squads[other_squad_index]
+                .units
+                .get(loc)
+                .unwrap()
+                .hit_points
+        });
+        alts.first().cloned()
     }
 
     fn attack_with_unit(&mut self, unit_loc: &Loc, target_loc: &Loc) -> () {
-        assert!(self.squad_index(unit_loc) != self.squad_index(target_loc));
+        let attacker_squad_index = self.squad_index(unit_loc);
+        let defender_squad_index = self.squad_index(target_loc);
+        assert!(attacker_squad_index != defender_squad_index);
+
+        let attacker = self.squads[attacker_squad_index]
+            .units
+            .get(unit_loc)
+            .unwrap()
+            .clone();
+
+        let defender = self.squads[defender_squad_index]
+            .units
+            .get(target_loc)
+            .unwrap()
+            .clone();
+
+        self.squads[defender_squad_index].units.remove(target_loc);
+
+        if let Some(defender_) = attacker.attacked(&defender) {
+            self.squads[defender_squad_index]
+                .units
+                .insert(target_loc.clone(), defender_);
+        }
     }
 
     fn move_unit(&mut self, loc: &Loc) -> () {
@@ -222,6 +263,8 @@ impl Dungeon {
             grid = grid_with_units_added(grid, locatoins, squad.symbol);
         }
         dbg_grid(&grid);
+        eprintln!("{:?}", self.squads[0].units.values());
+        eprintln!("{:?}", self.squads[1].units.values());
     }
 }
 
@@ -234,12 +277,9 @@ fn main() {
         squads: [elves, goblins],
     };
 
-    dungeon.dbg();
-    eprintln!();
-
-    for _ in 0..4 {
+    for _ in 0..47 {
         dungeon.play_round();
-        dungeon.dbg();
-        eprintln!();
     }
+
+    dungeon.dbg();
 }
