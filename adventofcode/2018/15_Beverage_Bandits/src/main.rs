@@ -113,6 +113,7 @@ impl Dungeon {
         while !q.is_empty() {
             let unit_loc = q.pop().unwrap();
 
+            // Nope, that's incorrect.
             if !self.squads[0].units.contains_key(&unit_loc)
                 && !self.squads[1].units.contains_key(&unit_loc)
             {
@@ -122,7 +123,11 @@ impl Dungeon {
             match self.target_for_an_attack(&unit_loc) {
                 Some(target_loc) => self.attack_with_unit(&unit_loc, &target_loc),
                 None => {
-                    self.move_unit(&unit_loc);
+                    if let Some(unit_loc_) = self.move_unit(&unit_loc) {
+                        if let Some(target_loc) = self.target_for_an_attack(&unit_loc_) {
+                            self.attack_with_unit(&unit_loc_, &target_loc);
+                        }
+                    }
                 }
             }
         }
@@ -170,7 +175,7 @@ impl Dungeon {
         }
     }
 
-    fn move_unit(&mut self, loc: &Loc) -> () {
+    fn move_unit(&mut self, loc: &Loc) -> Option<Loc> {
         let own_squad_index = self.squad_index(&loc);
         let other_squad_index = 1 - own_squad_index;
         let unit = self.squads[own_squad_index].units.get(loc).unwrap().clone();
@@ -193,8 +198,13 @@ impl Dungeon {
                 self.squads[own_squad_index].units.remove(loc);
                 self.squads[own_squad_index]
                     .units
-                    .insert(next_step_loc, unit);
+                    .insert(next_step_loc.clone(), unit);
+                Some(next_step_loc)
+            } else {
+                None
             }
+        } else {
+            None
         }
     }
 
@@ -286,7 +296,7 @@ fn main() {
         squads: [elves, goblins],
     };
 
-    for _ in 0..2 {
+    for _ in 0..47 {
         dungeon.play_round();
         dungeon.dbg();
         eprintln!();
