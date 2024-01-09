@@ -15,7 +15,7 @@ fn read_initial_grid_from_stdin() -> Vec<Vec<char>> {
     result
 }
 
-fn dbg_grid(grid: &Vec<Vec<char>>) -> () {
+fn dbg_grid(grid: &Vec<Vec<char>>) {
     for row in grid.iter() {
         for c in row.iter() {
             eprint!("{}", c);
@@ -30,7 +30,7 @@ fn grid_with_units_added(
     unit_symbol: char,
 ) -> Vec<Vec<char>> {
     for loc in unit_locs.iter() {
-        grid[loc.ro as usize][loc.co as usize] = unit_symbol;
+        grid[loc.ro][loc.co] = unit_symbol;
     }
     grid
 }
@@ -50,7 +50,7 @@ fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     result
 }
 
-fn drop_from(vec: &mut Vec<Loc>, loc: &Loc) -> () {
+fn drop_from(vec: &mut Vec<Loc>, loc: &Loc) {
     if let Some(i) = vec.iter().position(|x| x == loc) {
         vec.remove(i);
     }
@@ -116,9 +116,7 @@ impl Dungeon {
         let mut q = self.all_unit_locations();
         q.sort_by_key(|loc| (-(loc.ro as i32), -(loc.co as i32)));
 
-        while !q.is_empty() {
-            let unit_loc = q.pop().unwrap();
-
+        while let Some(unit_loc) = q.pop() {
             match self.target_for_an_attack(&unit_loc) {
                 Some(target_loc) => {
                     self.attack_with_unit(&unit_loc, &target_loc);
@@ -148,11 +146,11 @@ impl Dungeon {
     }
 
     fn target_for_an_attack(&self, unit_loc: &Loc) -> Option<Loc> {
-        let own_squad_index = self.squad_index(&unit_loc);
+        let own_squad_index = self.squad_index(unit_loc);
         let other_squad_index = 1 - own_squad_index;
         let enemy_symbol = self.squads[other_squad_index].symbol;
 
-        let mut alts = self.adjacent_of_kind(&unit_loc, enemy_symbol);
+        let mut alts = self.adjacent_of_kind(unit_loc, enemy_symbol);
         alts.sort_by_key(|loc| {
             self.squads[other_squad_index]
                 .units
@@ -163,7 +161,7 @@ impl Dungeon {
         alts.first().cloned()
     }
 
-    fn attack_with_unit(&mut self, unit_loc: &Loc, target_loc: &Loc) -> () {
+    fn attack_with_unit(&mut self, unit_loc: &Loc, target_loc: &Loc) {
         let attacker_squad_index = self.squad_index(unit_loc);
         let defender_squad_index = self.squad_index(target_loc);
         assert!(attacker_squad_index != defender_squad_index);
@@ -190,7 +188,7 @@ impl Dungeon {
     }
 
     fn move_unit(&mut self, loc: &Loc) -> Option<Loc> {
-        let own_squad_index = self.squad_index(&loc);
+        let own_squad_index = self.squad_index(loc);
         let other_squad_index = 1 - own_squad_index;
         let unit = self.squads[own_squad_index].units.get(loc).unwrap().clone();
 
@@ -230,7 +228,7 @@ impl Dungeon {
     }
 
     fn is_a_unit(&self, loc: &Loc) -> bool {
-        self.squads[0].units.contains_key(&loc) || self.squads[1].units.contains_key(&loc)
+        self.squads[0].units.contains_key(loc) || self.squads[1].units.contains_key(loc)
     }
 
     fn is_game_over(&self) -> bool {
@@ -310,7 +308,7 @@ impl Dungeon {
         self.grid[loc.ro][loc.co]
     }
 
-    fn dbg(&self) -> () {
+    fn dbg(&self) {
         let mut grid = self.grid.clone();
         for squad in self.squads.iter() {
             let locatoins: Vec<Loc> = squad.units.keys().cloned().collect();
