@@ -15,7 +15,7 @@ fn read_initial_grid_from_stdin() -> Vec<Vec<char>> {
     result
 }
 
-fn dbg_grid(grid: &Vec<Vec<char>>) {
+fn dbg_grid(grid: &[Vec<char>]) {
     for row in grid.iter() {
         for c in row.iter() {
             eprint!("{}", c);
@@ -35,7 +35,7 @@ fn grid_with_units_added(
     grid
 }
 
-fn depopulated_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<char>> {
+fn depopulated_grid(grid: &[Vec<char>]) -> Vec<Vec<char>> {
     let mut result: Vec<Vec<char>> = Vec::new();
     for row in grid.iter() {
         let mut new_row: Vec<char> = Vec::new();
@@ -87,7 +87,7 @@ struct Squad {
 }
 
 impl Squad {
-    fn in_grid(grid: &Vec<Vec<char>>, symbol: char) -> Squad {
+    fn in_grid(grid: &[Vec<char>], symbol: char) -> Squad {
         let mut units: HashMap<Loc, Unit> = HashMap::new();
         for (ro, row_vec) in grid.iter().enumerate() {
             for (co, cell) in row_vec.iter().enumerate() {
