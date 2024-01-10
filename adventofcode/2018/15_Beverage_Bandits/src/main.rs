@@ -149,7 +149,7 @@ impl Dungeon {
                 }
             }
         }
-        return true;
+        true
     }
 
     fn play_round(&mut self) -> ElvesRoundResult {
@@ -380,10 +380,10 @@ impl Dungeon {
 }
 
 fn solve_part_1(initial_grid: &[Vec<char>]) {
-    let elves = Squad::in_grid(&initial_grid, 'E', 3);
-    let goblins = Squad::in_grid(&initial_grid, 'G', 3);
+    let elves = Squad::in_grid(initial_grid, 'E', 3);
+    let goblins = Squad::in_grid(initial_grid, 'G', 3);
     let mut dungeon = Dungeon {
-        grid: depopulated_grid(&initial_grid),
+        grid: depopulated_grid(initial_grid),
         squads: [elves, goblins],
     };
 
@@ -408,10 +408,10 @@ fn solve_part_1(initial_grid: &[Vec<char>]) {
 
 fn solve_part_2(initial_grid: &[Vec<char>]) {
     for attack_power in 4..=1000 {
-        let elves = Squad::in_grid(&initial_grid, 'E', attack_power);
-        let goblins = Squad::in_grid(&initial_grid, 'G', 3);
+        let elves = Squad::in_grid(initial_grid, 'E', attack_power);
+        let goblins = Squad::in_grid(initial_grid, 'G', 3);
         let mut dungeon = Dungeon {
-            grid: depopulated_grid(&initial_grid),
+            grid: depopulated_grid(initial_grid),
             squads: [elves, goblins],
         };
 
