@@ -87,7 +87,7 @@ struct Squad {
 }
 
 impl Squad {
-    fn in_grid(grid: &[Vec<char>], symbol: char) -> Squad {
+    fn in_grid(grid: &[Vec<char>], symbol: char, attack_power: i32) -> Squad {
         let mut units: HashMap<Loc, Unit> = HashMap::new();
         for (ro, row_vec) in grid.iter().enumerate() {
             for (co, cell) in row_vec.iter().enumerate() {
@@ -96,7 +96,7 @@ impl Squad {
                         Loc { ro, co },
                         Unit {
                             hit_points: 200,
-                            attack_power: 3,
+                            attack_power,
                         },
                     );
                 }
@@ -322,8 +322,8 @@ impl Dungeon {
 
 fn main() {
     let grid = read_initial_grid_from_stdin();
-    let elves = Squad::in_grid(&grid, 'E');
-    let goblins = Squad::in_grid(&grid, 'G');
+    let elves = Squad::in_grid(&grid, 'E', 3);
+    let goblins = Squad::in_grid(&grid, 'G', 3);
     let mut dungeon = Dungeon {
         grid: depopulated_grid(&grid),
         squads: [elves, goblins],
