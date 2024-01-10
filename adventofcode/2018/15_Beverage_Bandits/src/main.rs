@@ -106,6 +106,13 @@ impl Squad {
     }
 }
 
+enum ElvesRoundResult {
+    GameOn,
+    Loss,
+    VictoryWithRoundFullyCompleted,
+    VictoryWithRoundCutShort,
+}
+
 struct Dungeon {
     grid: Vec<Vec<char>>,
     squads: [Squad; 2],
@@ -142,7 +149,59 @@ impl Dungeon {
                 }
             }
         }
-        true
+        return true;
+    }
+
+    fn play_round(&mut self) -> ElvesRoundResult {
+        assert!(self.squads[0].symbol == 'E');
+        let mut q = self.all_unit_locations();
+        q.sort_by_key(|loc| (-(loc.ro as i32), -(loc.co as i32)));
+
+        while let Some(unit_loc) = q.pop() {
+            match self.target_for_an_attack(&unit_loc) {
+                Some(target_loc) => {
+                    let elf_under_attack = self.squad_index(&target_loc) == 0;
+                    self.attack_with_unit(&unit_loc, &target_loc);
+                    if !self.is_a_unit(&target_loc) {
+                        if elf_under_attack {
+                            return ElvesRoundResult::Loss;
+                        }
+                        drop_from(&mut q, &target_loc);
+
+                        if self.is_game_over() {
+                            return if q.is_empty() {
+                                ElvesRoundResult::VictoryWithRoundFullyCompleted
+                            } else {
+                                ElvesRoundResult::VictoryWithRoundCutShort
+                            };
+                        }
+                    }
+                }
+                None => {
+                    if let Some(unit_loc_) = self.move_unit(&unit_loc) {
+                        if let Some(target_loc) = self.target_for_an_attack(&unit_loc_) {
+                            let elf_under_attack = self.squad_index(&target_loc) == 0;
+                            self.attack_with_unit(&unit_loc_, &target_loc);
+                            if !self.is_a_unit(&target_loc) {
+                                if elf_under_attack {
+                                    return ElvesRoundResult::Loss;
+                                }
+                                drop_from(&mut q, &target_loc);
+
+                                if self.is_game_over() {
+                                    return if q.is_empty() {
+                                        ElvesRoundResult::VictoryWithRoundFullyCompleted
+                                    } else {
+                                        ElvesRoundResult::VictoryWithRoundCutShort
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ElvesRoundResult::GameOn
     }
 
     fn target_for_an_attack(&self, unit_loc: &Loc) -> Option<Loc> {
@@ -320,12 +379,11 @@ impl Dungeon {
     }
 }
 
-fn main() {
-    let grid = read_initial_grid_from_stdin();
-    let elves = Squad::in_grid(&grid, 'E', 3);
-    let goblins = Squad::in_grid(&grid, 'G', 3);
+fn solve_part_1(initial_grid: &[Vec<char>]) {
+    let elves = Squad::in_grid(&initial_grid, 'E', 3);
+    let goblins = Squad::in_grid(&initial_grid, 'G', 3);
     let mut dungeon = Dungeon {
-        grid: depopulated_grid(&grid),
+        grid: depopulated_grid(&initial_grid),
         squads: [elves, goblins],
     };
 
@@ -346,4 +404,56 @@ fn main() {
             break;
         }
     }
+}
+
+fn solve_part_2(initial_grid: &[Vec<char>]) {
+    for attack_power in 4..=1000 {
+        let elves = Squad::in_grid(&initial_grid, 'E', attack_power);
+        let goblins = Squad::in_grid(&initial_grid, 'G', 3);
+        let mut dungeon = Dungeon {
+            grid: depopulated_grid(&initial_grid),
+            squads: [elves, goblins],
+        };
+
+        for i in 1..=1000 {
+            match dungeon.play_round() {
+                ElvesRoundResult::GameOn => continue,
+
+                ElvesRoundResult::Loss => {
+                    eprintln!("Elves lost with attack power {}", attack_power);
+                    break;
+                }
+
+                ElvesRoundResult::VictoryWithRoundCutShort => {
+                    let j = i - 1;
+                    if dungeon.is_game_over() {
+                        println!(
+                            "{} * {} = {}",
+                            j,
+                            dungeon.total_health_points_remaining(),
+                            j * dungeon.total_health_points_remaining()
+                        );
+                        return;
+                    }
+                }
+
+                ElvesRoundResult::VictoryWithRoundFullyCompleted => {
+                    println!(
+                        "{} * {} = {}",
+                        i,
+                        dungeon.total_health_points_remaining(),
+                        i * dungeon.total_health_points_remaining()
+                    );
+                    return;
+                }
+            }
+        }
+    }
+}
+
+fn main() {
+    let initial_grid = read_initial_grid_from_stdin();
+    solve_part_1(&initial_grid);
+    eprintln!();
+    solve_part_2(&initial_grid);
 }
