@@ -12,6 +12,30 @@ fn split_samples(s: &str) -> Vec<String> {
     s.split("\n\n").map(|s| s.to_string()).collect()
 }
 
+type Val = u32;
+type Regs = [Val; 4];
+type Args = [Val; 3];
+type Opcode = u8;
+
+enum Op {
+    Addr,
+    Addi,
+    Mulr,
+    Muli,
+    Banr,
+    Bani,
+    Borr,
+    Bori,
+    Setr,
+    Seti,
+    Gtir,
+    Gtri,
+    Gtrr,
+    Eqir,
+    Eqri,
+    Eqrr,
+}
+
 fn main() {
     let (samples_source, _) = read_input_parts();
     let sample_sources = split_samples(&samples_source);
