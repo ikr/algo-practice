@@ -8,7 +8,12 @@ fn read_input_parts() -> (String, String) {
     }
 }
 
+fn split_samples(s: &str) -> Vec<String> {
+    s.split("\n\n").map(|s| s.to_string()).collect()
+}
+
 fn main() {
-    let (samples, _) = read_input_parts();
-    eprintln!("{}", samples);
+    let (samples_source, _) = read_input_parts();
+    let sample_sources = split_samples(&samples_source);
+    eprintln!("{:?}", sample_sources);
 }
