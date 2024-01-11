@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -21,7 +23,7 @@ type Args = [Val; 3];
 type Opcode = u8;
 type AbstractInstruction = (Opcode, Args);
 
-#[derive(EnumIter)]
+#[derive(EnumIter, Eq, Hash, PartialEq)]
 enum Op {
     Addr,
     Addi,
@@ -41,7 +43,6 @@ enum Op {
     Eqrr,
 }
 
-#[derive(Debug)]
 struct Sample {
     before: Regs,
     instruction: AbstractInstruction,
@@ -72,14 +73,17 @@ impl Sample {
     }
 
     fn possible_ops_count(&self, a_instr: AbstractInstruction) -> u8 {
-        Op::iter().fold(0, |acc, op| {
+        self.possible_ops(a_instr).len() as u8
+    }
+
+    fn possible_ops(&self, a_instr: AbstractInstruction) -> HashSet<Op> {
+        Op::iter().fold(HashSet::new(), |mut acc, op| {
             let mut machine = Machine { regs: self.before };
-            machine.apply(op, a_instr.1);
+            machine.apply(&op, &a_instr.1);
             if machine.regs == self.after {
-                acc + 1
-            } else {
-                acc
+                acc.insert(op);
             }
+            acc
         })
     }
 }
@@ -97,7 +101,7 @@ struct Machine {
 }
 
 impl Machine {
-    fn apply(&mut self, op: Op, args: Args) {
+    fn apply(&mut self, op: &Op, args: &Args) {
         let ra = self.regs[args[0] as usize];
         let ia = args[0];
         let rb = self.regs[args[1] as usize];
@@ -160,11 +164,7 @@ impl Machine {
     }
 }
 
-fn main() {
-    let (samples_source, _) = read_input_parts();
-    let sample_sources = split_samples(&samples_source);
-    let samples: Vec<Sample> = sample_sources.iter().map(|s| Sample::parse(s)).collect();
-
+fn solve_part_1(samples: &[Sample]) {
     let result = samples.iter().fold(0, |acc, sample| {
         if sample.possible_ops_count(sample.instruction) >= 3 {
             acc + 1
@@ -174,4 +174,11 @@ fn main() {
     });
 
     println!("{}", result);
+}
+
+fn main() {
+    let (samples_source, _) = read_input_parts();
+    let sample_sources = split_samples(&samples_source);
+    let samples: Vec<Sample> = sample_sources.iter().map(|s| Sample::parse(s)).collect();
+    solve_part_1(&samples);
 }
