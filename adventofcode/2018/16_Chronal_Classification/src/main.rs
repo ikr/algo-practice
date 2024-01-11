@@ -46,8 +46,8 @@ struct Sample {
 
 impl Sample {
     fn parse(s: &str) -> Sample {
-        let lines = s.split("\n").collect::<Vec<&str>>();
-        let abstract_instruction_quad = parse_quad(" ", &lines[1]);
+        let lines = s.split('\n').collect::<Vec<&str>>();
+        let abstract_instruction_quad = parse_quad(" ", lines[1]);
         Sample {
             before: parse_quad(", ", &Sample::infix(lines[0])),
             instruction: (
@@ -79,5 +79,6 @@ fn parse_quad(sep: &str, src: &str) -> [Val; 4] {
 fn main() {
     let (samples_source, _) = read_input_parts();
     let sample_sources = split_samples(&samples_source);
-    eprintln!("{:?}", sample_sources);
+    let samples: Vec<Sample> = sample_sources.iter().map(|s| Sample::parse(s)).collect();
+    eprintln!("{:?}", samples);
 }
