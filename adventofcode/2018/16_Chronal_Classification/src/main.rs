@@ -185,19 +185,48 @@ fn parse_program(s: &str) -> Vec<AbstractInstruction> {
         .collect()
 }
 
+fn definitive_mapping(possibilities: &HashMap<u8, HashSet<Op>>) -> (u8, Op) {
+    for (opcode, ops) in possibilities {
+        if ops.len() == 1 {
+            return (*opcode, ops.iter().next().unwrap().clone());
+        }
+    }
+    panic!("No definitive mapping found")
+}
+
+fn exclude_op(possibilities: &mut HashMap<u8, HashSet<Op>>, op: &Op) {
+    for (_, ops) in possibilities {
+        ops.remove(op);
+    }
+}
+
+fn deduce_opcodes(possibilities: &mut HashMap<u8, HashSet<Op>>) -> HashMap<u8, Op> {
+    let mut result = HashMap::new();
+    while result.len() < 16 {
+        let (opcode, op) = definitive_mapping(possibilities);
+        result.insert(opcode, op.clone());
+        exclude_op(possibilities, &op);
+    }
+    result
+}
+
 fn solve_part_2(samples: &[Sample], program: &[AbstractInstruction]) {
     let mut possiblilities: HashMap<u8, HashSet<Op>> = HashMap::new();
     for opcode in 0..16 {
         possiblilities.insert(opcode, Op::iter().collect());
     }
-
     for sample in samples {
         let cur = possiblilities.get_mut(&sample.instruction.0).unwrap();
         let replacement: HashSet<Op> = cur.intersection(&sample.possible_ops()).cloned().collect();
         *cur = replacement;
     }
 
-    eprintln!("{:?}", possiblilities);
+    let ops = deduce_opcodes(&mut possiblilities);
+    let mut machine = Machine { regs: [0, 0, 0, 0] };
+    for a_inst in program {
+        machine.apply(&ops[&a_inst.0], &a_inst.1);
+    }
+    println!("{}", machine.regs[0]);
 }
 
 fn main() {
