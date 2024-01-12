@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -6,8 +6,8 @@ use strum_macros::EnumIter;
 fn read_input_parts() -> (String, String) {
     match std::io::read_to_string(std::io::stdin()) {
         Ok(s) => {
-            let parts = s.split("\n\n\n").collect::<Vec<&str>>();
-            (parts[0].to_string(), parts[1].to_string())
+            let parts = s.split("\n\n\n\n").collect::<Vec<&str>>();
+            (parts[0].to_string(), parts[1].trim_end().to_string())
         }
         Err(e) => panic!("Error reading from stdin: {}", e),
     }
@@ -23,7 +23,7 @@ type Args = [Val; 3];
 type Opcode = u8;
 type AbstractInstruction = (Opcode, Args);
 
-#[derive(EnumIter, Eq, Hash, PartialEq)]
+#[derive(EnumIter, Eq, Hash, PartialEq, Clone, Debug)]
 enum Op {
     Addr,
     Addi,
@@ -72,14 +72,14 @@ impl Sample {
         s[prefix_length..s.len() - 1].to_string()
     }
 
-    fn possible_ops_count(&self, a_instr: AbstractInstruction) -> u8 {
-        self.possible_ops(a_instr).len() as u8
+    fn possible_ops_count(&self) -> u8 {
+        self.possible_ops().len() as u8
     }
 
-    fn possible_ops(&self, a_instr: AbstractInstruction) -> HashSet<Op> {
+    fn possible_ops(&self) -> HashSet<Op> {
         Op::iter().fold(HashSet::new(), |mut acc, op| {
             let mut machine = Machine { regs: self.before };
-            machine.apply(&op, &a_instr.1);
+            machine.apply(&op, &self.instruction.1);
             if machine.regs == self.after {
                 acc.insert(op);
             }
@@ -166,7 +166,7 @@ impl Machine {
 
 fn solve_part_1(samples: &[Sample]) {
     let result = samples.iter().fold(0, |acc, sample| {
-        if sample.possible_ops_count(sample.instruction) >= 3 {
+        if sample.possible_ops_count() >= 3 {
             acc + 1
         } else {
             acc
@@ -176,9 +176,35 @@ fn solve_part_1(samples: &[Sample]) {
     println!("{}", result);
 }
 
+fn parse_program(s: &str) -> Vec<AbstractInstruction> {
+    let lines = s.split('\n').collect::<Vec<&str>>();
+    lines
+        .iter()
+        .map(|l| parse_quad(" ", l))
+        .map(|q| (q[0] as u8, [q[1], q[2], q[3]]))
+        .collect()
+}
+
+fn solve_part_2(samples: &[Sample], program: &[AbstractInstruction]) {
+    let mut possiblilities: HashMap<u8, HashSet<Op>> = HashMap::new();
+    for opcode in 0..16 {
+        possiblilities.insert(opcode, Op::iter().collect());
+    }
+
+    for sample in samples {
+        let cur = possiblilities.get_mut(&sample.instruction.0).unwrap();
+        let replacement: HashSet<Op> = cur.intersection(&sample.possible_ops()).cloned().collect();
+        *cur = replacement;
+    }
+
+    eprintln!("{:?}", possiblilities);
+}
+
 fn main() {
-    let (samples_source, _) = read_input_parts();
+    let (samples_source, program_source) = read_input_parts();
     let sample_sources = split_samples(&samples_source);
     let samples: Vec<Sample> = sample_sources.iter().map(|s| Sample::parse(s)).collect();
     solve_part_1(&samples);
+
+    solve_part_2(&samples, &parse_program(&program_source));
 }
