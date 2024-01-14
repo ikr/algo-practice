@@ -74,6 +74,7 @@ impl Reservoir {
         let row = self.clay_xs_by_y.get(&y0)?;
         let before = row.range(..x0).last()?;
         let after = row.range(x0..).next()?;
+        assert!(*before < x0 && x0 < *after);
         Some((*before, *after))
     }
 }
