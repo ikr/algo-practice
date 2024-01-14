@@ -94,9 +94,9 @@ fn main() {
     assert!(rvr.in_scope(Coord(500, 13)));
     assert!(!rvr.in_scope(Coord(500, 14)));
 
-    assert!(rvr.neigh_wall_ys(Coord(500, 0)) == None);
-    assert!(rvr.neigh_wall_ys(Coord(500, 1)) == None);
-    assert!(rvr.neigh_wall_ys(Coord(502, 9)) == None);
+    assert!(rvr.neigh_wall_ys(Coord(500, 0)).is_none());
+    assert!(rvr.neigh_wall_ys(Coord(500, 1)).is_none());
+    assert!(rvr.neigh_wall_ys(Coord(502, 9)).is_none());
     assert!(rvr.neigh_wall_ys(Coord(500, 2)) == Some((498, 506)));
     assert!(rvr.neigh_wall_ys(Coord(499, 12)) == Some((498, 504)));
     assert!(rvr.neigh_wall_ys(Coord(503, 11)) == Some((498, 504)));
