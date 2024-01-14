@@ -1,6 +1,6 @@
 use regex::Regex;
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
     io::{self, BufRead},
 };
 
@@ -100,9 +100,39 @@ impl Reservoir {
 
     fn solve_part_1(&self) -> i32 {
         let mut contained_memo: HashMap<Coord, bool> = HashMap::new();
-        self.contained(&mut contained_memo, Coord(500, 3));
-        eprintln!("{:?}", contained_memo);
-        -1
+        let mut visited: HashSet<Coord> = HashSet::new();
+        visited.insert(Coord(500, 0));
+        let mut q: VecDeque<Coord> = VecDeque::new();
+        q.push_back(Coord(500, 0));
+
+        while let Some(u) = q.pop_front() {
+            eprintln!("{:?}", u);
+            let Coord(x0, y0) = u;
+            if !self.clay.contains(&Coord(x0, y0 + 1))
+                && !self.contained(&mut contained_memo, Coord(x0, y0 + 1))
+            {
+                if y0 < 3_000 {
+                    q.push_back(Coord(x0, y0 + 1));
+                }
+                continue;
+            }
+            if !self.clay.contains(&Coord(x0 - 1, y0)) && !visited.contains(&Coord(x0 - 1, y0)) {
+                visited.insert(Coord(x0 - 1, y0));
+                q.push_back(Coord(x0 - 1, y0));
+            }
+            if !self.clay.contains(&Coord(x0 + 1, y0)) && !visited.contains(&Coord(x0 + 1, y0)) {
+                visited.insert(Coord(x0 + 1, y0));
+                q.push_back(Coord(x0 + 1, y0));
+            }
+        }
+
+        let mut result = visited.into_iter().filter(|xy| self.in_scope(*xy)).count() as i32;
+        for (_, yes) in contained_memo.iter() {
+            if *yes {
+                result += 1;
+            }
+        }
+        result
     }
 }
 
