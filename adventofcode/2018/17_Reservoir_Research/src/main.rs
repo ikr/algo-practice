@@ -60,13 +60,10 @@ impl Reservoir {
     }
 
     fn in_scope(&self, xy: Coord) -> bool {
-        let x_lo = self.clay.first().unwrap().0;
-        let x_hi = self.clay.last().unwrap().0;
         let y_lo = self.clay_xs_by_y.first_key_value().unwrap().0;
         let y_hi = self.clay_xs_by_y.last_key_value().unwrap().0;
 
-        let Coord(x, y) = xy;
-        x_lo <= x && x <= x_hi && *y_lo <= y && y <= *y_hi
+        *y_lo <= xy.1 && xy.1 <= *y_hi
     }
 
     fn neigh_wall_ys(&self, xy0: Coord) -> Option<(i32, i32)> {
