@@ -54,7 +54,20 @@ impl Reservoir {
     fn register_clay(&mut self, xy: Coord) {
         let Coord(x, y) = xy;
         self.clay.insert(xy);
-        self.clay_xs_by_y.entry(x).or_default().insert(y);
+        self.clay_xs_by_y.entry(y).or_default().insert(x);
+    }
+
+    fn in_scope(&self, xy: Coord) -> bool {
+        let x_lo = self.clay.first().unwrap().0;
+        let x_hi = self.clay.last().unwrap().0;
+        let y_lo = self.clay_xs_by_y.first_key_value().unwrap().0;
+        let y_hi = self.clay_xs_by_y.last_key_value().unwrap().0;
+
+        eprintln!("x_lo: {}, x_hi: {}", x_lo, x_hi);
+        eprintln!("y_lo: {}, y_hi: {}", y_lo, y_hi);
+
+        let Coord(x, y) = xy;
+        x_lo <= x && x <= x_hi && *y_lo <= y && y <= *y_hi
     }
 }
 
@@ -68,4 +81,6 @@ fn main() {
     }
 
     eprintln!("{:?}", rvr);
+    assert!(!rvr.in_scope(Coord(500, 0)));
+    assert!(rvr.in_scope(Coord(500, 1)));
 }
