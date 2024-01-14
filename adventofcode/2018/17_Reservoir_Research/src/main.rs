@@ -143,6 +143,28 @@ impl Reservoir {
             }
         }
 
+        let x_hi = std::cmp::max(
+            self.clay.last().unwrap().0,
+            visited.iter().fold(0, |acc, xy| std::cmp::max(acc, xy.0)),
+        );
+        let y_hi = *self.clay_xs_by_y.last_key_value().unwrap().0;
+
+        for y in 0..=y_hi {
+            for x in 400..=x_hi {
+                let xy = Coord(x, y);
+                if self.clay.contains(&xy) {
+                    eprint!("#");
+                } else if contained.contains(&xy) {
+                    eprint!("~");
+                } else if visited.contains(&xy) {
+                    eprint!("|");
+                } else {
+                    eprint!(".");
+                }
+            }
+            eprintln!();
+        }
+
         (visited.into_iter().filter(|xy| self.in_scope(*xy)).count() + contained.len()) as i32
     }
 }
