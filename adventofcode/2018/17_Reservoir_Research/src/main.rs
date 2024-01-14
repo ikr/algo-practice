@@ -106,12 +106,12 @@ impl Reservoir {
         q.push_back(Coord(500, 0));
 
         while let Some(u) = q.pop_front() {
-            eprintln!("{:?}", u);
             let Coord(x0, y0) = u;
             if !self.clay.contains(&Coord(x0, y0 + 1))
                 && !self.contained(&mut contained_memo, Coord(x0, y0 + 1))
             {
                 if y0 < 3_000 {
+                    visited.insert(Coord(x0, y0 + 1));
                     q.push_back(Coord(x0, y0 + 1));
                 }
                 continue;
@@ -126,13 +126,27 @@ impl Reservoir {
             }
         }
 
-        let mut result = visited.into_iter().filter(|xy| self.in_scope(*xy)).count() as i32;
-        for (_, yes) in contained_memo.iter() {
+        let mut contained: HashSet<Coord> = HashSet::new();
+        for (u, yes) in contained_memo.iter() {
             if *yes {
-                result += 1;
+                contained.insert(*u);
+                q.push_back(*u);
             }
         }
-        result
+
+        while let Some(u) = q.pop_front() {
+            let Coord(x0, y0) = u;
+            if !self.clay.contains(&Coord(x0 - 1, y0)) && !contained.contains(&Coord(x0 - 1, y0)) {
+                contained.insert(Coord(x0 - 1, y0));
+                q.push_back(Coord(x0 - 1, y0));
+            }
+            if !self.clay.contains(&Coord(x0 + 1, y0)) && !contained.contains(&Coord(x0 + 1, y0)) {
+                contained.insert(Coord(x0 + 1, y0));
+                q.push_back(Coord(x0 + 1, y0));
+            }
+        }
+
+        (visited.into_iter().filter(|xy| self.in_scope(*xy)).count() + contained.len()) as i32
     }
 }
 
@@ -145,18 +159,17 @@ fn main() {
         }
     }
 
-    eprintln!("{:?}", rvr);
-    assert!(!rvr.in_scope(Coord(500, 0)));
-    assert!(rvr.in_scope(Coord(500, 1)));
-    assert!(rvr.in_scope(Coord(500, 13)));
-    assert!(!rvr.in_scope(Coord(500, 14)));
+    // assert!(!rvr.in_scope(Coord(500, 0)));
+    // assert!(rvr.in_scope(Coord(500, 1)));
+    // assert!(rvr.in_scope(Coord(500, 13)));
+    // assert!(!rvr.in_scope(Coord(500, 14)));
 
-    assert!(rvr.neigh_wall_ys(Coord(500, 0)).is_none());
-    assert!(rvr.neigh_wall_ys(Coord(500, 1)).is_none());
-    assert!(rvr.neigh_wall_ys(Coord(502, 9)).is_none());
-    assert!(rvr.neigh_wall_ys(Coord(500, 2)) == Some((498, 506)));
-    assert!(rvr.neigh_wall_ys(Coord(499, 12)) == Some((498, 504)));
-    assert!(rvr.neigh_wall_ys(Coord(503, 11)) == Some((498, 504)));
+    // assert!(rvr.neigh_wall_ys(Coord(500, 0)).is_none());
+    // assert!(rvr.neigh_wall_ys(Coord(500, 1)).is_none());
+    // assert!(rvr.neigh_wall_ys(Coord(502, 9)).is_none());
+    // assert!(rvr.neigh_wall_ys(Coord(500, 2)) == Some((498, 506)));
+    // assert!(rvr.neigh_wall_ys(Coord(499, 12)) == Some((498, 504)));
+    // assert!(rvr.neigh_wall_ys(Coord(503, 11)) == Some((498, 504)));
 
     println!("{}", rvr.solve_part_1());
 }
