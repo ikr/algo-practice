@@ -4,7 +4,7 @@ use std::{
     io::{self, BufRead},
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Coord(i32, i32);
 
 fn parse_tri(src: &str) -> (i32, i32, i32) {
@@ -20,12 +20,14 @@ fn parse_tri(src: &str) -> (i32, i32, i32) {
 fn parse_vertical_line(src: &str) -> Vec<Coord> {
     assert!(src.starts_with('x'));
     let (x, y1, y2) = parse_tri(src);
+    assert!(y1 <= y2);
     (y1..=y2).map(|y| Coord(x, y)).collect()
 }
 
 fn parse_horizontal_line(src: &str) -> Vec<Coord> {
     assert!(src.starts_with('y'));
     let (y, x1, x2) = parse_tri(src);
+    assert!(x1 <= x2);
     (x1..=x2).map(|x| Coord(x, y)).collect()
 }
 
@@ -63,11 +65,16 @@ impl Reservoir {
         let y_lo = self.clay_xs_by_y.first_key_value().unwrap().0;
         let y_hi = self.clay_xs_by_y.last_key_value().unwrap().0;
 
-        eprintln!("x_lo: {}, x_hi: {}", x_lo, x_hi);
-        eprintln!("y_lo: {}, y_hi: {}", y_lo, y_hi);
-
         let Coord(x, y) = xy;
         x_lo <= x && x <= x_hi && *y_lo <= y && y <= *y_hi
+    }
+
+    fn neigh_wall_ys(&self, xy0: Coord) -> Option<(i32, i32)> {
+        let Coord(x0, y0) = xy0;
+        let row = self.clay_xs_by_y.get(&y0)?;
+        let before = row.range(..x0).last()?;
+        let after = row.range(x0..).next()?;
+        Some((*before, *after))
     }
 }
 
@@ -83,4 +90,13 @@ fn main() {
     eprintln!("{:?}", rvr);
     assert!(!rvr.in_scope(Coord(500, 0)));
     assert!(rvr.in_scope(Coord(500, 1)));
+    assert!(rvr.in_scope(Coord(500, 13)));
+    assert!(!rvr.in_scope(Coord(500, 14)));
+
+    assert!(rvr.neigh_wall_ys(Coord(500, 0)) == None);
+    assert!(rvr.neigh_wall_ys(Coord(500, 1)) == None);
+    assert!(rvr.neigh_wall_ys(Coord(502, 9)) == None);
+    assert!(rvr.neigh_wall_ys(Coord(500, 2)) == Some((498, 506)));
+    assert!(rvr.neigh_wall_ys(Coord(499, 12)) == Some((498, 504)));
+    assert!(rvr.neigh_wall_ys(Coord(503, 11)) == Some((498, 504)));
 }
