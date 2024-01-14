@@ -1,6 +1,7 @@
+use recur_fn::{recur_fn, RecurFn};
 use regex::Regex;
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
     io::{self, BufRead},
 };
 
@@ -77,6 +78,24 @@ impl Reservoir {
         assert!(*before < x0 && x0 < *after);
         Some((*before, *after))
     }
+
+    fn solve_part_1(&self) -> i32 {
+        let mut contained_memo: HashMap<Coord, bool> = HashMap::new();
+        let contained = recur_fn(|contained, xy: Coord| -> bool {
+            if let Some((a, b)) = self.neigh_wall_ys(xy) {
+                for x in a + 1..b {
+                    let v = Coord(x, xy.1 + 1);
+                    if !self.clay.contains(&v) && !contained(v) {
+                        return false;
+                    }
+                }
+                true
+            } else {
+                false
+            }
+        });
+        -1
+    }
 }
 
 fn main() {
@@ -100,4 +119,6 @@ fn main() {
     assert!(rvr.neigh_wall_ys(Coord(500, 2)) == Some((498, 506)));
     assert!(rvr.neigh_wall_ys(Coord(499, 12)) == Some((498, 504)));
     assert!(rvr.neigh_wall_ys(Coord(503, 11)) == Some((498, 504)));
+
+    println!("{}", rvr.solve_part_1());
 }
