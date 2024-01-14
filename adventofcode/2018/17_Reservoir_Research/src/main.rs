@@ -1,11 +1,10 @@
-use recur_fn::{recur_fn, RecurFn};
 use regex::Regex;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     io::{self, BufRead},
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Coord(i32, i32);
 
 fn parse_tri(src: &str) -> (i32, i32, i32) {
@@ -79,21 +78,30 @@ impl Reservoir {
         Some((*before, *after))
     }
 
+    fn contained(&self, memo: &mut HashMap<Coord, bool>, xy: Coord) -> bool {
+        if memo.contains_key(&xy) {
+            return *memo.get(&xy).unwrap();
+        }
+
+        if let Some((a, b)) = self.neigh_wall_ys(xy) {
+            for x in a + 1..b {
+                let v = Coord(x, xy.1 + 1);
+                if !self.clay.contains(&v) && !self.contained(memo, v) {
+                    return false;
+                }
+            }
+            memo.insert(xy, true);
+            true
+        } else {
+            memo.insert(xy, false);
+            false
+        }
+    }
+
     fn solve_part_1(&self) -> i32 {
         let mut contained_memo: HashMap<Coord, bool> = HashMap::new();
-        let contained = recur_fn(|contained, xy: Coord| -> bool {
-            if let Some((a, b)) = self.neigh_wall_ys(xy) {
-                for x in a + 1..b {
-                    let v = Coord(x, xy.1 + 1);
-                    if !self.clay.contains(&v) && !contained(v) {
-                        return false;
-                    }
-                }
-                true
-            } else {
-                false
-            }
-        });
+        self.contained(&mut contained_memo, Coord(500, 3));
+        eprintln!("{:?}", contained_memo);
         -1
     }
 }
