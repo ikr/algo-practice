@@ -102,7 +102,7 @@ impl Reservoir {
         }
     }
 
-    fn solve_part_1(&self) -> i32 {
+    fn solve(&self) {
         let mut contained_memo: HashMap<Coord, bool> = HashMap::new();
         let mut visited: HashSet<Coord> = HashSet::new();
         visited.insert(Coord(500, 0));
@@ -172,7 +172,14 @@ impl Reservoir {
             eprintln!();
         }
 
-        (visited.into_iter().filter(|xy| self.in_scope(*xy)).count() + contained.len()) as i32
+        let streamed = visited.into_iter().filter(|xy| self.in_scope(*xy)).count();
+        let at_rest = contained.len();
+        println!(
+            "streamed: {}, at rest: {}, total: {}",
+            streamed,
+            at_rest,
+            streamed + at_rest
+        );
     }
 }
 
@@ -197,5 +204,5 @@ fn main() {
     // assert!(rvr.neigh_wall_ys(Coord(499, 12)) == Some((498, 504)));
     // assert!(rvr.neigh_wall_ys(Coord(503, 11)) == Some((498, 504)));
 
-    println!("{}", rvr.solve_part_1());
+    rvr.solve();
 }
