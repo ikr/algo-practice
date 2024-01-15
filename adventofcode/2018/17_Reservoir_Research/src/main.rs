@@ -150,28 +150,6 @@ impl Reservoir {
             }
         }
 
-        let x_hi = std::cmp::max(
-            self.clay.last().unwrap().0,
-            visited.iter().fold(0, |acc, xy| std::cmp::max(acc, xy.0)),
-        );
-        let y_hi = *self.clay_xs_by_y.last_key_value().unwrap().0;
-
-        for y in 0..=y_hi {
-            for x in 400..=x_hi {
-                let xy = Coord(x, y);
-                if self.clay.contains(&xy) {
-                    eprint!("#");
-                } else if contained.contains(&xy) {
-                    eprint!("~");
-                } else if visited.contains(&xy) {
-                    eprint!("|");
-                } else {
-                    eprint!(".");
-                }
-            }
-            eprintln!();
-        }
-
         let streamed = visited.into_iter().filter(|xy| self.in_scope(*xy)).count();
         let at_rest = contained.len();
         println!(
@@ -191,18 +169,6 @@ fn main() {
             rvr.register_clay(xy);
         }
     }
-
-    // assert!(!rvr.in_scope(Coord(500, 0)));
-    // assert!(rvr.in_scope(Coord(500, 1)));
-    // assert!(rvr.in_scope(Coord(500, 13)));
-    // assert!(!rvr.in_scope(Coord(500, 14)));
-
-    // assert!(rvr.neigh_wall_ys(Coord(500, 0)).is_none());
-    // assert!(rvr.neigh_wall_ys(Coord(500, 1)).is_none());
-    // assert!(rvr.neigh_wall_ys(Coord(502, 9)).is_none());
-    // assert!(rvr.neigh_wall_ys(Coord(500, 2)) == Some((498, 506)));
-    // assert!(rvr.neigh_wall_ys(Coord(499, 12)) == Some((498, 504)));
-    // assert!(rvr.neigh_wall_ys(Coord(503, 11)) == Some((498, 504)));
 
     rvr.solve();
 }
