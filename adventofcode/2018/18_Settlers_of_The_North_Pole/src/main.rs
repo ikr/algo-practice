@@ -1,11 +1,5 @@
 use std::io::{self, BufRead};
 
-fn dbg_grid(grid: &[Vec<char>]) {
-    for row in grid {
-        eprintln!("{}", row.iter().collect::<String>());
-    }
-}
-
 fn safe_at(grid: &[Vec<char>], ro: i32, co: i32) -> char {
     let h = grid.len() as i32;
     assert!(!grid.is_empty());
@@ -89,9 +83,19 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    for _ in 0..10 {
+    let pre = 3_000;
+    let mut xs: Vec<i32> = Vec::new();
+
+    for _ in 0..pre {
         grid = evolve(&grid);
+        xs.push(resource_value(&grid));
     }
-    dbg_grid(&grid);
-    println!("{}", resource_value(&grid));
+
+    let mark = xs.last().unwrap();
+    let mut i = xs.len() - 2;
+    while xs[i] != *mark {
+        i -= 1;
+    }
+
+    eprintln!();
 }
