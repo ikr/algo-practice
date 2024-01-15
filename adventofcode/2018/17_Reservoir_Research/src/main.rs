@@ -81,8 +81,15 @@ impl Reservoir {
         }
 
         if let Some((a, b)) = self.neigh_wall_ys(xy) {
-            for x in a + 1..b {
-                let v = Coord(x, xy.1 + 1);
+            let Coord(x0, y0) = xy;
+            for x in x0..b {
+                let v = Coord(x, y0 + 1);
+                if !self.clay.contains(&v) && !self.contained(memo, v) {
+                    return false;
+                }
+            }
+            for x in (a + 1..x0).rev() {
+                let v = Coord(x, y0 + 1);
                 if !self.clay.contains(&v) && !self.contained(memo, v) {
                     return false;
                 }
