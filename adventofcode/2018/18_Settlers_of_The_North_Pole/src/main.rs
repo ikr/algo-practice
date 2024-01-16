@@ -91,8 +91,6 @@ fn main() {
         xs.push(resource_value(&grid));
     }
 
-    eprintln!("{:?}", xs);
-
     let mut pat: Vec<i32> = Vec::new();
     loop {
         if pat.is_empty() {
@@ -105,7 +103,6 @@ fn main() {
         }
     }
     pat.reverse();
-    eprintln!("{:?}", pat);
 
     let mut t: i32 = 1_000_000_000 - 1;
     t -= pre - pat.len() as i32;
