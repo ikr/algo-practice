@@ -83,7 +83,7 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let pre = 3_000;
+    let pre = 4_000;
     let mut xs: Vec<i32> = Vec::new();
 
     for _ in 0..pre {
@@ -91,11 +91,20 @@ fn main() {
         xs.push(resource_value(&grid));
     }
 
-    let mark = xs.last().unwrap();
-    let mut i = xs.len() - 2;
-    while xs[i] != *mark {
-        i -= 1;
+    let mut pat: Vec<i32> = Vec::new();
+    loop {
+        if pat.is_empty() {
+            pat.push(*xs.last().unwrap());
+        } else {
+            if pat[0] == *xs.last().unwrap() {
+                break;
+            }
+            pat.push(*xs.last().unwrap());
+        }
     }
+    pat.reverse();
 
-    eprintln!();
+    let mut t: i32 = 1_000_000_000;
+    t -= pre - pat.len() as i32;
+    println!("{}", pat[(t % pat.len() as i32) as usize]);
 }
