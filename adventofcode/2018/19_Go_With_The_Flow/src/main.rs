@@ -3,7 +3,7 @@ use std::str::FromStr;
 use strum_macros::EnumString;
 
 type Val = u32;
-type Regs = [Val; 4];
+type Regs = [Val; 6];
 type Args = [Val; 3];
 
 #[derive(Clone, Copy, Debug, EnumString)]
@@ -45,6 +45,8 @@ fn parse_instr(s: &str) -> Instr {
 }
 
 struct Machine {
+    program: Vec<Instr>,
+    ip_reg: usize,
     regs: Regs,
 }
 
@@ -110,6 +112,16 @@ impl Machine {
             }
         };
     }
+
+    fn tick_once_return_go_on(&mut self) -> bool {
+        assert!(self.regs[self.ip_reg] < self.program.len() as u32);
+        let ip = self.regs[self.ip_reg];
+        eprintln!("ip: {}, regs: {:?}", ip, self.regs);
+        let (op, args) = self.program[ip as usize];
+        self.apply(&op, &args);
+        self.regs[self.ip_reg] += 1;
+        self.regs[self.ip_reg] < self.program.len() as u32
+    }
 }
 
 fn read_ip() -> usize {
@@ -121,8 +133,9 @@ fn read_ip() -> usize {
 }
 
 fn main() {
-    let ip = read_ip();
-    eprintln!("ip: {}", ip);
+    let ip_reg = read_ip();
+    assert!(ip_reg < 6);
+    eprintln!("ip: {}", ip_reg);
 
     let program: Vec<Instr> = stdin()
         .lock()
@@ -131,4 +144,17 @@ fn main() {
         .collect();
 
     eprintln!("{:?}", program);
+
+    let mut machine = Machine {
+        program,
+        ip_reg,
+        regs: [0; 6],
+    };
+
+    loop {
+        if !machine.tick_once_return_go_on() {
+            break;
+        }
+    }
+    eprintln!("{:?}", machine.regs);
 }
