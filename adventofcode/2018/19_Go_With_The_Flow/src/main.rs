@@ -1,8 +1,12 @@
+use std::io::{stdin, BufRead};
+use std::str::FromStr;
+use strum_macros::EnumString;
+
 type Val = u32;
 type Regs = [Val; 4];
 type Args = [Val; 3];
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, EnumString)]
 enum Op {
     Addr,
     Addi,
@@ -20,6 +24,24 @@ enum Op {
     Eqir,
     Eqri,
     Eqrr,
+}
+
+type Instr = (Op, Args);
+
+fn capitalize_first(s: &str) -> String {
+    s[..1].to_uppercase() + &s[1..]
+}
+
+fn parse_instr(s: &str) -> Instr {
+    let parts: Vec<&str> = s.split_whitespace().collect();
+    let op: Op = Op::from_str(&capitalize_first(parts[0])).unwrap();
+    let args: Args = parts[1..]
+        .iter()
+        .map(|s| s.parse::<Val>().unwrap())
+        .collect::<Vec<Val>>()
+        .try_into()
+        .unwrap();
+    (op, args)
 }
 
 struct Machine {
@@ -90,6 +112,23 @@ impl Machine {
     }
 }
 
+fn read_ip() -> usize {
+    let mut line = String::new();
+    stdin().read_line(&mut line).unwrap();
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    assert!(parts[0] == "#ip");
+    parts[1].parse::<usize>().unwrap()
+}
+
 fn main() {
-    println!("Hello, world!");
+    let ip = read_ip();
+    eprintln!("ip: {}", ip);
+
+    let program: Vec<Instr> = stdin()
+        .lock()
+        .lines()
+        .map(|line| parse_instr(&line.unwrap()))
+        .collect();
+
+    eprintln!("{:?}", program);
 }
