@@ -114,11 +114,16 @@ impl Machine {
     }
 
     fn tick_once_return_go_on(&mut self) -> bool {
+        let pre = self.regs.clone();
+
         assert!(self.regs[self.ip_reg] < self.program.len() as u32);
         let ip = self.regs[self.ip_reg];
         let (op, args) = self.program[ip as usize];
         self.apply(&op, &args);
         self.regs[self.ip_reg] += 1;
+
+        eprintln!("{}) {:?} {:?}", ip, pre, self.regs);
+
         self.regs[self.ip_reg] < self.program.len() as u32
     }
 }
@@ -134,7 +139,6 @@ fn read_ip() -> usize {
 fn main() {
     let ip_reg = read_ip();
     assert!(ip_reg < 6);
-    eprintln!("ip: {}", ip_reg);
 
     let program: Vec<Instr> = stdin()
         .lock()
@@ -142,19 +146,17 @@ fn main() {
         .map(|line| parse_instr(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", program);
-
     let mut machine = Machine {
         program,
         ip_reg,
         regs: [0; 6],
     };
+    machine.regs[0] = 1;
 
     loop {
         if !machine.tick_once_return_go_on() {
             break;
         }
     }
-    eprintln!("{:?}", machine.regs);
     println!("{}", machine.regs[0]);
 }
