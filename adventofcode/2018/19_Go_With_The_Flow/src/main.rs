@@ -2,7 +2,7 @@ use std::io::{stdin, BufRead};
 use std::str::FromStr;
 use strum_macros::EnumString;
 
-type Val = u32;
+type Val = u128;
 type Regs = [Val; 6];
 type Args = [Val; 3];
 
@@ -116,7 +116,7 @@ impl Machine {
     fn tick_once_return_go_on(&mut self) -> bool {
         let pre = self.regs.clone();
 
-        assert!(self.regs[self.ip_reg] < self.program.len() as u32);
+        assert!(self.regs[self.ip_reg] < self.program.len() as Val);
         let ip = self.regs[self.ip_reg];
         let (op, args) = self.program[ip as usize];
         self.apply(&op, &args);
@@ -124,7 +124,7 @@ impl Machine {
 
         eprintln!("{}) {:?} {:?}", ip, pre, self.regs);
 
-        self.regs[self.ip_reg] < self.program.len() as u32
+        self.regs[self.ip_reg] < self.program.len() as Val
     }
 }
 
@@ -149,14 +149,58 @@ fn main() {
     let mut machine = Machine {
         program,
         ip_reg,
-        regs: [0; 6],
+        regs: [
+            // All the divisors of 10551261
+            1 + 3 + 7 + 21 + 502441 + 1507323 + 3517087 + 10551261,
+            3,
+            10551261,
+            0,
+            10551261,
+            10551261,
+        ], //[1, 0, 0, 0, 0, 0],
     };
-    machine.regs[0] = 1;
 
-    loop {
+    for _ in 0..44 {
         if !machine.tick_once_return_go_on() {
             break;
         }
     }
     println!("{}", machine.regs[0]);
 }
+
+// 00 B += 16     ~~~~~
+// 01 F := 1
+// 02 C := 1
+// 03 D := F * C
+// 04 D := D == E
+// 05 B += D      ~~~~~
+// 06 B += 1      ~~~~~
+// 07 A += F
+// 08 C += 1
+// 09 D := C > E
+// 10 B += D      ~~~~~
+// 11 B := 2      ~~~~~
+// 12 F += 1
+// 13 D := F > E
+// 14 B += D      ~~~~~
+// 15 B := 1      ~~~~~
+// 16 B *= B      ~~~~~
+// 17 E += 2
+// 18 E *= E
+// 19 E *= B
+// 20 E *= 11
+// 21 D += 1
+// 22 D *= B
+// 23 D += 3
+// 24 E += D
+// 25 B += A      ~~~~~
+// 26 B := 0      ~~~~~
+// 27 D := B
+// 28 D *= B
+// 29 D += B
+// 30 D *= B
+// 31 D *= 14
+// 32 D *= B
+// 33 E += D
+// 34 A := 0
+// 35 B := 0      ~~~~~
