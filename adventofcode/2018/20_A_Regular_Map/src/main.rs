@@ -1,5 +1,9 @@
-use std::io;
+use std::{
+    collections::{HashMap, HashSet},
+    io,
+};
 
+#[derive(Copy, Clone)]
 enum Dir {
     N,
     E,
@@ -19,6 +23,7 @@ impl Dir {
     }
 }
 
+#[derive(Copy, Clone, Eq, Hash, PartialEq)]
 struct Vert(i32, i32);
 
 impl Vert {
@@ -29,6 +34,23 @@ impl Vert {
             Dir::S => Vert(self.0, self.1 - 1),
             Dir::W => Vert(self.0 - 1, self.1),
         }
+    }
+}
+
+struct Graph {
+    adj: HashMap<Vert, HashSet<Vert>>,
+}
+
+impl Graph {
+    fn new() -> Self {
+        Graph {
+            adj: HashMap::new(),
+        }
+    }
+
+    fn connect(&mut self, u: Vert, v: Vert) {
+        self.adj.entry(u).or_default().insert(v);
+        self.adj.entry(v).or_default().insert(u);
     }
 }
 
