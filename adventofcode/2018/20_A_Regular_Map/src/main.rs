@@ -3,7 +3,7 @@ use std::{
     io,
 };
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum Dir {
     N,
     E,
@@ -119,6 +119,13 @@ impl Area {
     }
 }
 
+#[derive(Clone, Debug)]
+enum AstNode {
+    Seq(Vec<AstNode>),
+    Alt(Vec<AstNode>),
+    Term(Dir),
+}
+
 fn read_program() -> Vec<char> {
     let mut line = String::new();
     io::stdin().read_line(&mut line).unwrap();
@@ -129,4 +136,12 @@ fn main() {
     let mut area = Area::new(read_program());
     area.explore(Vert(0, 0), 0);
     eprintln!("{:?}", area.graph.adj);
+
+    let n = AstNode::Term(Dir::N);
+    let e = AstNode::Term(Dir::E);
+    let w = AstNode::Term(Dir::W);
+
+    let alt = AstNode::Alt(vec![e, w]);
+    let seq = AstNode::Seq(vec![n.clone(), n, alt]);
+    eprintln!("{:?}", seq);
 }
