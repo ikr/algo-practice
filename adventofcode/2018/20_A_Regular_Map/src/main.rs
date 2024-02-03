@@ -94,9 +94,49 @@ impl AstSeq {
         let mut rest = program;
         loop {
             assert!(!rest.is_empty());
-            if rest[0] == '$' {
-                rest = &rest[1..];
-                break;
+            match rest[0] {
+                '$' | '|' => {
+                    rest = &rest[1..];
+                    break;
+                }
+                // Alt's parsing needs the ')' in order to stop
+                ')' => break,
+                '(' => {
+                    let (sub, rest_) = AstAlt::parse(&rest[1..]);
+                    result.push(AstNode::Alt(sub));
+                    rest = rest_;
+                }
+                _ => {
+                    assert!(Dir::is_valid(rest[0]));
+                    let (sub, rest_) = AstTerm::parse(rest);
+                    result.push(AstNode::Term(sub));
+                    rest = rest_;
+                }
+            }
+        }
+        (Self(result), rest)
+    }
+}
+
+impl AstAlt {
+    fn parse(program: &[char]) -> (Self, &[char]) {
+        let mut result: Vec<AstNode> = Vec::new();
+        let mut rest = program;
+        loop {
+            assert!(!rest.is_empty());
+            match rest[0] {
+                ')' => {
+                    rest = &rest[1..];
+                    break;
+                }
+                '|' => rest = &rest[1..],
+                '(' => panic!("Unexpected `(` inside of an Alt"),
+                '$' => panic!("Unexpected `$` inside of an Alt"),
+                _ => {
+                    let (sub, rest_) = AstSeq::parse(rest);
+                    result.push(AstNode::Seq(sub));
+                    rest = rest_;
+                }
             }
         }
         (Self(result), rest)
@@ -114,7 +154,7 @@ impl AstNode {
     fn parse(program: &[char]) -> Self {
         assert!(!program.is_empty());
         assert!(program[0] == '^');
-        todo!()
+        AstNode::Seq(AstSeq::parse(&program[1..]).0)
     }
 }
 
@@ -126,7 +166,10 @@ fn read_program() -> Vec<char> {
 
 fn main() {
     let program = read_program();
+    let ast = AstNode::parse(&program);
+    eprintln!("{:?}", ast);
+
     let mut area = Area::new();
-    area.explore(Vert(0, 0), AstNode::parse(&program));
+    area.explore(Vert(0, 0), ast);
     eprintln!("{:?}", area.graph.adj);
 }
