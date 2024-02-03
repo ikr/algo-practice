@@ -95,12 +95,12 @@ impl AstSeq {
         loop {
             assert!(!rest.is_empty());
             match rest[0] {
-                '$' | '|' => {
+                '$' => {
                     rest = &rest[1..];
                     break;
                 }
-                // Alt's parsing needs the ')' in order to stop
-                ')' => break,
+                // Leave it to Alt's parsing
+                ')' | '|' => break,
                 '(' => {
                     let (sub, rest_) = AstAlt::parse(&rest[1..]);
                     result.push(AstNode::Alt(sub));
@@ -139,7 +139,11 @@ impl AstAlt {
                     rest = &rest[1..];
                     break;
                 }
-                '|' => rest = &rest[1..],
+                '|' => {
+                    let (sub, rest_) = AstSeq::parse(&rest[1..]);
+                    result.push(AstNode::Seq(sub));
+                    rest = rest_;
+                }
                 '(' => panic!("Unexpected `(` inside of an Alt"),
                 '$' => panic!("Unexpected `$` inside of an Alt"),
                 _ => {
