@@ -60,62 +60,17 @@ impl Graph {
 
 struct Area {
     graph: Graph,
-    program: Vec<char>,
 }
 
 impl Area {
-    fn new(program: Vec<char>) -> Self {
+    fn new() -> Self {
         Area {
             graph: Graph::new(),
-            program,
         }
     }
 
-    fn explore_term(&mut self, u: Vert, ip: usize) -> (Vert, usize) {
-        let mut i = ip;
-        let mut v = u;
-        loop {
-            assert!(i < self.program.len());
-            assert!(Dir::is_valid(self.program[i]));
-            let dir = Dir::decode(self.program[i]);
-            let w = v.move_to(dir);
-            self.graph.connect(v, w);
-
-            v = w;
-            i += 1;
-            if !Dir::is_valid(self.program[i]) {
-                return (v, i);
-            }
-        }
-    }
-
-    fn explore(&mut self, u: Vert, ip: usize) -> (HashSet<Vert>, usize) {
-        let mut result = HashSet::new();
-        let mut i = ip;
-
-        loop {
-            if i == self.program.len() {
-                return (result, ip);
-            }
-
-            match self.program[i] {
-                '(' | '^' => {
-                    let (vs, j) = self.explore(u, i + 1);
-                    result.extend(vs);
-                    i = j;
-                }
-                ')' | '$' => return (result, i + 1),
-                '|' => {
-                    i += 1;
-                    continue;
-                }
-                _ => {
-                    let (v, j) = self.explore_term(u, i);
-                    result.insert(v);
-                    i = j;
-                }
-            }
-        }
+    fn explore(&mut self, u: Vert, n: AstNode) {
+        todo!();
     }
 }
 
@@ -126,22 +81,23 @@ enum AstNode {
     Term(Dir),
 }
 
-fn read_program() -> Vec<char> {
+impl AstNode {
+    fn root() -> Self {
+        AstNode::Seq(Vec::new())
+    }
+}
+
+fn read_program_drop_caret_and_dollar() -> Vec<char> {
     let mut line = String::new();
     io::stdin().read_line(&mut line).unwrap();
-    line.trim().chars().collect()
+    let mut result: Vec<char> = line.trim().chars().skip(1).collect();
+    result.pop();
+    result
 }
 
 fn main() {
-    let mut area = Area::new(read_program());
-    area.explore(Vert(0, 0), 0);
+    let program = read_program_drop_caret_and_dollar();
+    let mut area = Area::new();
+    area.explore(Vert(0, 0), AstNode::root());
     eprintln!("{:?}", area.graph.adj);
-
-    let n = AstNode::Term(Dir::N);
-    let e = AstNode::Term(Dir::E);
-    let w = AstNode::Term(Dir::W);
-
-    let alt = AstNode::Alt(vec![e, w]);
-    let seq = AstNode::Seq(vec![n.clone(), n, alt]);
-    eprintln!("{:?}", seq);
 }
