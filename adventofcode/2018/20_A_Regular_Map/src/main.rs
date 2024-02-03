@@ -116,6 +116,16 @@ impl AstSeq {
         }
         (Self(result), rest)
     }
+
+    fn srt(&self) -> String {
+        let mut result: String = "(".to_string();
+        for node in &self.0 {
+            result.push(' ');
+            result.push_str(&node.str());
+        }
+        result.push(')');
+        result
+    }
 }
 
 impl AstAlt {
@@ -141,12 +151,32 @@ impl AstAlt {
         }
         (Self(result), rest)
     }
+
+    fn srt(&self) -> String {
+        let mut result: String = "(|".to_string();
+        for node in &self.0 {
+            result.push(' ');
+            result.push_str(&node.str());
+        }
+        result.push(')');
+        result
+    }
 }
 
 impl AstTerm {
     fn parse(program: &[char]) -> (Self, &[char]) {
         assert!(!program.is_empty());
         (Self(Dir::decode(program[0])), &program[1..])
+    }
+
+    fn srt(&self) -> String {
+        match self.0 {
+            Dir::N => "N",
+            Dir::E => "E",
+            Dir::S => "S",
+            Dir::W => "W",
+        }
+        .to_string()
     }
 }
 
@@ -155,6 +185,14 @@ impl AstNode {
         assert!(!program.is_empty());
         assert!(program[0] == '^');
         AstNode::Seq(AstSeq::parse(&program[1..]).0)
+    }
+
+    fn str(&self) -> String {
+        match self {
+            AstNode::Seq(seq) => seq.srt(),
+            AstNode::Alt(alt) => alt.srt(),
+            AstNode::Term(term) => term.srt(),
+        }
     }
 }
 
@@ -167,7 +205,7 @@ fn read_program() -> Vec<char> {
 fn main() {
     let program = read_program();
     let ast = AstNode::parse(&program);
-    eprintln!("{:?}", ast);
+    eprintln!("{}", &ast.str());
 
     let mut area = Area::new();
     area.explore(Vert(0, 0), ast);
