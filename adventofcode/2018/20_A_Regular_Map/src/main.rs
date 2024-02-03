@@ -75,29 +75,58 @@ impl Area {
 }
 
 #[derive(Clone, Debug)]
+struct AstTerm(Dir);
+#[derive(Clone, Debug)]
+struct AstSeq(Vec<AstNode>);
+#[derive(Clone, Debug)]
+struct AstAlt(Vec<AstNode>);
+
+#[derive(Clone, Debug)]
 enum AstNode {
-    Seq(Vec<AstNode>),
-    Alt(Vec<AstNode>),
-    Term(Dir),
+    Seq(AstSeq),
+    Alt(AstAlt),
+    Term(AstTerm),
 }
 
-impl AstNode {
-    fn root() -> Self {
-        AstNode::Seq(Vec::new())
+impl AstSeq {
+    fn parse(program: &[char]) -> (Self, &[char]) {
+        let mut result: Vec<AstNode> = Vec::new();
+        let mut rest = program;
+        loop {
+            assert!(!rest.is_empty());
+            if rest[0] == '$' {
+                rest = &rest[1..];
+                break;
+            }
+        }
+        (Self(result), rest)
     }
 }
 
-fn read_program_drop_caret_and_dollar() -> Vec<char> {
+impl AstTerm {
+    fn parse(program: &[char]) -> (Self, &[char]) {
+        assert!(!program.is_empty());
+        (Self(Dir::decode(program[0])), &program[1..])
+    }
+}
+
+impl AstNode {
+    fn parse(program: &[char]) -> Self {
+        assert!(!program.is_empty());
+        assert!(program[0] == '^');
+        todo!()
+    }
+}
+
+fn read_program() -> Vec<char> {
     let mut line = String::new();
     io::stdin().read_line(&mut line).unwrap();
-    let mut result: Vec<char> = line.trim().chars().skip(1).collect();
-    result.pop();
-    result
+    line.trim().chars().collect()
 }
 
 fn main() {
-    let program = read_program_drop_caret_and_dollar();
+    let program = read_program();
     let mut area = Area::new();
-    area.explore(Vert(0, 0), AstNode::root());
+    area.explore(Vert(0, 0), AstNode::parse(&program));
     eprintln!("{:?}", area.graph.adj);
 }
