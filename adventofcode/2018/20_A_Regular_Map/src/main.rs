@@ -193,15 +193,21 @@ impl Area {
         }
     }
 
-    fn explore(&mut self, us: &[Vert], n: AstNode) -> Vec<Vert> {
+    fn explore(&mut self, us: &[Vert], n: &AstNode) -> Vec<Vert> {
         let mut result: Vec<Vert> = Vec::new();
         for u in us {
             match n {
-                AstNode::Seq(_xs) => {
-                    todo!();
+                AstNode::Seq(ref xs) => {
+                    let mut cur: Vec<Vert> = vec![*u];
+                    for x in &xs.0 {
+                        cur = self.explore(&cur, x);
+                    }
+                    result.extend(cur);
                 }
-                AstNode::Alt(_xs) => {
-                    todo!();
+                AstNode::Alt(xs) => {
+                    for x in &xs.0 {
+                        result.extend(self.explore(&[*u], x));
+                    }
                 }
                 AstNode::Term(x) => {
                     let v = u.move_to(x.0);
@@ -226,6 +232,6 @@ fn main() {
     eprintln!("{}", &ast.str());
 
     let mut area = Area::new();
-    area.explore(&[Vert(0, 0)], ast);
+    area.explore(&[Vert(0, 0)], &ast);
     eprintln!("{:?}", area.graph.adj);
 }
