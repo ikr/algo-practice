@@ -3,7 +3,7 @@ use std::{
     io,
 };
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 enum Dir {
     N,
     E,
@@ -74,14 +74,10 @@ impl Area {
     }
 }
 
-#[derive(Clone, Debug)]
 struct AstTerm(Dir);
-#[derive(Clone, Debug)]
 struct AstSeq(Vec<AstNode>);
-#[derive(Clone, Debug)]
 struct AstAlt(Vec<AstNode>);
 
-#[derive(Clone, Debug)]
 enum AstNode {
     Seq(AstSeq),
     Alt(AstAlt),
