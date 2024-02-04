@@ -240,6 +240,10 @@ impl Area {
                 self.graph.adj.len(),
                 result.len()
             );
+
+            let ds = self.graph.distances_from(Vert(0, 0));
+            let result = ds.values().max().unwrap();
+            eprintln!("farthest from origin: {}", result);
         }
         result
     }
