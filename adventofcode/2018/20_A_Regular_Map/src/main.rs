@@ -242,8 +242,11 @@ impl Area {
             );
 
             let ds = self.graph.distances_from(Vert(0, 0));
-            let result = ds.values().max().unwrap();
-            eprintln!("farthest from origin: {}", result);
+            let result1 = ds.values().max().unwrap();
+            eprintln!("farthest from origin: {}", result1);
+
+            let result2 = ds.values().filter(|&d| *d >= 1000).count();
+            eprintln!("vertices that are at least 1000 away: {}", result2);
         }
         result
     }
