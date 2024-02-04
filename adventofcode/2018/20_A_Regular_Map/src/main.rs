@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, VecDeque},
     io,
 };
 
@@ -180,6 +180,23 @@ impl Graph {
         self.adj.entry(u).or_default().insert(v);
         self.adj.entry(v).or_default().insert(u);
     }
+
+    fn distances_from(&self, u0: Vert) -> HashMap<Vert, i32> {
+        let mut result: HashMap<Vert, i32> = HashMap::new();
+        let mut queue: VecDeque<Vert> = VecDeque::new();
+        queue.push_back(u0);
+        result.insert(u0, 0);
+        while let Some(u) = queue.pop_front() {
+            let d = result[&u];
+            for &v in self.adj[&u].iter() {
+                if !result.contains_key(&v) {
+                    result.insert(v, d + 1);
+                    queue.push_back(v);
+                }
+            }
+        }
+        result
+    }
 }
 
 struct Area {
@@ -208,6 +225,11 @@ impl Area {
                     for x in &xs.0 {
                         result.extend(self.explore(&[*u], x));
                     }
+                    eprintln!(
+                        "vertices: {}  gen-size: {}",
+                        self.graph.adj.len(),
+                        result.len()
+                    );
                 }
                 AstNode::Term(x) => {
                     let v = u.move_to(x.0);
@@ -234,4 +256,8 @@ fn main() {
     let mut area = Area::new();
     area.explore(&[Vert(0, 0)], &ast);
     eprintln!("{:?}", area.graph.adj);
+
+    let ds = area.graph.distances_from(Vert(0, 0));
+    let result = ds.values().max().unwrap();
+    println!("{}", result);
 }
