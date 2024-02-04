@@ -211,6 +211,7 @@ impl Area {
     }
 
     fn explore(&mut self, us: &[Vert], n: &AstNode) -> Vec<Vert> {
+        let v0 = self.graph.adj.len();
         let mut result: Vec<Vert> = Vec::new();
         for u in us {
             match n {
@@ -225,11 +226,6 @@ impl Area {
                     for x in &xs.0 {
                         result.extend(self.explore(&[*u], x));
                     }
-                    eprintln!(
-                        "vertices: {}  gen-size: {}",
-                        self.graph.adj.len(),
-                        result.len()
-                    );
                 }
                 AstNode::Term(x) => {
                     let v = u.move_to(x.0);
@@ -237,6 +233,13 @@ impl Area {
                     result.push(v);
                 }
             }
+        }
+        if self.graph.adj.len() != v0 {
+            eprintln!(
+                "vertices: {}  gen-size: {}",
+                self.graph.adj.len(),
+                result.len()
+            );
         }
         result
     }
