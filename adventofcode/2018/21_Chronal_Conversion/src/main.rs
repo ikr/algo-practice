@@ -115,11 +115,14 @@ impl Machine {
 
     fn tick_once_return_go_on(&mut self) -> bool {
         assert!(self.regs[self.ip_reg] < self.program.len() as Val);
+        let pre = self.regs.clone();
+
         let ip = self.regs[self.ip_reg];
         let (op, args) = self.program[ip as usize];
         self.apply(&op, &args);
         self.regs[self.ip_reg] += 1;
 
+        eprintln!("{}) {:?} {:?}", ip, pre, self.regs);
         self.regs[self.ip_reg] < self.program.len() as Val
     }
 }
@@ -145,12 +148,59 @@ fn main() {
     let mut machine = Machine {
         program,
         ip_reg,
-        regs: [0, 0, 0, 0, 0, 0],
+        regs: [12446070, 0, 0, 0, 0, 0],
     };
 
-    loop {
+    for i in 1..999_999_999 {
         if !machine.tick_once_return_go_on() {
+            eprintln!("Done after {} ticks; final state: {:?}", i, machine.regs);
+            break;
+        }
+
+        if machine.regs[machine.ip_reg] == 28 {
+            machine.tick_once_return_go_on();
+            machine.tick_once_return_go_on();
             break;
         }
     }
 }
+
+// 0 1 2 3 4 5
+// A B C D E F
+
+// #ip 4
+// 00 F := 123
+// 01 F &= 456
+// 02 F := F == 72
+// 03 E += F
+// 04 E := 0
+
+// 05 F := 0
+// 06 B := F | 65536
+// 07 F := 4591209
+// 08 D := B & 255
+// 09 F += D
+// 10 F &= 16777215
+// 11 F *= 65899
+// 12 F &= 16777215
+// 13 D := B < 256
+// 14 E += D
+// 15 E += 1
+// 16 E := 27
+// 17 D := 0
+
+// 18 C := D + 1
+// 19 C *= 256
+// 20 C := C > B
+// 21 E += C
+// 22 E += 1
+// 23 E := 25
+// 24 D += 1
+// 25 E := 17
+
+// 26 B := D
+// 27 E := 7
+
+// 28 D := A == F
+// 29 E += D
+// 30 E := 5
