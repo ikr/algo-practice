@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::io::{stdin, BufRead};
 use std::str::FromStr;
 use strum_macros::EnumString;
@@ -115,14 +116,14 @@ impl Machine {
 
     fn tick_once_return_go_on(&mut self) -> bool {
         assert!(self.regs[self.ip_reg] < self.program.len() as Val);
-        let pre = self.regs.clone();
+        // let pre = self.regs.clone();
 
         let ip = self.regs[self.ip_reg];
         let (op, args) = self.program[ip as usize];
         self.apply(&op, &args);
         self.regs[self.ip_reg] += 1;
 
-        eprintln!("{}) {:?} {:?}", ip, pre, self.regs);
+        // eprintln!("{}) {:?} {:?}", ip, pre, self.regs);
         self.regs[self.ip_reg] < self.program.len() as Val
     }
 }
@@ -148,19 +149,32 @@ fn main() {
     let mut machine = Machine {
         program,
         ip_reg,
-        regs: [12446070, 0, 0, 0, 0, 0],
+        regs: [0, 0, 0, 0, 0, 0],
     };
 
-    for i in 1..999_999_999 {
+    let mut seen: HashSet<Val> = HashSet::new();
+
+    for i in 1..999_999_999_999_999u64 {
         if !machine.tick_once_return_go_on() {
             eprintln!("Done after {} ticks; final state: {:?}", i, machine.regs);
             break;
         }
 
-        if machine.regs[machine.ip_reg] == 28 {
-            machine.tick_once_return_go_on();
-            machine.tick_once_return_go_on();
-            break;
+        match machine.regs[machine.ip_reg] {
+            28 => {
+                let x = machine.regs[5];
+                eprintln!(
+                    "i:{} {:?} {}",
+                    i,
+                    machine.regs,
+                    if seen.contains(&x) { "seen" } else { "" }
+                );
+                if seen.contains(&x) {
+                    break;
+                }
+                seen.insert(x);
+            }
+            _ => {}
         }
     }
 }
