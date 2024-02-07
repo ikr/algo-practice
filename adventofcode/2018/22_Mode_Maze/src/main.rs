@@ -18,6 +18,25 @@ enum Tool {
     None,
 }
 
+impl Tool {
+    fn from(x: u32) -> Self {
+        match x {
+            0 => Self::Torch,
+            1 => Self::Gear,
+            2 => Self::None,
+            _ => unreachable!(),
+        }
+    }
+
+    fn code(&self) -> u32 {
+        match self {
+            Self::Torch => 0,
+            Self::Gear => 1,
+            Self::None => 2,
+        }
+    }
+}
+
 fn possible_tools(tile: Tile) -> Vec<Tool> {
     match tile {
         Tile::Rocky => vec![Tool::Torch, Tool::Gear],
@@ -26,22 +45,36 @@ fn possible_tools(tile: Tile) -> Vec<Tool> {
     }
 }
 
+#[derive(Clone, Copy)]
+struct Vert {
+    xy: XY,
+    tile: Tile,
+    tool: Tool,
+}
+
+impl Vert {
+    fn code(&self) -> u32 {
+        let a = (self.xy.1 * LIM + self.xy.0) as u32;
+        (a << 2) | self.tool.code()
+    }
+}
+
 struct Input {
     depth: usize,
-    target: XY,
+    target_xy: XY,
 }
 
 fn in_a() -> Input {
     Input {
         depth: 510,
-        target: XY(10, 10),
+        target_xy: XY(10, 10),
     }
 }
 
 fn in_1() -> Input {
     Input {
         depth: 9171,
-        target: XY(7, 721),
+        target_xy: XY(7, 721),
     }
 }
 
@@ -50,7 +83,7 @@ struct Cave {
 }
 
 impl Cave {
-    fn new(depth: usize, target: XY) -> Self {
+    fn new(depth: usize, target_xy: XY) -> Self {
         let mut geo_idx = vec![vec![0; LIM]; LIM];
         let mut erosion = vec![vec![0; LIM]; LIM];
 
@@ -71,8 +104,8 @@ impl Cave {
             }
         }
 
-        geo_idx[target.1][target.0] = 0;
-        erosion[target.1][target.0] = depth % M;
+        geo_idx[target_xy.1][target_xy.0] = 0;
+        erosion[target_xy.1][target_xy.0] = depth % M;
         Self { erosion }
     }
 
@@ -92,11 +125,11 @@ impl Cave {
 
 fn main() {
     for input in &[in_a(), in_1()] {
-        let c = Cave::new(input.depth, input.target);
+        let c = Cave::new(input.depth, input.target_xy);
         let mut risk: usize = 0;
 
-        for y in 0..=input.target.1 {
-            for x in 0..=input.target.0 {
+        for y in 0..=input.target_xy.1 {
+            for x in 0..=input.target_xy.0 {
                 risk += c.risk(XY(x, y));
             }
         }
