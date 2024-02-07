@@ -1,8 +1,8 @@
-const M: u32 = 20183;
-const LIM: u32 = 1500;
+const M: i32 = 20183;
+const LIM: i32 = 1500;
 
 #[derive(Clone, Copy)]
-struct XY(u32, u32);
+struct XY(i32, i32);
 
 #[derive(Clone, Copy)]
 enum Tile {
@@ -11,7 +11,7 @@ enum Tile {
     Narrow,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 enum Tool {
     Torch,
     Gear,
@@ -19,7 +19,7 @@ enum Tool {
 }
 
 impl Tool {
-    fn from_code(c: u32) -> Self {
+    fn from_code(c: i32) -> Self {
         match c {
             0 => Self::Torch,
             1 => Self::Gear,
@@ -28,7 +28,7 @@ impl Tool {
         }
     }
 
-    fn code(&self) -> u32 {
+    fn code(&self) -> i32 {
         match self {
             Self::Torch => 0,
             Self::Gear => 1,
@@ -52,22 +52,27 @@ struct Vert {
 }
 
 impl Vert {
-    fn from_code(c: u32) -> Self {
-        let tool = Tool::from_code(3u32 & c);
+    fn from_code(c: i32) -> Self {
+        let tool = Tool::from_code(3i32 & c);
         let a = c >> 2;
         let x = a % LIM;
         let y = a / LIM;
         Vert { xy: XY(x, y), tool }
     }
 
-    fn code(&self) -> u32 {
-        let a = (self.xy.1 * LIM + self.xy.0) as u32;
+    fn code(&self) -> i32 {
+        let a = (self.xy.1 * LIM + self.xy.0) as i32;
         (a << 2) | self.tool.code()
     }
 }
 
+struct Edge {
+    vcode: i32,
+    weight: i32,
+}
+
 struct Input {
-    depth: u32,
+    depth: i32,
     target_xy: XY,
 }
 
@@ -86,11 +91,11 @@ fn in_1() -> Input {
 }
 
 struct Cave {
-    erosion: Vec<Vec<u32>>,
+    erosion: Vec<Vec<i32>>,
 }
 
 impl Cave {
-    fn new(depth: u32, target_xy: XY) -> Self {
+    fn new(depth: i32, target_xy: XY) -> Self {
         let mut geo_idx = vec![vec![0; LIM as usize]; LIM as usize];
         let mut erosion = vec![vec![0; LIM as usize]; LIM as usize];
 
@@ -117,7 +122,7 @@ impl Cave {
         Self { erosion }
     }
 
-    fn risk(&self, xy: XY) -> u32 {
+    fn risk(&self, xy: XY) -> i32 {
         self.erosion[xy.1 as usize][xy.0 as usize] % 3
     }
 
@@ -129,12 +134,47 @@ impl Cave {
             _ => unreachable!(),
         }
     }
+
+    fn incident(&self, u: Vert) -> Vec<Edge> {
+        let pts = possible_tools(self.tile(u.xy));
+        assert!(pts.contains(&u.tool));
+
+        let mut result: Vec<Edge> = Vec::new();
+        for (x, y) in &[(u.xy.0, u.xy.1 - 1), (u.xy.0 + 1, u.xy.1)] {
+            if *x < 0 || *y < 0 {
+                continue;
+            }
+
+            let tile = self.tile(XY(*x, *y));
+            if possible_tools(tile).contains(&u.tool) {
+                result.push(Edge {
+                    vcode: Vert {
+                        xy: XY(*x, *y),
+                        tool: u.tool,
+                    }
+                    .code(),
+                    weight: 1,
+                })
+            }
+        }
+
+        for tool in pts {
+            if tool == u.tool {
+                continue;
+            }
+            result.push(Edge {
+                vcode: Vert { xy: u.xy, tool }.code(),
+                weight: 7,
+            })
+        }
+        result
+    }
 }
 
 fn main() {
     for input in &[in_a(), in_1()] {
         let c = Cave::new(input.depth, input.target_xy);
-        let mut risk: u32 = 0;
+        let mut risk: i32 = 0;
 
         for y in 0..=input.target_xy.1 {
             for x in 0..=input.target_xy.0 {
