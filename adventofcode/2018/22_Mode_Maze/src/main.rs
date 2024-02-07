@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap};
 
 const M: i32 = 20183;
-const LIM: i32 = 1500;
+const LIM: i32 = 900;
 
 #[derive(Clone, Copy)]
 struct XY(i32, i32);
@@ -63,7 +63,7 @@ impl Vert {
     }
 
     fn code(&self) -> i32 {
-        let a = (self.xy.1 * LIM + self.xy.0) as i32;
+        let a = self.xy.1 * LIM + self.xy.0;
         (a << 2) | self.tool.code()
     }
 }
