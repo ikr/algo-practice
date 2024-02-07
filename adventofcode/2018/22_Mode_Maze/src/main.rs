@@ -1,5 +1,6 @@
 const M: usize = 20183;
 
+#[derive(Clone, Copy)]
 struct Vert(usize, usize);
 
 struct Input {
@@ -23,6 +24,7 @@ fn in_1() -> Input {
 
 #[derive(Debug)]
 struct Cave {
+    depth: usize,
     geo_idx: Vec<Vec<usize>>,
 }
 
@@ -45,11 +47,30 @@ impl Cave {
         }
 
         geo_idx[bottom_right.0][bottom_right.1] = 0;
-        Self { geo_idx }
+        Self { depth, geo_idx }
+    }
+
+    fn erosion(&self, v: Vert) -> usize {
+        assert!(v.0 < self.geo_idx.len() && v.1 < self.geo_idx[v.0].len());
+        (self.depth + self.geo_idx[v.0][v.1]) % M
+    }
+
+    fn risk(&self, v: Vert) -> usize {
+        self.erosion(v) % 3
     }
 }
 
 fn main() {
-    let c_a = Cave::new(in_a().depth, in_a().target);
-    eprintln!("{:?}", c_a.geo_idx);
+    for input in &[in_a(), in_1()] {
+        let c = Cave::new(input.depth, input.target);
+        let mut risk: usize = 0;
+
+        for y in 0..=input.target.1 {
+            for x in 0..=input.target.0 {
+                risk += c.risk(Vert(x, y));
+            }
+        }
+
+        println!("{}", risk);
+    }
 }
