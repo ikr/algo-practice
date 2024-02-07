@@ -1,3 +1,5 @@
+use std::collections::{BTreeSet, HashMap};
+
 const M: i32 = 20183;
 const LIM: i32 = 1500;
 
@@ -146,7 +148,7 @@ impl Cave {
             (u.xy.0, u.xy.1 + 1),
             (u.xy.0 - 1, u.xy.1),
         ] {
-            if *x < 0 || *y < 0 {
+            if *x < 0 || *y < 0 || *x >= LIM || *y >= LIM {
                 continue;
             }
 
@@ -174,6 +176,26 @@ impl Cave {
         }
         result
     }
+
+    fn dijkstra(&self, source: Vert, target: Vert) -> i32 {
+        let mut dist: HashMap<i32, i32> = HashMap::new();
+        dist.insert(source.code(), 0);
+
+        let mut q: BTreeSet<(i32, i32)> = BTreeSet::new();
+        q.insert((0, source.code()));
+
+        while let Some((_, u)) = q.pop_first() {
+            for e in self.incident(Vert::from_code(u)) {
+                let alt = dist[&u] + e.weight;
+                if !dist.contains_key(&e.vcode) || alt < dist[&e.vcode] {
+                    dist.insert(e.vcode, alt);
+                    q.insert((alt, e.vcode));
+                }
+            }
+        }
+
+        dist[&target.code()]
+    }
 }
 
 fn main() {
@@ -187,6 +209,19 @@ fn main() {
             }
         }
 
-        println!("{}", risk);
+        println!("Part 1 answer: {}", risk);
+        println!(
+            "Part 2 answer: {}",
+            c.dijkstra(
+                Vert {
+                    xy: XY(0, 0),
+                    tool: Tool::Torch
+                },
+                Vert {
+                    xy: input.target_xy,
+                    tool: Tool::Torch
+                }
+            )
+        );
     }
 }
