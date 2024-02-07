@@ -23,39 +23,38 @@ fn in_1() -> Input {
 }
 
 struct Cave {
-    depth: usize,
-    geo_idx: Vec<Vec<usize>>,
+    erosion: Vec<Vec<usize>>,
 }
 
 impl Cave {
     fn new(depth: usize, bottom_right: Vert) -> Self {
         let mut geo_idx = vec![vec![0; bottom_right.0 + 1]; bottom_right.1 + 1];
+        let mut erosion = vec![vec![0; bottom_right.0 + 1]; bottom_right.1 + 1];
 
         for x in 0..=bottom_right.0 {
             geo_idx[0][x] = (x * 16807) % M;
+            erosion[0][x] = (depth + geo_idx[0][x]) % M;
         }
 
         for y in 0..=bottom_right.1 {
             geo_idx[y][0] = (y * 48271) % M;
+            erosion[y][0] = (depth + geo_idx[y][0]) % M;
         }
 
         for y in 1..=bottom_right.1 {
             for x in 1..=bottom_right.0 {
-                geo_idx[y][x] = (geo_idx[y][x - 1] * geo_idx[y - 1][x]) % M;
+                geo_idx[y][x] = (erosion[y][x - 1] * erosion[y - 1][x]) % M;
+                erosion[y][x] = (depth + geo_idx[y][x]) % M;
             }
         }
 
         geo_idx[bottom_right.1][bottom_right.0] = 0;
-        Self { depth, geo_idx }
-    }
-
-    fn erosion(&self, v: Vert) -> usize {
-        assert!(v.1 < self.geo_idx.len() && v.0 < self.geo_idx[v.1].len());
-        (self.depth + self.geo_idx[v.1][v.0]) % M
+        erosion[bottom_right.1][bottom_right.0] = depth % M;
+        Self { erosion }
     }
 
     fn risk(&self, v: Vert) -> usize {
-        self.erosion(v) % 3
+        self.erosion[v.1][v.0] % 3
     }
 }
 
