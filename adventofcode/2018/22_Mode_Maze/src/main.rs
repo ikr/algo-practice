@@ -140,7 +140,12 @@ impl Cave {
         assert!(pts.contains(&u.tool));
 
         let mut result: Vec<Edge> = Vec::new();
-        for (x, y) in &[(u.xy.0, u.xy.1 - 1), (u.xy.0 + 1, u.xy.1)] {
+        for (x, y) in &[
+            (u.xy.0, u.xy.1 - 1),
+            (u.xy.0 + 1, u.xy.1),
+            (u.xy.0, u.xy.1 + 1),
+            (u.xy.0 - 1, u.xy.1),
+        ] {
             if *x < 0 || *y < 0 {
                 continue;
             }
