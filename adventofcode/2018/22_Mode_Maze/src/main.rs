@@ -1,8 +1,8 @@
-const M: usize = 20183;
-const LIM: usize = 1500;
+const M: u32 = 20183;
+const LIM: u32 = 1500;
 
 #[derive(Clone, Copy)]
-struct XY(usize, usize);
+struct XY(u32, u32);
 
 #[derive(Clone, Copy)]
 enum Tile {
@@ -19,8 +19,8 @@ enum Tool {
 }
 
 impl Tool {
-    fn from(x: u32) -> Self {
-        match x {
+    fn from_code(c: u32) -> Self {
+        match c {
             0 => Self::Torch,
             1 => Self::Gear,
             2 => Self::None,
@@ -48,11 +48,18 @@ fn possible_tools(tile: Tile) -> Vec<Tool> {
 #[derive(Clone, Copy)]
 struct Vert {
     xy: XY,
-    tile: Tile,
     tool: Tool,
 }
 
 impl Vert {
+    fn from_code(c: u32) -> Self {
+        let tool = Tool::from_code(3u32 & c);
+        let a = c >> 2;
+        let x = a % LIM;
+        let y = a / LIM;
+        Vert { xy: XY(x, y), tool }
+    }
+
     fn code(&self) -> u32 {
         let a = (self.xy.1 * LIM + self.xy.0) as u32;
         (a << 2) | self.tool.code()
@@ -60,7 +67,7 @@ impl Vert {
 }
 
 struct Input {
-    depth: usize,
+    depth: u32,
     target_xy: XY,
 }
 
@@ -79,38 +86,39 @@ fn in_1() -> Input {
 }
 
 struct Cave {
-    erosion: Vec<Vec<usize>>,
+    erosion: Vec<Vec<u32>>,
 }
 
 impl Cave {
-    fn new(depth: usize, target_xy: XY) -> Self {
-        let mut geo_idx = vec![vec![0; LIM]; LIM];
-        let mut erosion = vec![vec![0; LIM]; LIM];
+    fn new(depth: u32, target_xy: XY) -> Self {
+        let mut geo_idx = vec![vec![0; LIM as usize]; LIM as usize];
+        let mut erosion = vec![vec![0; LIM as usize]; LIM as usize];
 
         for x in 0..LIM {
-            geo_idx[0][x] = (x * 16807) % M;
-            erosion[0][x] = (depth + geo_idx[0][x]) % M;
+            geo_idx[0][x as usize] = (x * 16807) % M;
+            erosion[0][x as usize] = (depth + geo_idx[0][x as usize]) % M;
         }
 
         for y in 0..LIM {
-            geo_idx[y][0] = (y * 48271) % M;
-            erosion[y][0] = (depth + geo_idx[y][0]) % M;
+            geo_idx[y as usize][0] = (y * 48271) % M;
+            erosion[y as usize][0] = (depth + geo_idx[y as usize][0]) % M;
         }
 
         for y in 1..LIM {
             for x in 1..LIM {
-                geo_idx[y][x] = (erosion[y][x - 1] * erosion[y - 1][x]) % M;
-                erosion[y][x] = (depth + geo_idx[y][x]) % M;
+                geo_idx[y as usize][x as usize] =
+                    (erosion[y as usize][x as usize - 1] * erosion[y as usize - 1][x as usize]) % M;
+                erosion[y as usize][x as usize] = (depth + geo_idx[y as usize][x as usize]) % M;
             }
         }
 
-        geo_idx[target_xy.1][target_xy.0] = 0;
-        erosion[target_xy.1][target_xy.0] = depth % M;
+        geo_idx[target_xy.1 as usize][target_xy.0 as usize] = 0;
+        erosion[target_xy.1 as usize][target_xy.0 as usize] = depth % M;
         Self { erosion }
     }
 
-    fn risk(&self, xy: XY) -> usize {
-        self.erosion[xy.1][xy.0] % 3
+    fn risk(&self, xy: XY) -> u32 {
+        self.erosion[xy.1 as usize][xy.0 as usize] % 3
     }
 
     fn tile(&self, xy: XY) -> Tile {
@@ -126,7 +134,7 @@ impl Cave {
 fn main() {
     for input in &[in_a(), in_1()] {
         let c = Cave::new(input.depth, input.target_xy);
-        let mut risk: usize = 0;
+        let mut risk: u32 = 0;
 
         for y in 0..=input.target_xy.1 {
             for x in 0..=input.target_xy.0 {
