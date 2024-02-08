@@ -43,6 +43,10 @@ fn main() {
         .map(|l| Bot::parse(&l.unwrap()))
         .collect();
 
-    bots.sort_by_key(|b| -b.signal_radius);
+    bots.sort_by_key(|b| b.signal_radius);
     eprintln!("{:?}", bots);
+
+    let a: &Bot = bots.last().unwrap();
+    let result = bots.iter().filter(|b| a.in_range(&b.position)).count();
+    println!("{}", result);
 }
