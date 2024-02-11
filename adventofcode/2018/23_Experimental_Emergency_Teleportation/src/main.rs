@@ -34,6 +34,10 @@ impl Bot {
     fn in_range(&self, a: &Xyz) -> bool {
         self.distance(a) <= self.signal_radius
     }
+
+    fn adjacent(&self, o: &Bot) -> bool {
+        self.distance(&o.position) <= self.signal_radius + o.signal_radius
+    }
 }
 
 fn solve_part_1(bots: &[Bot]) {
@@ -42,8 +46,23 @@ fn solve_part_1(bots: &[Bot]) {
     println!("{}", result);
 }
 
+fn adjacency_list(bots: &[Bot]) -> Vec<Vec<usize>> {
+    let n = bots.len();
+    let mut result: Vec<Vec<usize>> = vec![vec![]; n];
+    for i in 0..n - 1 {
+        for j in i + 1..n {
+            if bots[i].adjacent(&bots[j]) {
+                result[i].push(j);
+                result[j].push(i);
+            }
+        }
+    }
+    result
+}
+
 fn solve_part_2(bots: &[Bot]) {
-    todo!();
+    eprintln!("Number of bots: {}", bots.len());
+    eprint!("{:?}", adjacency_list(&bots));
 }
 
 fn main() {
