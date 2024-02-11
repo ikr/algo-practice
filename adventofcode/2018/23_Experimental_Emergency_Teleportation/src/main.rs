@@ -12,7 +12,7 @@ fn modified_at(mut xyz: Xyz, i: usize, value: i32) -> Xyz {
     xyz
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy)]
 struct Bot {
     position: Xyz,
     signal_radius: i32,
@@ -60,9 +60,9 @@ fn solve_part_1(bots: &[Bot]) {
     println!("{}", result);
 }
 
-fn graph<F>(bots: &[Bot], mut adj: F) -> Vec<Vec<usize>>
+fn graph<F>(bots: &[Bot], adj: F) -> Vec<Vec<usize>>
 where
-    F: FnMut(&Bot, &Bot) -> bool,
+    F: Fn(&Bot, &Bot) -> bool,
 {
     let n = bots.len();
     let mut result: Vec<Vec<usize>> = vec![vec![]; n];
@@ -94,12 +94,15 @@ fn solve_part_2(bots: &[Bot]) {
 }
 
 fn main() {
-    let mut bots: Vec<Bot> = io::stdin()
+    let bots: Vec<Bot> = io::stdin()
         .lock()
         .lines()
         .map(|l| Bot::parse(&l.unwrap()))
         .collect();
-    bots.sort_by_key(|b| b.signal_radius);
-    solve_part_1(&bots);
+
+    let mut bots_sorted: Vec<Bot> = bots.clone();
+    bots_sorted.sort_by_key(|b| b.signal_radius);
+    solve_part_1(&bots_sorted);
+
     solve_part_2(&bots);
 }
