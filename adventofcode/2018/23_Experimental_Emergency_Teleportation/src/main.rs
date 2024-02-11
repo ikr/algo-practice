@@ -36,17 +36,23 @@ impl Bot {
     }
 }
 
+fn solve_part_1(bots: &[Bot]) {
+    let a: &Bot = bots.last().unwrap();
+    let result = bots.iter().filter(|b| a.in_range(&b.position)).count();
+    println!("{}", result);
+}
+
+fn solve_part_2(bots: &[Bot]) {
+    todo!();
+}
+
 fn main() {
     let mut bots: Vec<Bot> = io::stdin()
         .lock()
         .lines()
         .map(|l| Bot::parse(&l.unwrap()))
         .collect();
-
     bots.sort_by_key(|b| b.signal_radius);
-    eprintln!("{:?}", bots);
-
-    let a: &Bot = bots.last().unwrap();
-    let result = bots.iter().filter(|b| a.in_range(&b.position)).count();
-    println!("{}", result);
+    solve_part_1(&bots);
+    solve_part_2(&bots);
 }
