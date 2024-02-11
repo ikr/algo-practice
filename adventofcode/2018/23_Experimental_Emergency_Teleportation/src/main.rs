@@ -46,7 +46,7 @@ fn solve_part_1(bots: &[Bot]) {
     println!("{}", result);
 }
 
-fn adjacency_list(bots: &[Bot]) -> Vec<Vec<usize>> {
+fn overlap_graph(bots: &[Bot]) -> Vec<Vec<usize>> {
     let n = bots.len();
     let mut result: Vec<Vec<usize>> = vec![vec![]; n];
     for i in 0..n - 1 {
@@ -62,7 +62,7 @@ fn adjacency_list(bots: &[Bot]) -> Vec<Vec<usize>> {
 
 fn solve_part_2(bots: &[Bot]) {
     eprintln!("Number of bots: {}", bots.len());
-    eprint!("{:?}", adjacency_list(&bots));
+    eprint!("{:?}", overlap_graph(&bots));
 }
 
 fn main() {
