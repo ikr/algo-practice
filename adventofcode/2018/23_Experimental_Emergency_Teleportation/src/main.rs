@@ -96,18 +96,17 @@ fn out_degrees(g: &[Vec<usize>]) -> Vec<u16> {
     result
 }
 
+fn eprint_graph_stats(g: &[Vec<usize>]) {
+    let n = g.len();
+    let deg = out_degrees(g);
+    let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (deg[i], i)).collect();
+    dis.sort();
+    eprintln!("top-deg: {:?}", &dis[n - 3..n]);
+}
+
 fn solve_part_2(bots: &[Bot]) {
-    eprintln!("Number of bots: {}", bots.len());
-    eprintln!(
-        "g: {:?} deg: {:?}",
-        overlap_graph(bots),
-        out_degrees(&overlap_graph(bots))
-    );
-    eprintln!(
-        "g: {:?} deg: {:?}",
-        containment_graph(bots),
-        out_degrees(&containment_graph(bots))
-    );
+    eprint_graph_stats(&overlap_graph(bots));
+    eprint_graph_stats(&&containment_graph(bots));
 }
 
 fn main() {
