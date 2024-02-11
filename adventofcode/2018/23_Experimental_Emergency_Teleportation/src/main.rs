@@ -28,10 +28,10 @@ impl Bot {
         }
     }
 
-    fn distance(&self, a: &Xyz) -> i32 {
+    fn distance(&self, o: &Xyz) -> i32 {
         let mut result: i32 = 0;
-        for i in 0..3 {
-            result += (self.position[i] - a[i]).abs();
+        for (i, a) in self.position.iter().enumerate() {
+            result += (a - o[i]).abs();
         }
         result
     }
@@ -46,9 +46,9 @@ impl Bot {
 
     fn contains(&self, o: &Bot) -> bool {
         let mut vertices: Vec<Xyz> = Vec::new();
-        for i in 0..3 {
-            vertices.push(modified_at(o.position, i, o.position[i] - o.signal_radius));
-            vertices.push(modified_at(o.position, i, o.position[i] + o.signal_radius));
+        for (i, a) in o.position.iter().enumerate() {
+            vertices.push(modified_at(o.position, i, a - o.signal_radius));
+            vertices.push(modified_at(o.position, i, a + o.signal_radius));
         }
         vertices.iter().all(|&u| self.in_range(&u))
     }
@@ -87,10 +87,27 @@ fn containment_graph(bots: &[Bot]) -> Vec<Vec<usize>> {
     graph(bots, |a, b| a.contains(b))
 }
 
+fn out_degrees(g: &[Vec<usize>]) -> Vec<u16> {
+    let n = g.len();
+    let mut result: Vec<u16> = vec![0; n];
+    for i in 0..n {
+        result[i] = g[i].len() as u16;
+    }
+    result
+}
+
 fn solve_part_2(bots: &[Bot]) {
     eprintln!("Number of bots: {}", bots.len());
-    eprintln!("{:?}", overlap_graph(&bots));
-    eprintln!("{:?}", containment_graph(&bots));
+    eprintln!(
+        "g: {:?} deg: {:?}",
+        overlap_graph(bots),
+        out_degrees(&overlap_graph(bots))
+    );
+    eprintln!(
+        "g: {:?} deg: {:?}",
+        containment_graph(bots),
+        out_degrees(&containment_graph(bots))
+    );
 }
 
 fn main() {
