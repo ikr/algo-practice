@@ -7,6 +7,11 @@ fn inof(src: &str) -> i32 {
     src.parse().unwrap()
 }
 
+fn modified_at(mut xyz: Xyz, i: usize, value: i32) -> Xyz {
+    xyz[i] = value;
+    xyz
+}
+
 #[derive(Debug)]
 struct Bot {
     position: Xyz,
@@ -35,8 +40,17 @@ impl Bot {
         self.distance(a) <= self.signal_radius
     }
 
-    fn adjacent(&self, o: &Bot) -> bool {
+    fn overlaps_with(&self, o: &Bot) -> bool {
         self.distance(&o.position) <= self.signal_radius + o.signal_radius
+    }
+
+    fn contains(&self, o: &Bot) -> bool {
+        let mut vertices: Vec<Xyz> = Vec::new();
+        for i in 0..3 {
+            vertices.push(modified_at(o.position, i, o.position[i] - o.signal_radius));
+            vertices.push(modified_at(o.position, i, o.position[i] + o.signal_radius));
+        }
+        vertices.iter().all(|&u| self.in_range(&u))
     }
 }
 
@@ -46,13 +60,18 @@ fn solve_part_1(bots: &[Bot]) {
     println!("{}", result);
 }
 
-fn overlap_graph(bots: &[Bot]) -> Vec<Vec<usize>> {
+fn graph<F>(bots: &[Bot], mut adj: F) -> Vec<Vec<usize>>
+where
+    F: FnMut(&Bot, &Bot) -> bool,
+{
     let n = bots.len();
     let mut result: Vec<Vec<usize>> = vec![vec![]; n];
     for i in 0..n - 1 {
         for j in i + 1..n {
-            if bots[i].adjacent(&bots[j]) {
+            if adj(&bots[i], &bots[j]) {
                 result[i].push(j);
+            }
+            if adj(&bots[j], &bots[i]) {
                 result[j].push(i);
             }
         }
@@ -60,9 +79,18 @@ fn overlap_graph(bots: &[Bot]) -> Vec<Vec<usize>> {
     result
 }
 
+fn overlap_graph(bots: &[Bot]) -> Vec<Vec<usize>> {
+    graph(bots, |a, b| a.overlaps_with(b))
+}
+
+fn containment_graph(bots: &[Bot]) -> Vec<Vec<usize>> {
+    graph(bots, |a, b| a.contains(b))
+}
+
 fn solve_part_2(bots: &[Bot]) {
     eprintln!("Number of bots: {}", bots.len());
-    eprint!("{:?}", overlap_graph(&bots));
+    eprintln!("{:?}", overlap_graph(&bots));
+    eprintln!("{:?}", containment_graph(&bots));
 }
 
 fn main() {
