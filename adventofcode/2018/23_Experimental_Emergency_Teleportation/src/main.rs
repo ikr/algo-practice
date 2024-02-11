@@ -1,15 +1,42 @@
 use regex::Regex;
+use std::cmp;
 use std::io::{self, BufRead};
 
 type Xyz = [i32; 3];
-
-fn inof(src: &str) -> i32 {
-    src.parse().unwrap()
-}
+type Ijkl = [i32; 4];
 
 fn modified_at(mut xyz: Xyz, i: usize, value: i32) -> Xyz {
     xyz[i] = value;
     xyz
+}
+
+fn manhattan(one: &Xyz, two: &Xyz) -> i32 {
+    let mut result: i32 = 0;
+    for (i, a) in one.iter().enumerate() {
+        result += (a - two[i]).abs();
+    }
+    result
+}
+
+fn chebyshev(one: &Ijkl, two: &Ijkl) -> i32 {
+    let mut result: i32 = 0;
+    for (i, a) in one.iter().enumerate() {
+        result = cmp::max(result, (a - two[i]).abs());
+    }
+    result
+}
+
+fn rotate_45(xs: &Xyz) -> Ijkl {
+    [
+        xs[0] + xs[1] + xs[2],
+        xs[0] + xs[1] - xs[2],
+        xs[0] - xs[1] + xs[2],
+        xs[0] - xs[1] - xs[2],
+    ]
+}
+
+fn inof(src: &str) -> i32 {
+    src.parse().unwrap()
 }
 
 #[derive(Clone, Copy)]
@@ -28,20 +55,12 @@ impl Bot {
         }
     }
 
-    fn distance(&self, o: &Xyz) -> i32 {
-        let mut result: i32 = 0;
-        for (i, a) in self.position.iter().enumerate() {
-            result += (a - o[i]).abs();
-        }
-        result
-    }
-
     fn in_range(&self, a: &Xyz) -> bool {
-        self.distance(a) <= self.signal_radius
+        manhattan(&self.position, a) <= self.signal_radius
     }
 
     fn overlaps_with(&self, o: &Bot) -> bool {
-        self.distance(&o.position) <= self.signal_radius + o.signal_radius
+        manhattan(&self.position, &o.position) <= self.signal_radius + o.signal_radius
     }
 
     fn contains(&self, o: &Bot) -> bool {
@@ -101,7 +120,7 @@ fn eprint_graph_stats(g: &[Vec<usize>]) {
     let deg = out_degrees(g);
     let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (deg[i], i)).collect();
     dis.sort();
-    eprintln!("top-deg: {:?}", &dis[n - 3..n]);
+    eprintln!("top-deg: {:?}", &dis[n - 6..n]);
 }
 
 fn solve_part_2(bots: &[Bot]) {
