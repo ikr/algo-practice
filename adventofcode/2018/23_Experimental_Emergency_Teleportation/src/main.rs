@@ -1,4 +1,3 @@
-use ac_library::Dsu;
 use regex::Regex;
 use std::cmp;
 use std::io::{self, BufRead};
@@ -125,28 +124,22 @@ fn eprint_graph_stats(g: &[Vec<usize>]) {
 }
 
 fn solve_part_2(bots: &[Bot]) {
-    let g0 = overlap_graph(bots);
-    eprint_graph_stats(&g0);
-    eprint_graph_stats(&&containment_graph(bots));
+    eprint_graph_stats(&overlap_graph(bots));
+    let g = containment_graph(bots);
+    eprint_graph_stats(&g);
 
-    let n = g0.len();
-    let mut dsu = Dsu::new(n);
-    for u in 0..n {
-        for &v in &g0[u] {
-            dsu.merge(u, v);
-        }
-    }
+    let n = g.len();
+    let deg = out_degrees(&g);
+    let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (deg[i], i)).collect();
+    dis.sort();
 
-    let mut cs = dsu.groups();
-    cs.sort_by_key(|c| c.len());
-    let largest_component = cs.last().unwrap();
-    eprintln!("{:?}", largest_component);
+    let (m, u0) = dis.last().unwrap();
+    eprintln!("{} has max out-deg of {}", u0, m);
 
-    let m = largest_component.len();
-    for i in 0..m - 1 {
-        for j in i + 1..m {
-            let u = largest_component[i];
-            let v = largest_component[j];
+    for i in 0..*m - 1 {
+        for j in i + 1..*m {
+            let u = g[*u0][i as usize];
+            let v = g[*u0][j as usize];
             if !bots[u].overlaps_with(&bots[v]) {
                 eprintln!("{} and {} don't overlap", u, v);
             }
