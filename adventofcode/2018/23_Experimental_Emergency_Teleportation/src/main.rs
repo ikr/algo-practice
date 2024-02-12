@@ -133,15 +133,19 @@ fn solve_part_2(bots: &[Bot]) {
     let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (deg[i], i)).collect();
     dis.sort();
 
-    let (m, u0) = dis.last().unwrap();
-    eprintln!("{} has max out-deg of {}", u0, m);
+    for (m, u0) in dis.iter() {
+        eprintln!("{} has an out-deg of {}", u0, m);
+        if *m == 0 {
+            continue;
+        }
 
-    for i in 0..*m - 1 {
-        for j in i + 1..*m {
-            let u = g[*u0][i as usize];
-            let v = g[*u0][j as usize];
-            if !bots[u].overlaps_with(&bots[v]) {
-                eprintln!("{} and {} don't overlap", u, v);
+        for i in 0..*m - 1 {
+            for j in i + 1..*m {
+                let u = g[*u0][i as usize];
+                let v = g[*u0][j as usize];
+                if !bots[u].overlaps_with(&bots[v]) {
+                    eprintln!("{} and {} don't overlap", u, v);
+                }
             }
         }
     }
