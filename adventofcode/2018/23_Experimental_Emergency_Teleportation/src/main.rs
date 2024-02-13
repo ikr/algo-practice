@@ -4,10 +4,24 @@ use std::io::{self, BufRead};
 
 type Xyz = [i32; 3];
 type Ijkl = [i32; 4];
+type Pii = (i32, i32);
 
 fn modified_at(mut xyz: Xyz, i: usize, value: i32) -> Xyz {
     xyz[i] = value;
     xyz
+}
+
+fn intersection(ab: Pii, cd: Pii) -> Option<Pii> {
+    let (a, b) = ab;
+    assert!(a <= b);
+    let (c, d) = cd;
+    assert!(c <= d);
+
+    if a > d || c > b {
+        None
+    } else {
+        Some((cmp::max(a, c), cmp::min(b, d)))
+    }
 }
 
 fn manhattan(one: &Xyz, two: &Xyz) -> i32 {
