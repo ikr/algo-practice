@@ -149,6 +149,19 @@ fn solve_part_2(bots: &[Bot]) {
             }
         }
     }
+
+    let (_, u) = dis.last().unwrap();
+    for v in 0..n {
+        if *u == v || g[*u].contains(&v) {
+            continue;
+        }
+
+        for w in g[*u].iter() {
+            if bots[v].overlaps_with(&bots[*w]) {
+                eprintln!("{} overlaps with {}", w, v);
+            }
+        }
+    }
 }
 
 fn main() {
