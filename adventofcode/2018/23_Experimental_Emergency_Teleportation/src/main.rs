@@ -210,13 +210,20 @@ fn solve_part_2(bots: &[Bot]) {
     let og1 = segs_overlap_graph(&segs);
     assert!(og1 == og0);
 
-    let x = cg[*u0]
+    let mut x = cg[*u0]
         .iter()
         .map(|i| segs[*i].clone())
         .reduce(|acc, s| acc.intersection(&s).unwrap())
         .unwrap();
-    eprintln!("{:?}", x);
-    println!("{}", x.distance_to_origin());
+    eprintln!("{:?} → {}", x, x.distance_to_origin());
+
+    for v in segs {
+        if let Some(x_) = x.intersection(&v) {
+            x = x_;
+            eprintln!("refined");
+        }
+    }
+    eprintln!("{:?} → {}", x, x.distance_to_origin());
 }
 
 fn main() {
