@@ -210,19 +210,41 @@ fn solve_part_2(bots: &[Bot]) {
     let og1 = segs_overlap_graph(&segs);
     assert!(og1 == og0);
 
-    let mut x = cg[*u0]
-        .iter()
-        .map(|i| segs[*i].clone())
-        .reduce(|acc, s| acc.intersection(&s).unwrap())
-        .unwrap();
-    eprintln!("{:?} → {}", x, x.distance_to_origin());
+    // {
+    //     let mut x = cg[*u0]
+    //         .iter()
+    //         .map(|i| segs[*i].clone())
+    //         .reduce(|acc, s| acc.intersection(&s).unwrap())
+    //         .unwrap();
+    //     eprintln!("{:?} → {}", x, x.distance_to_origin());
 
-    for v in segs {
-        if let Some(x_) = x.intersection(&v) {
-            x = x_;
+    //     for v in segs.iter() {
+    //         if let Some(x_) = x.intersection(&v) {
+    //             x = x_;
+    //         }
+    //     }
+    //     eprintln!("{:?} → {}", x, x.distance_to_origin());
+    // }
+
+    let mut num = 0;
+    let mut ar = Seg4d { sub: [(-1, 1); 4] };
+    {
+        for x in segs.iter() {
+            let mut cur = 0;
+            let mut y = x.clone();
+            for v in segs.iter() {
+                if let Some(y_) = y.intersection(&v) {
+                    y = y_;
+                    cur += 1;
+                }
+            }
+            if cur > num {
+                num = cur;
+                ar = y;
+            }
         }
     }
-    eprintln!("{:?} → {}", x, x.distance_to_origin());
+    println!("{:?} with {} covering", ar, num);
 }
 
 fn main() {
