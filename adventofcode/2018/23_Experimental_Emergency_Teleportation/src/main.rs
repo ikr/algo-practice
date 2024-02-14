@@ -122,18 +122,18 @@ fn solve_part_1(bots: &[Bot]) {
     println!("{}", result);
 }
 
-fn graph<F>(bots: &[Bot], adj: F) -> Vec<Vec<usize>>
+fn graph<T, F>(objects: &[T], adj: F) -> Vec<Vec<usize>>
 where
-    F: Fn(&Bot, &Bot) -> bool,
+    F: Fn(&T, &T) -> bool,
 {
-    let n = bots.len();
+    let n = objects.len();
     let mut result: Vec<Vec<usize>> = vec![vec![]; n];
     for i in 0..n - 1 {
         for j in i + 1..n {
-            if adj(&bots[i], &bots[j]) {
+            if adj(&objects[i], &objects[j]) {
                 result[i].push(j);
             }
-            if adj(&bots[j], &bots[i]) {
+            if adj(&objects[j], &objects[i]) {
                 result[j].push(i);
             }
         }
