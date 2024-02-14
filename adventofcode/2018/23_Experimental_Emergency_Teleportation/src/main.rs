@@ -33,7 +33,7 @@ impl Seg4d {
         Seg4d { sub }
     }
 
-    fn intersection(&self, o: Self) -> Option<Self> {
+    fn intersection(&self, o: &Self) -> Option<Self> {
         let mut sub: [Seg; 4] = [(0, 0); 4];
         for i in 0..sub.len() {
             sub[i] = intersection(self.sub[i], o.sub[i])?;
@@ -149,6 +149,10 @@ fn containment_graph(bots: &[Bot]) -> Vec<Vec<usize>> {
     graph(bots, |a, b| a.contains(b))
 }
 
+fn segs_overlap_graph(segs: &[Seg4d]) -> Vec<Vec<usize>> {
+    graph(segs, |a, b| a.intersection(b).is_some())
+}
+
 fn out_degrees(g: &[Vec<usize>]) -> Vec<u16> {
     let n = g.len();
     let mut result: Vec<u16> = vec![0; n];
@@ -167,12 +171,14 @@ fn eprint_graph_stats(g: &[Vec<usize>]) {
 }
 
 fn solve_part_2(bots: &[Bot]) {
-    eprint_graph_stats(&overlap_graph(bots));
-    let g0 = containment_graph(bots);
-    eprint_graph_stats(&g0);
+    let og0 = overlap_graph(bots);
+    eprint_graph_stats(&og0);
 
-    let n = g0.len();
-    let deg = out_degrees(&g0);
+    let cg = containment_graph(bots);
+    eprint_graph_stats(&cg);
+
+    let n = cg.len();
+    let deg = out_degrees(&cg);
     let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (deg[i], i)).collect();
     dis.sort();
 
@@ -184,8 +190,8 @@ fn solve_part_2(bots: &[Bot]) {
 
         for i in 0..*m - 1 {
             for j in i + 1..*m {
-                let u = g0[*u0][i as usize];
-                let v = g0[*u0][j as usize];
+                let u = cg[*u0][i as usize];
+                let v = cg[*u0][j as usize];
                 if !bots[u].overlaps_with(&bots[v]) {
                     eprintln!("{} and {} don't overlap", u, v);
                 }
@@ -195,16 +201,20 @@ fn solve_part_2(bots: &[Bot]) {
 
     let (_, u) = dis.last().unwrap();
     for v in 0..n {
-        if *u == v || g0[*u].contains(&v) {
+        if *u == v || cg[*u].contains(&v) {
             continue;
         }
 
-        for w in g0[*u].iter() {
+        for w in cg[*u].iter() {
             if bots[v].overlaps_with(&bots[*w]) {
                 eprintln!("{} overlaps with {}", w, v);
             }
         }
     }
+
+    let segs: Vec<Seg4d> = bots.iter().map(|b| b.rotated_seg4d()).collect();
+    let og1 = segs_overlap_graph(&segs);
+    assert!(og1 == og0);
 }
 
 fn main() {
