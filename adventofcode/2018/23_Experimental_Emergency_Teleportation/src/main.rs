@@ -4,14 +4,14 @@ use std::io::{self, BufRead};
 
 type Xyz = [i32; 3];
 type Ijkl = [i32; 4];
-type Pii = (i32, i32);
+type Seg = (i32, i32);
 
 fn modified_at(mut xyz: Xyz, i: usize, value: i32) -> Xyz {
     xyz[i] = value;
     xyz
 }
 
-fn intersection(ab: Pii, cd: Pii) -> Option<Pii> {
+fn intersection(ab: Seg, cd: Seg) -> Option<Seg> {
     let (a, b) = ab;
     assert!(a <= b);
     let (c, d) = cd;
@@ -21,6 +21,24 @@ fn intersection(ab: Pii, cd: Pii) -> Option<Pii> {
         None
     } else {
         Some((cmp::max(a, c), cmp::min(b, d)))
+    }
+}
+
+struct Seg4d {
+    sub: [Seg; 4],
+}
+
+impl Seg4d {
+    fn new(sub: [Seg; 4]) -> Self {
+        Seg4d { sub }
+    }
+
+    fn intersection(&self, o: Self) -> Option<Self> {
+        let mut sub: [Seg; 4] = [(0, 0); 4];
+        for i in 0..sub.len() {
+            sub[i] = intersection(self.sub[i], o.sub[i])?;
+        }
+        Some(Self { sub })
     }
 }
 
@@ -85,6 +103,17 @@ impl Bot {
         }
         vertices.iter().all(|&u| self.in_range(&u))
     }
+
+    fn rotated_seg4d(&self) -> Seg4d {
+        Seg4d {
+            sub: rotate_45(&self.position)
+                .iter()
+                .map(|a| (a - self.signal_radius, a + self.signal_radius))
+                .collect::<Vec<Seg>>()
+                .try_into()
+                .unwrap(),
+        }
+    }
 }
 
 fn solve_part_1(bots: &[Bot]) {
@@ -139,11 +168,11 @@ fn eprint_graph_stats(g: &[Vec<usize>]) {
 
 fn solve_part_2(bots: &[Bot]) {
     eprint_graph_stats(&overlap_graph(bots));
-    let g = containment_graph(bots);
-    eprint_graph_stats(&g);
+    let g0 = containment_graph(bots);
+    eprint_graph_stats(&g0);
 
-    let n = g.len();
-    let deg = out_degrees(&g);
+    let n = g0.len();
+    let deg = out_degrees(&g0);
     let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (deg[i], i)).collect();
     dis.sort();
 
@@ -155,8 +184,8 @@ fn solve_part_2(bots: &[Bot]) {
 
         for i in 0..*m - 1 {
             for j in i + 1..*m {
-                let u = g[*u0][i as usize];
-                let v = g[*u0][j as usize];
+                let u = g0[*u0][i as usize];
+                let v = g0[*u0][j as usize];
                 if !bots[u].overlaps_with(&bots[v]) {
                     eprintln!("{} and {} don't overlap", u, v);
                 }
@@ -166,11 +195,11 @@ fn solve_part_2(bots: &[Bot]) {
 
     let (_, u) = dis.last().unwrap();
     for v in 0..n {
-        if *u == v || g[*u].contains(&v) {
+        if *u == v || g0[*u].contains(&v) {
             continue;
         }
 
-        for w in g[*u].iter() {
+        for w in g0[*u].iter() {
             if bots[v].overlaps_with(&bots[*w]) {
                 eprintln!("{} overlaps with {}", w, v);
             }
