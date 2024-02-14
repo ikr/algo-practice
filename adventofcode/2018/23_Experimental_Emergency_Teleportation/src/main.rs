@@ -220,7 +220,6 @@ fn solve_part_2(bots: &[Bot]) {
     for v in segs {
         if let Some(x_) = x.intersection(&v) {
             x = x_;
-            eprintln!("refined");
         }
     }
     eprintln!("{:?} → {}", x, x.distance_to_origin());
