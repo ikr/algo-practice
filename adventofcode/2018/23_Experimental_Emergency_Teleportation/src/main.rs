@@ -29,10 +29,6 @@ struct Seg4d {
 }
 
 impl Seg4d {
-    fn new(sub: [Seg; 4]) -> Self {
-        Seg4d { sub }
-    }
-
     fn intersection(&self, o: &Self) -> Option<Self> {
         let mut sub: [Seg; 4] = [(0, 0); 4];
         for i in 0..sub.len() {
@@ -178,8 +174,8 @@ fn solve_part_2(bots: &[Bot]) {
     eprint_graph_stats(&cg);
 
     let n = cg.len();
-    let deg = out_degrees(&cg);
-    let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (deg[i], i)).collect();
+    let cdeg = out_degrees(&cg);
+    let mut dis: Vec<(u16, usize)> = (0..n).map(|i| (cdeg[i], i)).collect();
     dis.sort();
 
     for (m, u0) in dis.iter() {
@@ -199,18 +195,7 @@ fn solve_part_2(bots: &[Bot]) {
         }
     }
 
-    let (_, u) = dis.last().unwrap();
-    for v in 0..n {
-        if *u == v || cg[*u].contains(&v) {
-            continue;
-        }
-
-        for w in cg[*u].iter() {
-            if bots[v].overlaps_with(&bots[*w]) {
-                eprintln!("{} overlaps with {}", w, v);
-            }
-        }
-    }
+    let (_, u0) = dis.last().unwrap();
 
     let segs: Vec<Seg4d> = bots.iter().map(|b| b.rotated_seg4d()).collect();
     let og1 = segs_overlap_graph(&segs);
