@@ -24,6 +24,7 @@ fn intersection(ab: Seg, cd: Seg) -> Option<Seg> {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 struct Seg4d {
     sub: [Seg; 4],
 }
@@ -35,6 +36,14 @@ impl Seg4d {
             sub[i] = intersection(self.sub[i], o.sub[i])?;
         }
         Some(Self { sub })
+    }
+
+    fn distance_to_origin(&self) -> i32 {
+        self.sub
+            .iter()
+            .map(|(x, y)| cmp::min(x.abs(), y.abs()))
+            .reduce(|acc, x| cmp::min(acc, x))
+            .unwrap()
     }
 }
 
@@ -200,6 +209,14 @@ fn solve_part_2(bots: &[Bot]) {
     let segs: Vec<Seg4d> = bots.iter().map(|b| b.rotated_seg4d()).collect();
     let og1 = segs_overlap_graph(&segs);
     assert!(og1 == og0);
+
+    let x = cg[*u0]
+        .iter()
+        .map(|i| segs[*i].clone())
+        .reduce(|acc, s| acc.intersection(&s).unwrap())
+        .unwrap();
+    eprintln!("{:?}", x);
+    println!("{}", x.distance_to_origin());
 }
 
 fn main() {
