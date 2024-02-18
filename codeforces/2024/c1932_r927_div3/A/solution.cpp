@@ -27,6 +27,8 @@ int max_coins(const string &xs) {
     };
 
     for (int i = 1; i < n; ++i) {
+        if (!is_good(i - 1) && !is_good(i - 2)) break;
+
         switch (xs[i]) {
         case '.':
             for (const auto j : {i - 2, i - 1}) {
