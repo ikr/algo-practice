@@ -52,4 +52,8 @@ fn main() {
         "{:?}",
         Receptivity::parse("immune to cold; weak to bludgeoning")
     );
+
+    let whole_input: String = std::io::read_to_string(std::io::stdin()).unwrap();
+    let team_sources: Vec<&str> = whole_input.split("\n\n").collect();
+    eprintln!("{:?}", team_sources);
 }
