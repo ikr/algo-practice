@@ -19,6 +19,8 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
 
 using Card = pair<char, int>;
 
+const string Suits{"CDHS"};
+
 constexpr char chof(const int x) { return static_cast<char>(x); }
 
 template <typename T> constexpr int inof(const T x) {
@@ -67,42 +69,47 @@ vector<vector<int>> less_than_graph(const char trump,
 
 vector<pair<Card, Card>> game_plan(const char trump,
                                    const vector<Card> &cards) {
-    assert(sz(cards) % 2 == 0);
-    const int N = sz(cards);
+    map<char, vector<Card>> by_suit;
+    for (const auto &c : cards) {
+        by_suit[c.first].push_back(c);
+    }
 
-    const auto g = less_than_graph(trump, cards);
-
-    vector<bool> visited(N, false);
-    vector<bool> used(N, false);
     vector<pair<Card, Card>> ans;
+    for (const auto &s : Suits) {
+        sort(begin(by_suit[s]), end(by_suit[s]));
 
-    const auto recur = [&](const auto self, const int p, const int u) -> void {
-        const bool terminal =
-            p >= 0 && all_of(cbegin(g[u]), cend(g[u]),
-                             [&](const int v) { return used[v]; });
-        if (terminal && !used[u] && !used[p]) {
-            used[p] = true;
-            used[u] = true;
-            ans.emplace_back(cards[p], cards[u]);
-            return;
-        }
-
-        for (const auto v : g[u]) {
-            self(self, u, v);
-        }
-    };
-
-    for (int u = 0; u < N; ++u) {
-        if (!visited[u]) {
-            recur(recur, -1, u);
+        if (s == trump) continue;
+        while (sz(by_suit[s]) >= 2) {
+            ans.emplace_back(by_suit[s][sz(by_suit[s]) - 2], by_suit[s].back());
+            by_suit[s].pop_back();
+            by_suit[s].pop_back();
         }
     }
 
-    // cerr << ans << endl;
+    for (const auto &s : Suits) {
+        if (s == trump) continue;
+        while (!empty(by_suit[s]) && !empty(by_suit[trump])) {
+            ans.emplace_back(by_suit[s].back(), by_suit[trump].back());
+            by_suit[s].pop_back();
+            by_suit[trump].pop_back();
+        }
+    }
 
-    return count(cbegin(used), cend(used), true) == N
-               ? ans
-               : vector<pair<Card, Card>>{};
+    while (sz(by_suit[trump]) >= 2) {
+        ans.emplace_back(by_suit[trump][sz(by_suit[trump]) - 2],
+                         by_suit[trump].back());
+        by_suit[trump].pop_back();
+        by_suit[trump].pop_back();
+    }
+
+    bool ok = true;
+    for (const auto &s : Suits) {
+        if (!empty(by_suit[s])) {
+            ok = false;
+            break;
+        }
+    }
+    return ok ? ans : vector<pair<Card, Card>>{};
 }
 
 int main() {
