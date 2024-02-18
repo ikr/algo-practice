@@ -13,11 +13,11 @@ ll first_multiple_of_x_greater_than_y(const ll x, const ll y) {
     if (x == 1LL) return y + 1LL;
     assert(x > 0LL);
 
-    ll k = 1;
-    while (x * k <= y) ++k;
-    cerr << "first_multiple_of_x_greater_than_y(" << x << ", " << y
-         << ") = " << k * x << endl;
-    return k * x;
+    // ll k = 1;
+    // while (x * k <= y) ++k;
+    // return k * x;
+
+    return x * (y / x + 1LL);
 }
 
 ll solve(const vector<ll> &xs) {
