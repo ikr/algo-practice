@@ -40,6 +40,16 @@ impl Receptivity {
 
         Self { immune_to, weak_to }
     }
+
+    fn damage_multiplier(&self, attack_type: &AttackType) -> i32 {
+        if self.immune_to.iter().any(|a| a.name == attack_type.name) {
+            0
+        } else if self.weak_to.iter().any(|a| a.name == attack_type.name) {
+            2
+        } else {
+            1
+        }
+    }
 }
 
 fn inof(src: &str) -> i32 {
@@ -51,7 +61,7 @@ struct Group {
     units: i32,
     unit_hit_points: i32,
     receptivity: Receptivity,
-    unit_damage: i32,
+    unit_attack_damage: i32,
     attack_type: AttackType,
     initiative: i32,
 }
@@ -69,12 +79,20 @@ impl Group {
             units: inof(&caps[1]),
             unit_hit_points: inof(&caps[2]),
             receptivity: Receptivity::parse(&r_src),
-            unit_damage: inof(&caps[3]),
+            unit_attack_damage: inof(&caps[3]),
             attack_type: AttackType {
                 name: caps[4].to_string(),
             },
             initiative: inof(&caps[5]),
         }
+    }
+
+    fn effective_power(&self) -> i32 {
+        self.units * self.unit_attack_damage
+    }
+
+    fn prospective_attack_damage(&self, defender_receptivity: &Receptivity) -> i32 {
+        self.effective_power() * defender_receptivity.damage_multiplier(&self.attack_type)
     }
 }
 
