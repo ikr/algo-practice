@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use regex::Regex;
 
 #[derive(Debug)]
@@ -96,6 +98,11 @@ impl Group {
     }
 }
 
+struct GroupId {
+    army_index: usize,
+    group_index: usize,
+}
+
 fn receptivity_source(group_source: &str) -> String {
     if let Some(a) = group_source.find('(') {
         let b = group_source.find(')').unwrap();
@@ -105,29 +112,26 @@ fn receptivity_source(group_source: &str) -> String {
     }
 }
 
-fn main() {
-    eprintln!("{:?}", Receptivity::parse(""));
-    eprintln!("{:?}", Receptivity::parse("immune to slashing"));
-    eprintln!("{:?}", Receptivity::parse("weak to slashing, cold"));
-    eprintln!(
-        "{:?}",
-        Receptivity::parse("weak to radiation; immune to fire, cold")
-    );
-    eprintln!(
-        "{:?}",
-        Receptivity::parse("immune to cold; weak to bludgeoning")
-    );
+fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupId> {
+    todo!()
+}
 
+fn main() {
     let whole_input: String = std::io::read_to_string(std::io::stdin()).unwrap();
     let team_sources: Vec<&str> = whole_input.split("\n\n").collect();
+    let mut army_names: [String; 2] = [String::new(), String::new()];
+    let mut armies: [Vec<Group>; 2] = [vec![], vec![]];
 
-    for tsrc in team_sources {
+    for (i, tsrc) in team_sources.iter().enumerate() {
         let lines: Vec<&str> = tsrc.split('\n').filter(|x| !x.is_empty()).collect();
         eprintln!("{}", lines[0]);
+        army_names[i] = lines[0].strip_suffix(':').unwrap().to_string();
 
         for line in &lines[1..] {
-            let g = Group::parse(line);
-            eprintln!("{:?}", g);
+            armies[i].push(Group::parse(line));
         }
     }
+
+    eprintln!("{:?}", army_names);
+    eprintln!("{:?}", armies);
 }
