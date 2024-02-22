@@ -98,7 +98,8 @@ impl Group {
     }
 }
 
-struct GroupId {
+#[derive(Debug)]
+struct GroupHandle {
     army_index: usize,
     group_index: usize,
 }
@@ -112,8 +113,23 @@ fn receptivity_source(group_source: &str) -> String {
     }
 }
 
-fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupId> {
-    todo!()
+fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
+    let mut result: VecDeque<GroupHandle> = VecDeque::new();
+    for (army_index, army) in armies.iter().enumerate() {
+        for group_index in 0..army.len() {
+            result.push_back(GroupHandle {
+                army_index,
+                group_index,
+            });
+        }
+    }
+    result.make_contiguous().sort_by_key(|handle| {
+        (
+            -armies[handle.army_index][handle.group_index].effective_power(),
+            -armies[handle.army_index][handle.group_index].initiative,
+        )
+    });
+    result
 }
 
 fn main() {
@@ -134,4 +150,5 @@ fn main() {
 
     eprintln!("{:?}", army_names);
     eprintln!("{:?}", armies);
+    eprintln!("{:?}", target_selection_queue(&armies));
 }
