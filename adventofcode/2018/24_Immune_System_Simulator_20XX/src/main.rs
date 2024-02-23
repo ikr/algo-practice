@@ -138,6 +138,14 @@ fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
     result
 }
 
+fn select_target(
+    taken: &[usize],
+    attacking_group: &Group,
+    enemy_groups: &[Group],
+) -> Option<usize> {
+    todo!()
+}
+
 fn main() {
     let whole_input: String = std::io::read_to_string(std::io::stdin()).unwrap();
     let team_sources: Vec<&str> = whole_input.split("\n\n").collect();
