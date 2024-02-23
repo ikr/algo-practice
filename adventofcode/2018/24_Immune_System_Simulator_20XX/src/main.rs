@@ -93,6 +93,10 @@ impl Group {
         self.units * self.unit_attack_damage
     }
 
+    fn is_destroyed(&self) -> bool {
+        self.units <= 0
+    }
+
     fn prospective_attack_damage(&self, defender_receptivity: &Receptivity) -> i32 {
         self.effective_power() * defender_receptivity.damage_multiplier(&self.attack_type)
     }
@@ -116,7 +120,9 @@ fn receptivity_source(group_source: &str) -> String {
 fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
     let mut result: VecDeque<GroupHandle> = VecDeque::new();
     for (army_index, army) in armies.iter().enumerate() {
-        for group_index in 0..army.len() {
+        for (group_index, group) in army.iter().enumerate() {
+            assert!(!group.is_destroyed());
+
             result.push_back(GroupHandle {
                 army_index,
                 group_index,
