@@ -57,7 +57,7 @@ struct CollectTrash final {
     int solve_it(const int P, const int T, const int M, const int C,
                  const vector<int> &Lprefix, const int seed) const {
         const auto L = generate_L(T, M, C, Lprefix, seed);
-        // tbd
+        // Adjourn 2024-02-23
         return 42;
     }
 };
