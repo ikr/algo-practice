@@ -2,8 +2,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -31,24 +29,8 @@ struct FrequentSubstring final {
     int maximize(const string &xs, const int H) const {
         const auto n = sz(xs);
         if (H < n) return 0;
-        if (H == n) return 1;
         const auto k = min_shift(xs);
-        if (k == n) return H / n;
-
-        ll lo = 1;
-        ll hi = H + 2;
-
-        while (lo + 1LL < hi) {
-            const auto mid = lo + (hi - lo) / 2LL;
-            const auto H_ = n + k * mid;
-            if (H_ <= H) {
-                lo = mid;
-            } else {
-                hi = mid;
-            }
-        }
-
-        return inof(lo + 1);
+        return (H - n) / k + 1;
     }
 };
 
@@ -62,6 +44,21 @@ const lest::test tests[] = {
     CASE("Example 1") {
         const auto actual = FrequentSubstring{}.maximize("aaa", 5);
         const auto expected = 3;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 2") {
+        const auto actual = FrequentSubstring{}.maximize("abracadabra", 28);
+        const auto expected = 3;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 3") {
+        const auto actual = FrequentSubstring{}.maximize("toot", 8);
+        const auto expected = 2;
+        EXPECT(actual == expected);
+    },
+    CASE("Example 4") {
+        const auto actual = FrequentSubstring{}.maximize("abracadabra", 3);
+        const auto expected = 0;
         EXPECT(actual == expected);
     },
 };
