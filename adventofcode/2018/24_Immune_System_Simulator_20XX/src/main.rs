@@ -281,11 +281,14 @@ fn main() {
         }
     }
 
-    for boost in 0..100_000 {
-        let outcome = simulate(&army_names, first_army_boosted(boost, &armies));
-        if outcome.winning_army == 0 {
-            println!("{}", outcome.summary());
-            break;
-        }
-    }
+    let lo = 0;
+    assert!(simulate(&army_names, first_army_boosted(lo, &armies)).winning_army == 1);
+
+    let hi = 40;
+    assert!(simulate(&army_names, first_army_boosted(hi, &armies)).winning_army == 0);
+
+    println!(
+        "{}",
+        simulate(&army_names, first_army_boosted(hi, &armies)).summary()
+    );
 }
