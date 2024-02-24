@@ -197,9 +197,17 @@ impl Outcome {
     }
 }
 
+fn units_total(armies: &[Vec<Group>]) -> i32 {
+    armies
+        .iter()
+        .map(|a| a.iter().map(|g| g.units).sum::<i32>())
+        .sum()
+}
+
 fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
     while armies.iter().all(|army| !army.is_empty()) {
         let mut targets: HashMap<GroupHandle, usize> = HashMap::new();
+
         let mut q0 = target_selection_queue(&armies);
         let mut taken: [Vec<usize>; 2] = [vec![], vec![]];
         while let Some(handle) = q0.pop_front() {
@@ -213,6 +221,7 @@ fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
             }
         }
 
+        let mut damage_caused: bool = false;
         let mut q1 = attack_queue(&armies);
         while let Some(handle) = q1.pop_front() {
             if let Some(ig) = targets.get(&handle) {
@@ -221,29 +230,33 @@ fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
                     let damage = armies[handle.army_index][handle.group_index]
                         .prospective_attack_damage(receptivity);
                     armies[enemy_index(handle.army_index)][*ig].take_damage(damage);
+                    if damage > 0 {
+                        damage_caused = true;
+                    }
                 }
             }
+        }
+        if !damage_caused {
+            return Outcome {
+                winning_army: 2,
+                remaining_units: units_total(&armies),
+                army_names: [army_names[0].clone(), army_names[1].clone()],
+            };
         }
 
         for army in &mut armies {
             while let Some(i) = army.iter().position(|g| !g.is_alive()) {
                 army.remove(i);
+                eprintln!("Killed in action!");
             }
         }
     }
 
     let winning_army = if armies[0].is_empty() { 1 } else { 0 };
 
-    let mut remaining_units = 0;
-    for army in armies {
-        for group in army {
-            remaining_units += group.units;
-        }
-    }
-
     Outcome {
         winning_army,
-        remaining_units,
+        remaining_units: units_total(&armies),
         army_names: [army_names[0].clone(), army_names[1].clone()],
     }
 }
@@ -281,14 +294,12 @@ fn main() {
         }
     }
 
-    let lo = 0;
-    assert!(simulate(&army_names, first_army_boosted(lo, &armies)).winning_army == 1);
-
-    let hi = 40;
-    assert!(simulate(&army_names, first_army_boosted(hi, &armies)).winning_army == 0);
-
-    println!(
-        "{}",
-        simulate(&army_names, first_army_boosted(hi, &armies)).summary()
-    );
+    for boost in 0..10_000 {
+        eprintln!("boost: {}", boost);
+        let outcome = simulate(&army_names, first_army_boosted(boost, &armies));
+        if outcome.winning_army == 0 {
+            println!("{}", outcome.summary());
+            break;
+        }
+    }
 }
