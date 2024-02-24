@@ -138,12 +138,30 @@ fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
     result
 }
 
+fn enemy_index(own_index: usize) -> usize {
+    (own_index + 1) % 2
+}
+
 fn select_target(
     taken: &[usize],
     attacking_group: &Group,
     enemy_groups: &[Group],
 ) -> Option<usize> {
-    todo!()
+    let available: Vec<usize> = (0..enemy_groups.len())
+        .filter(|i| {
+            !taken.contains(i)
+                && attacking_group.prospective_attack_damage(&enemy_groups[*i].receptivity) > 0
+        })
+        .collect();
+
+    available
+        .iter()
+        .max_by_key(|&i| {
+            let g: &Group = &enemy_groups[*i];
+            let damage: i32 = attacking_group.prospective_attack_damage(&g.receptivity);
+            (damage, g.effective_power(), g.initiative)
+        })
+        .copied()
 }
 
 fn main() {
@@ -154,7 +172,6 @@ fn main() {
 
     for (i, tsrc) in team_sources.iter().enumerate() {
         let lines: Vec<&str> = tsrc.split('\n').filter(|x| !x.is_empty()).collect();
-        eprintln!("{}", lines[0]);
         army_names[i] = lines[0].strip_suffix(':').unwrap().to_string();
 
         for line in &lines[1..] {
@@ -162,7 +179,18 @@ fn main() {
         }
     }
 
-    eprintln!("{:?}", army_names);
-    eprintln!("{:?}", armies);
-    eprintln!("{:?}", target_selection_queue(&armies));
+    let mut taken: [Vec<usize>; 2] = [vec![], vec![]];
+    let mut q = target_selection_queue(&armies);
+    while let Some(handle) = q.pop_front() {
+        if let Some(gi) = select_target(
+            &taken[enemy_index(handle.army_index)],
+            &armies[handle.army_index][handle.group_index],
+            &armies[enemy_index(handle.army_index)],
+        ) {
+            eprintln!("{:?} chose enemy group {}", handle, gi);
+            taken[enemy_index(handle.army_index)].push(gi);
+        } else {
+            eprintln!("No target for {:?}", handle);
+        }
+    }
 }
