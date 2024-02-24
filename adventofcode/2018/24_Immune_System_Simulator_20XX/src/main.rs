@@ -100,6 +100,11 @@ impl Group {
     fn prospective_attack_damage(&self, defender_receptivity: &Receptivity) -> i32 {
         self.effective_power() * defender_receptivity.damage_multiplier(&self.attack_type)
     }
+
+    fn take_damage(&mut self, damage: i32) {
+        let units_lost: i32 = damage / self.unit_hit_points;
+        self.units -= units_lost;
+    }
 }
 
 #[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
@@ -192,24 +197,45 @@ fn main() {
         }
     }
 
-    let mut targets: HashMap<GroupHandle, usize> = HashMap::new();
-    let mut q0 = target_selection_queue(&armies);
-    let mut taken: [Vec<usize>; 2] = [vec![], vec![]];
-    while let Some(handle) = q0.pop_front() {
-        if let Some(gi) = select_target(
-            &taken[enemy_index(handle.army_index)],
-            &armies[handle.army_index][handle.group_index],
-            &armies[enemy_index(handle.army_index)],
-        ) {
-            targets.insert(handle, gi);
-            taken[enemy_index(handle.army_index)].push(gi);
+    while armies.iter().all(|army| !army.is_empty()) {
+        let mut targets: HashMap<GroupHandle, usize> = HashMap::new();
+        let mut q0 = target_selection_queue(&armies);
+        let mut taken: [Vec<usize>; 2] = [vec![], vec![]];
+        while let Some(handle) = q0.pop_front() {
+            if let Some(gi) = select_target(
+                &taken[enemy_index(handle.army_index)],
+                &armies[handle.army_index][handle.group_index],
+                &armies[enemy_index(handle.army_index)],
+            ) {
+                targets.insert(handle, gi);
+                taken[enemy_index(handle.army_index)].push(gi);
+            }
+        }
+
+        let mut q1 = attack_queue(&armies);
+        while let Some(handle) = q1.pop_front() {
+            if let Some(ig) = targets.get(&handle) {
+                if armies[handle.army_index][handle.group_index].is_alive() {
+                    let receptivity = &armies[enemy_index(handle.army_index)][*ig].receptivity;
+                    let damage = armies[handle.army_index][handle.group_index]
+                        .prospective_attack_damage(receptivity);
+                    armies[enemy_index(handle.army_index)][*ig].take_damage(damage);
+                }
+            }
+        }
+
+        for army in &mut armies {
+            while let Some(i) = army.iter().position(|g| !g.is_alive()) {
+                army.remove(i);
+            }
         }
     }
 
-    eprintln!("targets: {:?}", targets);
-
-    let mut q1 = attack_queue(&armies);
-    while let Some(handle) = q1.pop_front() {
-        eprintln!("{:?} attacks", handle);
+    let mut result = 0;
+    for army in armies {
+        for group in army {
+            result += group.units;
+        }
     }
+    println!("{}", result);
 }
