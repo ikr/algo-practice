@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 use regex::Regex;
 
@@ -93,8 +93,8 @@ impl Group {
         self.units * self.unit_attack_damage
     }
 
-    fn is_destroyed(&self) -> bool {
-        self.units <= 0
+    fn is_alive(&self) -> bool {
+        self.units > 0
     }
 
     fn prospective_attack_damage(&self, defender_receptivity: &Receptivity) -> i32 {
@@ -102,7 +102,7 @@ impl Group {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
 struct GroupHandle {
     army_index: usize,
     group_index: usize,
@@ -117,11 +117,11 @@ fn receptivity_source(group_source: &str) -> String {
     }
 }
 
-fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
+fn all_handles(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
     let mut result: VecDeque<GroupHandle> = VecDeque::new();
     for (army_index, army) in armies.iter().enumerate() {
         for (group_index, group) in army.iter().enumerate() {
-            assert!(!group.is_destroyed());
+            assert!(group.is_alive());
 
             result.push_back(GroupHandle {
                 army_index,
@@ -129,12 +129,25 @@ fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
             });
         }
     }
+    result
+}
+
+fn target_selection_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
+    let mut result = all_handles(armies);
     result.make_contiguous().sort_by_key(|handle| {
         (
             -armies[handle.army_index][handle.group_index].effective_power(),
             -armies[handle.army_index][handle.group_index].initiative,
         )
     });
+    result
+}
+
+fn attack_queue(armies: &[Vec<Group>]) -> VecDeque<GroupHandle> {
+    let mut result = all_handles(armies);
+    result
+        .make_contiguous()
+        .sort_by_key(|handle| -armies[handle.army_index][handle.group_index].initiative);
     result
 }
 
@@ -179,18 +192,24 @@ fn main() {
         }
     }
 
+    let mut targets: HashMap<GroupHandle, usize> = HashMap::new();
+    let mut q0 = target_selection_queue(&armies);
     let mut taken: [Vec<usize>; 2] = [vec![], vec![]];
-    let mut q = target_selection_queue(&armies);
-    while let Some(handle) = q.pop_front() {
+    while let Some(handle) = q0.pop_front() {
         if let Some(gi) = select_target(
             &taken[enemy_index(handle.army_index)],
             &armies[handle.army_index][handle.group_index],
             &armies[enemy_index(handle.army_index)],
         ) {
-            eprintln!("{:?} chose enemy group {}", handle, gi);
+            targets.insert(handle, gi);
             taken[enemy_index(handle.army_index)].push(gi);
-        } else {
-            eprintln!("No target for {:?}", handle);
         }
+    }
+
+    eprintln!("targets: {:?}", targets);
+
+    let mut q1 = attack_queue(&armies);
+    while let Some(handle) = q1.pop_front() {
+        eprintln!("{:?} attacks", handle);
     }
 }
