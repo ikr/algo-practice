@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 
 use regex::Regex;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct AttackType {
     name: String,
 }
@@ -17,7 +17,7 @@ impl AttackType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Receptivity {
     immune_to: Vec<AttackType>,
     weak_to: Vec<AttackType>,
@@ -58,7 +58,7 @@ fn inof(src: &str) -> i32 {
     src.parse().unwrap()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Group {
     units: i32,
     unit_hit_points: i32,
@@ -246,6 +246,18 @@ fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
         remaining_units,
         army_names: [army_names[0].clone(), army_names[1].clone()],
     }
+}
+
+fn boosted_group(unit_attack_damage_delta: i32, g: &Group) -> Group {
+    let mut result = g.clone();
+    result.unit_attack_damage += unit_attack_damage_delta;
+    result
+}
+
+fn boosted_army(unit_attack_damage_delta: i32, a: &[Group]) -> Vec<Group> {
+    a.iter()
+        .map(|g| boosted_group(unit_attack_damage_delta, g))
+        .collect()
 }
 
 fn main() {
