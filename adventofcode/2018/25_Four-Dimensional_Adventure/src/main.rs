@@ -10,6 +10,30 @@ fn read_input() -> Vec<Quad> {
     input.lines().map(parse_quad).collect()
 }
 
+fn manhattan(a: &Quad, b: &Quad) -> i32 {
+    a.iter().zip(b.iter()).map(|(x, y)| (x - y).abs()).sum()
+}
+
 fn main() {
-    eprintln!("{:?}", read_input());
+    let qs = read_input();
+    let mut seq = 0;
+    let mut components: Vec<i32> = vec![0; qs.len()];
+
+    for (i, q) in qs.iter().enumerate() {
+        let mut cur = 0;
+        for j in 0..i {
+            if manhattan(q, &qs[j]) <= 3 {
+                cur = components[j];
+                break;
+            }
+        }
+        if cur == 0 {
+            seq += 1;
+            cur = seq;
+        }
+        components[i] = cur;
+    }
+
+    eprintln!("{:?}", components);
+    println!("{}", seq);
 }
