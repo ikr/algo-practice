@@ -221,7 +221,7 @@ fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
             }
         }
 
-        let mut damage_caused: bool = false;
+        let mut units_destroyed: bool = false;
         let mut q1 = attack_queue(&armies);
         while let Some(handle) = q1.pop_front() {
             if let Some(ig) = targets.get(&handle) {
@@ -229,14 +229,17 @@ fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
                     let receptivity = &armies[enemy_index(handle.army_index)][*ig].receptivity;
                     let damage = armies[handle.army_index][handle.group_index]
                         .prospective_attack_damage(receptivity);
+
+                    let units_pre = armies[enemy_index(handle.army_index)][*ig].units;
                     armies[enemy_index(handle.army_index)][*ig].take_damage(damage);
-                    if damage > 0 {
-                        damage_caused = true;
+                    let units_post = armies[enemy_index(handle.army_index)][*ig].units;
+                    if units_pre != units_post {
+                        units_destroyed = true;
                     }
                 }
             }
         }
-        if !damage_caused {
+        if !units_destroyed {
             return Outcome {
                 winning_army: 2,
                 remaining_units: units_total(&armies),
@@ -247,7 +250,6 @@ fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
         for army in &mut armies {
             while let Some(i) = army.iter().position(|g| !g.is_alive()) {
                 army.remove(i);
-                eprintln!("Killed in action!");
             }
         }
     }
@@ -295,7 +297,6 @@ fn main() {
     }
 
     for boost in 0..10_000 {
-        eprintln!("boost: {}", boost);
         let outcome = simulate(&army_names, first_army_boosted(boost, &armies));
         if outcome.winning_army == 0 {
             println!("{}", outcome.summary());
