@@ -182,21 +182,22 @@ fn select_target(
         .copied()
 }
 
-fn main() {
-    let whole_input: String = std::io::read_to_string(std::io::stdin()).unwrap();
-    let team_sources: Vec<&str> = whole_input.split("\n\n").collect();
-    let mut army_names: [String; 2] = [String::new(), String::new()];
-    let mut armies: [Vec<Group>; 2] = [vec![], vec![]];
+struct Outcome {
+    winning_army: usize,
+    remaining_units: i32,
+    army_names: [String; 2],
+}
 
-    for (i, tsrc) in team_sources.iter().enumerate() {
-        let lines: Vec<&str> = tsrc.split('\n').filter(|x| !x.is_empty()).collect();
-        army_names[i] = lines[0].strip_suffix(':').unwrap().to_string();
-
-        for line in &lines[1..] {
-            armies[i].push(Group::parse(line));
-        }
+impl Outcome {
+    fn summary(&self) -> String {
+        format!(
+            "{} wins with {} units remaining",
+            self.army_names[self.winning_army], self.remaining_units
+        )
     }
+}
 
+fn simulate(army_names: &[String], mut armies: [Vec<Group>; 2]) -> Outcome {
     while armies.iter().all(|army| !army.is_empty()) {
         let mut targets: HashMap<GroupHandle, usize> = HashMap::new();
         let mut q0 = target_selection_queue(&armies);
@@ -231,11 +232,36 @@ fn main() {
         }
     }
 
-    let mut result = 0;
+    let winning_army = if armies[0].is_empty() { 1 } else { 0 };
+
+    let mut remaining_units = 0;
     for army in armies {
         for group in army {
-            result += group.units;
+            remaining_units += group.units;
         }
     }
-    println!("{}", result);
+
+    Outcome {
+        winning_army,
+        remaining_units,
+        army_names: [army_names[0].clone(), army_names[1].clone()],
+    }
+}
+
+fn main() {
+    let whole_input: String = std::io::read_to_string(std::io::stdin()).unwrap();
+    let team_sources: Vec<&str> = whole_input.split("\n\n").collect();
+    let mut army_names: [String; 2] = [String::new(), String::new()];
+    let mut armies: [Vec<Group>; 2] = [vec![], vec![]];
+
+    for (i, tsrc) in team_sources.iter().enumerate() {
+        let lines: Vec<&str> = tsrc.split('\n').filter(|x| !x.is_empty()).collect();
+        army_names[i] = lines[0].strip_suffix(':').unwrap().to_string();
+
+        for line in &lines[1..] {
+            armies[i].push(Group::parse(line));
+        }
+    }
+
+    println!("{}", simulate(&army_names, armies).summary());
 }
