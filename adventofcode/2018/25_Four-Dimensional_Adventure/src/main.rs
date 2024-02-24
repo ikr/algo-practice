@@ -1,3 +1,5 @@
+use ac_library::Dsu;
+
 type Quad = [i32; 4];
 
 fn parse_quad(src: &str) -> Quad {
@@ -16,24 +18,17 @@ fn manhattan(a: &Quad, b: &Quad) -> i32 {
 
 fn main() {
     let qs = read_input();
-    let mut seq = 0;
-    let mut components: Vec<i32> = vec![0; qs.len()];
+    let n = qs.len();
+    let mut dsu = Dsu::new(n);
 
     for (i, q) in qs.iter().enumerate() {
-        let mut cur = 0;
         for j in 0..i {
             if manhattan(q, &qs[j]) <= 3 {
-                cur = components[j];
-                break;
+                dsu.merge(i, j);
             }
         }
-        if cur == 0 {
-            seq += 1;
-            cur = seq;
-        }
-        components[i] = cur;
     }
 
-    eprintln!("{:?}", components);
-    println!("{}", seq);
+    eprintln!("{:?}", dsu.groups());
+    println!("{}", dsu.groups().len());
 }
