@@ -260,6 +260,12 @@ fn boosted_army(unit_attack_damage_delta: i32, a: &[Group]) -> Vec<Group> {
         .collect()
 }
 
+fn first_army_boosted(unit_attack_damage_delta: i32, armies: &[Vec<Group>]) -> [Vec<Group>; 2] {
+    let mut result: [Vec<Group>; 2] = [armies[0].clone(), armies[1].clone()];
+    result[0] = boosted_army(unit_attack_damage_delta, &result[0]);
+    result
+}
+
 fn main() {
     let whole_input: String = std::io::read_to_string(std::io::stdin()).unwrap();
     let team_sources: Vec<&str> = whole_input.split("\n\n").collect();
@@ -275,5 +281,11 @@ fn main() {
         }
     }
 
-    println!("{}", simulate(&army_names, armies).summary());
+    for boost in 0..100_000 {
+        let outcome = simulate(&army_names, first_army_boosted(boost, &armies));
+        if outcome.winning_army == 0 {
+            println!("{}", outcome.summary());
+            break;
+        }
+    }
 }
