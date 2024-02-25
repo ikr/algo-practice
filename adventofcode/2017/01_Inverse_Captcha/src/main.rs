@@ -40,6 +40,20 @@ fn part_1_sum(xs: &[(u32, u32)]) -> u32 {
     }
 }
 
+fn part_2_sum(xs: &[u32]) -> u32 {
+    let n = xs.len();
+    assert!(n % 2 == 0);
+    let d = n / 2;
+
+    let mut result = 0;
+    for (i, x) in xs.iter().enumerate() {
+        if xs[(i + d) % n] == *x {
+            result += x;
+        }
+    }
+    result
+}
+
 fn main() {
     let digits: Vec<u32> = std::io::read_to_string(std::io::stdin())
         .unwrap()
@@ -52,4 +66,6 @@ fn main() {
         "{}",
         part_1_sum(&cycle_the_chain(run_length_encoding(&digits)))
     );
+
+    println!("{}", part_2_sum(&digits));
 }
