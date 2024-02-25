@@ -12,5 +12,10 @@ fn read_input() -> Vec<Vec<i32>> {
 }
 
 fn main() {
-    eprintln!("{:?}", read_input());
+    let xss = read_input();
+    let part_1_result: i32 = xss
+        .iter()
+        .map(|xs| xs.iter().max().unwrap() - xs.iter().min().unwrap())
+        .sum();
+    println!("{}", part_1_result);
 }
