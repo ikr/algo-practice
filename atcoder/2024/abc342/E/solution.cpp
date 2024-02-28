@@ -64,7 +64,7 @@ int main() {
                 const auto j = (f - l - c) / d;
                 if (0 <= j && j < k) {
                     const auto fv = l + j * d;
-                    if (fv < F[v]) {
+                    if (fv > F[v]) {
                         pq.erase(pli{F[v], v});
                         F[v] = fv;
                         pq.emplace(fv, v);
