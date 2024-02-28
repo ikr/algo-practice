@@ -5,7 +5,7 @@ using ll = long long;
 using pii = pair<int, int>;
 using pli = pair<ll, int>;
 
-static constexpr ll Inf = 1'000'000'000LL * 1'000'000'000LL;
+static constexpr ll Inf = 2'000'000'000LL * 1'000'000'000LL;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -62,7 +62,7 @@ int main() {
                 F[v] = l + (k - 1) * d;
                 pq.emplace(-F[v], v);
             } else if (l + c <= f) {
-                const auto j = (f - l - c) / d;
+                const auto j = min((f - l - c) / d, k - 1);
                 if (0 <= j && j < k) {
                     const auto fv = l + j * d;
                     if (fv > F[v]) {
