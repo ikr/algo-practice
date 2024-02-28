@@ -45,10 +45,11 @@ int main() {
 
     vector<ll> F(N, -Inf);
     set<pli> pq;
-    pq.emplace(-Inf, N - 1);
+    pq.emplace(Inf, N - 1);
 
     while (!pq.empty()) {
-        const auto [f, u] = *cbegin(pq);
+        auto [f, u] = *cbegin(pq);
+        f = -f;
         pq.erase(cbegin(pq));
 
         for (const auto v : g_[u]) {
@@ -59,7 +60,7 @@ int main() {
             if (f == -Inf) {
                 pq.erase(pli{F[v], v});
                 F[v] = l + (k - 1) * d;
-                pq.emplace(F[v], v);
+                pq.emplace(-F[v], v);
             } else if (l + c <= f) {
                 const auto j = (f - l - c) / d;
                 if (0 <= j && j < k) {
@@ -67,7 +68,7 @@ int main() {
                     if (fv > F[v]) {
                         pq.erase(pli{F[v], v});
                         F[v] = fv;
-                        pq.emplace(fv, v);
+                        pq.emplace(-fv, v);
                     }
                 }
             }
