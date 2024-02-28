@@ -58,7 +58,7 @@ int main() {
             const auto [l, d, k, c] = it->second;
 
             if (f == -Inf) {
-                pq.erase(pli{F[v], v});
+                pq.erase(pli{-F[v], v});
                 F[v] = l + (k - 1) * d;
                 pq.emplace(-F[v], v);
             } else if (l + c <= f) {
@@ -66,7 +66,7 @@ int main() {
                 if (0 <= j && j < k) {
                     const auto fv = l + j * d;
                     if (fv > F[v]) {
-                        pq.erase(pli{F[v], v});
+                        pq.erase(pli{-F[v], v});
                         F[v] = fv;
                         pq.emplace(-fv, v);
                     }
