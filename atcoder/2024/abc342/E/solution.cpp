@@ -3,8 +3,9 @@ using namespace std;
 
 using ll = long long;
 using pii = pair<int, int>;
+using pli = pair<ll, int>;
 
-static constexpr ll Inf = 9999999900000001LL;
+static constexpr ll Inf = 1'000'000'000LL * 1'000'000'000LL;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -13,10 +14,10 @@ template <typename T> constexpr int inof(const T x) {
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 struct Schedule final {
-    int l;
-    int d;
-    int k;
-    int c;
+    ll l;
+    ll d;
+    ll k;
+    ll c;
 };
 
 int main() {
@@ -43,6 +44,44 @@ int main() {
     }
 
     vector<ll> F(N, -Inf);
+    set<pli> pq;
+    pq.emplace(-Inf, N - 1);
+
+    while (!pq.empty()) {
+        const auto [f, u] = *cbegin(pq);
+        pq.erase(cbegin(pq));
+
+        for (const auto v : g_[u]) {
+            const auto it = timetable.find(pii{v, u});
+            assert(it != cend(timetable));
+            const auto [l, d, k, c] = it->second;
+
+            if (f == -Inf) {
+                pq.erase(pli{F[v], v});
+                F[v] = l + (k - 1) * d;
+                pq.emplace(F[v], v);
+            } else if (l + c <= f && f <= l + (k - 1) * d + c) {
+                const auto j = (f - l - c) / d;
+                if (0 <= j && j < k) {
+                    const auto fv = l + j * d;
+                    if (fv < F[v]) {
+                        pq.erase(pli{F[v], v});
+                        F[v] = fv;
+                        pq.emplace(fv, v);
+                    }
+                }
+            }
+        }
+    }
+
+    F.pop_back();
+    for (const auto f : F) {
+        if (f > -Inf) {
+            cout << f << '\n';
+        } else {
+            cout << "Unreachable\n";
+        }
+    }
 
     return 0;
 }
