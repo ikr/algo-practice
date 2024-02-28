@@ -51,7 +51,7 @@ int main() {
             assert(it != cend(timetable));
             const auto [l, d, k, c] = it->second;
 
-            if (f == -Inf) {
+            if (f == -Inf && u == N - 1) {
                 pq.erase(pli{-F[v], v});
                 F[v] = l + (k - 1) * d;
                 pq.emplace(-F[v], v);
