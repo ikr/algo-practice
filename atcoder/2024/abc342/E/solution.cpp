@@ -60,7 +60,7 @@ int main() {
                 pq.erase(pli{F[v], v});
                 F[v] = l + (k - 1) * d;
                 pq.emplace(F[v], v);
-            } else if (l + c <= f && f <= l + (k - 1) * d + c) {
+            } else if (l + c <= f) {
                 const auto j = (f - l - c) / d;
                 if (0 <= j && j < k) {
                     const auto fv = l + j * d;
