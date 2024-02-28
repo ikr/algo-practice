@@ -7,12 +7,6 @@ using pli = pair<ll, int>;
 
 static constexpr ll Inf = 3'000'000'000LL * 1'000'000'000LL;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 struct Schedule final {
     ll l;
     ll d;
