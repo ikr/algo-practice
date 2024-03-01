@@ -85,7 +85,7 @@ fn delta_for(side: i64) -> Coord {
 }
 
 fn next_step_delta(n: i64) -> Coord {
-    assert!(n > 1);
+    assert!(n > 0);
     if is_a_squared_odd(n) {
         Coord(1, 0)
     } else {
@@ -96,8 +96,6 @@ fn next_step_delta(n: i64) -> Coord {
         let side = (n - lo) / (d - 1);
         assert!(0 <= side && side < 4);
         let nn = (n - lo) % (d - 1);
-
-        eprintln!("n={} d={} lo={} side={} nn={}", n, d, lo, side, nn);
 
         if nn == d - 2 {
             delta_for((side + 1) % 4)
@@ -113,10 +111,9 @@ fn first_summed_value_larger_than_n(n: i64) -> i64 {
     let mut coord = Coord(0, 0);
     space.insert(coord, seq);
     loop {
-        seq += 1;
         coord = coord + next_step_delta(seq);
         let value = sum_of_adjacent_values(&space, coord);
-        eprintln!("{}: {:?} -> {}", seq, coord, value);
+        seq += 1;
         if value > n {
             return value;
         }
