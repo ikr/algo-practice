@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::ops::Add;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 struct Coord(i64, i64);
 
 impl Add for Coord {
@@ -97,6 +97,8 @@ fn next_step_delta(n: i64) -> Coord {
         assert!(0 <= side && side < 4);
         let nn = (n - lo) % (d - 1);
 
+        eprintln!("n={} d={} lo={} side={} nn={}", n, d, lo, side, nn);
+
         if nn == d - 2 {
             delta_for((side + 1) % 4)
         } else {
@@ -113,11 +115,12 @@ fn first_summed_value_larger_than_n(n: i64) -> i64 {
     loop {
         seq += 1;
         coord = coord + next_step_delta(seq);
-        let sum = sum_of_adjacent_values(&space, coord);
-        if sum > n {
-            return sum;
+        let value = sum_of_adjacent_values(&space, coord);
+        eprintln!("{}: {:?} -> {}", seq, coord, value);
+        if value > n {
+            return value;
         }
-        space.insert(coord, sum);
+        space.insert(coord, value);
     }
 }
 
