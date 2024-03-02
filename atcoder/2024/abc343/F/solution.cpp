@@ -1,6 +1,14 @@
 #include <atcoder/segtree>
 #include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
 using namespace std;
+using namespace __gnu_pbds;
+
+template <typename T>
+using ordered_set =
+    tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
 
 int op(int a, int b) { return max(a, b); }
 
@@ -20,10 +28,13 @@ int main() {
     cin >> N >> Q;
 
     vector<int> A(N);
-    map<int, int> fq;
     for (auto &a : A) {
         cin >> a;
-        ++fq[a];
+    }
+
+    map<int, ordered_set<int>> idx;
+    for (int i = 0; i < N; ++i) {
+        idx[A[i]].insert(i);
     }
 
     atcoder::segtree<int, op, e> seg(A);
@@ -38,16 +49,14 @@ int main() {
             --p;
 
             const auto old = seg.get(p);
-            const auto it = fq.find(old);
-            assert(it != cend(fq));
-            if (it->second == 1) {
-                fq.erase(it);
+            assert(idx.contains(old));
+            if (sz(idx[old]) == 1) {
+                idx.erase(old);
             } else {
-                fq[old] = it->second - 1;
+                idx[old].erase(p);
             }
-
             seg.set(p, x);
-            ++fq[x];
+            idx[x].insert(p);
         } else {
             assert(op == 2);
             int l, r;
@@ -56,11 +65,14 @@ int main() {
             --r;
 
             const auto hi = seg.prod(l, r + 1);
-            const auto it = fq.lower_bound(hi);
-            if (it == cbegin(fq)) {
+
+            auto it = idx.lower_bound(hi);
+            if (it == cbegin(idx)) {
                 cout << 0 << '\n';
             } else {
-                cout << prev(it)->second << '\n';
+                const auto a = prev(it)->first;
+                const auto y = sz(idx[a]) - idx[a].order_of_key(l);
+                cout << y << '\n';
             }
         }
     }
