@@ -10,6 +10,12 @@ fn unique_words_count(xs: &[String]) -> usize {
     seen.len()
 }
 
+fn normalize(xs: &str) -> String {
+    let mut cs: Vec<char> = xs.chars().collect();
+    cs.sort();
+    cs.into_iter().collect()
+}
+
 fn main() {
     let xss: Vec<Vec<String>> = std::io::read_to_string(std::io::stdin())
         .unwrap()
@@ -20,6 +26,18 @@ fn main() {
     println!(
         "{}",
         xss.iter()
+            .filter(|xs| unique_words_count(xs) == xs.len())
+            .count()
+    );
+
+    let nxss: Vec<Vec<String>> = xss
+        .iter()
+        .map(|xs| xs.iter().map(|x| normalize(x)).collect())
+        .collect();
+
+    println!(
+        "{}",
+        nxss.iter()
             .filter(|xs| unique_words_count(xs) == xs.len())
             .count()
     );
