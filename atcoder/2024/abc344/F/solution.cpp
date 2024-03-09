@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
