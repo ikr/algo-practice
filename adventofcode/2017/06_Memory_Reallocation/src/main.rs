@@ -22,18 +22,20 @@ fn main() {
         .map(|x| x.parse().unwrap())
         .collect();
 
-    let mut seen: HashSet<Vec<i32>> = HashSet::new();
-    seen.insert(xs.clone());
-    let mut result = 0;
-
-    loop {
-        result += 1;
-        xs = evolve(xs.clone());
-        if seen.contains(&xs) {
-            break;
-        }
+    for _ in 1..=2 {
+        let mut seen: HashSet<Vec<i32>> = HashSet::new();
         seen.insert(xs.clone());
-    }
+        let mut result = 0;
 
-    println!("{}", result);
+        loop {
+            result += 1;
+            xs = evolve(xs.clone());
+            if seen.contains(&xs) {
+                break;
+            }
+            seen.insert(xs.clone());
+        }
+
+        println!("{}", result);
+    }
 }
