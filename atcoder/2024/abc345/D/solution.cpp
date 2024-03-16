@@ -73,7 +73,8 @@ int main() {
         return 0;
     };
 
-    const bool yes = recur(recur, {H, W}, (1 << N) - 1);
+    const bool yes = recur(recur, {H, W}, (1 << N) - 1) ||
+                     recur(recur, {W, H}, (1 << N) - 1);
     cout << (yes ? "Yes" : "No") << '\n';
     return 0;
 }
