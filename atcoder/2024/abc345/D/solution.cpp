@@ -33,37 +33,53 @@ int main() {
     }
 
     const auto recur = [&](const auto self, const pii hw,
-                           const vector<pii> &inventory) -> bool {
+                           const int invbits) -> int {
         const auto [h, w] = hw;
         assert(h > 0 && w > 0);
-        if (empty(inventory)) return false;
+        if (invbits == 0) return 0;
         const pii wh{w, h};
 
-        if (any_of(cbegin(inventory), cend(inventory),
-                   [hw, wh](const pii ab) -> bool {
-                       return ab == hw || ab == wh;
-                   })) {
-            return true;
-        }
-
-        for (int i0 = 0; i0 < sz(inventory); ++i0) {
-            const auto [a, b] = inventory[i0];
-            if (!(a <= h && b <= w) && !(b <= h && a <= w)) continue;
-
-            auto inventory_ = inventory;
-            inventory_.erase(cbegin(inventory_) + i0);
-
-            if (a <= h && b <= w) {
-                const auto rest = cut_out(hw, {a, b});
-                bool ok = true;
-            }
-
-            if (b <= h && a <= w) {
+        for (int i = 0; i < N; ++i) {
+            if (invbits & (1 << i)) {
+                if (AB[i] == hw || AB[i] == wh) return (1 << i);
             }
         }
 
-        return false;
+        for (int i0 = 0; i0 < N; ++i0) {
+            if (invbits & (1 << i0)) {
+                auto [a, b] = AB[i0];
+                if (!(a <= h && b <= w) && !(b <= h && a <= w)) continue;
+
+                for (int t = 1; t <= 2; ++t) {
+                    if (a <= h && b <= w) {
+                        auto rest = cut_out(hw, {a, b});
+                        sort(begin(rest), end(rest));
+                        do {
+                            bool ok = true;
+                            int used = (1 << i0);
+                            int invbits_ = invbits ^ (1 << i0);
+                            for (const auto &hw_ : rest) {
+                                const auto used_ = self(self, hw_, invbits_);
+                                if (!used_) {
+                                    ok = false;
+                                    break;
+                                }
+                                used |= used_;
+                                invbits_ ^= used_;
+                            }
+                            if (ok) return used;
+                        } while (next_permutation(begin(rest), end(rest)));
+                    }
+                    if (a == b) break;
+                    swap(a, b);
+                }
+            }
+        }
+
+        return 0;
     };
 
+    const bool yes = recur(recur, {H, W}, (1 << N) - 1);
+    cout << (yes ? "Yes" : "No") << '\n';
     return 0;
 }
