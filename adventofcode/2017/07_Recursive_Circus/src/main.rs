@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::io::{self, BufRead};
 
 fn parse_vertices_csv(src: &str) -> HashSet<String> {
@@ -42,5 +42,18 @@ fn main() {
         .lines()
         .map(|line| VertexSpec::parse(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", vs);
+
+    let mut in_deg: HashMap<String, usize> = HashMap::new();
+
+    for u in &vs {
+        for v in &u.adjacent {
+            *in_deg.entry(v.clone()).or_insert(0) += 1;
+        }
+    }
+
+    for u in &vs {
+        if in_deg.get(&u.id).is_none() {
+            println!("{}", u.id);
+        }
+    }
 }
