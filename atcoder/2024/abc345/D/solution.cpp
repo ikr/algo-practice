@@ -3,12 +3,6 @@ using namespace std;
 
 using pii = pair<int, int>;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 vector<pii> cut_out(const pii hw, const pii ab) {
     const auto [h, w] = hw;
     const auto [a, b] = ab;
