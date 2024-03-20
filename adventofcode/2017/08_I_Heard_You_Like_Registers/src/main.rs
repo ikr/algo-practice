@@ -1,4 +1,7 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::HashMap,
+    io::{self, BufRead},
+};
 
 #[derive(Debug)]
 enum OpCode {
@@ -106,4 +109,15 @@ fn main() {
         .collect();
 
     eprintln!("{:?}", instructions);
+
+    let mut regs: HashMap<String, i32> = HashMap::new();
+    for (op, cond) in instructions {
+        let x = *regs.get(&cond.reg).unwrap_or(&0);
+        if cond.cmpcode.apply(x, cond.arg) {
+            let y = *regs.get(&op.reg).unwrap_or(&0);
+            regs.insert(op.reg, op.opcode.apply(y, op.arg));
+        }
+    }
+
+    println!("{}", regs.values().max().unwrap());
 }
