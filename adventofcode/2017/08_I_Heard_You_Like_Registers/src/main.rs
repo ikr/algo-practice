@@ -111,13 +111,21 @@ fn main() {
     eprintln!("{:?}", instructions);
 
     let mut regs: HashMap<String, i32> = HashMap::new();
+    let mut running_max = 0;
     for (op, cond) in instructions {
         let x = *regs.get(&cond.reg).unwrap_or(&0);
         if cond.cmpcode.apply(x, cond.arg) {
             let y = *regs.get(&op.reg).unwrap_or(&0);
-            regs.insert(op.reg, op.opcode.apply(y, op.arg));
+            let z = op.opcode.apply(y, op.arg);
+            regs.insert(op.reg, z);
+            running_max = running_max.max(z);
         }
     }
 
-    println!("{}", regs.values().max().unwrap());
+    println!(
+        "Max register value in the end {}",
+        regs.values().max().unwrap()
+    );
+
+    println!("Running max register value {}", running_max);
 }
