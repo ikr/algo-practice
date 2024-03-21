@@ -6,6 +6,7 @@ enum Mode {
 struct StepResult {
     i_delta: usize,
     result_delta: i32,
+    garbage_delta: i32,
     mode: Mode,
     level: i32,
 }
@@ -15,23 +16,27 @@ fn content_step(level: i32, x: char) -> StepResult {
         '{' => StepResult {
             i_delta: 1,
             result_delta: 0,
+            garbage_delta: 0,
             mode: Mode::Content,
             level: level + 1,
         },
         '}' => StepResult {
             i_delta: 1,
             result_delta: level,
+            garbage_delta: 0,
             mode: Mode::Content,
             level: level - 1,
         },
         '<' => StepResult {
             i_delta: 1,
             result_delta: 0,
+            garbage_delta: 0,
             mode: Mode::Garbage,
             level,
         },
         _ => StepResult {
             i_delta: 1,
+            garbage_delta: 0,
             result_delta: 0,
             mode: Mode::Content,
             level,
@@ -44,17 +49,20 @@ fn garbage_step(level: i32, x: char) -> StepResult {
         '!' => StepResult {
             i_delta: 2,
             result_delta: 0,
+            garbage_delta: 0,
             mode: Mode::Garbage,
             level,
         },
         '>' => StepResult {
             i_delta: 1,
+            garbage_delta: 0,
             result_delta: 0,
             mode: Mode::Content,
             level,
         },
         _ => StepResult {
             i_delta: 1,
+            garbage_delta: 1,
             result_delta: 0,
             mode: Mode::Garbage,
             level,
@@ -70,6 +78,7 @@ fn main() {
         .collect();
 
     let mut result: i32 = 0;
+    let mut garbage: i32 = 0;
     let mut level: i32 = 0;
     let mut i: usize = 0;
     let mut mode: Mode = Mode::Content;
@@ -82,9 +91,11 @@ fn main() {
 
         i += r.i_delta;
         result += r.result_delta;
+        garbage += r.garbage_delta;
         mode = r.mode;
         level = r.level;
     }
 
     println!("{}", result);
+    println!("{}", garbage);
 }
