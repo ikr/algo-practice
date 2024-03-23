@@ -52,7 +52,7 @@ fn hexify(a: &[u8]) -> String {
 fn xor_compress(xs: &[u8]) -> Vec<u8> {
     let mut result: Vec<u8> = vec![];
     for ys in xs.chunks(16) {
-        result.push(ys.to_vec().into_iter().reduce(|acc, y| acc ^ y).unwrap())
+        result.push(ys.iter().copied().reduce(|acc, y| acc ^ y).unwrap())
     }
     result
 }
