@@ -10,13 +10,8 @@ fn tricky_reverse(xs: &mut [usize], mut i: usize, mut j: usize) {
     }
 }
 
-fn main() {
-    let lengths: Vec<usize> = std::io::read_to_string(std::io::stdin())
-        .unwrap()
-        .trim()
-        .split(',')
-        .map(|x| x.parse().unwrap())
-        .collect();
+fn solve_part_1(input: &str) -> usize {
+    let lengths: Vec<usize> = input.split(',').map(|x| x.parse().unwrap()).collect();
 
     let mut xs: Vec<usize> = (0..256).collect();
     let mut i: usize = 0;
@@ -32,5 +27,14 @@ fn main() {
         skip += 1;
     }
 
-    println!("{}", xs[0] * xs[1]);
+    xs[0] * xs[1]
+}
+
+fn main() {
+    let input: String = std::io::read_to_string(std::io::stdin())
+        .unwrap()
+        .trim()
+        .to_string();
+
+    println!("{}", solve_part_1(&input));
 }
