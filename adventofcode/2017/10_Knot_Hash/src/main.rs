@@ -49,11 +49,33 @@ fn hexify(a: &[u8]) -> String {
     v.join("")
 }
 
+fn xor_compress(xs: &[u8]) -> Vec<u8> {
+    let mut result: Vec<u8> = vec![];
+    for ys in xs.chunks(16) {
+        result.push(ys.to_vec().into_iter().reduce(|acc, y| acc ^ y).unwrap())
+    }
+    result
+}
+
 fn solve_part_2(input: &str) -> String {
     let lengths = amend_lengths(&ascii_encode(input));
-    eprintln!("{:?}", hexify(&[0, 255]));
-    eprintln!("{:?}", lengths);
-    todo!()
+    let mut xs: Vec<u8> = (0..=255).collect();
+    let mut i: usize = 0;
+    let n = xs.len();
+    let mut skip: usize = 0;
+
+    for _ in 0..64 {
+        for l in lengths.iter() {
+            if *l > 0 {
+                let j = (i + n + l - 1) % n;
+                tricky_reverse(&mut xs, i, j);
+            }
+            i = (i + l + skip) % n;
+            skip += 1
+        }
+    }
+
+    hexify(&xor_compress(&xs))
 }
 
 fn main() {
