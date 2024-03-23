@@ -1,4 +1,4 @@
-fn tricky_reverse(xs: &mut [usize], mut i: usize, mut j: usize) {
+fn tricky_reverse(xs: &mut [u8], mut i: usize, mut j: usize) {
     let n = xs.len();
     while i != j {
         xs.swap(i, j);
@@ -10,10 +10,10 @@ fn tricky_reverse(xs: &mut [usize], mut i: usize, mut j: usize) {
     }
 }
 
-fn solve_part_1(input: &str) -> usize {
+fn solve_part_1(input: &str) -> u32 {
     let lengths: Vec<usize> = input.split(',').map(|x| x.parse().unwrap()).collect();
 
-    let mut xs: Vec<usize> = (0..256).collect();
+    let mut xs: Vec<u8> = (0..=255).collect();
     let mut i: usize = 0;
     let n = xs.len();
 
@@ -25,7 +25,7 @@ fn solve_part_1(input: &str) -> usize {
         i = (i + l + skip) % n;
     }
 
-    xs[0] * xs[1]
+    xs[0] as u32 * xs[1] as u32
 }
 
 fn ascii_encode(input: &str) -> Vec<u8> {
