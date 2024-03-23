@@ -38,16 +38,18 @@ int main() {
     map<int, ll> fq;
     unordered_set<int> rows;
     unordered_set<int> cols;
-    unordered_map<int, int> row_v;
-    unordered_map<int, int> col_v;
     for (const auto &[opcode, i, x] : ops) {
         if (opcode == OpCode::Ro) {
-            fq[x] += W - sz(cols);
-            rows.insert(i);
+            if (!rows.contains(i) && sz(cols) != W) {
+                fq[x] += W - sz(cols);
+                rows.insert(i);
+            }
         } else {
             assert(opcode == OpCode::Co);
-            fq[x] += H - sz(rows);
-            cols.insert(i);
+            if (!cols.contains(i) && sz(rows) != H) {
+                fq[x] += H - sz(rows);
+                cols.insert(i);
+            }
         }
     }
 
@@ -55,7 +57,7 @@ int main() {
                                [](const ll acc, const auto &p) {
                                    return acc + p.second;
                                });
-    if (zs) fq.emplace(0, zs);
+    if (zs) fq[0] += zs;
 
     cout << sz(fq) << '\n';
     for (const auto &[c, x] : fq) {
