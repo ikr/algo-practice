@@ -28,7 +28,20 @@ fn solve_part_1(input: &str) -> usize {
     xs[0] * xs[1]
 }
 
+fn ascii_encode(input: &str) -> Vec<u8> {
+    input.chars().map(|c| c as u8).collect()
+}
+
+const SUFFIX: [usize; 5] = [17, 31, 73, 47, 23];
+
+fn amend_lengths(xs: &[usize]) -> Vec<usize> {
+    let mut result = xs.to_vec();
+    result.extend(SUFFIX);
+    result
+}
+
 fn solve_part_2(input: &str) -> String {
+    eprintln!("{:?}", ascii_encode("1,2,3"));
     todo!()
 }
 
