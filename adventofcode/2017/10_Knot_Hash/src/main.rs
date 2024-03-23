@@ -40,8 +40,18 @@ fn amend_lengths(xs: &[u8]) -> Vec<usize> {
     result.into_iter().map(|x| x as usize).collect()
 }
 
+fn hex_of(a: u8) -> String {
+    format!("{:02x}", a)
+}
+
+fn hexify(a: &[u8]) -> String {
+    let v: Vec<String> = a.iter().map(|x| hex_of(*x)).collect();
+    v.join("")
+}
+
 fn solve_part_2(input: &str) -> String {
     let lengths = amend_lengths(&ascii_encode(input));
+    eprintln!("{:?}", hexify(&[0, 255]));
     eprintln!("{:?}", lengths);
     todo!()
 }
