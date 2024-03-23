@@ -15,19 +15,21 @@ fn solve_part_1(input: &str) -> usize {
 
     let mut xs: Vec<usize> = (0..256).collect();
     let mut i: usize = 0;
-    let mut skip: usize = 0;
     let n = xs.len();
 
-    for l in lengths {
-        if l > 0 {
+    for (skip, l) in lengths.iter().enumerate() {
+        if *l > 0 {
             let j = (i + n + l - 1) % n;
             tricky_reverse(&mut xs, i, j);
         }
         i = (i + l + skip) % n;
-        skip += 1;
     }
 
     xs[0] * xs[1]
+}
+
+fn solve_part_2(input: &str) -> String {
+    todo!()
 }
 
 fn main() {
@@ -37,4 +39,5 @@ fn main() {
         .to_string();
 
     println!("{}", solve_part_1(&input));
+    println!("{}", solve_part_2(&input));
 }
