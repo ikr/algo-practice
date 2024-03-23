@@ -22,37 +22,62 @@ int main() {
     vector<ll> C(N);
     for (auto &c : C) cin >> c;
 
-    vector<ll> dp0(N, 0);
-    vector<ll> dp1(N, 0);
+    vector<ll> ltr0(N, 0);
+    vector<ll> ltr1(N, 0);
 
     if (S[0] == '0') {
-        dp1[0] = C[0];
+        ltr1[0] = C[0];
     } else {
         assert(S[0] == '1');
-        dp0[0] = C[0];
+        ltr0[0] = C[0];
     }
 
     for (int i = 1; i < N; ++i) {
         if (S[i] == '0') {
-            dp1[i] = C[i];
+            ltr0[i] = ltr1[i - 1];
+            ltr1[i] = ltr0[i - 1] + C[i];
         } else {
             assert(S[i] == '1');
-            dp0[i] = C[i];
+            ltr1[i] = ltr0[i - 1];
+            ltr0[i] = ltr1[i - 1] + C[i];
         }
     }
 
-    vector<ll> ss0(N + 1, 0);
-    partial_sum(cbegin(dp0), cend(dp0), begin(ss0) + 1);
-    vector<ll> ss1(N + 1, 0);
-    partial_sum(cbegin(dp1), cend(dp1), begin(ss1) + 1);
+    vector<ll> rtl0(N, 0);
+    vector<ll> rtl1(N, 0);
+
+    if (S.back() == '0') {
+        rtl1.back() = C.back();
+    } else {
+        assert(S.back() == '1');
+        rtl0.back() = C.back();
+    }
+
+    for (int i = N - 2; i >= 0; --i) {
+        if (S[i] == '0') {
+            rtl0[i] = rtl1[i + 1];
+            rtl1[i] = rtl0[i + 1] + C[i];
+        } else {
+            assert(S[i] == '1');
+            rtl1[i] = rtl0[i + 1];
+            rtl0[i] = rtl1[i + 1] + C[i];
+        }
+    }
 
     ll result = LONG_LONG_MAX;
     for (int i = 1; i < N; ++i) {
         { // taking 0 at i
-            const ll pre = dp0[i - 1];
+            const ll pre = ltr0[i - 1];
+            const ll post = (i == N - 1) ? 0 : rtl1[i + 1];
+            const ll c = S[i] == '0' ? 0 : C[i];
+            result = min(result, pre + c + post);
         }
 
         { // taking 1 at i
+            const ll pre = ltr1[i - 1];
+            const ll post = (i == N - 1) ? 0 : rtl0[i + 1];
+            const ll c = S[i] == '1' ? 0 : C[i];
+            result = min(result, pre + c + post);
         }
     }
     cout << result << '\n';
