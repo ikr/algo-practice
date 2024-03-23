@@ -17,8 +17,8 @@ fn solve_part_1(input: &str) -> u32 {
     let mut i: usize = 0;
     let n = xs.len();
 
-    for (skip, l) in lengths.iter().enumerate() {
-        if *l > 0 {
+    for (skip, l) in lengths.into_iter().enumerate() {
+        if l > 0 {
             let j = (i + n + l - 1) % n;
             tricky_reverse(&mut xs, i, j);
         }
@@ -32,16 +32,17 @@ fn ascii_encode(input: &str) -> Vec<u8> {
     input.chars().map(|c| c as u8).collect()
 }
 
-const SUFFIX: [usize; 5] = [17, 31, 73, 47, 23];
+const SUFFIX: [u8; 5] = [17, 31, 73, 47, 23];
 
-fn amend_lengths(xs: &[usize]) -> Vec<usize> {
+fn amend_lengths(xs: &[u8]) -> Vec<usize> {
     let mut result = xs.to_vec();
     result.extend(SUFFIX);
-    result
+    result.into_iter().map(|x| x as usize).collect()
 }
 
 fn solve_part_2(input: &str) -> String {
-    eprintln!("{:?}", ascii_encode("1,2,3"));
+    let lengths = amend_lengths(&ascii_encode(input));
+    eprintln!("{:?}", lengths);
     todo!()
 }
 
