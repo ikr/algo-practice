@@ -69,8 +69,12 @@ fn main() {
         .collect();
 
     let mut loc = CubeCoord { x: 0, y: 0, z: 0 };
+    let mut hi = 0;
     for d in ds.iter() {
         loc = loc + d.delta();
+        hi = hi.max(loc.distance_to(&CubeCoord { x: 0, y: 0, z: 0 }));
     }
-    println!("{}", loc.distance_to(&CubeCoord { x: 0, y: 0, z: 0 }))
+
+    println!("{}", loc.distance_to(&CubeCoord { x: 0, y: 0, z: 0 }));
+    println!("{}", hi);
 }
