@@ -1,4 +1,31 @@
-#[derive(Debug)]
+use std::ops;
+
+#[derive(Clone, Copy)]
+struct CubeCoord {
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
+impl CubeCoord {
+    fn distance_to(&self, other: &CubeCoord) -> i32 {
+        ((self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()) / 2
+    }
+}
+
+impl ops::Add<CubeCoord> for CubeCoord {
+    type Output = CubeCoord;
+
+    fn add(self, other: CubeCoord) -> CubeCoord {
+        CubeCoord {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
 enum Dir {
     N,
     NE,
@@ -20,6 +47,17 @@ impl Dir {
             _ => panic!("Invalid Dir source {}", src),
         }
     }
+
+    fn delta(&self) -> CubeCoord {
+        match self {
+            Dir::N => CubeCoord { x: 0, y: 1, z: -1 },
+            Dir::NE => CubeCoord { x: 1, y: 0, z: -1 },
+            Dir::SE => CubeCoord { x: 1, y: -1, z: 0 },
+            Dir::S => CubeCoord { x: 0, y: -1, z: 1 },
+            Dir::SW => CubeCoord { x: -1, y: 0, z: 1 },
+            Dir::NW => CubeCoord { x: -1, y: 1, z: 0 },
+        }
+    }
 }
 
 fn main() {
@@ -30,5 +68,9 @@ fn main() {
         .map(Dir::parse)
         .collect();
 
-    eprintln!("{:?}", ds);
+    let mut loc = CubeCoord { x: 0, y: 0, z: 0 };
+    for d in ds.iter() {
+        loc = loc + d.delta();
+    }
+    println!("{}", loc.distance_to(&CubeCoord { x: 0, y: 0, z: 0 }))
 }
