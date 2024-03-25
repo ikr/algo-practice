@@ -17,4 +17,5 @@ fn main() {
         }
     }
     println!("{}", dsu.size(0));
+    println!("{}", dsu.groups().len());
 }
