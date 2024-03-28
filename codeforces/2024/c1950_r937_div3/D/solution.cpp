@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
@@ -19,25 +29,17 @@ bool is_binary_decimal(ll n) {
     return true;
 }
 
-bool is_representable(vector<ll> basis, const int bits, const ll n0) {
-    vector<int> ii;
-    for (int i = 0; i < sz(basis); ++i) {
-        if (bits & (1LL << i)) ii.push_back(i);
+bool is_representable(const vector<ll> &basis, const int bits, ll n) {
+    for (int i = sz(basis) - 1; i >= 0; --i) {
+        if ((bits & (1LL << i)) == 0) continue;
+        while (n % basis[i] == 0) {
+            n /= basis[i];
+            if (n == 1 || find(cbegin(basis), cend(basis), n) != cend(basis)) {
+                return true;
+            }
+        };
     }
 
-    do {
-        auto n = n0;
-        for (const auto i : ii) {
-            if ((bits & (1LL << i)) == 0) continue;
-            while (n % basis[i] == 0) {
-                n /= basis[i];
-                if (n == 1 ||
-                    find(cbegin(basis), cend(basis), n) != cend(basis)) {
-                    return true;
-                }
-            };
-        }
-    } while (next_permutation(begin(ii), end(ii)));
     return false;
 }
 
@@ -54,7 +56,7 @@ int main() {
     cin.exceptions(cin.failbit);
 
     vector<ll> basis;
-    for (ll i = 2; i * i <= 100'000LL; ++i) {
+    for (ll i = 2; i <= 10'000LL; ++i) {
         if (is_binary_decimal(i)) basis.push_back(i);
     }
 
