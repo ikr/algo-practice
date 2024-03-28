@@ -19,12 +19,21 @@ bool is_binary_decimal(ll n) {
     return true;
 }
 
-bool is_representable(const vector<ll> &basis, const int bits, ll n) {
-    for (int i = 0; i < sz(basis); ++i) {
-        if ((bits & (1LL << i)) == 0) continue;
-        while (n % basis[i] == 0) n /= basis[i];
-    }
-    return n == 1 || find(cbegin(basis), cend(basis), n) != cend(basis);
+bool is_representable(vector<ll> basis, const int bits, const ll n0) {
+    do {
+        auto n = n0;
+        for (int i = 0; i < sz(basis); ++i) {
+            if ((bits & (1LL << i)) == 0) continue;
+            while (n % basis[i] == 0) {
+                n /= basis[i];
+                if (n == 1 ||
+                    find(cbegin(basis), cend(basis), n) != cend(basis)) {
+                    return true;
+                }
+            };
+        }
+    } while (next_permutation(begin(basis), end(basis)));
+    return false;
 }
 
 bool is_representable(const vector<ll> &basis, const ll n) {
