@@ -56,9 +56,10 @@ int main() {
     cin.exceptions(cin.failbit);
 
     vector<ll> basis;
-    for (ll i = 2; i <= 10'000LL; ++i) {
+    for (ll i = 2; i <= 1'000LL; ++i) {
         if (is_binary_decimal(i)) basis.push_back(i);
     }
+    // cerr << basis << endl;
 
     int t;
     cin >> t;
