@@ -55,11 +55,7 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
 
-    vector<ll> basis;
-    for (ll i = 2; i <= 1'000LL; ++i) {
-        if (is_binary_decimal(i)) basis.push_back(i);
-    }
-    // cerr << basis << endl;
+    const vector<ll> basis{10, 11, 101, 111, 1001, 1011, 1101, 1111};
 
     int t;
     cin >> t;
