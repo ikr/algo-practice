@@ -20,9 +20,14 @@ bool is_binary_decimal(ll n) {
 }
 
 bool is_representable(vector<ll> basis, const int bits, const ll n0) {
+    vector<int> ii;
+    for (int i = 0; i < sz(basis); ++i) {
+        if (bits & (1LL << i)) ii.push_back(i);
+    }
+
     do {
         auto n = n0;
-        for (int i = 0; i < sz(basis); ++i) {
+        for (const auto i : ii) {
             if ((bits & (1LL << i)) == 0) continue;
             while (n % basis[i] == 0) {
                 n /= basis[i];
@@ -32,7 +37,7 @@ bool is_representable(vector<ll> basis, const int bits, const ll n0) {
                 }
             };
         }
-    } while (next_permutation(begin(basis), end(basis)));
+    } while (next_permutation(begin(ii), end(ii)));
     return false;
 }
 
