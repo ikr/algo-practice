@@ -24,7 +24,7 @@ bool is_representable(const vector<ll> &basis, const int bits, ll n) {
         if ((bits & (1LL << i)) == 0) continue;
         while (n % basis[i] == 0) n /= basis[i];
     }
-    return n == 1;
+    return n == 1 || find(cbegin(basis), cend(basis), n) != cend(basis);
 }
 
 bool is_representable(const vector<ll> &basis, const ll n) {
