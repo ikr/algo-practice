@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
+    os << '[';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << ']';
+    return os;
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
@@ -31,6 +41,10 @@ vector<int> Z_with_a_twist(const string &S) {
     return z;
 }
 
+template <typename T> constexpr T div_ceil(const T x, const T y) {
+    return x ? (1 + (x - 1) / y) : 0;
+}
+
 int solve(const string &xs, const vector<int> &zs) {
     const auto n = sz(xs);
     if (n < 3) return 1;
@@ -56,6 +70,7 @@ int main() {
         cin >> xs;
 
         const auto zs = Z_with_a_twist(xs);
+        cerr << zs << endl;
         cout << solve(xs, zs) << '\n';
     }
 
