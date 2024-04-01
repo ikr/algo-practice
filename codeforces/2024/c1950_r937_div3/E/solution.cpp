@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using ll = long long;
+
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     os << '[';
     for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
@@ -11,49 +13,79 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
     return os;
 }
 
+template <typename T> constexpr ll llof(const T x) {
+    return static_cast<ll>(x);
+}
+
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
 }
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-#define rep(i, a, b) for (int i = a; i < (b); ++i)
-
-// https://github.com/kth-competitive-programming/kactl/blob/main/content/strings/Zfunc.h
-vector<int> Z_with_a_twist(const string &S) {
-    vector<int> z(sz(S));
-    int l = -1, r = -1;
-    rep(i, 1, sz(S)) {
-        z[i] = i >= r ? 0 : min(r - i, z[i - l]);
-        int diffs = 0;
-        while (i + z[i] < sz(S)) {
-            if (S[i + z[i]] == S[z[i]]) {
+// https://cp-algorithms.com/string/z-function.html
+vector<int> z_with_a_twist(const string &s) {
+    const auto n = sz(s);
+    vector<int> z(n);
+    int l{};
+    int r{};
+    optional<int> ine;
+    for (int i = 1; i < n; i++) {
+        if (i < r) {
+            z[i] = min(r - i, z[i - l]);
+        }
+        while (i + z[i] < n) {
+            if (s[z[i]] == s[i + z[i]]) {
                 z[i]++;
-            } else if (diffs == 0) {
+            } else if (!ine) {
+                ine = i + z[i];
                 z[i]++;
-                diffs++;
             } else {
                 break;
             }
         }
-        if (i + z[i] > r) l = i, r = i + z[i];
+        if (i + z[i] > r) {
+            l = i;
+            if (ine && *ine < l) ine.reset();
+            r = i + z[i];
+            if (ine && r <= *ine) ine.reset();
+        }
     }
     return z;
 }
 
-template <typename T> constexpr T div_ceil(const T x, const T y) {
-    return x ? (1 + (x - 1) / y) : 0;
+unordered_map<char, int> frequencies(const string &xs) {
+    unordered_map<char, int> result;
+    for (const char x : xs) ++result[x];
+    return result;
+}
+
+bool confirm_m_pattern(const vector<int> &zs, const int m) {
+    for (int i = 0; i < sz(zs); i += m) {
+        if (zs[i] < m) return false;
+    }
+    return true;
 }
 
 int solve(const string &xs, const vector<int> &zs) {
     const auto n = sz(xs);
     if (n < 3) return 1;
 
-    auto l = n;
-    while (l != 1 && (zs[l / 2] == l / 2)) {
-        l /= 2;
+    {
+        const auto fq = frequencies(xs);
+        if (sz(fq) == 1 ||
+            (sz(fq) == 2 && any_of(cbegin(fq), cend(fq), [](const auto kv) {
+                 return kv.second == 1;
+             }))) {
+            return 1;
+        }
     }
-    return l;
+
+    for (int m = 2; llof(m) * m <= llof(n); ++m) {
+        if (n % m) continue;
+        if (confirm_m_pattern(zs, m)) return m;
+    }
+    return n;
 }
 
 int main() {
@@ -69,7 +101,7 @@ int main() {
         string xs;
         cin >> xs;
 
-        const auto zs = Z_with_a_twist(xs);
+        const auto zs = z_with_a_twist(xs);
         cerr << zs << endl;
         cout << solve(xs, zs) << '\n';
     }
