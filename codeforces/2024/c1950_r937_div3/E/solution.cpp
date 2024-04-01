@@ -51,6 +51,7 @@ vector<int> z_with_a_twist(const string &s) {
             if (ine && r <= *ine) ine.reset();
         }
     }
+    cerr << z << endl;
     return z;
 }
 
@@ -101,9 +102,11 @@ int main() {
         string xs;
         cin >> xs;
 
-        const auto zs = z_with_a_twist(xs);
-        cerr << zs << endl;
-        cout << solve(xs, zs) << '\n';
+        const auto o1 = solve(xs, z_with_a_twist(xs));
+
+        reverse(begin(xs), end(xs));
+        const auto o2 = solve(xs, z_with_a_twist(xs));
+        cout << min(o1, o2) << '\n';
     }
 
     return 0;
