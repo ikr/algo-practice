@@ -29,7 +29,7 @@ bool confirm_m_pattern(const string &xs, const int m) {
             diffs += xs[i] != xs[i0 + i];
         }
 
-        if (diffs != 1) return false;
+        if (diffs > 1) return false;
     }
     return true;
 }
@@ -58,8 +58,10 @@ int shortest_pattern_length(string xs) {
         }
     }
 
+    const auto ds = divisors_ascending(n);
+
     const auto try_matching = [&]() -> int {
-        for (const auto m : divisors_ascending(n)) {
+        for (const auto m : ds) {
             if (confirm_m_pattern(xs, m)) return m;
         }
         return n;
