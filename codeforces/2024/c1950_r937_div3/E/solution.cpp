@@ -62,7 +62,7 @@ unordered_map<char, int> frequencies(const string &xs) {
 }
 
 bool confirm_m_pattern(const vector<int> &zs, const int m) {
-    for (int i = 0; i < sz(zs); i += m) {
+    for (int i = m; i < sz(zs); i += m) {
         if (zs[i] < m) return false;
     }
     return true;
