@@ -22,16 +22,14 @@ unordered_map<char, int> frequencies(const string &xs) {
 bool confirm_m_pattern(const string &xs, const int m) {
     const auto n = sz(xs);
     assert(n % m == 0);
+    int diffs{};
     for (int i0 = m; i0 < n; i0 += m) {
-        int diffs{};
 
         for (int i = 0; i < m; ++i) {
             diffs += xs[i] != xs[i0 + i];
         }
-
-        if (diffs > 1) return false;
     }
-    return true;
+    return diffs < 2;
 }
 
 vector<int> divisors_ascending(const int n) {
