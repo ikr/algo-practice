@@ -1,25 +1,40 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+constexpr int mlog2(const int x) {
+    return 8 * sizeof(int) - __builtin_clz(x) - 1;
+}
+
+namespace complete_bintree {
+constexpr int largest_contained_a0(const int a) {
+    assert(a > 0);
+    int shift{1};
+    while ((1 << (shift + 1)) - 1 <= a) ++shift;
+    return (1 << shift) - 1;
+}
+
+constexpr int height(const int a) { return mlog2(a + 1); }
+} // namespace complete_bintree
+
+namespace cbt = complete_bintree;
+
 int min_tree_height(const int a, int b, const int c) {
     if (!a) return c == 1 ? b : -1;
 
-    auto h0 = 0;
-    while ((1 << (h0 + 1)) - 1 <= a) ++h0;
+    const auto a0 = cbt::largest_contained_a0(a);
+    const auto slots = a0 + 1;
+    const auto ra = a - a0;
+    assert(ra >= 0);
 
-    const auto l0 = 1 << h0;
-    const auto a0 = l0 - 1;
-    assert(a0 <= a);
-    const auto ra = a0 - a;
+    const auto slots_l = ra * 2;
+    const auto slots_r = slots - ra;
+    assert(slots_r > 0);
+    if (slots_l + slots_r != c) return -1;
 
-    auto leaves_l = ra * 2;
-    auto leaves_r = l0 - ra;
-    assert(leaves_r > 0);
-    if (c != leaves_l + leaves_r) return -1;
-
+    const auto h0 = cbt::height(a0);
     set<int> pq;
-    for (int i = 0; i < leaves_l; ++i) pq.insert(h0 + 1);
-    for (int i = 0; i < leaves_r; ++i) pq.insert(h0);
+    for (int i = 0; i < slots_l; ++i) pq.insert(h0 + 1);
+    for (int i = 0; i < slots_r; ++i) pq.insert(h0);
     assert(!empty(pq));
 
     while (b) {
