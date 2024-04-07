@@ -39,6 +39,7 @@ int min_tree_height(const int a, int b, const int c) {
 
     while (b) {
         const auto cur = *cbegin(pq);
+        pq.erase(cbegin(pq));
         pq.insert(cur + 1);
         --b;
     }
