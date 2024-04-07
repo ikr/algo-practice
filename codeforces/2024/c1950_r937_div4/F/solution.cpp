@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <typename T> ostream &operator<<(ostream &os, const multiset<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
+
 static constexpr int Inf = 1'000'000'000;
 
 constexpr int mlog2(const int x) {
@@ -9,21 +19,32 @@ constexpr int mlog2(const int x) {
 
 constexpr int complete_bintre_height(const int a) { return mlog2(a + 1); }
 
+constexpr int largest_contained_a0(const int a) {
+    assert(a > 0);
+    int shift{1};
+    while ((1 << (shift + 1)) - 1 <= a) ++shift;
+    return (1 << shift) - 1;
+}
+
 int min_tree_height(const int a, const int a0, const int b, const int c) {
     assert(a0 <= a);
     assert(__builtin_popcount(a0 + 1) == 1);
+    // cerr << "a0:" << a0 << endl;
 
     multiset<int> pq;
     for (int i = 0; i <= a0; ++i) pq.insert(complete_bintre_height(a0));
+    // cerr << pq << endl;
 
+    const auto is_largest_a0 = a0 == largest_contained_a0(a);
     assert(!empty(pq));
     for (int i = 0; i < a - a0; ++i) {
-        const auto it = prev(cend(pq));
+        const auto it = is_largest_a0 ? cbegin(pq) : prev(cend(pq));
         const auto h = *it;
         pq.erase(it);
         pq.insert(h + 1);
         pq.insert(h + 1);
     }
+    // cerr << pq << endl;
     if (ssize(pq) != c) return Inf;
 
     for (int i = 0; i < b; ++i) {
@@ -31,6 +52,7 @@ int min_tree_height(const int a, const int a0, const int b, const int c) {
         pq.erase(cbegin(pq));
         pq.insert(cur + 1);
     }
+    // cerr << pq << endl;
 
     return *crbegin(pq);
 }
