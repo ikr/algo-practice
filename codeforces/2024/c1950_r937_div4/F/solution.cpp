@@ -1,50 +1,48 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+static constexpr int Inf = 1'000'000'000;
+
 constexpr int mlog2(const int x) {
     return 8 * sizeof(int) - __builtin_clz(x) - 1;
 }
 
-namespace complete_bintree {
-constexpr int largest_contained_a0(const int a) {
-    assert(a > 0);
-    int shift{1};
-    while ((1 << (shift + 1)) - 1 <= a) ++shift;
-    return (1 << shift) - 1;
-}
+constexpr int complete_bintre_height(const int a) { return mlog2(a + 1); }
 
-constexpr int height(const int a) { return mlog2(a + 1); }
-} // namespace complete_bintree
+int min_tree_height(const int a, const int a0, const int b, const int c) {
+    assert(a0 <= a);
+    assert(__builtin_popcount(a0 + 1) == 1);
 
-namespace cbt = complete_bintree;
+    multiset<int> pq;
+    for (int i = 0; i <= a0; ++i) pq.insert(complete_bintre_height(a0));
 
-int min_tree_height(const int a, int b, const int c) {
-    if (!a) return c == 1 ? b : -1;
-
-    const auto a0 = cbt::largest_contained_a0(a);
-    const auto slots = a0 + 1;
-    const auto ra = a - a0;
-    assert(ra >= 0);
-
-    const auto slots_l = ra * 2;
-    const auto slots_r = slots - ra;
-    assert(slots_r > 0);
-    if (slots_l + slots_r != c) return -1;
-
-    const auto h0 = cbt::height(a0);
-    set<int> pq;
-    for (int i = 0; i < slots_l; ++i) pq.insert(h0 + 1);
-    for (int i = 0; i < slots_r; ++i) pq.insert(h0);
     assert(!empty(pq));
+    for (int i = 0; i < a - a0; ++i) {
+        const auto it = prev(cend(pq));
+        const auto h = *it;
+        pq.erase(it);
+        pq.insert(h + 1);
+        pq.insert(h + 1);
+    }
+    if (ssize(pq) != c) return Inf;
 
-    while (b) {
+    for (int i = 0; i < b; ++i) {
         const auto cur = *cbegin(pq);
         pq.erase(cbegin(pq));
         pq.insert(cur + 1);
-        --b;
     }
 
     return *crbegin(pq);
+}
+
+int min_tree_height(const int a, int b, const int c) {
+    if (!a) return c == 1 ? b : Inf;
+
+    int result{Inf};
+    for (int shift = 1; (1 << shift) - 1 <= a; ++shift) {
+        result = min(result, min_tree_height(a, (1 << shift) - 1, b, c));
+    }
+    return result;
 }
 
 int main() {
@@ -56,7 +54,9 @@ int main() {
     while (t--) {
         int a, b, c;
         cin >> a >> b >> c;
-        cout << min_tree_height(a, b, c) << '\n';
+
+        const auto result = min_tree_height(a, b, c);
+        cout << (result == Inf ? -1 : result) << '\n';
     }
 
     return 0;
