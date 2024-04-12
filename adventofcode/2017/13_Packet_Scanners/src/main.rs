@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    io::{self, BufRead},
-};
+use std::io::{self, BufRead};
 
 fn parse_input_line(src: &str) -> (i32, i32) {
     let parts: Vec<String> = src.split(": ").map(|x| x.to_string()).collect();
@@ -10,31 +7,28 @@ fn parse_input_line(src: &str) -> (i32, i32) {
     (a, b)
 }
 
-fn solve_part_1(pairs: &[(i32, i32)]) -> i32 {
-    let ranges_by_depth: HashMap<i32, i32> =
-        pairs.iter().fold(HashMap::new(), |mut acc, (a, b)| {
-            acc.insert(*a, *b);
-            acc
-        });
-
+fn solve_part_1(depth_ranges: &[(i32, i32)]) -> i32 {
     let mut result = 0;
-    for d in 0..100 {
-        if let Some(r) = ranges_by_depth.get(&d) {
-            if d % (2 * (r - 1)) == 0 {
-                result += d * r;
-            }
+    for (d, r) in depth_ranges {
+        if d % (2 * (r - 1)) == 0 {
+            result += d * r;
         }
     }
     result
 }
 
+fn solve_part_2(depth_ranges: &[(i32, i32)]) -> i32 {
+    0
+}
+
 fn main() {
-    let pairs: Vec<(i32, i32)> = io::stdin()
+    let depth_ranges: Vec<(i32, i32)> = io::stdin()
         .lock()
         .lines()
         .map(|l| l.unwrap())
         .map(|l| parse_input_line(&l))
         .collect();
 
-    println!("{}", solve_part_1(&pairs));
+    println!("{}", solve_part_1(&depth_ranges));
+    println!("{}", solve_part_2(&depth_ranges));
 }
