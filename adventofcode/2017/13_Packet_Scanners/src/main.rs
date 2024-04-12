@@ -10,17 +10,10 @@ fn parse_input_line(src: &str) -> (i32, i32) {
     (a, b)
 }
 
-fn main() {
-    let pairs: Vec<(i32, i32)> = io::stdin()
-        .lock()
-        .lines()
-        .map(|l| l.unwrap())
-        .map(|l| parse_input_line(&l))
-        .collect();
-
+fn solve_part_1(pairs: &[(i32, i32)]) -> i32 {
     let ranges_by_depth: HashMap<i32, i32> =
-        pairs.into_iter().fold(HashMap::new(), |mut acc, (a, b)| {
-            acc.insert(a, b);
+        pairs.iter().fold(HashMap::new(), |mut acc, (a, b)| {
+            acc.insert(*a, *b);
             acc
         });
 
@@ -32,5 +25,16 @@ fn main() {
             }
         }
     }
-    println!("{}", result);
+    result
+}
+
+fn main() {
+    let pairs: Vec<(i32, i32)> = io::stdin()
+        .lock()
+        .lines()
+        .map(|l| l.unwrap())
+        .map(|l| parse_input_line(&l))
+        .collect();
+
+    println!("{}", solve_part_1(&pairs));
 }
