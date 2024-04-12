@@ -17,8 +17,22 @@ fn solve_part_1(depth_ranges: &[(i32, i32)]) -> i32 {
     result
 }
 
+fn can_pass_through(depth_ranges: &[(i32, i32)], delay: i32) -> bool {
+    for (d, r) in depth_ranges {
+        if (delay + d) % (2 * (r - 1)) == 0 {
+            return false;
+        }
+    }
+    true
+}
+
 fn solve_part_2(depth_ranges: &[(i32, i32)]) -> i32 {
-    0
+    for i in 0..1_000_000_000 {
+        if can_pass_through(depth_ranges, i) {
+            return i;
+        }
+    }
+    -1
 }
 
 fn main() {
