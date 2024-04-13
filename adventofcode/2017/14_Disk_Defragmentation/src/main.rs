@@ -39,7 +39,7 @@ fn xor_compress(xs: &[u8]) -> Vec<u8> {
     result
 }
 
-fn knot_hash(input: &str) -> String {
+fn knot_hash(input: &str) -> Vec<u8> {
     let lengths = amend_lengths(&ascii_encode(input));
     let mut xs: Vec<u8> = (0..=255).collect();
     let mut i: usize = 0;
@@ -57,7 +57,7 @@ fn knot_hash(input: &str) -> String {
         }
     }
 
-    hexify(&xor_compress(&xs))
+    xor_compress(&xs)
 }
 
 fn main() {
@@ -65,5 +65,5 @@ fn main() {
         .unwrap()
         .trim()
         .to_string();
-    eprintln!("{}", &knot_hash(&input)[0..8]);
+    eprintln!("{}", &hexify(&knot_hash(&input))[0..8]);
 }
