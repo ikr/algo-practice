@@ -14,6 +14,14 @@ fn ascii_encode(input: &str) -> Vec<u8> {
     input.chars().map(|c| c as u8).collect()
 }
 
+const SUFFIX: [u8; 5] = [17, 31, 73, 47, 23];
+
+fn amend_lengths(xs: &[u8]) -> Vec<usize> {
+    let mut result = xs.to_vec();
+    result.extend(SUFFIX);
+    result.into_iter().map(|x| x as usize).collect()
+}
+
 fn hex_of(a: u8) -> String {
     format!("{:02x}", a)
 }
@@ -32,15 +40,15 @@ fn xor_compress(xs: &[u8]) -> Vec<u8> {
 }
 
 fn knot_hash(input: &str) -> String {
-    let lengths = ascii_encode(input);
+    let lengths = amend_lengths(&ascii_encode(input));
     let mut xs: Vec<u8> = (0..=255).collect();
     let mut i: usize = 0;
     let n = xs.len();
     let mut skip: usize = 0;
 
     for _ in 0..64 {
-        for l in lengths.iter().map(|x| *x as usize) {
-            if l > 0 {
+        for l in lengths.iter() {
+            if *l > 0 {
                 let j = (i + n + l - 1) % n;
                 tricky_reverse(&mut xs, i, j);
             }
@@ -57,5 +65,5 @@ fn main() {
         .unwrap()
         .trim()
         .to_string();
-    eprintln!("{}", knot_hash(&input));
+    eprintln!("{}", &knot_hash(&input)[0..8]);
 }
