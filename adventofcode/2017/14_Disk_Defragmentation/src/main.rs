@@ -60,10 +60,15 @@ fn knot_hash(input: &str) -> Vec<u8> {
     xor_compress(&xs)
 }
 
+fn row_source(key: &str, row_index: u8) -> String {
+    [key, &row_index.to_string()].join("-")
+}
+
 fn main() {
     let input: String = std::io::read_to_string(std::io::stdin())
         .unwrap()
         .trim()
         .to_string();
     eprintln!("{}", &hexify(&knot_hash(&input))[0..8]);
+    eprintln!("{}", row_source(&input, 127));
 }
