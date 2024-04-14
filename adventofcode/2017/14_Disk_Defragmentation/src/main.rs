@@ -60,7 +60,7 @@ fn row_source(key: &str, row_index: u8) -> String {
 fn is_nth_bit_set(row: &[u8], n: u8) -> bool {
     let byte_index = n as usize / 8;
     let bit_index = n % 8;
-    row[byte_index] & (1u8 << bit_index) != 0
+    (row[byte_index] & (1u8 << bit_index)) != 0
 }
 
 fn is_set_at(raster: &[Vec<u8>], ro: u8, co: u8) -> bool {
@@ -86,17 +86,18 @@ fn main() {
     let mut dsu = Dsu::new(128 * 128);
     for ro in 0..128 {
         for co in 0..128 {
+            let vc = vertex_code(ro, co);
             if ro > 0 && is_set_at(&row_hashes, ro - 1, co) {
-                dsu.merge(vertex_code(ro, co), vertex_code(ro - 1, co));
+                dsu.merge(vc, vertex_code(ro - 1, co));
             }
             if co > 0 && is_set_at(&row_hashes, ro, co - 1) {
-                dsu.merge(vertex_code(ro, co), vertex_code(ro, co - 1));
+                dsu.merge(vc, vertex_code(ro, co - 1));
             }
             if ro < 127 && is_set_at(&row_hashes, ro + 1, co) {
-                dsu.merge(vertex_code(ro, co), vertex_code(ro + 1, co));
+                dsu.merge(vc, vertex_code(ro + 1, co));
             }
             if co < 127 && is_set_at(&row_hashes, ro, co + 1) {
-                dsu.merge(vertex_code(ro, co), vertex_code(ro, co + 1));
+                dsu.merge(vc, vertex_code(ro, co + 1));
             }
         }
     }
