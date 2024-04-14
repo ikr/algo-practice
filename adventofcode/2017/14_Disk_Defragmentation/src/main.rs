@@ -22,15 +22,6 @@ fn amend_lengths(xs: &[u8]) -> Vec<usize> {
     result.into_iter().map(|x| x as usize).collect()
 }
 
-fn hex_of(a: u8) -> String {
-    format!("{:02x}", a)
-}
-
-fn hexify(a: &[u8]) -> String {
-    let v: Vec<String> = a.iter().map(|x| hex_of(*x)).collect();
-    v.join("")
-}
-
 fn xor_compress(xs: &[u8]) -> Vec<u8> {
     let mut result: Vec<u8> = vec![];
     for ys in xs.chunks(16) {
@@ -69,14 +60,12 @@ fn main() {
         .unwrap()
         .trim()
         .to_string();
-    eprintln!("{}", &hexify(&knot_hash(&key))[0..8]);
-    eprintln!("{}", row_source(&key, 127));
 
     let row_hashes = (0..128)
         .into_iter()
         .map(|i| knot_hash(&row_source(&key, i)));
-    let result: u32 = row_hashes.into_iter().fold(0u32, |acc, xs| {
+    let result1: u32 = row_hashes.into_iter().fold(0u32, |acc, xs| {
         acc + xs.iter().map(|x| x.count_ones()).sum::<u32>()
     });
-    println!("{}", result);
+    println!("{}", result1);
 }
