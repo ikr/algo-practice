@@ -58,9 +58,9 @@ fn row_source(key: &str, row_index: u8) -> String {
 }
 
 fn is_nth_bit_set(row: &[u8], n: u8) -> bool {
-    let byte_index = n / 8;
+    let byte_index = n as usize / 8;
     let bit_index = n % 8;
-    row[byte_index as usize] & (1u8 << bit_index) != 0
+    row[byte_index] & (1u8 << bit_index) != 0
 }
 
 fn is_set_at(raster: &[Vec<u8>], ro: u8, co: u8) -> bool {
