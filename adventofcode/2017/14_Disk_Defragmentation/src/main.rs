@@ -65,10 +65,18 @@ fn row_source(key: &str, row_index: u8) -> String {
 }
 
 fn main() {
-    let input: String = std::io::read_to_string(std::io::stdin())
+    let key: String = std::io::read_to_string(std::io::stdin())
         .unwrap()
         .trim()
         .to_string();
-    eprintln!("{}", &hexify(&knot_hash(&input))[0..8]);
-    eprintln!("{}", row_source(&input, 127));
+    eprintln!("{}", &hexify(&knot_hash(&key))[0..8]);
+    eprintln!("{}", row_source(&key, 127));
+
+    let row_hashes = (0..128)
+        .into_iter()
+        .map(|i| knot_hash(&row_source(&key, i)));
+    let result: u32 = row_hashes.into_iter().fold(0u32, |acc, xs| {
+        acc + xs.iter().map(|x| x.count_ones()).sum::<u32>()
+    });
+    println!("{}", result);
 }
