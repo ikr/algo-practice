@@ -1,3 +1,5 @@
+use ac_library::Dsu;
+
 fn tricky_reverse(xs: &mut [u8], mut i: usize, mut j: usize) {
     let n = xs.len();
     while i != j {
@@ -55,17 +57,49 @@ fn row_source(key: &str, row_index: u8) -> String {
     [key, &row_index.to_string()].join("-")
 }
 
+fn is_nth_bit_set(row: &[u8], n: u8) -> bool {
+    let byte_index = n / 8;
+    let bit_index = n % 8;
+    row[byte_index as usize] & (1u8 << bit_index) != 0
+}
+
+fn is_set_at(raster: &[Vec<u8>], ro: u8, co: u8) -> bool {
+    is_nth_bit_set(&raster[ro as usize], co)
+}
+
+fn vertex_code(ro: u8, co: u8) -> usize {
+    ro as usize * 128 + co as usize
+}
+
 fn main() {
     let key: String = std::io::read_to_string(std::io::stdin())
         .unwrap()
         .trim()
         .to_string();
 
-    let row_hashes = (0..128)
-        .into_iter()
-        .map(|i| knot_hash(&row_source(&key, i)));
-    let result1: u32 = row_hashes.into_iter().fold(0u32, |acc, xs| {
+    let row_hashes: Vec<Vec<u8>> = (0..128).map(|i| knot_hash(&row_source(&key, i))).collect();
+    let result1 = row_hashes.iter().fold(0, |acc, xs| {
         acc + xs.iter().map(|x| x.count_ones()).sum::<u32>()
     });
     println!("{}", result1);
+
+    let mut dsu = Dsu::new(128 * 128);
+    for ro in 0..128 {
+        for co in 0..128 {
+            if ro > 0 && is_set_at(&row_hashes, ro - 1, co) {
+                dsu.merge(vertex_code(ro, co), vertex_code(ro - 1, co));
+            }
+            if co > 0 && is_set_at(&row_hashes, ro, co - 1) {
+                dsu.merge(vertex_code(ro, co), vertex_code(ro, co - 1));
+            }
+            if ro < 127 && is_set_at(&row_hashes, ro + 1, co) {
+                dsu.merge(vertex_code(ro, co), vertex_code(ro + 1, co));
+            }
+            if co < 127 && is_set_at(&row_hashes, ro, co + 1) {
+                dsu.merge(vertex_code(ro, co), vertex_code(ro, co + 1));
+            }
+        }
+    }
+    let result2 = dsu.groups().len();
+    println!("{}", result2);
 }
