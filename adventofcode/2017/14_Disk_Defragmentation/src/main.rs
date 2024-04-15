@@ -59,7 +59,7 @@ fn row_source(key: &str, row_index: u8) -> String {
 
 fn is_nth_bit_set(row: &[u8], n: u8) -> bool {
     let byte_index = n as usize / 8;
-    let bit_index = n % 8;
+    let bit_index = 7 - (n % 8);
     (row[byte_index] & (1u8 << bit_index)) != 0
 }
 
@@ -83,10 +83,17 @@ fn main() {
     });
     println!("{}", result1);
 
+    eprintln!("{:?}", row_hashes[0]);
+    println!("{}", format!("{:b}", row_hashes[0][0]));
+
     let mut dsu = Dsu::new(128 * 128);
     for ro in 0..128 {
         for co in 0..128 {
+            if !is_set_at(&row_hashes, ro, co) {
+                continue;
+            }
             let vc = vertex_code(ro, co);
+
             if ro > 0 && is_set_at(&row_hashes, ro - 1, co) {
                 dsu.merge(vc, vertex_code(ro - 1, co));
             }
@@ -101,6 +108,6 @@ fn main() {
             }
         }
     }
-    let result2 = dsu.groups().len();
+    let result2 = dsu.groups().len() as i32 - (128 * 128 - result1 as i32);
     println!("{}", result2);
 }
