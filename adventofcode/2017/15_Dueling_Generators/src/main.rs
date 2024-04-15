@@ -4,13 +4,19 @@ const M: u64 = 2147483647;
 
 struct Generator {
     factor: u64,
+    multiples_of: u64,
     value: u64,
 }
 
 impl Generator {
     fn tick(&mut self) {
-        self.value *= self.factor;
-        self.value %= M;
+        loop {
+            self.value *= self.factor;
+            self.value %= M;
+            if self.value % self.multiples_of == 0 {
+                break;
+            }
+        }
     }
 
     fn digest(&self) -> u16 {
@@ -30,21 +36,23 @@ fn main() {
 
     let mut ga = Generator {
         factor: FA,
+        multiples_of: 4,
         value: a0,
     };
 
     let mut gb = Generator {
         factor: FB,
+        multiples_of: 8,
         value: b0,
     };
 
-    let mut result1 = 0;
-    for _ in 0..40_000_000 {
+    let mut result = 0;
+    for _ in 0..5_000_000 {
         ga.tick();
         gb.tick();
         if ga.digest() == gb.digest() {
-            result1 += 1;
+            result += 1;
         }
     }
-    println!("{}", result1);
+    println!("{}", result);
 }
