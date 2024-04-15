@@ -26,10 +26,9 @@ fn slashed_chars(src: &str) -> (char, char) {
     let (a, b) = slashed_pair(src);
     assert!(a.len() == 1);
     assert!(b.len() == 1);
-    (a.chars().nth(0).unwrap(), b.chars().nth(0).unwrap())
+    (a.chars().next().unwrap(), b.chars().next().unwrap())
 }
 
-#[derive(Clone, Copy, Debug)]
 enum Operation {
     Spin(usize),
     Exchange(usize, usize),
@@ -38,7 +37,7 @@ enum Operation {
 
 impl Operation {
     fn decode(src: &str) -> Operation {
-        match src.chars().nth(0).unwrap() {
+        match src.chars().next().unwrap() {
             's' => Operation::Spin(src[1..].parse().unwrap()),
             'x' => {
                 let (a, b) = slashed_ints(&src[1..]);
@@ -54,20 +53,26 @@ impl Operation {
 }
 
 fn main() {
-    let buf = initial_buffer(5);
-    eprintln!("{:?}", buf);
-    eprintln!("{:?}", as_string(&buf));
-
-    let command_sources: Vec<String> = std::io::read_to_string(std::io::stdin())
+    let ops: Vec<Operation> = std::io::read_to_string(std::io::stdin())
         .unwrap()
         .trim_end()
         .split(',')
-        .map(|x| x.to_string())
+        .map(Operation::decode)
         .collect();
 
-    eprintln!("{:?}", command_sources);
+    let mut buf = initial_buffer(16);
 
-    for src in command_sources {
-        eprintln!("{:?}", Operation::decode(&src));
+    for op in ops {
+        match op {
+            Operation::Spin(i) => buf.rotate_right(i),
+            Operation::Exchange(i, j) => buf.swap(i, j),
+            Operation::Partner(a, b) => {
+                let i = buf.iter().position(|x| *x == a).unwrap();
+                let j = buf.iter().position(|x| *x == b).unwrap();
+                buf.swap(i, j);
+            }
+        }
     }
+
+    println!("{}", as_string(&buf));
 }
