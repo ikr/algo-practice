@@ -83,9 +83,6 @@ fn main() {
     });
     println!("{}", result1);
 
-    eprintln!("{:?}", row_hashes[0]);
-    println!("{}", format!("{:b}", row_hashes[0][0]));
-
     let mut dsu = Dsu::new(128 * 128);
     for ro in 0..128 {
         for co in 0..128 {
