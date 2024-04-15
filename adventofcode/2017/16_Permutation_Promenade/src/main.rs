@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 const AZ: &str = "abcdefghijklmnopqrstuvwxyz";
 
@@ -52,6 +52,24 @@ impl Operation {
     }
 }
 
+const SZ: usize = 16;
+
+fn program_result(ops: &[Operation], mut buf: VecDeque<char>) -> VecDeque<char> {
+    for op in ops.iter() {
+        match op {
+            Operation::Spin(i) => buf.rotate_right(*i),
+            Operation::Exchange(i, j) => buf.swap(*i, *j),
+            Operation::Partner(a, b) => {
+                let i = buf.iter().position(|x| x == a).unwrap();
+                let j = buf.iter().position(|x| x == b).unwrap();
+                buf.swap(i, j);
+            }
+        }
+    }
+
+    buf
+}
+
 fn main() {
     let ops: Vec<Operation> = std::io::read_to_string(std::io::stdin())
         .unwrap()
@@ -60,19 +78,36 @@ fn main() {
         .map(Operation::decode)
         .collect();
 
-    let mut buf = initial_buffer(16);
+    println!("{}", as_string(&program_result(&ops, initial_buffer(SZ))));
 
-    for op in ops {
-        match op {
-            Operation::Spin(i) => buf.rotate_right(i),
-            Operation::Exchange(i, j) => buf.swap(i, j),
-            Operation::Partner(a, b) => {
-                let i = buf.iter().position(|x| *x == a).unwrap();
-                let j = buf.iter().position(|x| *x == b).unwrap();
-                buf.swap(i, j);
-            }
+    let mut result_indices: HashMap<String, usize> = HashMap::new();
+    let mut buf = initial_buffer(SZ);
+    let mut idx = vec![as_string(&buf)];
+    result_indices.insert(as_string(&buf), 0);
+
+    let mut irep: Option<usize> = None;
+
+    for i in 1..9999 {
+        buf = program_result(&ops, buf);
+        let k = as_string(&buf);
+        idx.push(k.clone());
+
+        if result_indices.contains_key(&k) {
+            eprintln!(
+                "Repetition of {} at {} and at {}",
+                k,
+                result_indices.get(&k).unwrap(),
+                i
+            );
+            irep = Some(i);
+            assert!(k == as_string(&initial_buffer(SZ)));
+
+            break;
         }
+        result_indices.insert(k, i);
     }
 
-    println!("{}", as_string(&buf));
+    assert!(irep.is_some());
+    let i0: usize = 1_000_000_000 % irep.unwrap();
+    println!("{}", idx[i0]);
 }
