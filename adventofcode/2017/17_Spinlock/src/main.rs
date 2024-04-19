@@ -11,9 +11,6 @@ fn main() {
     for x in 2usize..=2017usize {
         i += jump_distance + 1;
         i %= x;
-        if i == 0 {
-            i = x;
-        }
         buf.insert(i, x);
         let y = buf[(i + 1) % buf.len()];
         eprintln!("{} added at {}; next to the right is {}", x, i, y);
