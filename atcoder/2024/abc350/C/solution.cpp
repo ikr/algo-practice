@@ -15,22 +15,29 @@ int main() {
     cin >> n;
 
     vector<int> xs(n);
-    for (auto &x : xs) cin >> x;
-
-    vector<pair<int, int>> result;
-    if (n % 2) {
-        const auto x0 = n / 2 + 1;
-        const auto i0 = inof(find(cbegin(xs), cend(xs), x0) - cbegin(xs));
-        swap(xs[i0], xs[x0 - 1]);
-        result.emplace_back(i0, x0 - 1);
+    for (auto &x : xs) {
+        cin >> x;
+        --x;
     }
 
-    for (int i = 0; i < n / 2; ++i) {
+    vector<int> idx(n, -1);
+    for (int i = 0; i < n; ++i) idx[xs[i]] = i;
+
+    vector<pair<int, int>> result;
+    for (int i = 0; i < n; ++i) {
+        if (xs[i] == i) continue;
+        const auto j = idx[i];
+        assert(i != j);
+        assert(xs[i] > i);
+
+        result.emplace_back(min(i, j), max(i, j));
+        swap(xs[i], xs[j]);
+        idx[xs[j]] = j;
     }
 
     cout << sz(result) << '\n';
     for (const auto &[a, b] : result) {
-        cout << a + 1 << b + 1 << '\n';
+        cout << a + 1 << ' ' << b + 1 << '\n';
     }
     return 0;
 }
