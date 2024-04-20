@@ -110,6 +110,7 @@ name = "solution"
 version = "0.1.0"
 dependencies = [
  "indexset",
+ "num-bigint",
  "num-rational",
 ]
 
