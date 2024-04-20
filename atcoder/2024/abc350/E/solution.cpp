@@ -23,18 +23,23 @@ int main() {
     double X, Y;
     cin >> X >> Y;
 
-    const auto recur = [&](const auto self, const double p0,
-                           const ll n) -> double {
-        if (!n || p0 < Eps) return 0;
-        const auto o0 = X + self(self, p0, n / A);
-        vector<double> es(7, 0);
-        for (ll i = 1; i <= 6; ++i) {
-            es[i] = Y / 6.0 + self(self, p0 / 6.0, n / i) / 6.0;
-        }
-        const auto o1 = accumulate(cbegin(es), cend(es), 0.0);
-        return p0 * min(o0, o1);
+    unordered_map<ll, double> memo;
+
+    const auto recur = [&](const auto self, const ll n) -> double {
+        if (memo.contains(n)) return memo.at(n);
+        return memo[n] = [&]() -> double {
+            if (!n) return 0;
+            const auto o1 = X + self(self, n / A);
+
+            double o2 = 0;
+            for (ll i = 2; i <= 6; ++i) o2 += self(self, n / i);
+            o2 /= 5.0;
+            o2 += 6 * Y / 5.0;
+
+            return min(o1, o2);
+        }();
     };
 
-    cout << recur(recur, 1.0, N) << '\n';
+    cout << recur(recur, N) << '\n';
     return 0;
 }
