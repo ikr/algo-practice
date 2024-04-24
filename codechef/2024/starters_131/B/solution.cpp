@@ -1,13 +1,17 @@
-#include <atcoder/segtree>
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
+template <typename T> ostream &operator<<(ostream &os, const multiset<T> &xs) {
+    os << '{';
+    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
+        if (i != xs.cbegin()) os << ' ';
+        os << *i;
+    }
+    os << '}';
+    return os;
+}
 
-ll lo_op(ll a, ll b) { return min(a, b); }
-ll lo_e() { return (ll)(1e9); }
-ll hi_op(ll a, ll b) { return max(a, b); }
-ll hi_e() { return 0; }
+using ll = long long;
 
 template <typename T> constexpr int inof(const T x) {
     return static_cast<int>(x);
@@ -22,22 +26,18 @@ ll opt_diff(vector<ll> A, const ll K) {
         const auto a = A[i] + q * K;
         A[i] = a;
     }
-    sort(begin(A), end(A));
 
-    atcoder::segtree<ll, lo_op, lo_e> t_lo(A);
-    atcoder::segtree<ll, hi_op, hi_e> t_hi(A);
-    ll result = t_hi.all_prod() - t_lo.all_prod();
+    multiset<ll> xs(cbegin(A), cend(A));
+    ll result = *crbegin(xs) - *cbegin(xs);
+
     for (int i = 0; i < sz(A); ++i) {
-        t_lo.set(i, A[i] + K);
-        t_hi.set(i, A[i] + K);
-        const ll result_ = t_hi.all_prod() - t_lo.all_prod();
-
-        if (result_ < result) {
-            result = result_;
-        } else {
-            break;
-        }
+        const auto x = *cbegin(xs);
+        xs.erase(cbegin(xs));
+        xs.insert(x + K);
+        const ll result_ = *crbegin(xs) - *cbegin(xs);
+        result = min(result, result_);
     }
+
     return result;
 }
 
