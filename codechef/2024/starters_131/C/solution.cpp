@@ -1,6 +1,33 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using lll = __int128_t;
+using ulll = __uint128_t;
+
+ostream &operator<<(ostream &dest, const lll value) {
+    ostream::sentry s(dest);
+    if (s) {
+        ulll tmp = value < 0 ? -value : value;
+        char buffer[128];
+        char *d = end(buffer);
+
+        do {
+            --d;
+            *d = "0123456789"[tmp % 10];
+            tmp /= 10;
+        } while (tmp != 0);
+
+        if (value < 0) {
+            --d;
+            *d = '-';
+        }
+
+        const int len = static_cast<int>(end(buffer) - d);
+        if (dest.rdbuf()->sputn(d, len) != len) dest.setstate(ios_base::badbit);
+    }
+    return dest;
+}
+
 using ll = long long;
 static constexpr ll M = 1e9 + 7;
 
@@ -10,12 +37,12 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-ll max_s(const vector<ll> &xs) {
+lll max_s(const vector<ll> &xs) {
     const auto n = sz(xs);
     if (n == 1) return xs[0];
 
     int ir{};
-    ll s{};
+    lll s{};
     if (xs[0] == 1) {
         while (ir + 1 < n && xs[ir + 1] == 1) ++ir;
         s = ir + 1;
