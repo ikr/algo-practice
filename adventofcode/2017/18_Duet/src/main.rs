@@ -40,10 +40,14 @@ enum Rval {
     Int(i32),
 }
 
-struct Op {
-    op_code: OpCode,
-    lval_reg: LvalReg,
-    rval: Rval,
+impl Rval {
+    fn decode(xs: &str) -> Rval {
+        if let Ok(n) = xs.parse::<i32>() {
+            Rval::Int(n)
+        } else {
+            Rval::Reg(LvalReg::decode(xs).0)
+        }
+    }
 }
 
 fn main() {
