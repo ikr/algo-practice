@@ -1,3 +1,4 @@
+use std::io::{self, BufRead};
 use std::str::FromStr;
 use strum_macros::EnumString;
 
@@ -24,12 +25,12 @@ impl OpCode {
     }
 }
 
-struct LvalReg(char);
+struct Reg(char);
 
-impl LvalReg {
-    fn decode(xs: &str) -> LvalReg {
+impl Reg {
+    fn decode(xs: &str) -> Reg {
         match xs.chars().collect::<Vec<char>>()[..] {
-            [x] if x.is_ascii_lowercase() => LvalReg(x),
+            [x] if x.is_ascii_lowercase() => Reg(x),
             _ => panic!("“{}” is not a Reg literal", xs),
         }
     }
@@ -45,11 +46,22 @@ impl Rval {
         if let Ok(n) = xs.parse::<i32>() {
             Rval::Int(n)
         } else {
-            Rval::Reg(LvalReg::decode(xs).0)
+            Rval::Reg(Reg::decode(xs).0)
         }
     }
 }
 
 fn main() {
-    println!("Hello, world!");
+    let line_tokens: Vec<Vec<String>> = io::stdin()
+        .lock()
+        .lines()
+        .map(|x| {
+            x.unwrap()
+                .split(' ')
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+        })
+        .collect();
+
+    eprintln!("{:?}", line_tokens);
 }
