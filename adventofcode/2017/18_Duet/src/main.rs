@@ -17,12 +17,12 @@ impl Reg {
 #[derive(Debug, Clone, Copy)]
 enum Rval {
     Reg(char),
-    Int(i32),
+    Int(i64),
 }
 
 impl Rval {
     fn decode(xs: &str) -> Rval {
-        if let Ok(n) = xs.parse::<i32>() {
+        if let Ok(n) = xs.parse::<i64>() {
             Rval::Int(n)
         } else {
             Rval::Reg(Reg::decode(xs).0)
@@ -63,15 +63,15 @@ impl Instr {
 
 enum Outcome {
     Continue,
-    SignalAndContinue(i32),
+    SignalAndContinue(i64),
     Exit,
 }
 
 struct Machine {
-    reg: [i32; AZ],
-    signal: i32,
+    reg: [i64; AZ],
+    signal: i64,
     program: Vec<Instr>,
-    ip: i32,
+    ip: i64,
 }
 
 impl Machine {
@@ -84,26 +84,26 @@ impl Machine {
         }
     }
 
-    fn read_reg(&self, r: char) -> i32 {
+    fn read_reg(&self, r: char) -> i64 {
         self.reg[r as usize - 'a' as usize]
     }
 
-    fn write_reg(&mut self, r: char, v: i32) {
+    fn write_reg(&mut self, r: char, v: i64) {
         self.reg[r as usize - 'a' as usize] = v;
     }
 
     fn is_terminated(&self) -> bool {
-        self.ip < 0 || self.program.len() as i32 <= self.ip
+        self.ip < 0 || self.program.len() as i64 <= self.ip
     }
 
-    fn value_of(&self, rv: Rval) -> i32 {
+    fn value_of(&self, rv: Rval) -> i64 {
         match rv {
             Rval::Reg(r) => self.read_reg(r),
             Rval::Int(v) => v,
         }
     }
 
-    fn tick_and_return_singnal(&mut self) -> Outcome {
+    fn tick(&mut self) -> Outcome {
         assert!(!self.is_terminated());
 
         match &self.program[self.ip as usize] {
@@ -171,4 +171,16 @@ fn main() {
         .collect();
 
     eprintln!("{:?}", program);
+
+    let mut m = Machine::new(program);
+    loop {
+        match m.tick() {
+            Outcome::Continue => eprint!("."),
+            Outcome::SignalAndContinue(s) => {
+                println!("{}", s);
+                break;
+            }
+            Outcome::Exit => break,
+        }
+    }
 }
