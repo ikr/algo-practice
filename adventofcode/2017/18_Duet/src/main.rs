@@ -73,6 +73,13 @@ struct Machine {
     total_sends: u32,
 }
 
+#[derive(PartialEq)]
+enum TickOutcome {
+    Continue,
+    Block,
+    Terminate,
+}
+
 impl Machine {
     fn new(program: Vec<Instr>, id: i64) -> Machine {
         let mut m = Machine {
@@ -110,9 +117,9 @@ impl Machine {
         }
     }
 
-    fn tick(&mut self) {
+    fn tick(&mut self) -> TickOutcome {
         if self.is_terminated() {
-            return;
+            return TickOutcome::Terminate;
         }
 
         match &self.program[self.ip as usize] {
@@ -120,32 +127,41 @@ impl Machine {
                 self.out_q.push_back(self.value_of(*rv));
                 self.total_sends += 1;
                 self.ip += 1;
+                TickOutcome::Continue
             }
             Instr::Set(Reg(r), rv) => {
                 self.write_reg(*r, self.value_of(*rv));
                 self.ip += 1;
+                TickOutcome::Continue
             }
             Instr::Add(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) + self.value_of(*rv));
                 self.ip += 1;
+                TickOutcome::Continue
             }
             Instr::Mul(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) * self.value_of(*rv));
                 self.ip += 1;
+                TickOutcome::Continue
             }
             Instr::Mod(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) % self.value_of(*rv));
                 self.ip += 1;
+                TickOutcome::Continue
             }
             Instr::Rcv(Reg(r)) => {
                 if self.read_reg(*r) != 0 {
                     if let Some(v) = self.in_q.pop_front() {
                         self.write_reg(*r, v);
+                        self.ip += 1;
+                        TickOutcome::Continue
                     } else {
-                        return;
+                        TickOutcome::Block
                     }
+                } else {
+                    self.ip += 1;
+                    TickOutcome::Continue
                 }
-                self.ip += 1;
             }
             Instr::Jgz(rv_a, rv_b) => {
                 let offset = if self.value_of(*rv_a) > 0 {
@@ -155,6 +171,15 @@ impl Machine {
                 };
 
                 self.ip += offset;
+                TickOutcome::Continue
+            }
+        }
+    }
+
+    fn run(&mut self) {
+        loop {
+            if self.tick() != TickOutcome::Continue {
+                break;
             }
         }
     }
@@ -170,9 +195,9 @@ fn main() {
     let mut m0 = Machine::new(program.clone(), 0);
     let mut m1 = Machine::new(program, 1);
 
-    while !((m0.is_blocked() || m0.is_terminated()) && (m1.is_blocked() || m1.is_terminated())) {
-        m0.tick();
-        m1.tick();
+    loop {
+        m0.run();
+        m1.run();
 
         while let Some(v) = m0.out_q.pop_front() {
             m1.in_q.push_back(v);
@@ -180,6 +205,10 @@ fn main() {
 
         while let Some(v) = m1.out_q.pop_front() {
             m0.in_q.push_back(v);
+        }
+
+        if (m0.is_blocked() || m0.is_terminated()) && (m1.is_blocked() || m1.is_terminated()) {
+            break;
         }
     }
 
