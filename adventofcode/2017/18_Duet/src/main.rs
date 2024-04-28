@@ -61,12 +61,6 @@ impl Instr {
     }
 }
 
-enum Outcome {
-    Continue,
-    ReceiveAndContinue(i64),
-    Exit,
-}
-
 struct Machine {
     reg: [i64; AZ],
     signal: i64,
@@ -75,13 +69,15 @@ struct Machine {
 }
 
 impl Machine {
-    fn new(program: Vec<Instr>) -> Machine {
-        Machine {
+    fn new(program: Vec<Instr>, id: i64) -> Machine {
+        let mut m = Machine {
             reg: [0; AZ],
             signal: 0,
             program,
             ip: 0,
-        }
+        };
+        m.reg['p' as usize - 'a' as usize] = id;
+        m
     }
 
     fn read_reg(&self, r: char) -> i64 {
@@ -103,41 +99,35 @@ impl Machine {
         }
     }
 
-    fn tick(&mut self) -> Outcome {
+    fn tick(&mut self) {
         assert!(!self.is_terminated());
 
         match &self.program[self.ip as usize] {
             Instr::Snd(Reg(r)) => {
                 self.signal = self.read_reg(*r);
                 self.ip += 1;
-                Outcome::Continue
             }
             Instr::Set(Reg(r), rv) => {
                 self.write_reg(*r, self.value_of(*rv));
                 self.ip += 1;
-                Outcome::Continue
             }
             Instr::Add(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) + self.value_of(*rv));
                 self.ip += 1;
-                Outcome::Continue
             }
             Instr::Mul(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) * self.value_of(*rv));
                 self.ip += 1;
-                Outcome::Continue
             }
             Instr::Mod(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) % self.value_of(*rv));
                 self.ip += 1;
-                Outcome::Continue
             }
             Instr::Rcv(Reg(r)) => {
                 if self.read_reg(*r) != 0 {
                     self.write_reg(*r, self.signal);
                 }
                 self.ip += 1;
-                Outcome::ReceiveAndContinue(self.signal)
             }
             Instr::Jgz(rv_a, rv_b) => {
                 let offset = if self.value_of(*rv_a) > 0 {
@@ -147,11 +137,6 @@ impl Machine {
                 };
 
                 self.ip += offset;
-                if self.is_terminated() {
-                    Outcome::Exit
-                } else {
-                    Outcome::Continue
-                }
             }
         }
     }
@@ -166,15 +151,6 @@ fn main() {
 
     eprintln!("{:?}", program);
 
-    let mut m = Machine::new(program);
-    loop {
-        match m.tick() {
-            Outcome::Continue => eprint!("."),
-            Outcome::ReceiveAndContinue(s) => {
-                println!("{}", s);
-                break;
-            }
-            Outcome::Exit => break,
-        }
-    }
+    let mut m0 = Machine::new(program.clone(), 0);
+    let mut m1 = Machine::new(program, 1);
 }
