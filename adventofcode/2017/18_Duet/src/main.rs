@@ -5,7 +5,7 @@ use std::{
 
 const AZ: usize = 26;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 struct Reg(char);
 
 impl Reg {
@@ -17,7 +17,7 @@ impl Reg {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 enum Rval {
     Reg(char),
     Int(i64),
@@ -33,9 +33,9 @@ impl Rval {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 enum Instr {
-    Snd(Reg),
+    Snd(Rval),
     Set(Reg, Rval),
     Add(Reg, Rval),
     Mul(Reg, Rval),
@@ -52,7 +52,7 @@ impl Instr {
         let b = || Rval::decode(&tokens[2]);
 
         match tokens[0].as_str() {
-            "snd" => Instr::Snd(a()),
+            "snd" => Instr::Snd(aa()),
             "set" => Instr::Set(a(), b()),
             "add" => Instr::Add(a(), b()),
             "mul" => Instr::Mul(a(), b()),
@@ -66,20 +66,22 @@ impl Instr {
 
 struct Machine {
     reg: [i64; AZ],
-    signal: i64,
     program: Vec<Instr>,
     ip: i64,
-    q: VecDeque<i64>,
+    in_q: VecDeque<i64>,
+    out_q: VecDeque<i64>,
+    total_sends: u32,
 }
 
 impl Machine {
     fn new(program: Vec<Instr>, id: i64) -> Machine {
         let mut m = Machine {
             reg: [0; AZ],
-            signal: 0,
             program,
             ip: 0,
-            q: VecDeque::new(),
+            in_q: VecDeque::new(),
+            out_q: VecDeque::new(),
+            total_sends: 0,
         };
         m.reg['p' as usize - 'a' as usize] = id;
         m
@@ -98,7 +100,7 @@ impl Machine {
     }
 
     fn is_blocked(&self) -> bool {
-        self.q.is_empty()
+        self.in_q.is_empty()
     }
 
     fn value_of(&self, rv: Rval) -> i64 {
@@ -109,11 +111,14 @@ impl Machine {
     }
 
     fn tick(&mut self) {
-        assert!(!self.is_terminated());
+        if self.is_terminated() {
+            return;
+        }
 
         match &self.program[self.ip as usize] {
-            Instr::Snd(Reg(r)) => {
-                self.signal = self.read_reg(*r);
+            Instr::Snd(rv) => {
+                self.out_q.push_back(self.value_of(*rv));
+                self.total_sends += 1;
                 self.ip += 1;
             }
             Instr::Set(Reg(r), rv) => {
@@ -134,7 +139,11 @@ impl Machine {
             }
             Instr::Rcv(Reg(r)) => {
                 if self.read_reg(*r) != 0 {
-                    self.write_reg(*r, self.signal);
+                    if let Some(v) = self.in_q.pop_front() {
+                        self.write_reg(*r, v);
+                    } else {
+                        return;
+                    }
                 }
                 self.ip += 1;
             }
@@ -158,8 +167,21 @@ fn main() {
         .map(|x| Instr::decode(&x.unwrap()))
         .collect();
 
-    eprintln!("{:?}", program);
-
     let mut m0 = Machine::new(program.clone(), 0);
     let mut m1 = Machine::new(program, 1);
+
+    while !((m0.is_blocked() || m0.is_terminated()) && (m1.is_blocked() || m1.is_terminated())) {
+        m0.tick();
+        m1.tick();
+
+        while let Some(v) = m0.out_q.pop_front() {
+            m1.in_q.push_back(v);
+        }
+
+        while let Some(v) = m1.out_q.pop_front() {
+            m0.in_q.push_back(v);
+        }
+    }
+
+    println!("{}", m1.total_sends);
 }
