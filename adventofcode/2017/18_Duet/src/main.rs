@@ -1,5 +1,7 @@
 use std::io::{self, BufRead};
 
+const AZ: usize = 26;
+
 #[derive(Debug)]
 struct Reg(char);
 
@@ -29,7 +31,7 @@ impl Rval {
 }
 
 #[derive(Debug)]
-enum Op {
+enum Instr {
     Snd(Reg),
     Set(Reg, Rval),
     Add(Reg, Rval),
@@ -39,32 +41,50 @@ enum Op {
     Jgz(Rval, Rval),
 }
 
-impl Op {
-    fn decode(line: &str) -> Op {
+impl Instr {
+    fn decode(line: &str) -> Instr {
         let tokens: Vec<String> = line.split(' ').map(|x| x.to_string()).collect();
         let a = || Reg::decode(&tokens[1]);
         let aa = || Rval::decode(&tokens[1]);
         let b = || Rval::decode(&tokens[2]);
 
         match tokens[0].as_str() {
-            "snd" => Op::Snd(a()),
-            "set" => Op::Set(a(), b()),
-            "add" => Op::Add(a(), b()),
-            "mul" => Op::Mul(a(), b()),
-            "mod" => Op::Mod(a(), b()),
-            "rcv" => Op::Rcv(a()),
-            "jgz" => Op::Jgz(aa(), b()),
+            "snd" => Instr::Snd(a()),
+            "set" => Instr::Set(a(), b()),
+            "add" => Instr::Add(a(), b()),
+            "mul" => Instr::Mul(a(), b()),
+            "mod" => Instr::Mod(a(), b()),
+            "rcv" => Instr::Rcv(a()),
+            "jgz" => Instr::Jgz(aa(), b()),
             _ => panic!("Unknown opcode “{}”", tokens[0]),
         }
     }
 }
 
+struct Machine {
+    reg: [i32; AZ],
+    signal: i32,
+    program: Vec<Instr>,
+    ip: usize,
+}
+
+impl Machine {
+    fn new(program: Vec<Instr>) -> Machine {
+        Machine {
+            reg: [0; AZ],
+            signal: 0,
+            program,
+            ip: 0,
+        }
+    }
+}
+
 fn main() {
-    let ops: Vec<Op> = io::stdin()
+    let program: Vec<Instr> = io::stdin()
         .lock()
         .lines()
-        .map(|x| Op::decode(&x.unwrap()))
+        .map(|x| Instr::decode(&x.unwrap()))
         .collect();
 
-    eprintln!("{:?}", ops);
+    eprintln!("{:?}", program);
 }
