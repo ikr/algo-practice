@@ -1,30 +1,6 @@
 use std::io::{self, BufRead};
-use std::str::FromStr;
-use strum_macros::EnumString;
 
-fn uppercase_first(xs: &str) -> String {
-    let mut result: Vec<char> = xs.chars().collect();
-    result[0] = result[0].to_ascii_uppercase();
-    result.into_iter().collect()
-}
-
-#[derive(EnumString)]
-enum OpCode {
-    Snd,
-    Set,
-    Add,
-    Mul,
-    Mod,
-    Rcv,
-    Jgz,
-}
-
-impl OpCode {
-    fn decode(xs: &str) -> OpCode {
-        OpCode::from_str(&uppercase_first(xs)).unwrap()
-    }
-}
-
+#[derive(Debug)]
 struct Reg(char);
 
 impl Reg {
@@ -36,6 +12,7 @@ impl Reg {
     }
 }
 
+#[derive(Debug)]
 enum Rval {
     Reg(char),
     Int(i32),
@@ -51,17 +28,43 @@ impl Rval {
     }
 }
 
+#[derive(Debug)]
+enum Op {
+    Snd(Reg),
+    Set(Reg, Rval),
+    Add(Reg, Rval),
+    Mul(Reg, Rval),
+    Mod(Reg, Rval),
+    Rcv(Reg),
+    Jgz(Rval, Rval),
+}
+
+impl Op {
+    fn decode(line: &str) -> Op {
+        let tokens: Vec<String> = line.split(' ').map(|x| x.to_string()).collect();
+        let a = || Reg::decode(&tokens[1]);
+        let aa = || Rval::decode(&tokens[1]);
+        let b = || Rval::decode(&tokens[2]);
+
+        match tokens[0].as_str() {
+            "snd" => Op::Snd(a()),
+            "set" => Op::Set(a(), b()),
+            "add" => Op::Add(a(), b()),
+            "mul" => Op::Mul(a(), b()),
+            "mod" => Op::Mod(a(), b()),
+            "rcv" => Op::Rcv(a()),
+            "jgz" => Op::Jgz(aa(), b()),
+            _ => panic!("Unknown opcode “{}”", tokens[0]),
+        }
+    }
+}
+
 fn main() {
-    let line_tokens: Vec<Vec<String>> = io::stdin()
+    let ops: Vec<Op> = io::stdin()
         .lock()
         .lines()
-        .map(|x| {
-            x.unwrap()
-                .split(' ')
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-        })
+        .map(|x| Op::decode(&x.unwrap()))
         .collect();
 
-    eprintln!("{:?}", line_tokens);
+    eprintln!("{:?}", ops);
 }
