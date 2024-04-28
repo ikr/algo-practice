@@ -1,4 +1,7 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::VecDeque,
+    io::{self, BufRead},
+};
 
 const AZ: usize = 26;
 
@@ -66,6 +69,7 @@ struct Machine {
     signal: i64,
     program: Vec<Instr>,
     ip: i64,
+    q: VecDeque<i64>,
 }
 
 impl Machine {
@@ -75,6 +79,7 @@ impl Machine {
             signal: 0,
             program,
             ip: 0,
+            q: VecDeque::new(),
         };
         m.reg['p' as usize - 'a' as usize] = id;
         m
@@ -90,6 +95,10 @@ impl Machine {
 
     fn is_terminated(&self) -> bool {
         self.ip < 0 || self.program.len() as i64 <= self.ip
+    }
+
+    fn is_blocked(&self) -> bool {
+        self.q.is_empty()
     }
 
     fn value_of(&self, rv: Rval) -> i64 {
