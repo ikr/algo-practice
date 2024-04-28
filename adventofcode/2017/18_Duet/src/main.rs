@@ -2,7 +2,7 @@ use std::io::{self, BufRead};
 
 const AZ: usize = 26;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Reg(char);
 
 impl Reg {
@@ -14,7 +14,7 @@ impl Reg {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Rval {
     Reg(char),
     Int(i32),
@@ -30,7 +30,7 @@ impl Rval {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Instr {
     Snd(Reg),
     Set(Reg, Rval),
@@ -61,11 +61,17 @@ impl Instr {
     }
 }
 
+enum Outcome {
+    Continue,
+    SignalAndContinue(i32),
+    Exit,
+}
+
 struct Machine {
     reg: [i32; AZ],
     signal: i32,
     program: Vec<Instr>,
-    ip: usize,
+    ip: i32,
 }
 
 impl Machine {
@@ -84,6 +90,76 @@ impl Machine {
 
     fn write_reg(&mut self, r: char, v: i32) {
         self.reg[r as usize - 'a' as usize] = v;
+    }
+
+    fn is_terminated(&self) -> bool {
+        self.ip < 0 || self.program.len() as i32 <= self.ip
+    }
+
+    fn value_of(&self, rv: Rval) -> i32 {
+        match rv {
+            Rval::Reg(r) => self.read_reg(r),
+            Rval::Int(v) => v,
+        }
+    }
+
+    fn tick_and_return_singnal(&mut self) -> Outcome {
+        assert!(!self.is_terminated());
+
+        match &self.program[self.ip as usize] {
+            Instr::Snd(Reg(r)) => {
+                self.signal = self.read_reg(*r);
+                self.ip += 1;
+                assert!(!self.is_terminated());
+                Outcome::SignalAndContinue(self.signal)
+            }
+            Instr::Set(Reg(r), rv) => {
+                self.write_reg(*r, self.value_of(*rv));
+                self.ip += 1;
+                assert!(!self.is_terminated());
+                Outcome::Continue
+            }
+            Instr::Add(Reg(r), rv) => {
+                self.write_reg(*r, self.read_reg(*r) + self.value_of(*rv));
+                self.ip += 1;
+                assert!(!self.is_terminated());
+                Outcome::Continue
+            }
+            Instr::Mul(Reg(r), rv) => {
+                self.write_reg(*r, self.read_reg(*r) * self.value_of(*rv));
+                self.ip += 1;
+                assert!(!self.is_terminated());
+                Outcome::Continue
+            }
+            Instr::Mod(Reg(r), rv) => {
+                self.write_reg(*r, self.read_reg(*r) % self.value_of(*rv));
+                self.ip += 1;
+                assert!(!self.is_terminated());
+                Outcome::Continue
+            }
+            Instr::Rcv(Reg(r)) => {
+                if self.read_reg(*r) != 0 {
+                    self.write_reg(*r, self.signal);
+                }
+                self.ip += 1;
+                assert!(!self.is_terminated());
+                Outcome::Continue
+            }
+            Instr::Jgz(rv_a, rv_b) => {
+                let offset = if self.value_of(*rv_a) > 0 {
+                    self.value_of(*rv_b)
+                } else {
+                    1
+                };
+
+                self.ip += offset;
+                if self.is_terminated() {
+                    Outcome::Exit
+                } else {
+                    Outcome::Continue
+                }
+            }
+        }
     }
 }
 
