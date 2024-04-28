@@ -63,7 +63,7 @@ impl Instr {
 
 enum Outcome {
     Continue,
-    SignalAndContinue(i64),
+    ReceiveAndContinue(i64),
     Exit,
 }
 
@@ -111,7 +111,7 @@ impl Machine {
                 self.signal = self.read_reg(*r);
                 self.ip += 1;
                 assert!(!self.is_terminated());
-                Outcome::SignalAndContinue(self.signal)
+                Outcome::Continue
             }
             Instr::Set(Reg(r), rv) => {
                 self.write_reg(*r, self.value_of(*rv));
@@ -143,7 +143,7 @@ impl Machine {
                 }
                 self.ip += 1;
                 assert!(!self.is_terminated());
-                Outcome::Continue
+                Outcome::ReceiveAndContinue(self.signal)
             }
             Instr::Jgz(rv_a, rv_b) => {
                 let offset = if self.value_of(*rv_a) > 0 {
@@ -176,7 +176,7 @@ fn main() {
     loop {
         match m.tick() {
             Outcome::Continue => eprint!("."),
-            Outcome::SignalAndContinue(s) => {
+            Outcome::ReceiveAndContinue(s) => {
                 println!("{}", s);
                 break;
             }
