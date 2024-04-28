@@ -77,6 +77,14 @@ impl Machine {
             ip: 0,
         }
     }
+
+    fn read_reg(&self, r: char) -> i32 {
+        self.reg[r as usize - 'a' as usize]
+    }
+
+    fn write_reg(&mut self, r: char, v: i32) {
+        self.reg[r as usize - 'a' as usize] = v;
+    }
 }
 
 fn main() {
