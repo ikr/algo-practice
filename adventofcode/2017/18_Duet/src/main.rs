@@ -110,31 +110,26 @@ impl Machine {
             Instr::Snd(Reg(r)) => {
                 self.signal = self.read_reg(*r);
                 self.ip += 1;
-                assert!(!self.is_terminated());
                 Outcome::Continue
             }
             Instr::Set(Reg(r), rv) => {
                 self.write_reg(*r, self.value_of(*rv));
                 self.ip += 1;
-                assert!(!self.is_terminated());
                 Outcome::Continue
             }
             Instr::Add(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) + self.value_of(*rv));
                 self.ip += 1;
-                assert!(!self.is_terminated());
                 Outcome::Continue
             }
             Instr::Mul(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) * self.value_of(*rv));
                 self.ip += 1;
-                assert!(!self.is_terminated());
                 Outcome::Continue
             }
             Instr::Mod(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) % self.value_of(*rv));
                 self.ip += 1;
-                assert!(!self.is_terminated());
                 Outcome::Continue
             }
             Instr::Rcv(Reg(r)) => {
@@ -142,7 +137,6 @@ impl Machine {
                     self.write_reg(*r, self.signal);
                 }
                 self.ip += 1;
-                assert!(!self.is_terminated());
                 Outcome::ReceiveAndContinue(self.signal)
             }
             Instr::Jgz(rv_a, rv_b) => {
