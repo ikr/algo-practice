@@ -191,22 +191,17 @@ fn main() {
     let mut m1 = Machine::new(program, 1);
 
     loop {
-        eprintln!("m0 will run with {:?}", m0.in_q);
         m0.run();
         while let Some(v) = m0.out_q.pop_front() {
             m1.in_q.push_back(v);
         }
-        eprintln!("m0 is-terminnated={}", m0.is_terminated());
 
         m1.run();
-        eprintln!("m1 will run with {:?}", m1.in_q);
         while let Some(v) = m1.out_q.pop_front() {
             m0.in_q.push_back(v);
         }
-        eprintln!("m1 is-terminnated={}", m1.is_terminated());
 
         if (m0.is_blocked() || m0.is_terminated()) && (m1.is_blocked() || m1.is_terminated()) {
-            eprintln!("Terminating with queues state: {:?} {:?}", m0.in_q, m1.in_q);
             break;
         }
     }
