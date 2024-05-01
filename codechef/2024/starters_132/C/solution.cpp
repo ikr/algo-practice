@@ -22,13 +22,6 @@ vector<int> preprocess(vector<int> xs) {
         }
     }
 
-    for (auto &x : xs) {
-        if (x % 2) {
-            x = 0;
-        } else {
-            x = 1;
-        }
-    }
     return xs;
 }
 
@@ -41,7 +34,26 @@ ll num_subarrays_with_at_least_one_one(const vector<int> &xs) {
             dp[i] = dp[i - 1];
         }
     }
-    return accumulate(cbegin(dp), cend(dp), 0LL);
+    const ll at_least = accumulate(cbegin(dp), cend(dp), 0LL);
+
+    set<int> idx{-1, sz(xs)};
+    for (int i = 0; i < sz(xs); ++i) {
+        if (xs[i]) idx.insert(i);
+    }
+
+    ll result = at_least;
+    for (int i = 0; i < sz(xs); ++i) {
+        if (xs[i]) continue;
+
+        const auto l = *prev(idx.lower_bound(i));
+        assert(l < i);
+        const auto r = *idx.upper_bound(i);
+        assert(i < r);
+        const auto addition = (i - l) * (r - i);
+
+        result = max(result, at_least + addition);
+    }
+    return result;
 }
 
 int main() {
@@ -55,15 +67,15 @@ int main() {
         cin >> n;
 
         vector<int> xs(n);
-        for (auto &x : xs) cin >> x;
-
-        const auto o1 = num_subarrays_with_at_least_one_one(preprocess(xs));
-        reverse(begin(xs), end(xs));
-        xs = preprocess(std::move(xs));
-        reverse(begin(xs), end(xs));
-        const auto o2 = num_subarrays_with_at_least_one_one(xs);
-
-        cout << max(o1, o2) << '\n';
+        for (auto &x : xs) {
+            cin >> x;
+            if (x % 2) {
+                x = 0;
+            } else {
+                x = 1;
+            }
+        }
+        cout << num_subarrays_with_at_least_one_one(xs) << '\n';
     }
 
     return 0;
