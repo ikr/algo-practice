@@ -27,9 +27,14 @@ ll opt_pairs(ll k, const ll m, const ll os, const ll ts) {
     lo += d1;
     hi += d1;
 
-    const auto r2 = m - lo - hi;
-    const auto d2 = min(k, r2);
-    lo += d2;
+    while (k && lo + hi < m) {
+        if (lo <= hi) {
+            ++lo;
+        } else {
+            ++hi;
+        }
+        --k;
+    }
     return lo * hi;
 }
 
