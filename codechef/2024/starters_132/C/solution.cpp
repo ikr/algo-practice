@@ -14,20 +14,12 @@ vector<int> preprocess(vector<int> xs) {
         return xs;
     }
 
-    const auto i0 =
-        inof(find_if(cbegin(xs), cend(xs), [](const int x) { return x % 2; }) -
-             cbegin(xs));
-
-    reverse(begin(xs), end(xs));
-    const auto i1 =
-        inof(find_if(cbegin(xs), cend(xs), [](const int x) { return x % 2; }) -
-             cbegin(xs));
-
-    if (i1 <= i0) {
-        ++xs[i1];
-    } else {
-        reverse(begin(xs), end(xs));
-        ++xs[i0];
+    const auto n = sz(xs);
+    for (int i = n / 2; i < n; ++i) {
+        if (xs[i] % 2) {
+            ++xs[i];
+            break;
+        }
     }
 
     for (auto &x : xs) {
@@ -65,8 +57,13 @@ int main() {
         vector<int> xs(n);
         for (auto &x : xs) cin >> x;
 
-        cout << num_subarrays_with_at_least_one_one(preprocess(std::move(xs)))
-             << '\n';
+        const auto o1 = num_subarrays_with_at_least_one_one(preprocess(xs));
+        reverse(begin(xs), end(xs));
+        xs = preprocess(std::move(xs));
+        reverse(begin(xs), end(xs));
+        const auto o2 = num_subarrays_with_at_least_one_one(xs);
+
+        cout << max(o1, o2) << '\n';
     }
 
     return 0;
