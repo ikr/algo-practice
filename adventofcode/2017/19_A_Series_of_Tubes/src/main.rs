@@ -1,6 +1,14 @@
 use std::io::{self, BufRead};
 
 #[derive(Debug, Clone, Copy)]
+enum Dir {
+    N,
+    E,
+    S,
+    W,
+}
+
+#[derive(Debug, Clone, Copy)]
 struct Roco(usize, usize);
 
 fn index_of_entrance(top_row: &[char]) -> usize {
@@ -18,14 +26,6 @@ fn vertex_index(grid_width: usize, roco: Roco) -> usize {
 
 fn grid_roco(grid_width: usize, v_idx: usize) -> Roco {
     Roco(v_idx / grid_width, v_idx % grid_width)
-}
-
-fn at(grid: &[Vec<char>], roco: Roco) -> char {
-    let Roco(h, w) = dimensions(&grid);
-    let Roco(ro, co) = roco;
-    assert!(ro < h);
-    assert!(co < w);
-    grid[ro][co]
 }
 
 fn main() {
