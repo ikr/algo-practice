@@ -15,16 +15,18 @@ ll opt_pairs(ll k, const ll m, const ll os, const ll ts) {
     auto hi = max(os, ts);
 
     while (k && lo + hi < m) {
-        ++lo;
+        const auto d = max(1LL, min({hi - lo, k, m - hi - lo}));
+        lo += d;
         if (lo > hi) swap(lo, hi);
-        --k;
+        k -= d;
     }
 
     while (k && lo != hi) {
-        ++lo;
-        --hi;
+        const auto d = max(1LL, min(k, hi - lo));
+        lo += d;
+        hi -= d;
         if (lo > hi) swap(lo, hi);
-        --k;
+        k -= d;
     }
 
     return lo * hi;
