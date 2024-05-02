@@ -35,6 +35,13 @@ ll opt_pairs(ll k, const ll m, const ll os, const ll ts) {
         }
         --k;
     }
+
+    if (lo > hi) swap(lo, hi);
+    if (lo < hi) {
+        const auto d2 = min(hi - lo, k);
+        lo += d2;
+        k -= d2;
+    }
     return lo * hi;
 }
 
