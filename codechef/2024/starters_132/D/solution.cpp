@@ -21,8 +21,8 @@ ll opt_pairs(ll k, const ll m, const ll os, const ll ts) {
         k -= d;
     }
 
-    while (k && lo != hi) {
-        const auto d = max(1LL, min(k, hi - lo));
+    if (k && lo != hi) {
+        const auto d = min(k, hi - lo);
         lo += d;
         hi -= d;
         if (lo > hi) swap(lo, hi);
