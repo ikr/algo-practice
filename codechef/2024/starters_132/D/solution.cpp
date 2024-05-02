@@ -13,35 +13,20 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 ll opt_pairs(ll k, const ll m, const ll os, const ll ts) {
     auto lo = min(os, ts);
     auto hi = max(os, ts);
-    assert(lo + hi <= m);
-
-    const auto d = min({hi - lo, k, m - lo - hi});
-    lo += d;
-    k -= d;
-    if (!k) return lo * hi;
-
-    const auto r1 = m - lo - hi;
-    const auto d1 = min(k / 2, r1 / 2);
-    k -= d1;
-    k -= d1;
-    lo += d1;
-    hi += d1;
 
     while (k && lo + hi < m) {
-        if (lo <= hi) {
-            ++lo;
-        } else {
-            ++hi;
-        }
+        ++lo;
+        if (lo > hi) swap(lo, hi);
         --k;
     }
 
-    if (lo > hi) swap(lo, hi);
-    if (lo < hi) {
-        const auto d2 = min(hi - lo, k);
-        lo += d2;
-        k -= d2;
+    while (k && lo != hi) {
+        ++lo;
+        --hi;
+        if (lo > hi) swap(lo, hi);
+        --k;
     }
+
     return lo * hi;
 }
 
