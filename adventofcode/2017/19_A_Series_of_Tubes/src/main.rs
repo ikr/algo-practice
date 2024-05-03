@@ -1,13 +1,27 @@
-use std::cell;
 use std::io::{self, BufRead};
 use std::ops::Add;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Dir {
     N,
     E,
     S,
     W,
+}
+
+impl Dir {
+    fn opposite(&self) -> Dir {
+        match self {
+            Dir::N => Dir::S,
+            Dir::E => Dir::W,
+            Dir::S => Dir::N,
+            Dir::W => Dir::E,
+        }
+    }
+
+    fn all() -> [Dir; 4] {
+        [Dir::N, Dir::E, Dir::S, Dir::W]
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -26,36 +40,79 @@ fn dir_delta(dir: Dir) -> Roco {
         Dir::N => Roco(-1, 0),
         Dir::E => Roco(0, 1),
         Dir::S => Roco(1, 0),
-        Dir::W => Roco(-1, 0),
+        Dir::W => Roco(0, -1),
     }
 }
 
-fn index_of_entrance(top_row: &[char]) -> usize {
-    top_row.iter().position(|&x| x == '|').unwrap()
+struct RoutingDiagram {
+    grid: Vec<Vec<char>>,
 }
 
-fn dimensions(grid: &[Vec<char>]) -> Roco {
-    Roco(grid.len() as i32, grid[0].len() as i32)
-}
-
-fn trace(grid: &[Vec<char>]) -> String {
-    let mut result = String::new();
-    let mut roco = Roco(0, index_of_entrance(&grid[0]) as i32);
-    let mut dir = Dir::S;
-
-    loop {
-        while grid[roco.0 as usize][roco.1 as usize] != ' '
-            && grid[roco.0 as usize][roco.1 as usize] != '+'
-        {
-            roco = roco + dir_delta(dir);
-        }
-
-        if grid[roco.0 as usize][roco.1 as usize] == '+' {
-            break;
-        }
+impl RoutingDiagram {
+    fn column_of_entrance(&self) -> i32 {
+        self.grid[0].iter().position(|&x| x == '|').unwrap() as i32
     }
 
-    result
+    fn at(&self, roco: Roco) -> char {
+        self.grid[roco.0 as usize][roco.1 as usize]
+    }
+
+    fn turning_dir(&self, roco: Roco, current_dir: Dir) -> Dir {
+        assert!(self.at(roco) == '+');
+        let src = roco + dir_delta(current_dir.opposite());
+        assert!(self.at(src) == '-' || self.at(src) == '|' || self.at(src).is_alphabetic());
+
+        for d in Dir::all() {
+            if d == current_dir.opposite() {
+                continue;
+            }
+
+            let dst = roco + dir_delta(d);
+            if self.at(dst) != ' ' {
+                assert!(self.at(dst) == '-' || self.at(dst) == '|' || self.at(dst).is_alphabetic());
+                eprintln!(
+                    "{} at {:?}, {} at {:?}",
+                    self.at(src),
+                    src,
+                    self.at(dst),
+                    dst
+                );
+                assert!(self.at(dst) != self.at(src));
+                return d;
+            }
+        }
+
+        panic!("Dead end at {:?}", roco)
+    }
+
+    fn trace(&self) -> String {
+        let mut result = String::new();
+        let mut roco = Roco(0, self.column_of_entrance());
+        let mut dir = Dir::S;
+
+        loop {
+            while self.at(roco) != ' ' && self.at(roco) != '+' {
+                roco = roco + dir_delta(dir);
+                if self.at(roco).is_alphabetic() {
+                    result.push(self.at(roco));
+                }
+            }
+
+            if self.at(roco) == '+' {
+                eprintln!("Dir was {:?}", dir);
+                dir = self.turning_dir(roco, dir);
+                eprintln!("Now dir is {:?}", dir);
+                roco = roco + dir_delta(dir);
+                if self.at(roco).is_alphabetic() {
+                    result.push(self.at(roco));
+                }
+            } else if self.at(roco) == ' ' {
+                break;
+            }
+        }
+
+        result
+    }
 }
 
 fn main() {
@@ -66,8 +123,8 @@ fn main() {
         .collect();
 
     eprintln!("{:?}", grid);
-    eprintln!("Dimensions: {:?}", dimensions(&grid));
-    eprintln!("Entrance at column {}", index_of_entrance(&grid[0]));
 
-    println!("{}", trace(&grid));
+    let rd = RoutingDiagram { grid };
+    eprintln!("Entrance at column {}", rd.column_of_entrance());
+    println!("{}", rd.trace());
 }
