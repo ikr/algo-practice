@@ -48,6 +48,8 @@ struct RoutingDiagram {
     grid: Vec<Vec<char>>,
 }
 
+type Steps = i32;
+
 impl RoutingDiagram {
     fn column_of_entrance(&self) -> i32 {
         self.grid[0].iter().position(|&x| x == '|').unwrap() as i32
@@ -58,10 +60,6 @@ impl RoutingDiagram {
     }
 
     fn turning_dir(&self, roco: Roco, current_dir: Dir) -> Dir {
-        assert!(self.at(roco) == '+');
-        let src = roco + dir_delta(current_dir.opposite());
-        assert!(self.at(src) == '-' || self.at(src) == '|' || self.at(src).is_alphabetic());
-
         for d in Dir::all() {
             if d == current_dir.opposite() {
                 continue;
@@ -69,15 +67,6 @@ impl RoutingDiagram {
 
             let dst = roco + dir_delta(d);
             if self.at(dst) != ' ' {
-                assert!(self.at(dst) == '-' || self.at(dst) == '|' || self.at(dst).is_alphabetic());
-                eprintln!(
-                    "{} at {:?}, {} at {:?}",
-                    self.at(src),
-                    src,
-                    self.at(dst),
-                    dst
-                );
-                assert!(self.at(dst) != self.at(src));
                 return d;
             }
         }
@@ -85,10 +74,11 @@ impl RoutingDiagram {
         panic!("Dead end at {:?}", roco)
     }
 
-    fn trace(&self) -> String {
+    fn trace(&self) -> (String, Steps) {
         let mut result = String::new();
         let mut roco = Roco(0, self.column_of_entrance());
         let mut dir = Dir::S;
+        let mut steps: Steps = 0;
 
         loop {
             while self.at(roco) != ' ' && self.at(roco) != '+' {
@@ -99,9 +89,7 @@ impl RoutingDiagram {
             }
 
             if self.at(roco) == '+' {
-                eprintln!("Dir was {:?}", dir);
                 dir = self.turning_dir(roco, dir);
-                eprintln!("Now dir is {:?}", dir);
                 roco = roco + dir_delta(dir);
                 if self.at(roco).is_alphabetic() {
                     result.push(self.at(roco));
@@ -111,7 +99,7 @@ impl RoutingDiagram {
             }
         }
 
-        result
+        (result, steps)
     }
 }
 
@@ -122,9 +110,6 @@ fn main() {
         .map(|x| x.unwrap().chars().collect())
         .collect();
 
-    eprintln!("{:?}", grid);
-
     let rd = RoutingDiagram { grid };
-    eprintln!("Entrance at column {}", rd.column_of_entrance());
-    println!("{}", rd.trace());
+    println!("{:?}", rd.trace());
 }
