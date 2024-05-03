@@ -78,11 +78,12 @@ impl RoutingDiagram {
         let mut result = String::new();
         let mut roco = Roco(0, self.column_of_entrance());
         let mut dir = Dir::S;
-        let mut steps: Steps = 0;
+        let mut steps: Steps = 1;
 
         loop {
             while self.at(roco) != ' ' && self.at(roco) != '+' {
                 roco = roco + dir_delta(dir);
+                steps += 1;
                 if self.at(roco).is_alphabetic() {
                     result.push(self.at(roco));
                 }
@@ -91,6 +92,7 @@ impl RoutingDiagram {
             if self.at(roco) == '+' {
                 dir = self.turning_dir(roco, dir);
                 roco = roco + dir_delta(dir);
+                steps += 1;
                 if self.at(roco).is_alphabetic() {
                     result.push(self.at(roco));
                 }
@@ -99,7 +101,7 @@ impl RoutingDiagram {
             }
         }
 
-        (result, steps)
+        (result, steps - 1) // Last step was into an empty space
     }
 }
 
