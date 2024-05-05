@@ -26,6 +26,12 @@ fn decode_particle(src: &str) -> Particle {
     Particle { p, v, a }
 }
 
+fn manhattan_distance(a: &[i64], b: &[i64]) -> i64 {
+    let n = a.len();
+    assert!(b.len() == n);
+    (0..n).fold(0, |acc, i| acc + (a[i] - b[i]).abs())
+}
+
 #[derive(Clone, Copy)]
 struct Particle {
     p: [i64; 3],
@@ -35,7 +41,7 @@ struct Particle {
 
 impl Particle {
     fn manhattan_distance_from_origin(&self) -> i64 {
-        self.p.iter().fold(0, |acc, x| acc + x.abs())
+        manhattan_distance(&self.p, &[0; 3])
     }
 
     fn simulate_t_ticks(&self, t: i64) -> Particle {
@@ -67,6 +73,6 @@ fn main() {
         .map(|line| decode_particle(&line.unwrap()))
         .collect();
 
-    let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(100_000_000)).collect();
+    let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(1_000)).collect();
     println!("{}", index_of_particle_closest_to_origin(&qs));
 }
