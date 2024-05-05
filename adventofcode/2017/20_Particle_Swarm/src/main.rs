@@ -1,6 +1,6 @@
 use regex::Regex;
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashSet},
     io::{self, BufRead},
 };
 
@@ -128,5 +128,19 @@ fn main() {
     let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(1_000)).collect();
     println!("{}", index_of_particle_closest_to_origin(&qs));
 
-    let mut colliding_particles_by_time: BTreeMap<i64, (i64, i64)> = BTreeMap::new();
+    let mut colliding_particles_by_time: BTreeMap<i64, HashSet<usize>> = BTreeMap::new();
+    let n = ps.len();
+    for i in 0..n - 1 {
+        for j in i + 1..n {
+            if let Some(t) = ps[i].time_to_collision(ps[j]) {
+                let indices = colliding_particles_by_time
+                    .entry(t)
+                    .or_insert_with(HashSet::new);
+                indices.insert(i);
+                indices.insert(j);
+            }
+        }
+    }
+
+    eprintln!("{:?}", colliding_particles_by_time);
 }
