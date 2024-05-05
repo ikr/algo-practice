@@ -64,13 +64,28 @@ impl Particle {
     fn min_distance_to_other_with_time(&self, other: Particle) -> (i64, i64) {
         assert!(self.p != other.p);
         assert!(self.is_getting_closer_to(other));
+        assert!(self.simulate_t_ticks(END_OF_TIME).p != other.simulate_t_ticks(END_OF_TIME).p);
         assert!(!self
             .simulate_t_ticks(END_OF_TIME)
             .is_getting_closer_to(other.simulate_t_ticks(END_OF_TIME)));
 
+        let f = |t| manhattan_distance(&self.simulate_t_ticks(t).p, &other.simulate_t_ticks(t).p);
+
         let mut l = 0i64;
         let mut r = END_OF_TIME;
-        while r - l >= 3 {}
+        while r - l >= 3 {
+            let m1 = l + (r - l) / 3;
+            let m2 = r - (r - l) / 3;
+            let f1 = f(m1);
+            let f2 = f(m2);
+
+            if f1 < f2 {
+                r = m2;
+            } else {
+                l = m1;
+            }
+        }
+        (l..=r).map(|t| (f(t), t)).min().unwrap()
     }
 
     fn time_to_collision(&self, other: Particle) -> Option<i64> {
@@ -111,4 +126,6 @@ fn main() {
 
     let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(1_000)).collect();
     println!("{}", index_of_particle_closest_to_origin(&qs));
+
+    eprintln!("{:?}", ps[0].time_to_collision(ps[1]));
 }
