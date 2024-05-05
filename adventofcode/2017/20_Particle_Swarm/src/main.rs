@@ -1,5 +1,8 @@
 use regex::Regex;
-use std::io::{self, BufRead};
+use std::{
+    collections::BTreeMap,
+    io::{self, BufRead},
+};
 
 const END_OF_TIME: i64 = 10_000_000;
 
@@ -47,7 +50,7 @@ impl Particle {
     }
 
     fn simulate_t_ticks(&self, t: i64) -> Particle {
-        let mut result = self.clone();
+        let mut result = *self;
         for i in 0..3 {
             result.v[i] = self.v[i] + self.a[i] * t;
             // It's not the classic S = vt + ½at² formula! Figured it out empirically.
@@ -91,17 +94,15 @@ impl Particle {
     fn time_to_collision(&self, other: Particle) -> Option<i64> {
         if self.p == other.p {
             Some(0)
-        } else {
-            if self.is_getting_closer_to(other) {
-                let (d, t) = self.min_distance_to_other_with_time(other);
-                if d == 0 {
-                    Some(t)
-                } else {
-                    None
-                }
+        } else if self.is_getting_closer_to(other) {
+            let (d, t) = self.min_distance_to_other_with_time(other);
+            if d == 0 {
+                Some(t)
             } else {
                 None
             }
+        } else {
+            None
         }
     }
 }
@@ -127,5 +128,5 @@ fn main() {
     let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(1_000)).collect();
     println!("{}", index_of_particle_closest_to_origin(&qs));
 
-    eprintln!("{:?}", ps[0].time_to_collision(ps[1]));
+    let mut colliding_particles_by_time: BTreeMap<i64, (i64, i64)> = BTreeMap::new();
 }
