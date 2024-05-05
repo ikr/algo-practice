@@ -26,7 +26,7 @@ fn decode_particle(src: &str) -> Particle {
     Particle { p, v, a }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 struct Particle {
     p: [i64; 3],
     v: [i64; 3],
@@ -49,6 +49,17 @@ impl Particle {
     }
 }
 
+fn index_of_particle_closest_to_origin(ps: &[Particle]) -> usize {
+    let lo = ps
+        .iter()
+        .map(|p| p.manhattan_distance_from_origin())
+        .min()
+        .unwrap();
+    ps.iter()
+        .position(|p| p.manhattan_distance_from_origin() == lo)
+        .unwrap()
+}
+
 fn main() {
     let ps: Vec<Particle> = io::stdin()
         .lock()
@@ -56,10 +67,6 @@ fn main() {
         .map(|line| decode_particle(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", ps);
-
-    for t in 3..=3 {
-        let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(t)).collect();
-        eprintln!("{:?}", qs);
-    }
+    let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(100_000_000)).collect();
+    println!("{}", index_of_particle_closest_to_origin(&qs));
 }
