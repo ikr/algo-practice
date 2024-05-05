@@ -40,7 +40,7 @@ impl Particle {
 
     fn simulate_t_ticks(&self, t: i64) -> Particle {
         let mut result = self.clone();
-        for i in 0..=3 {
+        for i in 0..3 {
             result.v[i] = self.v[i] + self.a[i] * t;
             result.p[i] = self.p[i] + result.v[i] * t;
         }
@@ -56,4 +56,7 @@ fn main() {
         .collect();
 
     eprintln!("{:?}", ps);
+
+    let qs: Vec<Particle> = ps.into_iter().map(|p| p.simulate_t_ticks(2)).collect();
+    eprintln!("{:?}", qs);
 }
