@@ -42,7 +42,8 @@ impl Particle {
         let mut result = self.clone();
         for i in 0..3 {
             result.v[i] = self.v[i] + self.a[i] * t;
-            result.p[i] = self.p[i] + result.v[i] * t;
+            // It's not the classic S = vt + ½at² formula! Figured it out empirically.
+            result.p[i] = self.p[i] + t * (2 * self.v[i] + self.a[i]) / 2 + (self.a[i] * t * t) / 2;
         }
         result
     }
@@ -57,6 +58,8 @@ fn main() {
 
     eprintln!("{:?}", ps);
 
-    let qs: Vec<Particle> = ps.into_iter().map(|p| p.simulate_t_ticks(2)).collect();
-    eprintln!("{:?}", qs);
+    for t in 3..=3 {
+        let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(t)).collect();
+        eprintln!("{:?}", qs);
+    }
 }
