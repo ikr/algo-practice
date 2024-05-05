@@ -1,3 +1,6 @@
+use regex::Regex;
+use std::io::{self, BufRead};
+
 fn decode_triple(src: &str) -> [i64; 3] {
     let parts: Vec<String> = src.split(',').map(|x| x.to_string()).collect();
     assert!(parts.len() == 3);
@@ -7,6 +10,20 @@ fn decode_triple(src: &str) -> [i64; 3] {
         .collect::<Vec<i64>>()
         .try_into()
         .unwrap()
+}
+
+fn decode_particle(src: &str) -> Particle {
+    let re = Regex::new("^p=<(.+)>, v=<(.+)>, a=<(.+)>$").unwrap();
+    let caps = re.captures(src).unwrap();
+    let [p, v, a] = caps
+        .iter()
+        .skip(1)
+        .map(|c| decode_triple(c.unwrap().as_str()))
+        .collect::<Vec<_>>()[..]
+    else {
+        panic!("Not enough captured")
+    };
+    Particle { p, v, a }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -32,5 +49,11 @@ impl Particle {
 }
 
 fn main() {
-    println!("Hello, world!");
+    let ps: Vec<Particle> = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| decode_particle(&line.unwrap()))
+        .collect();
+
+    eprintln!("{:?}", ps);
 }
