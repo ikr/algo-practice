@@ -82,13 +82,11 @@ fn survivors(mut gen: Vec<Particle>) -> Vec<Particle> {
         let n = gen.len();
         for i in 0..n - 1 {
             for j in i + 1..n {
-                for t in 0..20 {
+                for t in 0..10 {
                     let a = gen[i].simulate_t_ticks(t);
                     let b = gen[j].simulate_t_ticks(t);
                     if a.p == b.p {
-                        let indices = colliding_particles_by_time
-                            .entry(t)
-                            .or_insert_with(HashSet::new);
+                        let indices = colliding_particles_by_time.entry(t).or_default();
                         indices.insert(i);
                         indices.insert(j);
                         break;
@@ -99,9 +97,9 @@ fn survivors(mut gen: Vec<Particle>) -> Vec<Particle> {
 
         if let Some((t, gone_indices)) = colliding_particles_by_time.first_key_value() {
             let mut gen_prime: Vec<Particle> = vec![];
-            for i in 0..n {
+            for (i, p) in gen.iter().enumerate() {
                 if !gone_indices.contains(&i) {
-                    gen_prime.push(gen[i].simulate_t_ticks(*t));
+                    gen_prime.push(p.simulate_t_ticks(*t));
                 }
             }
             gen = gen_prime;
@@ -120,7 +118,7 @@ fn main() {
         .collect();
 
     {
-        let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(1_000)).collect();
+        let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(500)).collect();
         println!("{}", index_of_particle_closest_to_origin(&qs));
     }
 
