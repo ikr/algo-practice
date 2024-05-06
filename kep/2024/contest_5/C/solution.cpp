@@ -13,7 +13,7 @@ int main() {
     if (l % g) {
         cout << "-1\n";
     } else {
-        cout << g << ' ' << l / g << '\n';
+        cout << g << ' ' << l << '\n';
     }
     return 0;
 }
