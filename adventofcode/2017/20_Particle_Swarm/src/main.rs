@@ -4,7 +4,7 @@ use std::{
     io::{self, BufRead},
 };
 
-const END_OF_TIME: i64 = 10_000_000;
+const END_OF_TIME: i64 = 100_000_000;
 
 fn decode_triple(src: &str) -> [i64; 3] {
     let parts: Vec<String> = src.split(',').map(|x| x.to_string()).collect();
@@ -131,6 +131,7 @@ fn main() {
     }
 
     let mut gen = ps.clone();
+    eprintln!("gen size is {}\n", gen.len());
     loop {
         let mut colliding_particles_by_time: BTreeMap<i64, HashSet<usize>> = BTreeMap::new();
         let n = gen.len();
@@ -145,6 +146,9 @@ fn main() {
                 }
             }
         }
+
+        eprintln!("{:?}", colliding_particles_by_time);
+
         if let Some((_, gone_indices)) = colliding_particles_by_time.first_key_value() {
             let mut gen_prime: Vec<Particle> = vec![];
             for i in 0..n {
@@ -153,6 +157,7 @@ fn main() {
                 }
             }
             gen = gen_prime;
+            eprintln!("gen size is {}\n", gen.len());
         } else {
             break;
         }
