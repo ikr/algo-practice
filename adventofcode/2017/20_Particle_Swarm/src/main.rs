@@ -125,22 +125,38 @@ fn main() {
         .map(|line| decode_particle(&line.unwrap()))
         .collect();
 
-    let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(1_000)).collect();
-    println!("{}", index_of_particle_closest_to_origin(&qs));
+    {
+        let qs: Vec<Particle> = ps.iter().map(|p| p.simulate_t_ticks(1_000)).collect();
+        println!("{}", index_of_particle_closest_to_origin(&qs));
+    }
 
-    let mut colliding_particles_by_time: BTreeMap<i64, HashSet<usize>> = BTreeMap::new();
-    let n = ps.len();
-    for i in 0..n - 1 {
-        for j in i + 1..n {
-            if let Some(t) = ps[i].time_to_collision(ps[j]) {
-                let indices = colliding_particles_by_time
-                    .entry(t)
-                    .or_insert_with(HashSet::new);
-                indices.insert(i);
-                indices.insert(j);
+    let mut gen = ps.clone();
+    loop {
+        let mut colliding_particles_by_time: BTreeMap<i64, HashSet<usize>> = BTreeMap::new();
+        let n = gen.len();
+        for i in 0..n - 1 {
+            for j in i + 1..n {
+                if let Some(t) = gen[i].time_to_collision(gen[j]) {
+                    let indices = colliding_particles_by_time
+                        .entry(t)
+                        .or_insert_with(HashSet::new);
+                    indices.insert(i);
+                    indices.insert(j);
+                }
             }
+        }
+        if let Some((_, gone_indices)) = colliding_particles_by_time.first_key_value() {
+            let mut gen_prime: Vec<Particle> = vec![];
+            for i in 0..n {
+                if !gone_indices.contains(&i) {
+                    gen_prime.push(gen[i]);
+                }
+            }
+            gen = gen_prime;
+        } else {
+            break;
         }
     }
 
-    eprintln!("{:?}", colliding_particles_by_time);
+    println!("{}", gen.len());
 }
