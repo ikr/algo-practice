@@ -49,12 +49,19 @@ impl Particle {
         manhattan_distance(&self.p, &[0; 3])
     }
 
-    fn simulate_t_ticks(&self, t: i64) -> Particle {
+    fn tick(&self) -> Particle {
         let mut result = *self;
         for i in 0..3 {
-            result.v[i] = self.v[i] + self.a[i] * t;
-            // It's not the classic S = vt + ½at² formula! Figured it out empirically.
-            result.p[i] = self.p[i] + t * (2 * self.v[i] + self.a[i]) / 2 + (self.a[i] * t * t) / 2;
+            result.v[i] = self.v[i] + self.a[i];
+            result.p[i] = self.p[i] + result.v[i];
+        }
+        result
+    }
+
+    fn simulate_t_ticks(&self, t: i64) -> Particle {
+        let mut result = *self;
+        for _ in 0..=t {
+            result = result.tick();
         }
         result
     }
@@ -118,6 +125,54 @@ fn index_of_particle_closest_to_origin(ps: &[Particle]) -> usize {
         .unwrap()
 }
 
+fn survivors(mut gen: Vec<Particle>) -> Vec<Particle> {
+    eprintln!("gen size is {}\n", gen.len());
+    loop {
+        let mut colliding_particles_by_time: BTreeMap<i64, HashSet<usize>> = BTreeMap::new();
+        let n = gen.len();
+        for i in 0..n - 1 {
+            for j in i + 1..n {
+                for t in 0..50 {
+                    let a = gen[i].simulate_t_ticks(t);
+                    let b = gen[j].simulate_t_ticks(t);
+                    if a.p == b.p {
+                        let indices = colliding_particles_by_time
+                            .entry(t)
+                            .or_insert_with(HashSet::new);
+                        indices.insert(i);
+                        indices.insert(j);
+                        break;
+                    }
+                }
+            }
+        }
+
+        eprintln!("{:?}", colliding_particles_by_time);
+
+        if let Some((t, gone_indices)) = colliding_particles_by_time.first_key_value() {
+            let mut gen_prime: Vec<Particle> = vec![];
+            for i in 0..n {
+                if !gone_indices.contains(&i) {
+                    gen_prime.push(gen[i].simulate_t_ticks(*t));
+                }
+            }
+            gen = gen_prime;
+            eprintln!("gen size is {}\n", gen.len());
+        } else {
+            break;
+        }
+    }
+
+    gen
+}
+
+fn time_shift(mut gen: Vec<Particle>, dt: i64) -> Vec<Particle> {
+    for p in gen.iter_mut() {
+        *p = p.simulate_t_ticks(dt);
+    }
+    gen
+}
+
 fn main() {
     let ps: Vec<Particle> = io::stdin()
         .lock()
@@ -131,37 +186,7 @@ fn main() {
     }
 
     let mut gen = ps.clone();
-    eprintln!("gen size is {}\n", gen.len());
-    loop {
-        let mut colliding_particles_by_time: BTreeMap<i64, HashSet<usize>> = BTreeMap::new();
-        let n = gen.len();
-        for i in 0..n - 1 {
-            for j in i + 1..n {
-                if let Some(t) = gen[i].time_to_collision(gen[j]) {
-                    let indices = colliding_particles_by_time
-                        .entry(t)
-                        .or_insert_with(HashSet::new);
-                    indices.insert(i);
-                    indices.insert(j);
-                }
-            }
-        }
-
-        eprintln!("{:?}", colliding_particles_by_time);
-
-        if let Some((_, gone_indices)) = colliding_particles_by_time.first_key_value() {
-            let mut gen_prime: Vec<Particle> = vec![];
-            for i in 0..n {
-                if !gone_indices.contains(&i) {
-                    gen_prime.push(gen[i]);
-                }
-            }
-            gen = gen_prime;
-            eprintln!("gen size is {}\n", gen.len());
-        } else {
-            break;
-        }
-    }
+    gen = survivors(gen);
 
     println!("{}", gen.len());
 }
