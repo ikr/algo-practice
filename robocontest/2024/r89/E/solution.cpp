@@ -1,7 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-static const double Eps = 0.0000000000000001;
+static const double Eps = 0.01;
+
+template <typename T> constexpr double doof(const T x) {
+    return static_cast<double>(x);
+}
 
 double angle_between_hands(const double ih, const double im, const double is) {
     const double m = (360.0 / 60.0) * im + 6.0 * (is / 60.0);
@@ -36,15 +40,15 @@ int main() {
 
     for (int ds = 0;; ++ds) {
         const double is = ds % 60;
-        const double im = im0 + (ds / 60);
-        const double ih = ih0 + ((ds / 60) / 60);
+        const double im = im0 + doof(ds / 60);
+        const double ih = ih0 + doof((ds / 60) / 60);
         const auto angle0 = angle_between_hands(ih, im, is);
 
         if (angle0 < Eps) {
             const int ds_ = ds + 1;
             const double is_ = ds_ % 60;
-            const double im_ = im0 + (ds_ / 60);
-            const double ih_ = ih0 + ((ds_ / 60) / 60);
+            const double im_ = im0 + doof(ds_ / 60);
+            const double ih_ = ih0 + doof((ds_ / 60) / 60);
             const auto angle1 = angle_between_hands(ih_, im_, is_);
 
             if (angle1 < angle0) {
