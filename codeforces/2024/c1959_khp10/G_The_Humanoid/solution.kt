@@ -13,23 +13,29 @@ fun strategies(): List<Queue<Long>> {
 fun maxYieldUsing(src: List<Long>, h_: Long, mul: Queue<Long>): Long {
     var h = h_
     var result = 0L
-    val xs = src.sorted().toMutableList()
+    val pairComparator = compareBy<Pair<Long, Int>> { it.first }.thenBy { it.second }
+    val xs = TreeSet(pairComparator)
+    for (x in src) xs.add(x to xs.size)
 
     while (xs.isNotEmpty()) {
-        val lo = xs[0]
+        val lo = xs.first().first
         if (lo >= h) {
             if (mul.isEmpty()) break
             h *= mul.poll().toLong()
             continue
         }
 
-        val index = xs.binarySearch(h)
-        val i = if (index >= 0) index else -index - 2
+        val k = xs.lower(h to 0)
+        assert(k != null)
 
-        val x = xs[i]
-        h += x / 2
-        xs.removeAt(i)
-        result++
+        val x = k.first
+        if (x <= h) {
+            h += x / 2
+            xs.remove(k)
+            result++
+        } else {
+            break
+        }
     }
 
     return result
@@ -49,9 +55,8 @@ fun main() {
     val t = reader.readLine()!!.toInt()
     repeat(t) {
         val (n, h) = reader.readLine()!!.split(" ").map { it.toLong() }
-
         val xs = reader.readLine()!!.split(" ").map { it.toLong() }
-
+        assert(xs.size.toLong() == n)
         println(maxYield(xs, h))
     }
 }
