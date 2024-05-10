@@ -25,7 +25,7 @@ ll gauss_n(const double r) {
     return 1 + 4 * llof(r) + 4 * s;
 }
 
-static constexpr double Eps = 0.000000000001;
+static constexpr double Eps = 0.0000001;
 ll num_points(const double r) {
     return gauss_n(r + 1.0 - Eps) - gauss_n(r - Eps);
 }
