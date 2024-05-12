@@ -25,7 +25,7 @@ impl Trio {
     fn is_ok_on(&self, xs: u32) -> bool {
         let mut sample: u8 = 0;
         for (i, j) in self.indices.iter().enumerate() {
-            assert!(*j < 33);
+            assert!(*j < 32);
             if (1 << *j) & xs != 0 {
                 sample |= 1 << i;
             }
@@ -41,9 +41,19 @@ fn grid_trios(grid: &[Vec<i16>]) -> Vec<Trio> {
         .collect()
 }
 
-fn alice_can_win(grid: &[Vec<i16>]) -> bool {
-    eprintln!("{:?}", grid_trios(grid));
+fn brute_force_alice_can_win(ts: &[Trio]) -> bool {
+    let n = ts.len();
+    assert!(n <= 27);
+    for xs in 0..(1 << n) {
+        if ts.iter().all(|t| t.is_ok_on(xs)) {
+            return true;
+        }
+    }
     false
+}
+
+fn alice_can_win(grid: &[Vec<i16>]) -> bool {
+    brute_force_alice_can_win(&grid_trios(grid))
 }
 
 fn main() {
@@ -63,8 +73,6 @@ fn main() {
                 *x = istream.pop_front().unwrap();
             }
         }
-
-        eprintln!("{:?}", grid);
 
         let result = if alice_can_win(&grid) { "YES" } else { "NO" };
         writeln!(out, "{}", result).unwrap();
