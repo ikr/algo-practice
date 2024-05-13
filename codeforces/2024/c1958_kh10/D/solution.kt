@@ -1,28 +1,45 @@
-fun minTotalEffort(xs: List<Long>): Long {
-    val n = xs.size
-    val pis = (1 ..< n).filter { xs[it - 1] > 0L && xs[it] > 0L }.toMutableList()
-    pis.sortBy { 2L * (xs[it - 1] + xs[it]) }
+fun optimalEffort(xs: List<Long>, ivl: List<Int>): Long {
+    assert(ivl.isNotEmpty())
 
-    val r = (0 ..< n).toMutableSet()
-
-    var result = 0L
-
-    for (i1 in pis) {
-        val i0 = i1 - 1
-        if (r.contains(i0) && r.contains(i1)) {
-            result += 2L * (xs[i0] + xs[i1])
-            r.remove(i0)
-            r.remove(i1)
+    if (ivl.size % 2 == 0) {
+        var result = 0L
+        for (i in 1 ..< ivl.size step 2) {
+            result += 2L * (xs[ivl[i] - 1] + xs[ivl[i]])
         }
+        return result
     }
+
+    if (ivl.size == 1) {
+        return xs[ivl[0]]
+    }
+
+    val i0 = (0 ..< ivl.size step 2).minBy { xs[ivl[it]] }
+    var result = xs[ivl[]]
+}
+
+fun minTotalEffort(xs: List<Long>): Long {
+    val ii = mutableListOf<List<Int>>()
+    val cur = mutableListOf<Int>()
 
     xs.forEachIndexed { i, x ->
-        if (x > 0 && r.contains(i)) {
-            result += x
-            r.remove(i)
+        if (x > 0L) {
+            if (cur.isEmpty() || cur.last() + 1 == i) {
+                cur.add(i)
+            } else {
+                cur.clear()
+                cur.add(i)
+            }
         }
     }
 
+    if (cur.isNotEmpty()) {
+        ii.add(cur)
+    }
+
+    var result = 0L
+    for (ivl in ii) {
+        result += optimalEffort(xs, ivl)
+    }
     return result
 }
 
