@@ -1,34 +1,33 @@
+fun sumAtIndices(xs: List<Long>, ii: List<Int>): Long {
+    var result = 0L
+    for (i in ii) {
+        result += xs[i]
+    }
+    return result
+}
+
 fun optimalEffort(xs: List<Long>, ivl: List<Int>): Long {
     assert(ivl.isNotEmpty())
 
     if (ivl.size % 2 == 0) {
-        var result = 0L
-        for (i in 1 ..< ivl.size step 2) {
-            result += 2L * (xs[ivl[i] - 1] + xs[ivl[i]])
-        }
-        return result
+        return 2L * sumAtIndices(xs, ivl)
     }
 
-    if (ivl.size == 1) {
-        return xs[ivl[0]]
-    }
-
-    val i0 = (0 ..< ivl.size step 2).minBy { xs[ivl[it]] }
-    var result = xs[ivl[]]
+    val i0 = (0..< ivl.size step 2).maxBy { xs[ivl[it]] }
+    return 2L * sumAtIndices(xs, ivl) - xs[ivl[i0]]
 }
 
 fun minTotalEffort(xs: List<Long>): Long {
     val ii = mutableListOf<List<Int>>()
-    val cur = mutableListOf<Int>()
+    var cur = mutableListOf<Int>()
 
     xs.forEachIndexed { i, x ->
         if (x > 0L) {
-            if (cur.isEmpty() || cur.last() + 1 == i) {
-                cur.add(i)
-            } else {
-                cur.clear()
-                cur.add(i)
+            if (!cur.isEmpty() && cur.last() + 1 != i) {
+                ii.add(cur)
+                cur = mutableListOf<Int>()
             }
+            cur.add(i)
         }
     }
 
