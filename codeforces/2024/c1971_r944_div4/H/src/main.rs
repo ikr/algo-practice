@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::io::Write;
 
 #[derive(Debug, Clone, Copy)]
@@ -8,7 +8,8 @@ struct Trio {
 }
 
 impl Trio {
-    fn decode(grid_codes: [i16; 3]) -> Trio {
+    fn decode(mut grid_codes: [i16; 3]) -> Trio {
+        grid_codes.sort();
         let mut bitmask: u8 = 0;
         let mut indices: [usize; 3] = [0, 0, 0];
 
@@ -32,6 +33,30 @@ impl Trio {
         }
         (self.bitmask ^ sample).count_ones() <= 1
     }
+
+    fn is_entangled_with(&self, o: &Trio) -> bool {
+        self.indices.iter().any(|i| o.indices.contains(i))
+    }
+
+    fn is_revealed(&self, revealed: &HashMap<usize, u8>) -> bool {
+        self.indices.iter().all(|i| revealed.contains_key(i))
+    }
+
+    fn reveal_new(&self, revealed: &HashMap<usize, u8>) -> Option<(usize, u8)> {
+        assert!(!self.is_revealed(revealed));
+        let [i, j, k] = self.indices;
+
+        if i == j && j == k {
+            if (self.bitmask).count_ones() <= 1 {
+                Some((i, 0))
+            } else {
+                assert!((7u8 ^ self.bitmask).count_ones() <= 1);
+                Some((i, 1))
+            }
+        } else {
+            None
+        }
+    }
 }
 
 fn grid_trios(grid: &[Vec<i16>]) -> Vec<Trio> {
@@ -53,7 +78,8 @@ fn brute_force_alice_can_win(ts: &[Trio]) -> bool {
 }
 
 fn alice_can_win(grid: &[Vec<i16>]) -> bool {
-    brute_force_alice_can_win(&grid_trios(grid))
+    let ts = grid_trios(grid);
+    brute_force_alice_can_win(&ts)
 }
 
 fn main() {
