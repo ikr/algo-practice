@@ -42,8 +42,16 @@ impl Trio {
         self.indices.iter().all(|i| revealed.contains_key(i))
     }
 
+    fn is_bit_set(&self, i: u8) -> bool {
+        assert!(i < 3);
+        self.bitmask & (1u8 << i) != 0
+    }
+
     fn reveal_new(&self, revealed: &HashMap<usize, u8>) -> Option<(usize, u8)> {
-        assert!(!self.is_revealed(revealed));
+        if self.is_revealed(revealed) {
+            return None;
+        }
+
         let [i, j, k] = self.indices;
 
         if i == j && j == k {
@@ -52,6 +60,22 @@ impl Trio {
             } else {
                 assert!((7u8 ^ self.bitmask).count_ones() <= 1);
                 Some((i, 1))
+            }
+        } else if i == j {
+            if self.is_bit_set(0) == self.is_bit_set(1) && !revealed.contains_key(&i) {
+                if self.is_bit_set(0) {
+                    Some((i, 1))
+                } else {
+                    Some((i, 0))
+                }
+            } else if self.is_bit_set(0) != self.is_bit_set(1) && !revealed.contains_key(&k) {
+                if self.is_bit_set(2) {
+                    Some((k, 1))
+                } else {
+                    Some((k, 0))
+                }
+            } else {
+                None
             }
         } else {
             None
