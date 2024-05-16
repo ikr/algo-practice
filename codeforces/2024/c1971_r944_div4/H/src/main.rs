@@ -47,13 +47,8 @@ impl Trio {
         self.bitmask & (1u8 << i) != 0
     }
 
-    fn reveal_new(&self, revealed: &HashMap<usize, u8>) -> Option<(usize, u8)> {
-        if self.is_revealed(revealed) {
-            return None;
-        }
-
+    fn apriori_reveal(&self) -> Option<(usize, u8)> {
         let [i, j, k] = self.indices;
-
         if i == j && j == k {
             if (self.bitmask).count_ones() <= 1 {
                 Some((i, 0))
@@ -62,24 +57,48 @@ impl Trio {
                 Some((i, 1))
             }
         } else if i == j {
-            if self.is_bit_set(0) == self.is_bit_set(1) && !revealed.contains_key(&i) {
+            if self.is_bit_set(0) == self.is_bit_set(1) {
                 if self.is_bit_set(0) {
                     Some((i, 1))
                 } else {
                     Some((i, 0))
                 }
-            } else if self.is_bit_set(0) != self.is_bit_set(1) && !revealed.contains_key(&k) {
+            } else {
                 if self.is_bit_set(2) {
                     Some((k, 1))
                 } else {
                     Some((k, 0))
                 }
+            }
+        } else if j == k {
+            if self.is_bit_set(1) == self.is_bit_set(2) {
+                if self.is_bit_set(1) {
+                    Some((j, 1))
+                } else {
+                    Some((j, 0))
+                }
             } else {
-                None
+                if self.is_bit_set(0) {
+                    Some((i, 1))
+                } else {
+                    Some((i, 0))
+                }
             }
         } else {
             None
         }
+    }
+
+    fn reveal_new(&self, revealed: &HashMap<usize, u8>) -> Option<(usize, u8)> {
+        if self.is_revealed(revealed) {
+            return None;
+        }
+
+        for i in 0..3usize {
+            if revealed.contains_key(&self.indices[i]) {}
+        }
+
+        todo!()
     }
 }
 
