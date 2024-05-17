@@ -1,4 +1,5 @@
-use std::collections::{HashMap, VecDeque};
+use ac_library::twosat::TwoSat;
+use std::collections::VecDeque;
 use std::io::Write;
 
 #[derive(Debug, Clone, Copy)]
@@ -34,71 +35,9 @@ impl Trio {
         (self.bitmask ^ sample).count_ones() <= 1
     }
 
-    fn is_entangled_with(&self, o: &Trio) -> bool {
-        self.indices.iter().any(|i| o.indices.contains(i))
-    }
-
-    fn is_revealed(&self, revealed: &HashMap<usize, u8>) -> bool {
-        self.indices.iter().all(|i| revealed.contains_key(i))
-    }
-
-    fn is_bit_set(&self, i: u8) -> bool {
+    fn is_bit_set(&self, i: usize) -> bool {
         assert!(i < 3);
         self.bitmask & (1u8 << i) != 0
-    }
-
-    fn apriori_reveal(&self) -> Option<(usize, u8)> {
-        let [i, j, k] = self.indices;
-        if i == j && j == k {
-            if (self.bitmask).count_ones() <= 1 {
-                Some((i, 0))
-            } else {
-                assert!((7u8 ^ self.bitmask).count_ones() <= 1);
-                Some((i, 1))
-            }
-        } else if i == j {
-            if self.is_bit_set(0) == self.is_bit_set(1) {
-                if self.is_bit_set(0) {
-                    Some((i, 1))
-                } else {
-                    Some((i, 0))
-                }
-            } else {
-                if self.is_bit_set(2) {
-                    Some((k, 1))
-                } else {
-                    Some((k, 0))
-                }
-            }
-        } else if j == k {
-            if self.is_bit_set(1) == self.is_bit_set(2) {
-                if self.is_bit_set(1) {
-                    Some((j, 1))
-                } else {
-                    Some((j, 0))
-                }
-            } else {
-                if self.is_bit_set(0) {
-                    Some((i, 1))
-                } else {
-                    Some((i, 0))
-                }
-            }
-        } else {
-            None
-        }
-    }
-
-    fn reveal_new(&self, revealed: &HashMap<usize, u8>) -> Option<(usize, u8)> {
-        if self.is_revealed(revealed) {
-            return None;
-        }
-
-        for i in 0..3usize {
-            if revealed.contains_key(&self.indices[i]) {}
-        }
-
-        todo!()
     }
 }
 
@@ -122,7 +61,25 @@ fn brute_force_alice_can_win(ts: &[Trio]) -> bool {
 
 fn alice_can_win(grid: &[Vec<i16>]) -> bool {
     let ts = grid_trios(grid);
-    brute_force_alice_can_win(&ts)
+    // let brute_result = brute_force_alice_can_win(&ts);
+
+    let n = ts.len();
+    let mut xs = TwoSat::new(n);
+    for t in ts.iter() {
+        for (i, j) in [(0, 1), (1, 2), (0, 2)] {
+            xs.add_clause(
+                t.indices[i],
+                !t.is_bit_set(i),
+                t.indices[j],
+                !t.is_bit_set(j),
+            );
+        }
+    }
+
+    // let result = xs.satisfiable();
+    xs.satisfiable()
+    // assert!(result == brute_result);
+    // result
 }
 
 fn main() {
