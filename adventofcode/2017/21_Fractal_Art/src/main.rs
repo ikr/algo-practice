@@ -5,6 +5,7 @@ use std::{
 
 const INITIAL_SOURCE: &str = ".#./..#/###";
 
+#[derive(Debug, PartialEq)]
 struct Tile {
     grid: Vec<Vec<bool>>,
 }
@@ -30,10 +31,10 @@ impl Tile {
     fn to_bits(&self) -> u16 {
         let n = self.grid.len();
         let mut result = 0u16;
-        for (ro, row) in self.grid.iter().enumerate() {
-            for (co, x) in row.iter().enumerate() {
+        for (i, row) in self.grid.iter().enumerate() {
+            for (j, x) in row.iter().enumerate() {
                 if *x {
-                    result |= 1u16 << (ro * n + co);
+                    result |= 1u16 << (i * n + j);
                 }
             }
         }
@@ -48,6 +49,34 @@ impl Tile {
                 grid[shift / n][shift % n] = true;
             }
         }
+        Tile { grid }
+    }
+
+    fn rotate_90_clockwise(&self) -> Tile {
+        let n = self.grid.len();
+        let mut grid = vec![vec![false; n]; n];
+
+        for (i, row) in self.grid.iter().enumerate() {
+            for (j, x) in row.iter().enumerate() {
+                if *x {
+                    grid[j][n - 1 - i] = true;
+                }
+            }
+        }
+
+        Tile { grid }
+    }
+
+    fn reflect_horizontally(&self) -> Tile {
+        let grid: Vec<Vec<bool>> = self
+            .grid
+            .iter()
+            .map(|row| {
+                let mut result = row.clone();
+                result.reverse();
+                result
+            })
+            .collect();
         Tile { grid }
     }
 }
@@ -112,6 +141,46 @@ mod tests {
                 let t = Tile::from_bits(n, bits);
                 assert_eq!(t.grid.len(), n);
                 assert_eq!(t.to_bits(), bits);
+            }
+        }
+    }
+
+    #[test]
+    fn a_rotation() {
+        let t0 = Tile::decode(".#./..#/###");
+        let t1 = Tile::decode("#../#.#/##.");
+        assert_eq!(t0.rotate_90_clockwise(), t1);
+    }
+
+    #[test]
+    fn a_horizontal_reflection() {
+        let t0 = Tile::decode(".#./..#/###");
+        let t1 = Tile::decode(".#./#../###");
+        assert_eq!(t0.reflect_horizontally(), t1);
+    }
+
+    #[test]
+    fn four_rotations_are_an_identity() {
+        for n in 2..=4 {
+            for bits in 0..=((1u32 << (n * n)) - 1) as u16 {
+                let t0 = Tile::from_bits(n, bits);
+                let t1 = t0
+                    .rotate_90_clockwise()
+                    .rotate_90_clockwise()
+                    .rotate_90_clockwise()
+                    .rotate_90_clockwise();
+                assert_eq!(t0, t1);
+            }
+        }
+    }
+
+    #[test]
+    fn two_reflections_are_an_identity() {
+        for n in 2..=4 {
+            for bits in 0..=((1u32 << (n * n)) - 1) as u16 {
+                let t0 = Tile::from_bits(n, bits);
+                let t1 = t0.reflect_horizontally().reflect_horizontally();
+                assert_eq!(t0, t1);
             }
         }
     }
