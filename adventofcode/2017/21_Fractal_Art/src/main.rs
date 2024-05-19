@@ -97,6 +97,26 @@ impl Display for Tile {
     }
 }
 
+#[derive(Debug)]
+struct Image {
+    size_in_tiles: usize,
+    tile_size: usize,
+    grid: Vec<Vec<bool>>,
+}
+
+impl Image {
+    fn new(size_in_tiles: usize, tile_size: usize) -> Image {
+        assert!((2..5).contains(&tile_size));
+        let n = size_in_tiles * tile_size;
+        let grid = vec![vec![false; n]; n];
+        Image {
+            size_in_tiles,
+            tile_size,
+            grid,
+        }
+    }
+}
+
 fn main() {
     let rule_sides: Vec<(String, String)> = io::stdin()
         .lock()
