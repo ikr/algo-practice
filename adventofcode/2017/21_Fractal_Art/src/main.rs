@@ -1,4 +1,42 @@
-use std::io::{self, BufRead};
+use std::{
+    fmt::{Display, Formatter, Result},
+    io::{self, BufRead},
+};
+
+struct Tile {
+    grid: Vec<Vec<bool>>,
+}
+
+impl Tile {
+    fn decode_row(source: &str) -> Vec<bool> {
+        source
+            .chars()
+            .map(|x| {
+                assert!(x == '.' || x == '#');
+                x == '#'
+            })
+            .collect()
+    }
+
+    fn decode(source: &str) -> Tile {
+        let grid: Vec<Vec<bool>> = source.split('/').map(Self::decode_row).collect();
+        Tile { grid }
+    }
+}
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        let mut buf = String::new();
+        for row in self.grid.iter() {
+            let row: String = row.iter().map(|x| if *x { '#' } else { '.' }).collect();
+            if !buf.is_empty() {
+                buf += "\n"
+            }
+            buf += &row;
+        }
+        write!(f, "{}", buf)
+    }
+}
 
 fn main() {
     let rule_sides: Vec<(String, String)> = io::stdin()
@@ -9,5 +47,8 @@ fn main() {
             (parts[0].clone(), parts[1].clone())
         })
         .collect();
-    eprintln!("{:?}", rule_sides);
+
+    for (a, b) in rule_sides {
+        println!("{}\n,\n{}\n\n", Tile::decode(&a), Tile::decode(&b));
+    }
 }
