@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+const INITIAL_SOURCE: &str = ".#./..#/###";
+
 struct Tile {
     grid: Vec<Vec<bool>>,
 }
@@ -39,7 +41,7 @@ impl Tile {
     }
 
     fn from_bits(n: usize, bits: u16) -> Tile {
-        assert!(2 <= n && n <= 4);
+        assert!((2..5).contains(&n));
         let mut grid = vec![vec![false; n]; n];
         for shift in 0..(n * n) {
             if bits & (1u16 << shift) != 0 {
