@@ -26,14 +26,16 @@ impl Tile {
 
 impl Display for Tile {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        let mut buf = String::new();
-        for row in self.grid.iter() {
-            let row: String = row.iter().map(|x| if *x { '#' } else { '.' }).collect();
-            if !buf.is_empty() {
-                buf += "\n"
-            }
-            buf += &row;
-        }
+        let buf: String = self
+            .grid
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .map(|x| if *x { '#' } else { '.' })
+                    .collect::<String>()
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
         write!(f, "{}", buf)
     }
 }
