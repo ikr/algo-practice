@@ -126,6 +126,62 @@ impl Image {
             }
         }
     }
+
+    fn tile_at(&self, tile_ro: usize, tile_co: usize) -> Tile {
+        assert!((0..self.size_in_tiles).contains(&tile_ro));
+        assert!((0..self.size_in_tiles).contains(&tile_co));
+        let mut grid = vec![vec![false; self.tile_size]; self.tile_size];
+
+        for (i, row) in grid.iter_mut().enumerate() {
+            for (j, x) in row.iter_mut().enumerate() {
+                *x = self.grid[tile_ro * self.tile_size + i][tile_co * self.tile_size + j];
+            }
+        }
+
+        Tile { grid }
+    }
+
+    fn evolve(&self, rule_set_by_tile_size: &HashMap<usize, HashMap<u16, Tile>>) -> Image {
+        let n = self.grid.len();
+        let src_tile_size: usize = if n % 2 == 0 { 2 } else { 3 };
+        let dst_tile_size = src_tile_size + 1;
+
+        let src = Image {
+            size_in_tiles: n / src_tile_size,
+            tile_size: src_tile_size,
+            grid: self.grid.clone(),
+        };
+
+        let mut dst = Image {
+            size_in_tiles: dst_tile_size,
+            tile_size: dst_tile_size,
+            grid: vec![
+                vec![false; dst_tile_size * src.size_in_tiles];
+                dst_tile_size * src.size_in_tiles
+            ],
+        };
+
+        let rs: &HashMap<u16, Tile> = rule_set_by_tile_size.get(&src_tile_size).unwrap();
+
+        for i in 0..src.size_in_tiles {
+            for j in 0..src.size_in_tiles {
+                let t0 = src.tile_at(i, j);
+                if let Some(t1) = rs.get(&t0.to_bits()) {
+                    dst.stamp(i, j, t1);
+                } else {
+                    panic!("No rule for {}", t0);
+                }
+            }
+        }
+
+        dst
+    }
+
+    fn on_pixels_count(&self) -> u32 {
+        self.grid.iter().fold(0, |acc, row| {
+            acc + row.iter().fold(0, |acc, x| if *x { acc + 1 } else { acc })
+        })
+    }
 }
 
 fn rule_reduction(
@@ -177,17 +233,23 @@ fn main() {
         .iter()
         .fold(HashMap::new(), |acc, sides| rule_reduction(2, acc, sides));
 
-    eprintln!("{:?}", two_by_two_rules_map);
-
     let three_by_three_rules_map: HashMap<u16, Tile> = rule_sides
         .iter()
         .fold(HashMap::new(), |acc, sides| rule_reduction(3, acc, sides));
 
-    eprintln!("{:?}", three_by_three_rules_map);
+    let rs = HashMap::from([
+        (2usize, two_by_two_rules_map),
+        (3usize, three_by_three_rules_map),
+    ]);
 
     let mut image: Image = Image::new(1, 3);
     image.stamp(0, 0, &Tile::decode(INITIAL_SOURCE));
-    eprintln!("{:?}", image);
+
+    for _ in 0..5 {
+        image = image.evolve(&rs);
+    }
+
+    println!("{}", image.on_pixels_count());
 }
 
 #[cfg(test)]
