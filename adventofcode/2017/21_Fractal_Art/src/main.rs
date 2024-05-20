@@ -245,7 +245,7 @@ fn main() {
     let mut image: Image = Image::new(1, 3);
     image.stamp(0, 0, &Tile::decode(INITIAL_SOURCE));
 
-    for _ in 0..5 {
+    for _ in 0..18 {
         image = image.evolve(&rs);
     }
 
