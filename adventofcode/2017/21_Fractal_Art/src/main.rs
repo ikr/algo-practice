@@ -118,32 +118,62 @@ impl Image {
     }
 }
 
+fn rule_reduction(
+    tile_size: usize,
+    mut acc: HashMap<u16, Tile>,
+    rule_sides: &(String, String),
+) -> HashMap<u16, Tile> {
+    assert!((2..4).contains(&tile_size));
+    let (lhs, rhs) = rule_sides;
+
+    let mut t0 = Tile::decode(&lhs);
+    if t0.grid.len() == tile_size {
+        let mut t0_flipped = t0.reflect_horizontally();
+        let t1 = Tile::decode(&rhs);
+
+        assert!(!acc.contains_key(&t0.to_bits()));
+        assert!(!acc.contains_key(&t0_flipped.to_bits()));
+
+        for i in 0..4 {
+            acc.insert(t0.to_bits(), t1.clone());
+            acc.insert(t0_flipped.to_bits(), t1.clone());
+
+            if i != 3 {
+                t0 = t0.rotate_90_clockwise();
+                t0_flipped = t0_flipped.rotate_90_clockwise();
+            } else {
+                assert_eq!(t0.rotate_90_clockwise(), Tile::decode(lhs));
+                assert_eq!(
+                    t0_flipped.rotate_90_clockwise(),
+                    Tile::decode(lhs).reflect_horizontally()
+                );
+            }
+        }
+    }
+    acc
+}
+
 fn main() {
-    let rules_map: HashMap<u16, Tile> = io::stdin()
+    let rule_sides: Vec<(String, String)> = io::stdin()
         .lock()
         .lines()
         .map(|line| {
             let parts: Vec<String> = line.unwrap().split(" => ").map(|x| x.to_string()).collect();
             (parts[0].clone(), parts[1].clone())
         })
-        .fold(HashMap::new(), |mut acc, (lhs, rhs)| {
-            let t1 = Tile::decode(&rhs);
-            let mut t0 = Tile::decode(&lhs);
-            let mut t0_flipped = t0.reflect_horizontally();
-            assert!(!acc.contains_key(&t0.to_bits()));
-            assert!(!acc.contains_key(&t0_flipped.to_bits()));
+        .collect();
 
-            for _ in 0..4 {
-                acc.insert(t0.to_bits(), t1.clone());
-                acc.insert(t0_flipped.to_bits(), t1.clone());
+    let two_by_two_rules_map: HashMap<u16, Tile> = rule_sides
+        .iter()
+        .fold(HashMap::new(), |acc, sides| rule_reduction(2, acc, sides));
 
-                t0 = t0.rotate_90_clockwise();
-                t0_flipped = t0_flipped.rotate_90_clockwise();
-            }
-            acc
-        });
+    eprintln!("{:?}", two_by_two_rules_map);
 
-    eprintln!("{:?}", rules_map);
+    let three_by_three_rules_map: HashMap<u16, Tile> = rule_sides
+        .iter()
+        .fold(HashMap::new(), |acc, sides| rule_reduction(3, acc, sides));
+
+    eprintln!("{:?}", three_by_three_rules_map);
 }
 
 #[cfg(test)]
