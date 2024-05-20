@@ -116,6 +116,16 @@ impl Image {
             grid,
         }
     }
+
+    fn stamp(&mut self, tile_ro: usize, tile_co: usize, tile: &Tile) {
+        assert_eq!(self.tile_size, tile.grid.len());
+        let m = self.tile_size;
+        for (i, row) in tile.grid.iter().enumerate() {
+            for (j, x) in row.iter().enumerate() {
+                self.grid[tile_ro * m + i][tile_co * m + j] = *x;
+            }
+        }
+    }
 }
 
 fn rule_reduction(
@@ -126,10 +136,10 @@ fn rule_reduction(
     assert!((2..4).contains(&tile_size));
     let (lhs, rhs) = rule_sides;
 
-    let mut t0 = Tile::decode(&lhs);
+    let mut t0 = Tile::decode(lhs);
     if t0.grid.len() == tile_size {
         let mut t0_flipped = t0.reflect_horizontally();
-        let t1 = Tile::decode(&rhs);
+        let t1 = Tile::decode(rhs);
 
         assert!(!acc.contains_key(&t0.to_bits()));
         assert!(!acc.contains_key(&t0_flipped.to_bits()));
@@ -174,6 +184,10 @@ fn main() {
         .fold(HashMap::new(), |acc, sides| rule_reduction(3, acc, sides));
 
     eprintln!("{:?}", three_by_three_rules_map);
+
+    let mut image: Image = Image::new(1, 3);
+    image.stamp(0, 0, &Tile::decode(INITIAL_SOURCE));
+    eprintln!("{:?}", image);
 }
 
 #[cfg(test)]
