@@ -1,11 +1,12 @@
 use std::{
+    collections::HashMap,
     fmt::{Display, Formatter, Result},
     io::{self, BufRead},
 };
 
 const INITIAL_SOURCE: &str = ".#./..#/###";
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct Tile {
     grid: Vec<Vec<bool>>,
 }
@@ -118,18 +119,31 @@ impl Image {
 }
 
 fn main() {
-    let rule_sides: Vec<(String, String)> = io::stdin()
+    let rules_map: HashMap<u16, Tile> = io::stdin()
         .lock()
         .lines()
         .map(|line| {
             let parts: Vec<String> = line.unwrap().split(" => ").map(|x| x.to_string()).collect();
             (parts[0].clone(), parts[1].clone())
         })
-        .collect();
+        .fold(HashMap::new(), |mut acc, (lhs, rhs)| {
+            let t1 = Tile::decode(&rhs);
+            let mut t0 = Tile::decode(&lhs);
+            let mut t0_flipped = t0.reflect_horizontally();
+            assert!(!acc.contains_key(&t0.to_bits()));
+            assert!(!acc.contains_key(&t0_flipped.to_bits()));
 
-    for (a, b) in rule_sides {
-        println!("{}\n,\n{}\n\n", Tile::decode(&a), Tile::decode(&b));
-    }
+            for _ in 0..4 {
+                acc.insert(t0.to_bits(), t1.clone());
+                acc.insert(t0_flipped.to_bits(), t1.clone());
+
+                t0 = t0.rotate_90_clockwise();
+                t0_flipped = t0_flipped.rotate_90_clockwise();
+            }
+            acc
+        });
+
+    eprintln!("{:?}", rules_map);
 }
 
 #[cfg(test)]
