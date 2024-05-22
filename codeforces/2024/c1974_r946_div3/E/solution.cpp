@@ -12,21 +12,35 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 int max_happiness(const ll sal, const ll c0, const int h0,
                   const vector<pair<ll, int>> &xs) {
     const auto guaranteed = c0 == 0LL ? h0 : 0;
-    const ll n = sz(xs);
+    if (empty(xs)) return guaranteed;
 
-    int result{};
-    ll rem = sal * n;
-    if (rem >= xs.back().first) {
-        result += xs.back().second;
+    const auto hi =
+        accumulate(cbegin(xs), cend(xs), 0,
+                   [](const ll acc, const auto ch) { return acc + ch.first; });
+    const auto cap = [hi](const ll c) -> ll { return c <= hi ? c : hi; };
 
-        rem = (sal >= xs.back().first) ? (sal * (n - 1))
-                                       : (rem - sal - xs.back().first);
+    unordered_map<ll, int> g0;
+    g0.emplace(0, guaranteed);
+
+    for (const auto &[c, h] : xs) {
+        unordered_map<ll, int> g1;
+
+        for (const auto &[rest, gathered_health] : g0) {
+            if (rest + sal >= c) {
+                g1[cap(rest + sal - c)] =
+                    max(g1[cap(rest + sal - c)], gathered_health + h);
+            }
+            g1[cap(rest + sal)] = max(g1[cap(rest + sal)], gathered_health);
+        }
+
+        g0 = g1;
     }
 
-    for (int i = n - 2; i >= 0; --i) {
-    }
-
-    return result;
+    return max_element(cbegin(g0), cend(g0),
+                       [](const auto kv0, const auto kv1) {
+                           return kv0.second < kv1.second;
+                       })
+        ->second;
 }
 
 int main() {
