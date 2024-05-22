@@ -14,9 +14,10 @@ int max_happiness(const ll sal, const ll c0, const int h0,
     const auto guaranteed = c0 == 0LL ? h0 : 0;
     if (empty(xs)) return guaranteed;
 
-    const auto hi =
-        accumulate(cbegin(xs), cend(xs), 0,
-                   [](const ll acc, const auto ch) { return acc + ch.first; });
+    const auto hi = 2LL * accumulate(cbegin(xs), cend(xs), 0,
+                                     [](const ll acc, const auto ch) {
+                                         return acc + ch.first;
+                                     });
     const auto cap = [hi](const ll c) -> ll { return c <= hi ? c : hi; };
 
     unordered_map<ll, int> g0;
