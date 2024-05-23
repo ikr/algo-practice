@@ -3,38 +3,43 @@ using namespace std;
 
 using ll = long long;
 
-int max_happiness(const ll sal, const ll c0, const int h0,
-                  const vector<pair<ll, int>> &xs) {
-    const auto guaranteed = c0 == 0LL ? h0 : 0;
-    if (empty(xs)) return guaranteed;
+template <typename T> constexpr int inof(const T x) {
+    return static_cast<int>(x);
+}
+template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
+int max_happiness(const ll sal, const vector<pair<ll, int>> &xs) {
     const auto hi =
-        accumulate(cbegin(xs), cend(xs), 0,
-                   [](const ll acc, const auto ch) { return acc + ch.first; });
-    const auto cap = [hi](const ll c) -> ll { return c <= hi ? c : hi; };
+        accumulate(cbegin(xs), cend(xs), 0, [](const int acc, const auto ch) {
+            return acc + ch.second;
+        });
 
-    unordered_map<ll, int> g0;
-    g0.emplace(0, guaranteed);
+    // D[i][j] is the maximum remaining pounds on day i after acquiring
+    // happiness amount of j. -1 pound means it's impossible to acquire
+    // happiness j.
+    vector<vector<ll>> D(sz(xs), vector(hi + 1, -1LL));
+    D[0][0] = 0;
+    if (xs[0].first == 0) D[0][xs[0].second] = 0;
 
-    for (const auto &[c, h] : xs) {
-        unordered_map<ll, int> g1;
+    for (int i = 1; i < sz(D); ++i) {
+        const auto [current_cost, current_gain] = xs[i];
 
-        for (const auto &[rest, gathered_health] : g0) {
-            if (rest + sal >= c) {
-                g1[cap(rest + sal - c)] =
-                    max(g1[cap(rest + sal - c)], gathered_health + h);
+        for (int h = 0; h < sz(D[i]); ++h) {
+            if (D[i - 1][h] >= 0) D[i][h] = D[i - 1][h] + sal;
+
+            if (h - current_gain >= 0 && D[i - 1][h - current_gain] >= 0 &&
+                D[i - 1][h - current_gain] + sal >= current_cost) {
+                D[i][h] = max(D[i][h],
+                              D[i - 1][h - current_gain] + sal - current_cost);
             }
-            g1[cap(rest + sal)] = max(g1[cap(rest + sal)], gathered_health);
         }
-
-        g0 = g1;
     }
 
-    return max_element(cbegin(g0), cend(g0),
-                       [](const auto kv0, const auto kv1) {
-                           return kv0.second < kv1.second;
-                       })
-        ->second;
+    int result{};
+    for (int h = 0; h < sz(D.back()); ++h) {
+        if (D.back()[h] >= 0) result = h;
+    }
+    return result;
 }
 
 int main() {
@@ -50,21 +55,9 @@ int main() {
         ll sal;
         cin >> sal;
 
-        ll c0;
-        cin >> c0;
-
-        int h0;
-        cin >> h0;
-
-        vector<pair<ll, int>> xs;
-        for (int j = 1; j < m; ++j) {
-            ll c;
-            int h;
-            cin >> c >> h;
-            xs.emplace_back(c, h);
-        }
-
-        cout << max_happiness(sal, c0, h0, xs) << '\n';
+        vector<pair<ll, int>> xs(m);
+        for (auto &[c, h] : xs) cin >> c >> h;
+        cout << max_happiness(sal, xs) << '\n';
     }
 
     return 0;
