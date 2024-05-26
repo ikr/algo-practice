@@ -74,7 +74,23 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    eprintln!("{:?}", grid);
-    eprintln!("{}x{}", grid.len(), grid[0].len());
-    eprintln!("{:?}", infected_nodes(&grid));
+    let mut infected = infected_nodes(&grid);
+    let mut crd = Crd(0, 0);
+    let mut dir = Dir::N;
+    let mut result = 0;
+
+    for _ in 0..10000 {
+        if infected.contains(&crd) {
+            dir = dir.turn_right();
+            infected.remove(&crd);
+        } else {
+            dir = dir.turn_left();
+            infected.insert(crd);
+            result += 1;
+        }
+
+        crd = crd + dir.delta();
+    }
+
+    println!("{}", result);
 }
