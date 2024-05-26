@@ -49,6 +49,15 @@ impl Dir {
             Dir::W => Dir::N,
         }
     }
+
+    fn turn_around(&self) -> Dir {
+        match self {
+            Dir::N => Dir::S,
+            Dir::E => Dir::W,
+            Dir::S => Dir::N,
+            Dir::W => Dir::E,
+        }
+    }
 }
 
 fn infected_nodes(grid: &[Vec<char>]) -> HashSet<Crd> {
@@ -74,19 +83,30 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
+    let mut weakened: HashSet<Crd> = HashSet::new();
     let mut infected = infected_nodes(&grid);
+    let mut flagged: HashSet<Crd> = HashSet::new();
+
     let mut crd = Crd(0, 0);
     let mut dir = Dir::N;
     let mut result = 0;
 
-    for _ in 0..10000 {
+    for _ in 0..10000000 {
         if infected.contains(&crd) {
             dir = dir.turn_right();
             infected.remove(&crd);
-        } else {
-            dir = dir.turn_left();
+            flagged.insert(crd);
+        } else if weakened.contains(&crd) {
+            weakened.remove(&crd);
             infected.insert(crd);
             result += 1;
+        } else if flagged.contains(&crd) {
+            dir = dir.turn_around();
+            flagged.remove(&crd);
+        } else {
+            // The node is clean
+            dir = dir.turn_left();
+            weakened.insert(crd);
         }
 
         crd = crd + dir.delta();
