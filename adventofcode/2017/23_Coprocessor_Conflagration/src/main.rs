@@ -60,7 +60,6 @@ struct Machine {
     reg: [i64; AH],
     program: Vec<Instr>,
     ip: i64,
-    muls: u32,
 }
 
 impl Machine {
@@ -69,7 +68,6 @@ impl Machine {
             reg: [0; AH],
             program,
             ip: 0,
-            muls: 0,
         }
     }
 
@@ -105,7 +103,6 @@ impl Machine {
             Instr::Mul(Reg(r), rv) => {
                 self.write_reg(*r, self.read_reg(*r) * self.value_of(*rv));
                 self.ip += 1;
-                self.muls += 1;
             }
             Instr::Jnz(rv_a, rv_b) => {
                 let offset = if self.value_of(*rv_a) != 0 {
@@ -128,8 +125,13 @@ fn main() {
         .collect();
 
     let mut m = Machine::new(program);
+    m.reg[0] = 1;
     while !m.is_terminated() {
         m.tick();
+        eprintln!("{} {:?}", m.ip, m.reg);
+        if m.ip == 14 && m.read_reg('g') == 0 {
+            break;
+        }
     }
-    println!("{}", m.muls);
+    println!("{}", m.reg.last().unwrap());
 }
