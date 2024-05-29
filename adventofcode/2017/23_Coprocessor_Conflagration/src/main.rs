@@ -130,7 +130,7 @@ fn main() {
         m.tick();
         eprintln!("{} {:?}", m.ip, m.reg);
         if m.ip == 14 && m.read_reg('g') == 0 {
-            break;
+            eprintln!("-----");
         }
     }
     println!("{}", m.reg.last().unwrap());
