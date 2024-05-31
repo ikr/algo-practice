@@ -78,7 +78,7 @@ int main() {
     ull result{};
     for (ull i = 106500; i <= 123500; i += 17) {
         const auto k = number_of_proper_divisors(i);
-        result += k * k;
+        result += k;
     }
     cout << result << '\n';
     return 0;
