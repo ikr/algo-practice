@@ -1,16 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 using ull = unsigned long long;
 using ll = long long;
 
-namespace kactl { // https://github.com/kth-competitive-programming/kactl/blob/main/content/number-theory/Factor.h
+namespace kactl { // https://github.com/kth-competitive-programming/kactl/blob/main/content/number-theory
 ull modmul(ull a, ull b, ull M) {
     ll ret = a * b - M * ull(1.L / M * a * b);
     return ret + M * (ret < 0) - M * (ret >= (ll)M);
@@ -33,46 +27,7 @@ bool isPrime(ull n) {
     }
     return 1;
 }
-
-ull pollard(ull n) {
-    auto f = [n](ull x) { return modmul(x, x, n) + 1; };
-    ull x = 0, y = 0, t = 30, prd = 2, i = 1, q;
-    while (t++ % 40 || __gcd(prd, n) == 1) {
-        if (x == y) x = ++i, y = f(x);
-        if ((q = modmul(prd, max(x, y) - min(x, y), n))) prd = q;
-        x = f(x), y = f(f(y));
-    }
-    return __gcd(prd, n);
-}
-
-#define all(x) begin(x), end(x)
-
-vector<ull> factor(ull n) {
-    if (n == 1) return {};
-    if (isPrime(n)) return {n};
-    ull x = pollard(n);
-    auto l = factor(x), r = factor(n / x);
-    l.insert(l.end(), all(r));
-    return l;
-}
 } // namespace kactl
-
-map<ull, int> gather_freqs(const vector<ull> &xs) {
-    map<ull, int> ans;
-    for (const auto x : xs) {
-        ++ans[x];
-    }
-    return ans;
-}
-
-ull number_of_proper_divisors(const ll n) {
-    const auto fs = gather_freqs(kactl::factor(n));
-    return accumulate(cbegin(fs), cend(fs), 1ULL,
-                      [](const ll acc, const auto &kv) {
-                          return acc * (kv.second + 1ULL);
-                      }) -
-           2ULL;
-}
 
 int main() {
     ull result{};
