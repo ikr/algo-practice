@@ -1,11 +1,9 @@
 use std::io::{self, BufRead};
 
 fn decode_pair(src: &str) -> [i32; 2] {
-    src.split('/')
-        .map(|part| part.parse().unwrap())
-        .collect::<Vec<i32>>()
-        .try_into()
-        .unwrap()
+    let mut result: Vec<i32> = src.split('/').map(|part| part.parse().unwrap()).collect();
+    result.sort();
+    result.try_into().unwrap()
 }
 
 fn main() {
