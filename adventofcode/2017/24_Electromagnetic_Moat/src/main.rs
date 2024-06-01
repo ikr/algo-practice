@@ -12,5 +12,7 @@ fn main() {
         .lines()
         .map(|line| decode_pair(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", pairs)
+
+    let (sources, segments): (Vec<_>, Vec<_>) = pairs.into_iter().partition(|ab| ab[0] == 0);
+    eprintln!("{:?}\n{:?}", sources, segments);
 }
