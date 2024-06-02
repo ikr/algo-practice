@@ -1,4 +1,3 @@
-use memoize::memoize;
 use std::io::{self, BufRead};
 
 fn decode_pair(src: &str) -> [u8; 2] {
@@ -7,27 +6,25 @@ fn decode_pair(src: &str) -> [u8; 2] {
     result.try_into().unwrap()
 }
 
-fn have_common_port(p: &[u8], q: &[u8]) -> bool {
-    p.iter().any(|x| q.contains(x))
+fn other_than(p: &[u8], x: u8) -> u8 {
+    assert!(p.len() == 2);
+    if p[0] == x {
+        p[1]
+    } else {
+        p[0]
+    }
 }
 
-static mut ANS: u16 = 0;
-
-#[memoize(Ignore: ps, Capacity: 59999999)]
-fn max_strength_starting_with(ps: &[[u8; 2]], used_bits: u64, p0: [u8; 2]) -> u16 {
-    let mut result: u16 = p0.iter().sum::<u8>() as u16;
+fn max_strength_starting_with(ps: &[[u8; 2]], used_bits: u64, a0: u8, b0: u8) -> u16 {
+    let mut result: u16 = (a0 + b0) as u16;
     for (i, p) in ps.iter().enumerate() {
-        if (1u64 << i) & used_bits == 0u64 && have_common_port(&p0, p) {
+        if (1u64 << i) & used_bits == 0u64 && p.contains(&b0) {
+            let a1 = b0;
+            let b1 = other_than(p, a1);
+
             result = result.max(
-                p0.iter().sum::<u8>() as u16
-                    + max_strength_starting_with(ps, used_bits | (1u64 << i), *p),
+                (a0 + b0) as u16 + max_strength_starting_with(ps, used_bits | (1u64 << i), a1, b1),
             );
-        }
-    }
-    unsafe {
-        if result > ANS {
-            ANS = result;
-            eprintln!("{}", ANS)
         }
     }
     result
@@ -43,6 +40,6 @@ fn main() {
     let (sources, segments): (Vec<_>, Vec<_>) = pairs.into_iter().partition(|ab| ab[0] == 0);
 
     for s in sources {
-        println!("{:?}", max_strength_starting_with(&segments, 0, s));
+        println!("{:?}", max_strength_starting_with(&segments, 0, s[0], s[1]));
     }
 }
