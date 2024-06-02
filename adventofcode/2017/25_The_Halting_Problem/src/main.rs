@@ -42,6 +42,59 @@ fn in_a() -> HashMap<Cond, Outcome> {
     ])
 }
 
+fn in_1() -> HashMap<Cond, Outcome> {
+    HashMap::from([
+        (
+            Cond(State('A'), Val::Zero),
+            Outcome(Val::One, MoveDir::R, State('B')),
+        ),
+        (
+            Cond(State('A'), Val::One),
+            Outcome(Val::Zero, MoveDir::L, State('B')),
+        ),
+        (
+            Cond(State('B'), Val::Zero),
+            Outcome(Val::Zero, MoveDir::R, State('C')),
+        ),
+        (
+            Cond(State('B'), Val::One),
+            Outcome(Val::One, MoveDir::L, State('B')),
+        ),
+        (
+            Cond(State('C'), Val::Zero),
+            Outcome(Val::One, MoveDir::R, State('D')),
+        ),
+        (
+            Cond(State('C'), Val::One),
+            Outcome(Val::Zero, MoveDir::L, State('A')),
+        ),
+        (
+            Cond(State('D'), Val::Zero),
+            Outcome(Val::One, MoveDir::L, State('E')),
+        ),
+        (
+            Cond(State('D'), Val::One),
+            Outcome(Val::One, MoveDir::L, State('F')),
+        ),
+        (
+            Cond(State('E'), Val::Zero),
+            Outcome(Val::One, MoveDir::L, State('A')),
+        ),
+        (
+            Cond(State('E'), Val::One),
+            Outcome(Val::Zero, MoveDir::L, State('D')),
+        ),
+        (
+            Cond(State('F'), Val::Zero),
+            Outcome(Val::One, MoveDir::R, State('A')),
+        ),
+        (
+            Cond(State('F'), Val::One),
+            Outcome(Val::One, MoveDir::L, State('E')),
+        ),
+    ])
+}
+
 struct Machine {
     program: HashMap<Cond, Outcome>,
     num_steps: u32,
@@ -97,7 +150,7 @@ impl Machine {
 }
 
 fn main() {
-    for (p, n) in vec![(in_a(), 6)] {
+    for (p, n) in vec![(in_a(), 6), (in_1(), 12586542)] {
         let mut m = Machine::new(p, n);
         println!("{}", m.run());
     }
