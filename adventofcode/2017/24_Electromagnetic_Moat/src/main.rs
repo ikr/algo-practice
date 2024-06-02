@@ -15,19 +15,25 @@ fn other_than(p: &[u8], x: u8) -> u8 {
     }
 }
 
-fn max_strength_starting_with(ps: &[[u8; 2]], used_bits: u64, a0: u8, b0: u8) -> u16 {
-    let mut result: u16 = (a0 + b0) as u16;
+fn max_strength_starting_with(ps: &[[u8; 2]], used_bits: u64, a0: u8, b0: u8) -> (u8, u16) {
+    let mut result_length = used_bits.count_ones() as u8;
+    let mut result_weight = (a0 + b0) as u16;
+
     for (i, p) in ps.iter().enumerate() {
         if (1u64 << i) & used_bits == 0u64 && p.contains(&b0) {
             let a1 = b0;
             let b1 = other_than(p, a1);
 
-            result = result.max(
-                (a0 + b0) as u16 + max_strength_starting_with(ps, used_bits | (1u64 << i), a1, b1),
-            );
+            let sub = max_strength_starting_with(ps, used_bits | (1u64 << i), a1, b1);
+            if sub.0 > result_length
+                || (sub.0 == result_length && (a0 + b0) as u16 + sub.1 > result_weight)
+            {
+                result_length = sub.0;
+                result_weight = (a0 + b0) as u16 + sub.1
+            }
         }
     }
-    result
+    (result_length, result_weight)
 }
 
 fn main() {
