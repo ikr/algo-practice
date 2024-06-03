@@ -9,20 +9,23 @@ template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
 bool is_possible(const vector<int> &A, const vector<int> &B,
                  const vector<int> &D) {
-    multiset<int> rem(cbegin(D), cend(D));
-
-    for (int i = 0; i < sz(A); ++i) {
-        if (A[i] == B[i]) continue;
-
-        const auto it = rem.find(B[i]);
-        if (it == cend(rem)) return false;
-        rem.erase(it);
-    }
-
+    multiset<int> ds(cbegin(D), cend(D));
     const set<int> bs(cbegin(B), cend(B));
 
-    for (const auto r : rem) {
-        if (!bs.contains(r)) return false;
+    multiset<int> overwritten;
+    for (int i = 0; i < sz(A); ++i) {
+        if (A[i] != B[i]) {
+            if (!ds.contains(B[i])) return false;
+            overwritten.insert(B[i]);
+        }
+    }
+
+    if (!bs.contains(D.back())) return false;
+
+    for (const auto d : overwritten) {
+        const auto it = ds.find(d);
+        if (it == cend(ds)) return false;
+        ds.erase(it);
     }
 
     return true;
