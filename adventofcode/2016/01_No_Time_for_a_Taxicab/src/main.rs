@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 #[derive(Clone, Copy)]
 enum Turn {
     L,
@@ -21,7 +23,7 @@ fn decode_hop(src: &str) -> Hop {
     )
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
 
 impl Crd {
@@ -87,17 +89,41 @@ fn main() {
         .map(decode_hop)
         .collect();
 
-    let mut pos = Crd(0, 0);
-    let mut dir = Dir::N;
+    {
+        let mut pos = Crd(0, 0);
+        let mut dir = Dir::N;
 
-    for Hop(t, Walk(steps)) in hops {
-        dir = match t {
-            Turn::L => dir.turn_left(),
-            Turn::R => dir.turn_right(),
-        };
+        for Hop(t, Walk(steps)) in hops.iter() {
+            dir = match t {
+                Turn::L => dir.turn_left(),
+                Turn::R => dir.turn_right(),
+            };
 
-        pos = pos + dir.delta().scaled(steps);
+            pos = pos + dir.delta().scaled(*steps);
+        }
+
+        println!("{}", pos.distance_from_origin());
     }
 
-    println!("{}", pos.distance_from_origin());
+    {
+        let mut visited: HashSet<Crd> = HashSet::from([Crd(0, 0)]);
+        let mut pos = Crd(0, 0);
+        let mut dir = Dir::N;
+
+        for Hop(t, Walk(steps)) in hops.iter() {
+            dir = match t {
+                Turn::L => dir.turn_left(),
+                Turn::R => dir.turn_right(),
+            };
+
+            for _ in 0..*steps {
+                pos = pos + dir.delta();
+                if visited.contains(&pos) {
+                    println!("{}", pos.distance_from_origin());
+                    std::process::exit(0);
+                }
+                visited.insert(pos);
+            }
+        }
+    }
 }
