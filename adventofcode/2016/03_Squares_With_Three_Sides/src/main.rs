@@ -2,9 +2,9 @@ use std::io::{self, BufRead};
 
 fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!grid.is_empty());
-    let len = grid[0].len();
+    let h = grid[0].len();
     let mut iters: Vec<_> = grid.into_iter().map(|n| n.into_iter()).collect();
-    (0..len)
+    (0..h)
         .map(|_| {
             iters
                 .iter_mut()
@@ -40,6 +40,16 @@ fn main() {
         })
         .collect();
 
-    let result = tris.into_iter().filter(|xs| is_triangle(xs)).count();
-    println!("{}", result);
+    {
+        let result = tris.iter().filter(|xs| is_triangle(xs)).count();
+        println!("{}", result);
+    }
+
+    {
+        let result = transpose(tris).into_iter().fold(vec![], |mut acc, mut xs| {
+            acc.append(&mut xs);
+            acc
+        }).chunks(3).filter(|xs| is_triangle(xs)).count();
+        println!("{}", result);
+    }
 }
