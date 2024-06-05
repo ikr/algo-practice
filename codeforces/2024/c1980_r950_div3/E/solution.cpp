@@ -21,39 +21,12 @@ vector<vector<int>> transpose(const vector<vector<int>> &grid) {
     return result;
 }
 
-vector<vector<int>> sort_by_first_row(const vector<vector<int>> &grid) {
-    const auto w = sz(grid[0]);
-    vector<int> idx(w);
-    iota(begin(idx), end(idx), 0);
-
-    sort(begin(idx), end(idx),
-         [&](const int i, const int j) { return grid[0][i] < grid[0][j]; });
-
-    auto result = grid;
-    for (auto &row : result) {
-        vector<int> xs(sz(row), 0);
-        for (int i = 0; i < sz(xs); ++i) {
-            xs[i] = row[idx[i]];
-        }
-        row = xs;
+vector<vector<int>> sort_every_row_then_sort_rows(vector<vector<int>> grid) {
+    for (auto &row : grid) {
+        sort(begin(row), end(row));
     }
-    return result;
-}
-
-vector<pii> coord_index(const vector<vector<int>> &grid) {
-    const auto h = sz(grid);
-    const auto w = sz(grid[0]);
-    vector<pii> result(h * w);
-    for (int r = 0; r < h; ++r) {
-        for (int c = 0; c < w; ++c) {
-            result[grid[r][c]] = {r, c};
-        }
-    }
-    return result;
-}
-
-constexpr int mdiff(const int m, const int a, const int b) {
-    return ((a - b) + m) % m;
+    sort(begin(grid), end(grid));
+    return grid;
 }
 
 bool are_isomorphic(const vector<vector<int>> &A,
@@ -62,27 +35,10 @@ bool are_isomorphic(const vector<vector<int>> &A,
     const auto w = sz(A[0]);
     if (h == 1 || w == 1) return true;
 
-    const auto iA = coord_index(A);
-    const auto iB = coord_index(B);
-
-    vector<pii> ds(sz(iA));
-    for (int i = 0; i < sz(iA); ++i) {
-        const auto [ra, ca] = iA[i];
-        const auto [rb, cb] = iB[i];
-        ds[i] = pii{mdiff(h, ra, rb), mdiff(w, ca, cb)};
-    }
-    if (all_of(cbegin(ds), cend(ds),
-               [&](const auto p) { return p == ds[0]; })) {
-        return true;
-    };
-
-    if (sort_by_first_row(A) == sort_by_first_row(B)) return true;
-
-    if (sort_by_first_row(transpose(A)) == sort_by_first_row(transpose(B))) {
-        return true;
-    }
-
-    return false;
+    return sort_every_row_then_sort_rows(A) ==
+               sort_every_row_then_sort_rows(B) &&
+           sort_every_row_then_sort_rows(transpose(A)) ==
+               sort_every_row_then_sort_rows(transpose(B));
 }
 
 int main() {
