@@ -24,6 +24,11 @@ fn room_checksum(rcp: &[String]) -> String {
     rcp.iter().last().unwrap().to_string()
 }
 
+fn room_id(rcp: &[String]) -> u32 {
+    let n = rcp.len();
+    rcp[n - 2].parse().unwrap()
+}
+
 fn frequencies(xs: &[char]) -> HashMap<char, u8> {
     xs.iter().fold(HashMap::new(), |mut acc, c| {
         acc.entry(*c).and_modify(|f| *f += 1).or_insert(1);
@@ -48,9 +53,10 @@ fn main() {
         .map(|line| room_code_parts(&line.unwrap()))
         .collect();
 
-    let result = xss
+    let result: u32 = xss
         .into_iter()
         .filter(|xs| letters_checksum(&all_room_letters(&xs)) == room_checksum(&xs))
-        .count();
+        .map(|xs| room_id(&xs))
+        .sum();
     println!("{}", result);
 }
