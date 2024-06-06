@@ -29,7 +29,7 @@ fn room_id(rcp: &[String]) -> u32 {
     rcp[n - 2].parse().unwrap()
 }
 
-fn frequencies(xs: &[char]) -> HashMap<char, u8> {
+fn frequencies(xs: &[char]) -> HashMap<char, i8> {
     xs.iter().fold(HashMap::new(), |mut acc, c| {
         acc.entry(*c).and_modify(|f| *f += 1).or_insert(1);
         acc
@@ -37,13 +37,10 @@ fn frequencies(xs: &[char]) -> HashMap<char, u8> {
 }
 
 fn letters_checksum(xs: &[char]) -> String {
-    let mut ps: Vec<(i8, char)> = frequencies(xs)
-        .into_iter()
-        .map(|(k, v)| (-1 * v as i8, k))
-        .collect();
+    let mut ps: Vec<(i8, char)> = frequencies(xs).into_iter().map(|(k, v)| (-v, k)).collect();
     ps.sort();
 
-    ps[0..5].into_iter().map(|(_, c)| c).collect()
+    ps[0..5].iter().map(|(_, c)| c).collect()
 }
 
 fn main() {
@@ -55,7 +52,7 @@ fn main() {
 
     let result: u32 = xss
         .into_iter()
-        .filter(|xs| letters_checksum(&all_room_letters(&xs)) == room_checksum(&xs))
+        .filter(|xs| letters_checksum(&all_room_letters(xs)) == room_checksum(xs))
         .map(|xs| room_id(&xs))
         .sum();
     println!("{}", result);
