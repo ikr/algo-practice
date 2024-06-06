@@ -46,7 +46,7 @@ fn letters_checksum(xs: &[char]) -> String {
 const AZ: u16 = 26;
 
 fn translate_char(key: u16, c: char) -> char {
-    (((c as u16 - 'a' as u16 + key) % AZ) as u8 + 'a' as u8) as char
+    (((c as u16 - 'a' as u16 + key) % AZ) as u8 + b'a') as char
 }
 
 fn translate_word(key: u16, w: &str) -> String {
@@ -64,7 +64,7 @@ fn main() {
         let result: u32 = xss
             .iter()
             .filter(|xs| letters_checksum(&all_room_letters(xs)) == room_checksum(xs))
-            .map(|xs| room_id(&xs))
+            .map(|xs| room_id(xs))
             .sum();
         println!("{}", result);
     }
@@ -78,7 +78,7 @@ fn main() {
                 let k: u16 = src[n - 2].parse().unwrap();
                 (
                     src[0..n - 2]
-                        .into_iter()
+                        .iter()
                         .map(|sw| translate_word(k, sw))
                         .collect::<Vec<String>>(),
                     room_id(src),
