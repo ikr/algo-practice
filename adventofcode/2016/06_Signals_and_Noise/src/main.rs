@@ -24,10 +24,10 @@ fn frequencies(xs: &[char]) -> HashMap<char, u16> {
     })
 }
 
-fn most_frequent_one(xs: &[char]) -> char {
+fn least_frequent_one(xs: &[char]) -> char {
     frequencies(xs)
         .into_iter()
-        .max_by(|a, b| (a.1, a.0).cmp(&(b.1, b.0)))
+        .min_by(|a, b| (a.1, a.0).cmp(&(b.1, b.0)))
         .unwrap()
         .0
 }
@@ -41,7 +41,7 @@ fn main() {
 
     let result: String = transpose(lines)
         .into_iter()
-        .map(|line| most_frequent_one(&line))
+        .map(|line| least_frequent_one(&line))
         .collect();
     println!("{}", result);
 }
