@@ -21,7 +21,7 @@ fn main() {
         .trim()
         .to_string();
 
-    let mut result = vec!['.'; 8];
+    let mut result = ['.'; 8];
     for i in 0..999_999_999 {
         if i > 0 && i % 1_000_000 == 0 {
             eprintln!("i:{}", i);
