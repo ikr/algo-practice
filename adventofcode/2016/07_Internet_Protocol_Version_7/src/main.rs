@@ -1,14 +1,27 @@
 use regex::Regex;
 use std::io::{self, BufRead};
 
-fn extract_parts(src: &str) -> (String, String, String) {
-    let re = Regex::new(r"^([a-z]+)\[([a-z]+)\]([a-z]+)$").unwrap();
-    let caps = re.captures(src).unwrap();
-    (
-        caps[1].to_string(),
-        caps[2].to_string(),
-        caps[3].to_string(),
-    )
+fn bracketed_parts(src: &str) -> Vec<String> {
+    Regex::new(r"\[[a-z]+\]")
+        .unwrap()
+        .find_iter(src)
+        .map(|x| {
+            x.as_str()
+                .strip_prefix('[')
+                .unwrap()
+                .strip_suffix(']')
+                .unwrap()
+                .to_string()
+        })
+        .collect()
+}
+
+fn top_level_parts(src: &str) -> Vec<String> {
+    Regex::new(r"\[[a-z]+\]")
+        .unwrap()
+        .split(src)
+        .map(|x| x.to_string())
+        .collect()
 }
 
 fn has_an_abba(xs: &str) -> bool {
@@ -20,12 +33,25 @@ fn has_an_abba(xs: &str) -> bool {
     })
 }
 
+fn have_an_abba(xss: &[String]) -> bool {
+    xss.iter().any(|xs| has_an_abba(xs))
+}
+
 fn main() {
-    let line_parts: Vec<(String, String, String)> = io::stdin()
+    let lines: Vec<String> = io::stdin()
         .lock()
         .lines()
-        .map(|line| extract_parts(&line.unwrap()))
+        .map(|line| line.unwrap().to_string())
         .collect();
 
-    eprintln!("{:?}", line_parts);
+    let result = lines
+        .into_iter()
+        .filter(|line| {
+            let xs = top_level_parts(line);
+            let ys = bracketed_parts(line);
+            have_an_abba(&xs) && !have_an_abba(&ys)
+        })
+        .count();
+
+    println!("{}", result);
 }
