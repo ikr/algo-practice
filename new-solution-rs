@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import re
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-r", "--regex",
+                    help="Add regular expressions support",
+                    action="store_true")
+parser.add_argument("-p", "--prefix-output",
+                    help="Read STDIN & prefix K-th test case's output with `Case #K: `",
+                    action="store_true")
+parser.add_argument("name", help="The name of the problem")
+args = parser.parse_args()
+
+streams_snippet = """
+"""
+
+code = 'use regex::Regex;\n' if args.regex else ""
+
+if args.prefix_output:
+    code = code + """use std::collections::VecDeque;
+use std::io::{self,Write};
+
+fn solve() -> i32 {{
+    return -1
+}}
+
+fn main() {{
+    let mut istream: VecDeque<i32> = std::io::read_to_string(std::io::stdin())
+        .unwrap()
+        .split_whitespace()
+        .map(|x| x.parse::<i32>().unwrap())
+        .collect();
+
+    let cases_num = istream.pop_front().unwrap();
+    let mut out = io::stdout().lock();
+    for 1..=cases_num {
+        let result = solve();
+        writeln!(out, "Case #{}: {}", result).unwrap();
+    }
+}}
+"""
+else:
+    code += """use std::io::{self, BufRead};
+
+fn main() {
+    let grid: Vec<Vec<char>> = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| line.unwrap().chars().collect())
+        .collect();
+}
+"""
+
+def normalize(name):
+    ans = name
+    muted = "!#$%^*()'!?:."
+    for x in muted:
+        ans = ans.replace(x, '')
+    return re.sub(r'[ &,]+', '_', ans)
+
+os.system('cargo new {0} --name solution'.format(normalize(args.name)))
+path = os.path.join(os.getcwd(), normalize(args.name))
+os.chdir(path)
+
+if args.regex:
+    os.system('cargo add regex')
+
+with open("src/main.rs", "w+") as file:
+    file.write(code)
+
+os.system('pwd | xclip -selection clipboard')
+os.system('emacsclient -n ./src/main.rs')
+
+clipboard_command = """echo 'cd ./{0} && cargo build' | xclip -selection clipboard""".format(normalize(args.name))
+os.system(clipboard_command)
