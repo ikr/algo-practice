@@ -87,10 +87,16 @@ fn main() {
 
     println!("{}", result1);
 
-    let result2 = lines.into_iter().filter(|line| {
-        let xs = top_level_parts(line);
-        let babs: Vec<String> = all_abas(&xs).into_iter().map(|x| bab(&x)).collect();
-        let ys = bracketed_parts(line);
-    });
+    let result2 = lines
+        .into_iter()
+        .filter(|line| {
+            let xs = top_level_parts(line);
+            let babs: Vec<String> = all_abas(&xs).into_iter().map(|x| bab(&x)).collect();
+
+            let ys = bracketed_parts(line);
+            let abas = all_abas(&ys);
+            babs.into_iter().any(|bab| abas.contains(&bab))
+        })
+        .count();
     println!("{}", result2);
 }
