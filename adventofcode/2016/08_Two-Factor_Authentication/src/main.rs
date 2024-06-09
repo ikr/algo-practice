@@ -3,6 +3,7 @@ use std::io::{self, BufRead};
 const H: usize = 3;
 const W: usize = 7;
 
+#[derive(Debug)]
 enum Op {
     Rect { width: usize, height: usize },
     RowRotate { row: usize, shift: usize },
@@ -43,9 +44,19 @@ fn decode_row_rotate(src: &str) -> Op {
 fn decode_col_rotate(src: &str) -> Op {
     let parts = parts_of_rotate_source("rotate column x=", src);
     assert!(parts.len() == 2);
-    Op::RowRotate {
-        row: parts[0],
+    Op::ColRotate {
+        col: parts[0],
         shift: parts[1],
+    }
+}
+
+fn decode_op(src: &str) -> Op {
+    if src.starts_with("re") {
+        decode_rect(src)
+    } else if src.starts_with("rotate r") {
+        decode_row_rotate(src)
+    } else {
+        decode_col_rotate(src)
     }
 }
 
@@ -64,9 +75,11 @@ fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
 }
 
 fn main() {
-    let lines: Vec<String> = io::stdin()
+    let ops: Vec<Op> = io::stdin()
         .lock()
         .lines()
-        .map(|line| line.unwrap())
+        .map(|line| decode_op(&line.unwrap()))
         .collect();
+
+    eprintln!("{:?}", ops);
 }
