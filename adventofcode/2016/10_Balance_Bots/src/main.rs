@@ -74,9 +74,6 @@ impl Graph {
             self.place_chip(v_hi, c_hi);
             self.chips[u].clear();
 
-            // eprintln!("{} went from {} to {}", c_lo, u, v_lo);
-            // eprintln!("{} went from {} to {}", c_hi, u, v_hi);
-
             self.propagate_chips(v_lo);
             self.propagate_chips(v_hi);
         }
@@ -113,4 +110,12 @@ fn main() {
         g.place_chip(u, c);
         g.propagate_chips(u);
     }
+
+    let mut result: u32 = 1;
+    for i in 0..3 {
+        for c in g.chips[SINK_OFFSET + i].iter() {
+            result *= *c as u32;
+        }
+    }
+    println!("Result 2: {}", result);
 }
