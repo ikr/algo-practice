@@ -58,6 +58,17 @@ impl Floor {
         !self.has_generators() || self.all_microchips_shielded()
     }
 
+    fn is_empty(&self) -> bool {
+        self.microchips.iter().filter(|x| **x).count()
+            + self.generators.iter().filter(|x| **x).count()
+            == 0
+    }
+
+    fn is_full(&self) -> bool {
+        self.microchips.iter().filter(|x| **x).count() == N
+            && self.generators.iter().filter(|x| **x).count() == N
+    }
+
     fn intersects(&self, oth: Floor) -> bool {
         intersect(self.microchips, oth.microchips) || intersect(self.generators, oth.generators)
     }
@@ -188,6 +199,13 @@ impl Vertex {
             floors,
         }
     }
+
+    fn is_terminal(&self) -> bool {
+        if self.floors[3].is_full() {
+            assert!(self.current_floor == 3);
+        }
+        self.floors[3].is_full()
+    }
 }
 
 fn in_a() -> Vertex {
@@ -204,7 +222,11 @@ fn main() {
     eprintln!("{:?}", u);
     for f in u.floors {
         assert!(f.is_safe());
+        assert!(!f.is_full());
     }
+
+    assert!(u.floors[3].is_empty());
+    assert!(!u.is_terminal());
 
     eprintln!("{:?}", u.floors[0].all_moves(u.floors[1]));
 }
