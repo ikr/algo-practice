@@ -3,7 +3,7 @@ use std::{
     process::exit,
 };
 
-const N: usize = 5;
+const N: usize = 7;
 
 fn intersect<const K: usize>(a: [bool; K], b: [bool; K]) -> bool {
     a.into_iter().enumerate().any(|(i, x)| x && x == b[i])
@@ -243,9 +243,17 @@ impl Vertex {
 //     curium: 2
 //  ruthenium: 3
 //  plutonium: 4
+//    elerium: 5
+//  dilithium: 6
 fn in_1() -> Vertex {
     Vertex::new([
-        Floor::new().with_generator(0).with_microchip(0),
+        Floor::new()
+            .with_generator(0)
+            .with_microchip(0)
+            .with_generator(5)
+            .with_microchip(5)
+            .with_generator(6)
+            .with_microchip(6),
         Floor::new()
             .with_generator(1)
             .with_generator(2)
