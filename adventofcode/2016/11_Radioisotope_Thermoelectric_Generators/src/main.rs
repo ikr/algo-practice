@@ -3,7 +3,7 @@ use std::{
     process::exit,
 };
 
-const N: usize = 2;
+const N: usize = 5;
 
 fn intersect<const K: usize>(a: [bool; K], b: [bool; K]) -> bool {
     a.into_iter().enumerate().any(|(i, x)| x && x == b[i])
@@ -229,17 +229,39 @@ impl Vertex {
     }
 }
 
-fn in_a() -> Vertex {
+// fn in_a() -> Vertex {
+//     Vertex::new([
+//         Floor::new().with_microchip(0).with_microchip(1),
+//         Floor::new().with_generator(0),
+//         Floor::new().with_generator(1),
+//         Floor::new(),
+//     ])
+// }
+
+// promethium: 0
+//     cobalt: 1
+//     curium: 2
+//  ruthenium: 3
+//  plutonium: 4
+fn in_1() -> Vertex {
     Vertex::new([
-        Floor::new().with_microchip(0).with_microchip(1),
-        Floor::new().with_generator(0),
-        Floor::new().with_generator(1),
+        Floor::new().with_generator(0).with_microchip(0),
+        Floor::new()
+            .without_generator(1)
+            .with_generator(2)
+            .with_generator(3)
+            .with_generator(4),
+        Floor::new()
+            .with_microchip(1)
+            .with_microchip(2)
+            .with_microchip(3)
+            .with_microchip(4),
         Floor::new(),
     ])
 }
 
 fn main() {
-    let u0 = in_a();
+    let u0 = in_1();
     let mut discovered: HashSet<Vertex> = HashSet::from([u0]);
     let mut q: VecDeque<(Vertex, u32)> = VecDeque::new();
     q.push_back((u0, 0));
