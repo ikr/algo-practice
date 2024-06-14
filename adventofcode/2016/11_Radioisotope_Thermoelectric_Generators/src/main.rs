@@ -247,7 +247,7 @@ fn in_1() -> Vertex {
     Vertex::new([
         Floor::new().with_generator(0).with_microchip(0),
         Floor::new()
-            .without_generator(1)
+            .with_generator(1)
             .with_generator(2)
             .with_generator(3)
             .with_generator(4),
