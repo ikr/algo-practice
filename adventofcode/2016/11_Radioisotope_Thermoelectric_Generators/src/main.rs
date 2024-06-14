@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::{
+    collections::{HashSet, VecDeque},
+    process::exit,
+};
 
 const N: usize = 2;
 
@@ -6,7 +9,7 @@ fn intersect<const K: usize>(a: [bool; K], b: [bool; K]) -> bool {
     a.into_iter().enumerate().any(|(i, x)| x && x == b[i])
 }
 
-#[derive(Clone, Copy, Debug, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Floor {
     microchips: [bool; N],
     generators: [bool; N],
@@ -58,12 +61,6 @@ impl Floor {
 
     fn is_safe(&self) -> bool {
         !self.has_generators() || self.all_microchips_shielded()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.microchips.iter().filter(|x| **x).count()
-            + self.generators.iter().filter(|x| **x).count()
-            == 0
     }
 
     fn is_full(&self) -> bool {
@@ -188,7 +185,7 @@ impl Floor {
     }
 }
 
-#[derive(Clone, Copy, Debug, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Vertex {
     current_floor: u8,
     floors: [Floor; 4],
@@ -242,19 +239,21 @@ fn in_a() -> Vertex {
 }
 
 fn main() {
-    let u = in_a();
-    eprintln!("{:?}", u);
-    for f in u.floors {
-        assert!(f.is_safe());
-        assert!(!f.is_full());
+    let u0 = in_a();
+    let mut discovered: HashSet<Vertex> = HashSet::from([u0]);
+    let mut q: VecDeque<(Vertex, u32)> = VecDeque::new();
+    q.push_back((u0, 0));
+
+    while let Some((u, d)) = q.pop_front() {
+        for v in u.adjacent() {
+            if !discovered.contains(&v) {
+                if v.is_terminal() {
+                    println!("{}", d + 1);
+                    exit(0);
+                }
+                q.push_back((v, d + 1));
+                discovered.insert(v);
+            }
+        }
     }
-
-    assert!(u.floors[3].is_empty());
-    assert!(!u.is_terminal());
-
-    eprintln!("{:?}", u.floors[0].all_moves(u.floors[1]));
-
-    let discovered: HashSet<Vertex> = HashSet::new();
-    eprintln!("{}", discovered.len());
-    eprintln!("{:?}", u.adjacent());
 }
