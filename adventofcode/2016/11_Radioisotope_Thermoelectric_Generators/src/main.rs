@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 const N: usize = 2;
 
 fn intersect<const K: usize>(a: [bool; K], b: [bool; K]) -> bool {
@@ -206,6 +208,28 @@ impl Vertex {
         }
         self.floors[3].is_full()
     }
+
+    fn adjacent(&self) -> Vec<Vertex> {
+        let c = self.current_floor as usize;
+        let ijs: Vec<(usize, usize)> = match self.current_floor {
+            0 => vec![(0, 1)],
+            1 | 2 => vec![(c, c - 1), (c, c + 1)],
+            3 => vec![(3, 2)],
+            _ => panic!("Invalid current floor {}", self.current_floor),
+        };
+
+        let mut result: Vec<Vertex> = vec![];
+        for (i, j) in ijs {
+            for (f0, f1) in self.floors[i].all_moves(self.floors[j]) {
+                let mut v: Vertex = *self;
+                v.floors[i] = f0;
+                v.floors[j] = f1;
+                v.current_floor = j as u8;
+                result.push(v);
+            }
+        }
+        result
+    }
 }
 
 fn in_a() -> Vertex {
@@ -229,4 +253,8 @@ fn main() {
     assert!(!u.is_terminal());
 
     eprintln!("{:?}", u.floors[0].all_moves(u.floors[1]));
+
+    let discovered: HashSet<Vertex> = HashSet::new();
+    eprintln!("{}", discovered.len());
+    eprintln!("{:?}", u.adjacent());
 }
