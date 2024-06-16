@@ -44,7 +44,7 @@ fn main() {
     let mut tris: Vec<(char, usize)> = vec![];
     let mut idx5: HashMap<char, Vec<usize>> = HashMap::new();
 
-    for i in 0..32_000 {
+    for i in 0..25_000 {
         let h = hash(&salt, i);
         if let Some(c) = all_repeated(&h, 3).first() {
             tris.push((*c, i));
