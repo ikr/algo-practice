@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 
 fn hash(salt: &str, x: usize) -> String {
-    format!("{:x}", md5::compute(salt.to_owned() + &x.to_string()))
+    let mut result = format!("{:x}", md5::compute(salt.to_owned() + &x.to_string()));
+    for _ in 0..2016 {
+        result = format!("{:x}", md5::compute(result));
+    }
+    result
 }
 
 fn is_one_value_repeated<T>(xs: &[T]) -> Option<T>
@@ -40,7 +44,7 @@ fn main() {
     let mut tris: Vec<(char, usize)> = vec![];
     let mut idx5: HashMap<char, Vec<usize>> = HashMap::new();
 
-    for i in 0..1_000_000 {
+    for i in 0..32_000 {
         let h = hash(&salt, i);
         if let Some(c) = all_repeated(&h, 3).first() {
             tris.push((*c, i));
@@ -64,6 +68,8 @@ fn main() {
             }
         })
         .collect::<Vec<_>>();
+
+    eprintln!("{:?}", key_indices);
 
     println!("{}", key_indices[63].1);
 }
