@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashSet, VecDeque},
-    process::exit,
-};
+use std::collections::{HashSet, VecDeque};
 
 const SEED: i32 = 1350;
 
@@ -62,21 +59,18 @@ impl Dir {
 
 fn main() {
     let src = Crd(1, 1);
-    let dst = Crd(31, 39);
 
     let mut visited: HashSet<Crd> = HashSet::from([src]);
     let mut q: VecDeque<(Crd, i32)> = VecDeque::from([(src, 0)]);
 
     while let Some((u, s)) = q.pop_front() {
         for v in u.adjacent() {
-            if !visited.contains(&v) {
-                if v == dst {
-                    println!("{}", s + 1);
-                    exit(0);
-                }
+            if !visited.contains(&v) && s < 50 {
                 visited.insert(v);
                 q.push_back((v, s + 1));
             }
         }
     }
+
+    println!("{}", visited.len());
 }
