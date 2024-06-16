@@ -10,7 +10,7 @@ impl Crd {
         let x = self.0;
         let y = self.1;
         if x < 0 || y < 0 {
-            false
+            true
         } else {
             let v = x * x + 3 * x + 2 * x * y + y + y * y + SEED;
             v.count_ones() % 2 == 1
