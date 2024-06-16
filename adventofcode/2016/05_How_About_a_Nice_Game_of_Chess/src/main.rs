@@ -1,6 +1,6 @@
 fn password_char(salt: &str, x: u32) -> Option<(usize, char)> {
     let input: String = salt.to_owned() + &x.to_string();
-    let hash: String = format!("{:?}", md5::compute(input));
+    let hash: String = format!("{:x}", md5::compute(input));
 
     if &hash[0..5] == "00000" {
         let p = hash.chars().nth(5).unwrap();
