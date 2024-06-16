@@ -128,6 +128,7 @@ fn main() {
         .collect();
 
     let mut m = Machine::new(program);
+    m.write_reg('c', 1);
     m.run();
     println!("{}", m.read_reg('a'));
 }
