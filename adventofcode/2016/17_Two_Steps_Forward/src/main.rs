@@ -116,25 +116,43 @@ impl Vertex {
     }
 }
 
-fn main() {
-    let passcode: String = std::io::read_to_string(std::io::stdin())
-        .unwrap()
-        .trim()
-        .to_owned();
-
+fn shortest_path(passcode: &str) -> String {
     let mut visited: HashSet<Vertex> = HashSet::from([Vertex::new()]);
     let mut q: VecDeque<Vertex> = VecDeque::from([Vertex::new()]);
 
     while let Some(u) = q.pop_front() {
-        for v in u.adjacent(&passcode) {
+        for v in u.adjacent(passcode) {
             if !visited.contains(&v) {
                 if v.is_terminal() {
-                    println!("{}", v.path_string());
-                    std::process::exit(0);
+                    return v.path_string();
                 }
                 visited.insert(v.clone());
                 q.push_back(v);
             }
         }
     }
+
+    String::new()
+}
+
+fn longest_path_length(passcode: &str, u: Vertex) -> usize {
+    if u.is_terminal() {
+        u.path.len()
+    } else {
+        let mut result = 0;
+        for v in u.adjacent(passcode) {
+            result = result.max(longest_path_length(passcode, v));
+        }
+        result
+    }
+}
+
+fn main() {
+    let passcode: String = std::io::read_to_string(std::io::stdin())
+        .unwrap()
+        .trim()
+        .to_owned();
+
+    println!("{}", shortest_path(&passcode));
+    println!("{}", longest_path_length(&passcode, Vertex::new()));
 }
