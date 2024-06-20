@@ -1,4 +1,4 @@
-const H: usize = 40;
+const H: usize = 400000;
 
 fn next_line(xs: &[u8]) -> Vec<u8> {
     let n = xs.len();
@@ -32,10 +32,6 @@ fn main() {
                 |subtotal, x| if *x == b'.' { subtotal + 1 } else { subtotal },
             )
     });
-
-    for row in grid {
-        eprintln!("{}", String::from_utf8(row).unwrap());
-    }
 
     println!("{}", safe_tiles_num);
 }
