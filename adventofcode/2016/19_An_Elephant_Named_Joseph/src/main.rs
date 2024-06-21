@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 
-fn next_key(circle: &BTreeMap<usize, usize>, k: usize) -> usize {
+fn next_key(circle: &BTreeSet<usize>, k: usize) -> usize {
     assert!(circle.len() >= 2);
-    if k == *circle.keys().last().unwrap() {
-        *circle.keys().next().unwrap()
+    if k == *circle.last().unwrap() {
+        *circle.iter().next().unwrap()
     } else {
-        *circle.range(k + 1..).next().unwrap().0
+        *circle.range(k + 1..).next().unwrap()
     }
 }
 
@@ -16,15 +16,12 @@ fn main() {
         .parse()
         .unwrap();
 
-    let mut circle: BTreeMap<usize, usize> = (1..=n).map(|i| (i, 1)).collect();
+    let mut circle: BTreeSet<usize> = (1..=n).collect();
 
     let mut k: usize = 1;
     while circle.len() > 1 {
-        assert!(circle.contains_key(&k));
+        assert!(circle.contains(&k));
         let q = next_key(&circle, k);
-        let v = *circle.get(&q).unwrap();
-
-        circle.entry(k).and_modify(|u| *u += v);
         circle.remove(&q);
 
         if circle.len() > 1 {
@@ -32,5 +29,5 @@ fn main() {
         }
     }
 
-    println!("{}", circle.keys().next().unwrap())
+    println!("{}", circle.iter().next().unwrap())
 }
