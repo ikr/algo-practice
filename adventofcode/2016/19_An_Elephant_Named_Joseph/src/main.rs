@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use indexset::BTreeSet;
 
 fn next_key(circle: &BTreeSet<usize>, k: usize) -> usize {
     assert!(circle.len() >= 2);
@@ -7,6 +7,14 @@ fn next_key(circle: &BTreeSet<usize>, k: usize) -> usize {
     } else {
         *circle.range(k + 1..).next().unwrap()
     }
+}
+
+fn opposite_key(circle: &BTreeSet<usize>, k: usize) -> usize {
+    let n = circle.len();
+    assert!(n >= 2);
+    let i = circle.rank(&k);
+    let j = (i + n / 2) % n;
+    *circle.get_index(j).unwrap()
 }
 
 fn main() {
@@ -21,7 +29,7 @@ fn main() {
     let mut k: usize = 1;
     while circle.len() > 1 {
         assert!(circle.contains(&k));
-        let q = next_key(&circle, k);
+        let q = opposite_key(&circle, k);
         circle.remove(&q);
 
         if circle.len() > 1 {
