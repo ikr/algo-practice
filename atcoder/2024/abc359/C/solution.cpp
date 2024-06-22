@@ -24,7 +24,7 @@ ll min_toll(const ll x0, const ll y0, const ll x1, const ll y1) {
     auto b = max(x0, x1);
     if (tile_part(b, y1) == 1) --b;
 
-    return (b - a) / 2LL;
+    return dy + (b - a) / 2LL;
 }
 
 int main() {
