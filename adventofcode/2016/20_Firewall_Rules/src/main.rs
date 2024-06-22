@@ -44,4 +44,9 @@ fn main() {
 
     eprintln!("{:?}", segments);
     println!("{}", segments[0].1 + 1);
+
+    let blocked_num: u64 = segments
+        .into_iter()
+        .fold(0u64, |acc, (a, b)| acc + b as u64 - a as u64 + 1);
+    println!("{}", u32::MAX as u64 + 1 - blocked_num);
 }
