@@ -139,11 +139,11 @@ vector<vector<int>> result_matrix(vector<vector<int>> grid) {
     for (const auto u : seq) {
         const auto [r0, c0] = coord(u);
         if (todo.contains(u)) {
-            int val = grid[r0][c0];
+            int hi{};
             for (const auto &[r, c] : adjacent_coords(r0, c0)) {
-                val = min(val, grid[r][c]);
+                hi = max(hi, grid[r][c]);
             }
-            grid[r0][c0] = val;
+            grid[r0][c0] = hi;
         }
     }
     return grid;
