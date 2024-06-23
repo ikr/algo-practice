@@ -2,6 +2,7 @@
 using namespace std;
 
 using pii = pair<int, int>;
+using tri = tuple<int, int, int>;
 
 template <typename T1, typename T2>
 ostream &operator<<(ostream &os, const pair<T1, T2> &x) {
@@ -95,22 +96,28 @@ vector<vector<int>> result_matrix(vector<vector<int>> grid) {
     }
     if (empty(todo)) return grid;
 
-    queue<int> q;
+    priority_queue<tri> q;
     for (int v = 0; v < n; ++v) {
-        if (deg[v] == 0) q.push(v);
+        if (deg[v] == 0) {
+            const auto [r, c] = coord(v);
+            q.emplace(-r, -c, v);
+        };
     }
 
     vector<int> seq;
     seq.reserve(n);
 
     while (!empty(q)) {
-        const auto v = q.front();
+        const auto [_a, _b, v] = q.top();
         q.pop();
         seq.push_back(v);
 
         for (const auto u : g_[v]) {
             --deg[u];
-            if (deg[u] == 0) q.push(u);
+            if (deg[u] == 0) {
+                const auto [r, c] = coord(u);
+                q.emplace(-r, -c, u);
+            }
         }
     }
     assert(sz(seq) == n);
