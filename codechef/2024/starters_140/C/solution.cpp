@@ -58,6 +58,7 @@ vector<ll> best_perm(const ll n) {
 
         const auto r = *p - cur;
         if (r) {
+            assert(src.contains(r));
             result.push_back(r);
             src.erase(r);
         }
