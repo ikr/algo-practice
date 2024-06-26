@@ -42,18 +42,24 @@ vector<ll> best_perm(const ll n) {
     if (!p) return default_perm(n);
 
     set<ll> src;
-    for (const auto x : default_perm(n)) src.insert(x);
+    for (const auto k : default_perm(n)) src.insert(k);
 
     vector<ll> result;
     result.reserve(n);
     while (!empty(src)) {
-        const ll hi = *crbegin(src);
-        result.push_back(hi);
-        src.erase(hi);
+        ll cur{};
 
-        if (*p - hi > 0 && src.contains(*p - hi)) {
-            result.push_back(*p - hi);
-            src.erase(*p - hi);
+        while (!empty(src) && cur + *crbegin(src) <= *p) {
+            const auto x = *crbegin(src);
+            src.erase(x);
+            result.push_back(x);
+            cur += x;
+        }
+
+        const auto r = *p - cur;
+        if (r) {
+            result.push_back(r);
+            src.erase(r);
         }
     }
 
