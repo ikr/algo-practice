@@ -25,14 +25,16 @@ vector<ll> default_perm(const ll n) {
 
 optional<ll> first_divider(const ll n) {
     const auto total = n * (n + 1LL) / 2LL;
-    ll result{};
+    ll result{INT_MAX};
     for (ll p = 2; p * p <= total; ++p) {
-        if (total % p == 0LL) {
-            result = max(result, p);
-            result = max(result, total / p);
+        if (total % p == 0LL && p >= n) {
+            result = min(result, p);
+        }
+        if (total % p == 0LL && total / p >= n) {
+            result = min(result, total / p);
         }
     }
-    if (!result) return nullopt;
+    if (result == INT_MAX) return nullopt;
     return result;
 }
 
@@ -58,7 +60,6 @@ vector<ll> best_perm(const ll n) {
 
         const auto r = *p - cur;
         if (r) {
-            assert(src.contains(r));
             result.push_back(r);
             src.erase(r);
         }
