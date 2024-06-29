@@ -1,7 +1,10 @@
 use std::{
     fmt::Debug,
     io::{self, BufRead},
+    process::exit,
 };
+
+use itertools::Itertools;
 
 fn extract_pair<T>(prefix: &str, infix: &str, src: &str, map_fn: fn(&str) -> T) -> [T; 2]
 where
@@ -118,14 +121,26 @@ impl Op {
     }
 }
 
+fn scramble(ops: &[Op], xs: Vec<u8>) -> Vec<u8> {
+    ops.iter().fold(xs, |acc, op| op.apply(acc))
+}
+
 fn main() {
     let ops: Vec<Op> = io::stdin()
         .lock()
         .lines()
         .map(|line| Op::parse(&line.unwrap()))
         .collect();
-    let result = ops
-        .into_iter()
-        .fold("abcdefgh".to_owned().into_bytes(), |acc, op| op.apply(acc));
+    let result = scramble(&ops, "abcdefgh".to_owned().into_bytes());
     println!("{}", String::from_utf8(result).unwrap());
+
+    let target = "fbgdceah".to_owned().into_bytes();
+    let xs = "abcdefgh".to_owned().into_bytes();
+    for perm in xs.iter().permutations(xs.len()) {
+        let ys: Vec<u8> = perm.iter().map(|x| **x).collect();
+        if scramble(&ops, ys.clone()) == target {
+            println!("{}", String::from_utf8(ys).unwrap());
+            exit(0);
+        }
+    }
 }
