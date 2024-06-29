@@ -76,6 +76,46 @@ impl Op {
             panic!("Invalid Op source {}", src)
         }
     }
+
+    fn apply(&self, mut xs: Vec<u8>) -> Vec<u8> {
+        let n: usize = xs.len();
+        match self {
+            Op::SwpPos(i, j) => {
+                xs.swap(*i, *j);
+                xs
+            }
+            Op::SwpLtr(p, q) => {
+                let i = xs.iter().position(|x| x == p).unwrap();
+                let j = xs.iter().position(|x| x == q).unwrap();
+                xs.swap(i, j);
+                xs
+            }
+            Op::RotL(i) => {
+                xs.rotate_left(*i);
+                xs
+            }
+            Op::RotR(i) => {
+                xs.rotate_right(*i);
+                xs
+            }
+            Op::Rbop(p) => {
+                let i = xs.iter().position(|x| x == p).unwrap();
+                let steps = if i >= 4 { i + 2 } else { i + 1 };
+                xs.rotate_right(steps % n);
+                xs
+            }
+            Op::Rev(i, j) => {
+                xs[*i..*j + 1].reverse();
+                xs
+            }
+            Op::Mov(i, j) => {
+                let x: u8 = xs[*i];
+                xs.remove(*i);
+                xs.insert(*j, x);
+                xs
+            }
+        }
+    }
 }
 
 fn main() {
@@ -84,5 +124,8 @@ fn main() {
         .lines()
         .map(|line| Op::parse(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", ops);
+    let result = ops
+        .into_iter()
+        .fold("abcdefgh".to_owned().into_bytes(), |acc, op| op.apply(acc));
+    println!("{}", String::from_utf8(result).unwrap());
 }
