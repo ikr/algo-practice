@@ -1,5 +1,8 @@
 use regex::Regex;
-use std::io::{self, BufRead};
+use std::{
+    collections::BTreeSet,
+    io::{self, BufRead},
+};
 
 #[derive(Clone, Copy, Debug)]
 struct Crd(i32, i32);
@@ -65,4 +68,16 @@ fn main() {
         }
     }
     println!("{}", result);
+
+    let caps: BTreeSet<i32> = nodes.iter().map(|n| n.cap).collect();
+    eprintln!("caps: {:?}", caps);
+
+    let usgs: BTreeSet<i32> = nodes.iter().map(|n| n.usd).collect();
+    eprintln!("usgs: {:?}", usgs);
+
+    eprintln!(
+        "max_x: {} max_y: {}",
+        nodes.iter().map(|n| n.crd.0).max().unwrap(),
+        nodes.iter().map(|n| n.crd.1).max().unwrap()
+    )
 }
