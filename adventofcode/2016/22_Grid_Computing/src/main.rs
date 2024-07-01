@@ -1,8 +1,5 @@
 use regex::Regex;
-use std::{
-    io::{self, BufRead},
-    iter, result,
-};
+use std::io::{self, BufRead};
 
 #[derive(Clone, Copy, Debug)]
 struct Crd(i32, i32);
@@ -44,7 +41,7 @@ impl Node {
 }
 
 fn non_empty_a_fits_in_b(a: Node, b: Node) -> bool {
-    if a.cap > 0 {
+    if a.usd > 0 {
         b.cap - b.usd >= a.usd
     } else {
         false
