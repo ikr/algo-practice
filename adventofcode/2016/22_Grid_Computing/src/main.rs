@@ -1,11 +1,8 @@
 use regex::Regex;
-use std::{
-    collections::BTreeSet,
-    io::{self, BufRead},
-};
+use std::io::{self, BufRead};
 
 #[derive(Clone, Copy, Debug)]
-struct Crd(i32, i32);
+struct Crd(i8, i8);
 
 #[derive(Clone, Copy, Debug)]
 struct Node {
@@ -21,7 +18,7 @@ impl Node {
         let [x, y] = caps
             .iter()
             .skip(1)
-            .map(|s| s.unwrap().as_str().parse::<i32>().unwrap())
+            .map(|s| s.unwrap().as_str().parse::<i8>().unwrap())
             .collect::<Vec<_>>()[..]
         else {
             panic!("Not enough captured")
@@ -69,15 +66,10 @@ fn main() {
     }
     println!("{}", result);
 
-    let caps: BTreeSet<i32> = nodes.iter().map(|n| n.cap).collect();
-    eprintln!("caps: {:?}", caps);
+    let min_cap = nodes.iter().map(|n| n.cap).min().unwrap();
+    eprintln!("min_cap: {}", min_cap);
 
-    let usgs: BTreeSet<i32> = nodes.iter().map(|n| n.usd).collect();
-    eprintln!("usgs: {:?}", usgs);
-
-    eprintln!(
-        "max_x: {} max_y: {}",
-        nodes.iter().map(|n| n.crd.0).max().unwrap(),
-        nodes.iter().map(|n| n.crd.1).max().unwrap()
-    )
+    let w = nodes.iter().map(|n| n.crd.0).max().unwrap() + 1;
+    let h = nodes.iter().map(|n| n.crd.1).max().unwrap() + 1;
+    eprintln!("{}x{} grid", w, h);
 }
