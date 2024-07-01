@@ -51,6 +51,7 @@ fn non_empty_a_fits_in_b(a: Node, b: Node) -> bool {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 struct Vertex {
     empty_cell: Crd,
     payload_cell: Crd,
@@ -75,6 +76,33 @@ impl Cluster {
             source_cell: Crd(width - 1, 0),
             destination_cell: Crd(0, 0),
         }
+    }
+
+    fn in_bounds(&self, crd: Crd) -> bool {
+        let Crd(x, y) = crd;
+        0 <= x && x < self.width && 0 <= y && y < self.height
+    }
+
+    fn adjacent(&self, u: Vertex) -> Vec<Vertex> {
+        let Crd(x0, y0) = u.empty_cell;
+        let mut result: Vec<Vertex> = vec![];
+
+        for (x, y) in [(x0, y0 - 1), (x0 + 1, y0), (x0, y0 + 1), (x0 - 1, y0)] {
+            if self.in_bounds(Crd(x, y)) && !self.blocked_cells.contains(&Crd(x, y)) {
+                if Crd(x, y) == u.payload_cell {
+                    result.push(Vertex {
+                        empty_cell: Crd(x, y),
+                        payload_cell: Crd(x0, y0),
+                    });
+                } else {
+                    result.push(Vertex {
+                        empty_cell: Crd(x, y),
+                        payload_cell: u.payload_cell,
+                    });
+                }
+            }
+        }
+        result
     }
 }
 
