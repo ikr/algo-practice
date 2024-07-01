@@ -1,7 +1,10 @@
 use regex::Regex;
-use std::io::{self, BufRead};
+use std::{
+    collections::HashSet,
+    io::{self, BufRead},
+};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
 
 #[derive(Clone, Copy, Debug)]
@@ -48,6 +51,33 @@ fn non_empty_a_fits_in_b(a: Node, b: Node) -> bool {
     }
 }
 
+struct Vertex {
+    empty_cell: Crd,
+    payload_cell: Crd,
+}
+
+struct Cluster {
+    width: i8,
+    height: i8,
+    blocked_cells: HashSet<Crd>,
+    empty_cell: Crd,
+    source_cell: Crd,
+    destination_cell: Crd,
+}
+
+impl Cluster {
+    fn new(width: i8, height: i8, blocked_cells: HashSet<Crd>, empty_cell: Crd) -> Cluster {
+        Cluster {
+            width,
+            height,
+            blocked_cells,
+            empty_cell,
+            source_cell: Crd(width - 1, 0),
+            destination_cell: Crd(0, 0),
+        }
+    }
+}
+
 fn main() {
     let nodes: Vec<Node> = io::stdin()
         .lock()
@@ -69,7 +99,19 @@ fn main() {
     let min_cap = nodes.iter().map(|n| n.cap).min().unwrap();
     eprintln!("min_cap: {}", min_cap);
 
-    let w = nodes.iter().map(|n| n.crd.0).max().unwrap() + 1;
-    let h = nodes.iter().map(|n| n.crd.1).max().unwrap() + 1;
-    eprintln!("{}x{} grid", w, h);
+    let width = nodes.iter().map(|n| n.crd.0).max().unwrap() + 1;
+    let height = nodes.iter().map(|n| n.crd.1).max().unwrap() + 1;
+    eprintln!("{}x{} grid", width, height);
+
+    let blocked_cells: HashSet<Crd> = nodes
+        .iter()
+        .filter(|n| n.usd > min_cap)
+        .map(|n| n.crd)
+        .collect();
+    eprintln!("blocked: {:?}", blocked_cells);
+
+    let empty_cell: Crd = nodes.iter().find(|n| n.usd == 0).unwrap().crd;
+    eprintln!("empty: {:?}", empty_cell);
+
+    let cluster = Cluster::new(width, height, blocked_cells, empty_cell);
 }
