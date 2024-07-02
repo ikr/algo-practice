@@ -1,7 +1,8 @@
 use regex::Regex;
 use std::{
-    collections::HashSet,
+    collections::{HashSet, VecDeque},
     io::{self, BufRead},
+    process::exit,
 };
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -51,7 +52,7 @@ fn non_empty_a_fits_in_b(a: Node, b: Node) -> bool {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Vertex {
     empty_cell: Crd,
     payload_cell: Crd,
@@ -75,6 +76,13 @@ impl Cluster {
             empty_cell,
             source_cell: Crd(width - 1, 0),
             destination_cell: Crd(0, 0),
+        }
+    }
+
+    fn initial(&self) -> Vertex {
+        Vertex {
+            empty_cell: self.empty_cell,
+            payload_cell: self.source_cell,
         }
     }
 
@@ -142,4 +150,23 @@ fn main() {
     eprintln!("empty: {:?}", empty_cell);
 
     let cluster = Cluster::new(width, height, blocked_cells, empty_cell);
+
+    let mut seen: HashSet<Vertex> = HashSet::new();
+    seen.insert(cluster.initial());
+
+    let mut q: VecDeque<(Vertex, u16)> = VecDeque::new();
+    q.push_back((cluster.initial(), 0));
+
+    while let Some((u, d)) = q.pop_front() {
+        for v in cluster.adjacent(u) {
+            if !seen.contains(&v) {
+                if v.payload_cell == cluster.destination_cell {
+                    println!("{}", d + 1);
+                    exit(0);
+                }
+                seen.insert(v);
+                q.push_back((v, d + 1));
+            }
+        }
+    }
 }
