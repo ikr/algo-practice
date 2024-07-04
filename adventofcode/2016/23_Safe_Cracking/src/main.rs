@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 struct Reg(char);
 
 impl Reg {
@@ -12,7 +12,7 @@ impl Reg {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 enum Rval {
     Reg(char),
     Int(i64),
@@ -28,7 +28,7 @@ impl Rval {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 enum Instr {
     Cpy(Rval, Rval),
     Inc(Reg),
@@ -138,7 +138,6 @@ impl Machine {
     fn run(&mut self) {
         while !self.is_terminated() {
             self.tick();
-            // eprintln!("{:02} {:?}", self.ip, self.reg);
         }
     }
 }
