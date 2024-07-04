@@ -125,6 +125,7 @@ impl Machine {
             Instr::Tgl(Reg(r)) => {
                 let offset = self.read_reg(*r);
                 let index = self.ip + offset;
+                eprintln!("Toggling instruction {:02}", index);
                 if 0 <= index && index < self.program.len() as i64 {
                     let i = index as usize;
                     self.program[i] = self.program[i].toggled();
@@ -137,6 +138,7 @@ impl Machine {
     fn run(&mut self) {
         while !self.is_terminated() {
             self.tick();
+            // eprintln!("{:02} {:?}", self.ip, self.reg);
         }
     }
 }
@@ -149,7 +151,7 @@ fn main() {
         .collect();
 
     let mut m = Machine::new(program);
-    m.write_reg('a', 7);
+    m.write_reg('a', 12);
     m.run();
     println!("{}", m.read_reg('a'));
 }
