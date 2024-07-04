@@ -53,6 +53,92 @@ impl Instr {
             _ => panic!("Unknown opcode “{}”", tokens[0]),
         }
     }
+
+    fn toggled(&self) -> Instr {
+        match self {
+            Instr::Cpy(rv_a, rv_b) => Instr::Jnz(*rv_a, *rv_b),
+            Instr::Jnz(rv_a, rv_b) => Instr::Cpy(*rv_a, *rv_b),
+            Instr::Inc(r) => Instr::Dec(*r),
+            Instr::Dec(r) => Instr::Inc(*r),
+            Instr::Tgl(r) => Instr::Inc(*r),
+        }
+    }
+}
+
+struct Machine {
+    reg: [i64; 4],
+    program: Vec<Instr>,
+    ip: i64,
+}
+
+impl Machine {
+    fn new(program: Vec<Instr>) -> Machine {
+        Machine {
+            reg: [0; 4],
+            program,
+            ip: 0,
+        }
+    }
+
+    fn read_reg(&self, r: char) -> i64 {
+        self.reg[r as usize - 'a' as usize]
+    }
+
+    fn write_reg(&mut self, r: char, v: i64) {
+        self.reg[r as usize - 'a' as usize] = v;
+    }
+
+    fn is_terminated(&self) -> bool {
+        self.ip < 0 || self.program.len() as i64 <= self.ip
+    }
+
+    fn value_of(&self, rv: Rval) -> i64 {
+        match rv {
+            Rval::Reg(r) => self.read_reg(r),
+            Rval::Int(v) => v,
+        }
+    }
+
+    fn tick(&mut self) {
+        match &self.program[self.ip as usize] {
+            Instr::Cpy(rv, Rval::Reg(r)) => {
+                self.write_reg(*r, self.value_of(*rv));
+                self.ip += 1;
+            }
+            Instr::Cpy(_, Rval::Int(_)) => eprintln!("Skipping impossible cpy"),
+            Instr::Inc(Reg(r)) => {
+                self.write_reg(*r, self.read_reg(*r) + 1);
+                self.ip += 1;
+            }
+            Instr::Dec(Reg(r)) => {
+                self.write_reg(*r, self.read_reg(*r) - 1);
+                self.ip += 1;
+            }
+            Instr::Jnz(rv_a, rv_b) => {
+                let offset = if self.value_of(*rv_a) != 0 {
+                    self.value_of(*rv_b)
+                } else {
+                    1
+                };
+                self.ip += offset;
+            }
+            Instr::Tgl(Reg(r)) => {
+                let offset = self.read_reg(*r);
+                let index = self.ip + offset;
+                if 0 <= index && index < self.program.len() as i64 {
+                    let i = index as usize;
+                    self.program[i] = self.program[i].toggled();
+                }
+                self.ip += 1;
+            }
+        }
+    }
+
+    fn run(&mut self) {
+        while !self.is_terminated() {
+            self.tick();
+        }
+    }
 }
 
 fn main() {
@@ -62,5 +148,8 @@ fn main() {
         .map(|x| Instr::decode(&x.unwrap()))
         .collect();
 
-    eprintln!("{:?}", program);
+    let mut m = Machine::new(program);
+    m.write_reg('a', 7);
+    m.run();
+    println!("{}", m.read_reg('a'));
 }
