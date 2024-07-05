@@ -14,7 +14,7 @@ fn main() {
         .trim()
         .to_owned();
 
-    let pat = k_zeros(5);
+    let pat = k_zeros(6);
     for x in 0..100_000_000 {
         let h = hash(&key, x);
         if h.starts_with(&pat) {
