@@ -82,7 +82,7 @@ fn main() {
         result = result.min(
             perm.windows(2)
                 .fold(ds[0][*perm[0]], |acc, ab| acc + ds[*ab[0]][*ab[1]])
-                + ds[*tail.last().unwrap()][0],
+                + ds[**perm.last().unwrap()][0],
         );
     }
     println!("{}", result);
