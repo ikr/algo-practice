@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
 
@@ -50,6 +52,20 @@ fn distance_between(grid: &[Vec<u8>], a: Crd, b: Crd) -> i32 {
     i32::MAX
 }
 
+fn all_distnaces(grid: &[Vec<u8>], wps: &[Crd]) -> Vec<Vec<i32>> {
+    let n = wps.len();
+    let mut result: Vec<Vec<i32>> = vec![vec![0; n]; n];
+
+    for (i, u) in wps.iter().enumerate() {
+        for (j, v) in wps.iter().enumerate().skip(i + 1) {
+            result[i][j] = distance_between(grid, *u, *v);
+            result[j][i] = result[i][j];
+        }
+    }
+
+    result
+}
+
 fn main() {
     let grid: Vec<Vec<u8>> = io::stdin()
         .lock()
@@ -58,6 +74,15 @@ fn main() {
         .collect();
 
     let wps = waypoints(&grid);
-    eprintln!("{:?}", wps);
-    eprintln!("1 → 3: {}", distance_between(&grid, wps[0], wps[3]));
+    let ds = all_distnaces(&grid, &wps);
+
+    let mut result = i32::MAX;
+    let tail: Vec<usize> = (1..wps.len()).collect();
+    for perm in tail.iter().permutations(tail.len()) {
+        result = result.min(
+            perm.windows(2)
+                .fold(ds[0][*perm[0]], |acc, ab| acc + ds[*ab[0]][*ab[1]]),
+        );
+    }
+    println!("{}", result);
 }
