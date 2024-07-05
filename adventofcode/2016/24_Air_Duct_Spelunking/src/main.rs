@@ -81,7 +81,8 @@ fn main() {
     for perm in tail.iter().permutations(tail.len()) {
         result = result.min(
             perm.windows(2)
-                .fold(ds[0][*perm[0]], |acc, ab| acc + ds[*ab[0]][*ab[1]]),
+                .fold(ds[0][*perm[0]], |acc, ab| acc + ds[*ab[0]][*ab[1]])
+                + ds[*tail.last().unwrap()][0],
         );
     }
     println!("{}", result);
