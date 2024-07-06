@@ -104,7 +104,11 @@ fn main() {
                 for c in b..=d {
                     match opcode {
                         Opcode::On => grid[r][c] += 1,
-                        Opcode::Off => grid[r][c] -= 1,
+                        Opcode::Off => {
+                            if grid[r][c] > 0 {
+                                grid[r][c] -= 1
+                            }
+                        }
                         Opcode::Toggle => grid[r][c] += 2,
                     }
                 }
