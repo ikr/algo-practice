@@ -1,11 +1,14 @@
 use std::io::{self, BufRead};
 
 #[derive(Clone, Copy, Debug)]
-struct Crd(i32, i32);
+struct Crd(usize, usize);
 
 impl Crd {
     fn parse(src: &str) -> Crd {
-        let xs: Vec<i32> = src.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
+        let xs: Vec<usize> = src
+            .split(',')
+            .map(|s| s.parse::<usize>().unwrap())
+            .collect();
         let [r, c] = xs[..] else {
             panic!("{:?} isn't a pair", xs)
         };
@@ -63,5 +66,27 @@ fn main() {
         .lines()
         .map(|line| Op::parse(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", ops);
+
+    let mut grid: Vec<Vec<bool>> = vec![vec![false; 1000]; 1000];
+
+    for Op {
+        opcode,
+        rct: Rct(Crd(a, b), Crd(c, d)),
+    } in ops
+    {
+        for r in a..=c {
+            for c in b..=d {
+                match opcode {
+                    Opcode::On => grid[r][c] = true,
+                    Opcode::Off => grid[r][c] = false,
+                    Opcode::Toggle => grid[r][c] = !grid[r][c],
+                }
+            }
+        }
+    }
+
+    let result1 = grid.iter().fold(0, |acc, row| {
+        acc + row.iter().fold(0, |sub, x| sub + if *x { 1 } else { 0 })
+    });
+    println!("{}", result1);
 }
