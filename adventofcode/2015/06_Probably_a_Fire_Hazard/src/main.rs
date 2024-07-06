@@ -67,26 +67,53 @@ fn main() {
         .map(|line| Op::parse(&line.unwrap()))
         .collect();
 
-    let mut grid: Vec<Vec<bool>> = vec![vec![false; 1000]; 1000];
-
-    for Op {
-        opcode,
-        rct: Rct(Crd(a, b), Crd(c, d)),
-    } in ops
     {
-        for r in a..=c {
-            for c in b..=d {
-                match opcode {
-                    Opcode::On => grid[r][c] = true,
-                    Opcode::Off => grid[r][c] = false,
-                    Opcode::Toggle => grid[r][c] = !grid[r][c],
+        let mut grid: Vec<Vec<bool>> = vec![vec![false; 1000]; 1000];
+
+        for Op {
+            opcode,
+            rct: Rct(Crd(a, b), Crd(c, d)),
+        } in ops.iter()
+        {
+            for r in *a..=*c {
+                for c in *b..=*d {
+                    match opcode {
+                        Opcode::On => grid[r][c] = true,
+                        Opcode::Off => grid[r][c] = false,
+                        Opcode::Toggle => grid[r][c] = !grid[r][c],
+                    }
                 }
             }
         }
+
+        let result = grid.iter().fold(0, |acc, row| {
+            acc + row.iter().fold(0, |sub, x| sub + if *x { 1 } else { 0 })
+        });
+        println!("{}", result);
     }
 
-    let result1 = grid.iter().fold(0, |acc, row| {
-        acc + row.iter().fold(0, |sub, x| sub + if *x { 1 } else { 0 })
-    });
-    println!("{}", result1);
+    {
+        let mut grid: Vec<Vec<i32>> = vec![vec![0; 1000]; 1000];
+
+        for Op {
+            opcode,
+            rct: Rct(Crd(a, b), Crd(c, d)),
+        } in ops
+        {
+            for r in a..=c {
+                for c in b..=d {
+                    match opcode {
+                        Opcode::On => grid[r][c] += 1,
+                        Opcode::Off => grid[r][c] -= 1,
+                        Opcode::Toggle => grid[r][c] += 2,
+                    }
+                }
+            }
+        }
+
+        let result = grid
+            .iter()
+            .fold(0, |acc, row| acc + row.iter().fold(0, |sub, x| sub + *x));
+        println!("{}", result);
+    }
 }
