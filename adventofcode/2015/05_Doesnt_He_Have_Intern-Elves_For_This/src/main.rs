@@ -22,10 +22,16 @@ fn is_free_of_disallowed_pairs(xs: &[u8]) -> bool {
     true
 }
 
+fn is_nice(xs: &[u8]) -> bool {
+    contains_at_least_k_vowels(3, xs) && contains_a_double(xs) && is_free_of_disallowed_pairs(xs)
+}
+
 fn main() {
     let words: Vec<Vec<u8>> = io::stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().into_bytes())
         .collect();
+
+    println!("{}", words.into_iter().filter(|w| is_nice(w)).count());
 }
