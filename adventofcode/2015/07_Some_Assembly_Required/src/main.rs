@@ -3,8 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
-const AZ: u16 = 26;
-const M: usize = AZ as usize * AZ as usize;
+const BASE: u16 = 27;
+const M: usize = BASE as usize * BASE as usize;
 
 #[derive(Debug)]
 struct Wire {
@@ -13,26 +13,16 @@ struct Wire {
 
 impl Wire {
     fn ordinal(lowercase_letter: u8) -> u16 {
-        (lowercase_letter - b'a').into()
+        (lowercase_letter - b'`').into()
     }
 
     fn from_id(id: &str) -> Wire {
         let code: u16 = match id.as_bytes() {
             [y] => Wire::ordinal(*y),
-            [x, y] => AZ * Wire::ordinal(*x) + Wire::ordinal(*y),
+            [x, y] => BASE * Wire::ordinal(*x) + Wire::ordinal(*y),
             _ => panic!("{} is neither a single char nor a pair", id),
         };
         Wire { code }
-    }
-
-    fn id(&self) -> String {
-        if self.code < AZ {
-            String::from_utf8(vec![self.code as u8 + b'a']).unwrap()
-        } else {
-            let b = self.code % AZ;
-            let a = self.code / AZ;
-            String::from_utf8(vec![a as u8 + b'a', b as u8 + b'a']).unwrap()
-        }
     }
 }
 
@@ -148,9 +138,6 @@ impl Instr {
 }
 
 fn main() {
-    assert_eq!(Wire::from_id("hj").id(), "hj");
-    assert_eq!(Wire::from_id("v").id(), "v");
-
     let instructions: Vec<Instr> = io::stdin()
         .lock()
         .lines()
@@ -168,10 +155,6 @@ fn main() {
             outputs[*u as usize].push(v);
         }
         in_deg[v as usize] += us.len();
-
-        if instructions_by_output_wire_code.contains_key(&instr.out.code) {
-            eprintln!("Dupe: {}", instr.out.id());
-        }
 
         assert!(!instructions_by_output_wire_code.contains_key(&instr.out.code));
         instructions_by_output_wire_code.insert(instr.out.code, instr);
@@ -198,5 +181,10 @@ fn main() {
         }
     }
 
-    eprintln!("{:?}", toposorted_wire_codes);
+    let mut env = [0u16; M];
+    for u in toposorted_wire_codes {
+        if let Some(instr) = instructions_by_output_wire_code.get(&u) {
+            eprint!(".");
+        }
+    }
 }
