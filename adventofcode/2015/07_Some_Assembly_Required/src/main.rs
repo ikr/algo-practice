@@ -6,7 +6,7 @@ use std::{
 const BASE: u16 = 27;
 const M: usize = BASE as usize * BASE as usize;
 
-#[derive(Debug)]
+#[derive(Clone)]
 struct Wire {
     code: u16,
 }
@@ -26,7 +26,7 @@ impl Wire {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
 struct Signal(u16);
 
 impl Signal {
@@ -35,7 +35,7 @@ impl Signal {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
 enum Lval {
     Wire(Wire),
     Signal(Signal),
@@ -58,7 +58,7 @@ impl Lval {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
 enum Op {
     Imm(Lval),
     Not(Lval),
@@ -127,7 +127,7 @@ impl Op {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
 struct Instr {
     op: Op,
     out: Wire,
@@ -147,13 +147,7 @@ impl Instr {
     }
 }
 
-fn main() {
-    let instructions: Vec<Instr> = io::stdin()
-        .lock()
-        .lines()
-        .map(|line| Instr::parse(&line.unwrap()))
-        .collect();
-
+fn compute(instructions: &[Instr], override_b: Option<u16>) -> u16 {
     let mut in_deg = [0; M];
     let mut outputs: Vec<Vec<u16>> = vec![vec![]; M];
     let mut instructions_by_output_wire_code: HashMap<u16, Instr> = HashMap::new();
@@ -167,7 +161,17 @@ fn main() {
         in_deg[v as usize] += us.len();
 
         assert!(!instructions_by_output_wire_code.contains_key(&instr.out.code));
-        instructions_by_output_wire_code.insert(instr.out.code, instr);
+        instructions_by_output_wire_code.insert(instr.out.code, instr.clone());
+    }
+
+    if let Some(x) = override_b {
+        instructions_by_output_wire_code.insert(
+            Wire::from_id("b").code,
+            Instr {
+                op: Op::Imm(Lval::Signal(Signal(x))),
+                out: Wire::from_id("b"),
+            },
+        );
     }
 
     let mut toposorted_wire_codes: Vec<u16> = vec![];
@@ -198,13 +202,17 @@ fn main() {
         }
     }
 
-    eprintln!("d: {}", env[Wire::from_id("d").code as usize]);
-    eprintln!("e: {}", env[Wire::from_id("e").code as usize]);
-    eprintln!("f: {}", env[Wire::from_id("f").code as usize]);
-    eprintln!("g: {}", env[Wire::from_id("g").code as usize]);
-    eprintln!("h: {}", env[Wire::from_id("h").code as usize]);
-    eprintln!("i: {}", env[Wire::from_id("i").code as usize]);
-    eprintln!("x: {}", env[Wire::from_id("x").code as usize]);
-    eprintln!("y: {}", env[Wire::from_id("y").code as usize]);
-    println!("{}", env[Wire::from_id("a").code as usize]);
+    env[Wire::from_id("a").code as usize]
+}
+
+fn main() {
+    let instructions: Vec<Instr> = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| Instr::parse(&line.unwrap()))
+        .collect();
+
+    let result1 = compute(&instructions, None);
+    println!("{}", result1);
+    println!("{}", compute(&instructions, Some(result1)));
 }
