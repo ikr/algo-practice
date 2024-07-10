@@ -51,7 +51,6 @@ impl Lval {
     }
 
     fn value(&self, env: &[u16]) -> u16 {
-        assert!(env.len() >= M);
         match &self {
             Lval::Wire(Wire { code }) => env[*code as usize],
             Lval::Signal(Signal(constant_value)) => *constant_value,
@@ -113,6 +112,17 @@ impl Op {
             Op::Or(Lval::Signal(_), Lval::Wire(Wire { code })) => vec![*code],
             Op::Or(Lval::Wire(Wire { code }), Lval::Wire(Wire { code: a })) => vec![*code, *a],
             _ => vec![],
+        }
+    }
+
+    fn value(&self, env: &[u16]) -> u16 {
+        match &self {
+            Op::Imm(x) => x.value(env),
+            Op::Not(x) => !x.value(env),
+            Op::Lshift(x, y) => x.value(env) << y.value(env),
+            Op::Rshift(x, y) => x.value(env) >> y.value(env),
+            Op::And(x, y) => x.value(env) & y.value(env),
+            Op::Or(x, y) => x.value(env) | y.value(env),
         }
     }
 }
@@ -184,7 +194,17 @@ fn main() {
     let mut env = [0u16; M];
     for u in toposorted_wire_codes {
         if let Some(instr) = instructions_by_output_wire_code.get(&u) {
-            eprint!(".");
+            env[instr.out.code as usize] = instr.op.value(&env);
         }
     }
+
+    eprintln!("d: {}", env[Wire::from_id("d").code as usize]);
+    eprintln!("e: {}", env[Wire::from_id("e").code as usize]);
+    eprintln!("f: {}", env[Wire::from_id("f").code as usize]);
+    eprintln!("g: {}", env[Wire::from_id("g").code as usize]);
+    eprintln!("h: {}", env[Wire::from_id("h").code as usize]);
+    eprintln!("i: {}", env[Wire::from_id("i").code as usize]);
+    eprintln!("x: {}", env[Wire::from_id("x").code as usize]);
+    eprintln!("y: {}", env[Wire::from_id("y").code as usize]);
+    println!("{}", env[Wire::from_id("a").code as usize]);
 }
