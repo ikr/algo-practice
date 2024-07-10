@@ -1,6 +1,10 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::{HashMap, VecDeque},
+    io::{self, BufRead},
+};
 
 const AZ: u16 = 26;
+const M: usize = AZ as usize * AZ as usize;
 
 #[derive(Debug)]
 struct Wire {
@@ -19,6 +23,16 @@ impl Wire {
             _ => panic!("{} is neither a single char nor a pair", id),
         };
         Wire { code }
+    }
+
+    fn id(&self) -> String {
+        if self.code < AZ {
+            String::from_utf8(vec![self.code as u8 + b'a']).unwrap()
+        } else {
+            let b = self.code % AZ;
+            let a = self.code / AZ;
+            String::from_utf8(vec![a as u8 + b'a', b as u8 + b'a']).unwrap()
+        }
     }
 }
 
@@ -47,7 +61,7 @@ impl Lval {
     }
 
     fn value(&self, env: &[u16]) -> u16 {
-        assert!(env.len() >= (AZ * AZ).into());
+        assert!(env.len() >= M);
         match &self {
             Lval::Wire(Wire { code }) => env[*code as usize],
             Lval::Signal(Signal(constant_value)) => *constant_value,
@@ -134,10 +148,55 @@ impl Instr {
 }
 
 fn main() {
+    assert_eq!(Wire::from_id("hj").id(), "hj");
+    assert_eq!(Wire::from_id("v").id(), "v");
+
     let instructions: Vec<Instr> = io::stdin()
         .lock()
         .lines()
         .map(|line| Instr::parse(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", instructions);
+
+    let mut in_deg = [0; M];
+    let mut outputs: Vec<Vec<u16>> = vec![vec![]; M];
+    let mut instructions_by_output_wire_code: HashMap<u16, Instr> = HashMap::new();
+
+    for instr in instructions {
+        let v = instr.out.code;
+        let us = instr.op.prerequisite_codes();
+        for u in us.iter() {
+            outputs[*u as usize].push(v);
+        }
+        in_deg[v as usize] += us.len();
+
+        if instructions_by_output_wire_code.contains_key(&instr.out.code) {
+            eprintln!("Dupe: {}", instr.out.id());
+        }
+
+        assert!(!instructions_by_output_wire_code.contains_key(&instr.out.code));
+        instructions_by_output_wire_code.insert(instr.out.code, instr);
+    }
+
+    let mut toposorted_wire_codes: Vec<u16> = vec![];
+    let mut q: VecDeque<u16> = VecDeque::new();
+
+    for (i, d) in in_deg.iter().enumerate() {
+        if *d == 0 {
+            q.push_back(i as u16);
+        }
+    }
+
+    while let Some(u) = q.pop_front() {
+        toposorted_wire_codes.push(u);
+
+        for v in outputs[u as usize].iter() {
+            assert!(in_deg[*v as usize] > 0);
+            in_deg[*v as usize] -= 1;
+            if in_deg[*v as usize] == 0 {
+                q.push_back(*v);
+            }
+        }
+    }
+
+    eprintln!("{:?}", toposorted_wire_codes);
 }
