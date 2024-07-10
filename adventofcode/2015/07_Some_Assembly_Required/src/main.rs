@@ -91,6 +91,26 @@ impl Op {
             Op::Imm(Lval::parse(src))
         }
     }
+
+    fn prerequisite_codes(&self) -> Vec<u16> {
+        match self {
+            Op::Imm(Lval::Wire(Wire { code })) => vec![*code],
+            Op::Not(Lval::Wire(Wire { code })) => vec![*code],
+            Op::Lshift(Lval::Wire(Wire { code }), Lval::Signal(_)) => vec![*code],
+            Op::Lshift(Lval::Signal(_), Lval::Wire(Wire { code })) => vec![*code],
+            Op::Lshift(Lval::Wire(Wire { code }), Lval::Wire(Wire { code: a })) => vec![*code, *a],
+            Op::Rshift(Lval::Wire(Wire { code }), Lval::Signal(_)) => vec![*code],
+            Op::Rshift(Lval::Signal(_), Lval::Wire(Wire { code })) => vec![*code],
+            Op::Rshift(Lval::Wire(Wire { code }), Lval::Wire(Wire { code: a })) => vec![*code, *a],
+            Op::And(Lval::Wire(Wire { code }), Lval::Signal(_)) => vec![*code],
+            Op::And(Lval::Signal(_), Lval::Wire(Wire { code })) => vec![*code],
+            Op::And(Lval::Wire(Wire { code }), Lval::Wire(Wire { code: a })) => vec![*code, *a],
+            Op::Or(Lval::Wire(Wire { code }), Lval::Signal(_)) => vec![*code],
+            Op::Or(Lval::Signal(_), Lval::Wire(Wire { code })) => vec![*code],
+            Op::Or(Lval::Wire(Wire { code }), Lval::Wire(Wire { code: a })) => vec![*code, *a],
+            _ => vec![],
+        }
+    }
 }
 
 #[derive(Debug)]
