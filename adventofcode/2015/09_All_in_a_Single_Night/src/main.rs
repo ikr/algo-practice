@@ -61,7 +61,7 @@ fn main() {
 
     eprintln!("{:?}", g);
 
-    let mut result = i32::MAX;
+    let mut result = 0;
     for perm in (0..n).permutations(n) {
         let candidate = perm.windows(2).fold(0, |acc, uv| {
             let [u, v] = uv[..] else {
@@ -69,7 +69,7 @@ fn main() {
             };
             acc + g[u][v]
         });
-        result = result.min(candidate);
+        result = result.max(candidate);
     }
     println!("{}", result);
 }
