@@ -39,15 +39,11 @@ fn main() {
         .map(|line| parse_line(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", facts);
-
     let locations: Vec<String> = distinct(facts.iter().fold(vec![], |mut acc, (u, v, _)| {
         acc.push(u.to_string());
         acc.push(v.to_string());
         acc
     }));
-
-    eprintln!("{:?}", locations);
 
     let n = locations.len();
     let mut g: Vec<Vec<i32>> = vec![vec![0; n]; n];
@@ -58,8 +54,6 @@ fn main() {
         g[u][v] = distance;
         g[v][u] = distance;
     }
-
-    eprintln!("{:?}", g);
 
     let mut result = 0;
     for perm in (0..n).permutations(n) {
