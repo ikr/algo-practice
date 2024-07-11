@@ -1,11 +1,5 @@
-use regex::{Captures, Regex};
+use regex::Regex;
 use std::io::{self, BufRead};
-
-fn decode_ascii_hex(src: &str) -> String {
-    let a = u8::from_str_radix(src, 16).unwrap();
-    let b: u8 = if a > 127 { a - 127 } else { a };
-    String::from_utf8(vec![b]).unwrap()
-}
 
 fn decode(src: &str) -> String {
     let a: String = src
@@ -13,13 +7,13 @@ fn decode(src: &str) -> String {
         .and_then(|x| x.strip_suffix('"'))
         .unwrap()
         .replace("\\\\x", "\\\\X")
+        .replace("\\\\\"", "\\\\Q")
         .replace("\\\\", "\\")
         .replace("\\\"", "\"")
         .to_owned();
 
     let re = Regex::new(r"(\\x)([a-z0-9][a-z0-9])").unwrap();
-    re.replace_all(&a, |caps: &Captures| decode_ascii_hex(&caps[2]))
-        .into_owned()
+    re.replace_all(&a, "Z").into_owned()
 }
 
 fn main() {
@@ -28,6 +22,9 @@ fn main() {
         .lines()
         .map(|line| line.unwrap())
         .collect();
+    for line in lines.iter() {
+        eprintln!("{} → {}", line, decode(line));
+    }
 
     let result = lines
         .into_iter()
