@@ -1,5 +1,7 @@
 use std::io::{self, BufRead};
 
+use itertools::Itertools;
+
 fn parse_line_parts(src: &str) -> (String, i32) {
     let [a, b] = src.split(" = ").collect::<Vec<_>>()[..] else {
         panic!("Invalid line {}", src)
@@ -58,4 +60,16 @@ fn main() {
     }
 
     eprintln!("{:?}", g);
+
+    let mut result = i32::MAX;
+    for perm in (0..n).permutations(n) {
+        let candidate = perm.windows(2).fold(0, |acc, uv| {
+            let [u, v] = uv[..] else {
+                panic!("{:?} isn't a pair", uv)
+            };
+            acc + g[u][v]
+        });
+        result = result.min(candidate);
+    }
+    println!("{}", result);
 }
