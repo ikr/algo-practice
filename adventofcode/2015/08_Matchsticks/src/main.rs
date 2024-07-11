@@ -31,6 +31,12 @@ fn decode(src: &str) -> Vec<u8> {
     result
 }
 
+fn encoded_length(xs: &[u8]) -> usize {
+    let bss = xs.iter().filter(|x| **x == b'\\').count();
+    let qs = xs.iter().filter(|x| **x == b'"').count();
+    xs.len() + bss + qs + 6
+}
+
 fn main() {
     let lines: Vec<String> = io::stdin()
         .lock()
@@ -38,8 +44,18 @@ fn main() {
         .map(|line| line.unwrap())
         .collect();
 
-    let result = lines
-        .into_iter()
-        .fold(0, |acc, s| acc + s.len() - decode(&s).len());
-    println!("{}", result);
+    let result1 = lines
+        .iter()
+        .fold(0, |acc, s| acc + s.len() - decode(s).len());
+    println!("{}", result1);
+
+    let result2 = lines.into_iter().fold(0, |acc, s| {
+        acc + encoded_length(
+            s.strip_prefix('"')
+                .and_then(|x| x.strip_suffix('"'))
+                .unwrap()
+                .as_bytes(),
+        ) - s.len()
+    });
+    println!("{}", result2);
 }
