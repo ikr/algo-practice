@@ -25,6 +25,6 @@ fn main() {
         .trim()
         .to_owned();
 
-    let result = (1..=40).fold(xs, |acc, _| look_and_say(&run_length_encoding(&acc)));
+    let result = (1..=50).fold(xs, |acc, _| look_and_say(&run_length_encoding(&acc)));
     println!("{}", result.len());
 }
