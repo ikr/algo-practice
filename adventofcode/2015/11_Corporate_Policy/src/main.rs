@@ -61,6 +61,16 @@ fn is_valid_password(xs: &[u8]) -> bool {
     has_straight_triple(xs) && !has_one_of_iol(xs) && has_at_least_two_non_overlapping_pairs(xs)
 }
 
+fn next_password(xs: &[u8]) -> Vec<u8> {
+    let mut cur = xs.to_vec();
+    loop {
+        cur = word_of(word_value(&cur) + 1);
+        if is_valid_password(&cur) {
+            return cur;
+        }
+    }
+}
+
 fn main() {
     let xs: Vec<u8> = std::io::read_to_string(std::io::stdin())
         .unwrap()
@@ -68,13 +78,9 @@ fn main() {
         .as_bytes()
         .to_vec();
 
-    let mut cur = xs.clone();
-    loop {
-        cur = word_of(word_value(&cur) + 1);
-        if is_valid_password(&cur) {
-            break;
-        }
-    }
+    let result1 = next_password(&xs);
+    println!("{}", String::from_utf8(result1.clone()).unwrap());
 
-    println!("{}", String::from_utf8(cur).unwrap());
+    let result2 = next_password(&result1);
+    println!("{}", String::from_utf8(result2).unwrap());
 }
