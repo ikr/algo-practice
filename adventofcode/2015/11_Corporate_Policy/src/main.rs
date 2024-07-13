@@ -1,5 +1,6 @@
 const M: u64 = 26;
 const Z: u8 = b'a';
+const L: usize = 8;
 
 fn word_value(xs: &[u8]) -> u64 {
     let mut m: u64 = 1;
@@ -13,14 +14,14 @@ fn word_value(xs: &[u8]) -> u64 {
 
 fn word_of(mut x: u64) -> Vec<u8> {
     if x == 0 {
-        vec![b'a'; 8]
+        vec![b'a'; L]
     } else {
         let mut result = vec![];
         while x != 0 {
             result.push(Z + (x % M) as u8);
             x /= M;
         }
-        while result.len() < 8 {
+        while result.len() < L {
             result.push(Z);
         }
         result.reverse();
@@ -35,6 +36,18 @@ fn has_straight_triple(xs: &[u8]) -> bool {
         };
         *a + 1 == *b && *b + 1 == *c
     })
+}
+
+fn has_one_of_iol(xs: &[u8]) -> bool {
+    xs.iter().any(|x| *x == b'i' || *x == b'o' || *x == b'l')
+}
+
+fn pair_index(xs: &[u8]) -> Option<usize> {
+    xs.windows(2)
+        .enumerate()
+        .filter(|(_, xy)| if let [x, y] = xy { x == y } else { false })
+        .next()
+        .map(|x| x.0)
 }
 
 fn main() {
