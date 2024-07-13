@@ -42,12 +42,23 @@ fn has_one_of_iol(xs: &[u8]) -> bool {
     xs.iter().any(|x| *x == b'i' || *x == b'o' || *x == b'l')
 }
 
-fn pair_index(xs: &[u8]) -> Option<usize> {
+fn pair_indices(xs: &[u8]) -> Vec<usize> {
     xs.windows(2)
         .enumerate()
         .filter(|(_, xy)| if let [x, y] = xy { x == y } else { false })
-        .next()
         .map(|x| x.0)
+        .collect()
+}
+
+fn has_at_least_two_non_overlapping_pairs(xs: &[u8]) -> bool {
+    match pair_indices(xs)[..] {
+        [a, .., b] => b - a > 1,
+        _ => false,
+    }
+}
+
+fn is_valid_password(xs: &[u8]) -> bool {
+    has_straight_triple(xs) && !has_one_of_iol(xs) && has_at_least_two_non_overlapping_pairs(xs)
 }
 
 fn main() {
@@ -57,5 +68,13 @@ fn main() {
         .as_bytes()
         .to_vec();
 
-    assert_eq!(xs, word_of(word_value(&xs)));
+    let mut cur = xs.clone();
+    loop {
+        cur = word_of(word_value(&cur) + 1);
+        if is_valid_password(&cur) {
+            break;
+        }
+    }
+
+    println!("{}", String::from_utf8(cur).unwrap());
 }
