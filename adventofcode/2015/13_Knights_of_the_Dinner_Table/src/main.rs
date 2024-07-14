@@ -35,11 +35,13 @@ fn main() {
         .map(|line| parse_relative_happiness(&line.unwrap()))
         .collect();
 
-    let names: Vec<String> = distinct(facts.iter().fold(vec![], |mut acc, (u, v, _)| {
+    let mut names: Vec<String> = distinct(facts.iter().fold(vec![], |mut acc, (u, v, _)| {
         acc.push(u.to_string());
         acc.push(v.to_string());
         acc
     }));
+    names.push("Ivan".to_string());
+    names.sort();
 
     let n = names.len();
     let mut g: Vec<Vec<i32>> = vec![vec![0; n]; n];
