@@ -1,6 +1,16 @@
+use itertools::Itertools;
+use regex::Regex;
 use std::io::{self, BufRead};
 
-use regex::Regex;
+fn index_of(haystack: &[String], needle: &str) -> usize {
+    haystack.iter().position(|s| s == needle).unwrap()
+}
+
+fn distinct<T: Ord>(mut xs: Vec<T>) -> Vec<T> {
+    xs.sort();
+    xs.dedup();
+    xs
+}
 
 fn parse_relative_happiness(src: &str) -> (String, String, i32) {
     let re = Regex::new(
@@ -24,5 +34,32 @@ fn main() {
         .lines()
         .map(|line| parse_relative_happiness(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", facts);
+
+    let names: Vec<String> = distinct(facts.iter().fold(vec![], |mut acc, (u, v, _)| {
+        acc.push(u.to_string());
+        acc.push(v.to_string());
+        acc
+    }));
+
+    let n = names.len();
+    let mut g: Vec<Vec<i32>> = vec![vec![0; n]; n];
+
+    for (a, b, happiness) in facts.into_iter() {
+        let u = index_of(&names, &a);
+        let v = index_of(&names, &b);
+        g[u][v] = happiness;
+        g[v][u] = happiness;
+    }
+
+    let mut result = 0;
+    for perm in (0..n).permutations(n) {
+        let candidate = (0..n).fold(0, |acc, i| {
+            let u = perm[(i + n - 1) % n];
+            let v = perm[i];
+            let w = (i + 1) % n;
+            acc + g[v][u] + g[v][w]
+        });
+        result = result.max(candidate);
+    }
+    println!("{}", result);
 }
