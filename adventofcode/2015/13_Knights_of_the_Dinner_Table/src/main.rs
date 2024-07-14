@@ -48,7 +48,6 @@ fn main() {
         let u = index_of(&names, &a);
         let v = index_of(&names, &b);
         g[u][v] = happiness;
-        g[v][u] = happiness;
     }
 
     let mut result = 0;
@@ -56,7 +55,7 @@ fn main() {
         let candidate = (0..n).fold(0, |acc, i| {
             let u = perm[(i + n - 1) % n];
             let v = perm[i];
-            let w = (i + 1) % n;
+            let w = perm[(i + 1) % n];
             acc + g[v][u] + g[v][w]
         });
         result = result.max(candidate);
