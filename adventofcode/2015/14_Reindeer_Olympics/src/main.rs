@@ -41,7 +41,28 @@ fn main() {
         .map(|line| parse_fact(&line.unwrap()))
         .collect();
 
-    let t = 2503;
-    let ds: Vec<_> = facts.into_iter().map(|(_, mob)| mob.distance(t)).collect();
-    println!("{}", ds.into_iter().max().unwrap());
+    let t_max = 2503;
+    println!(
+        "{}",
+        facts
+            .iter()
+            .map(|(_, mob)| mob.distance(t_max))
+            .max()
+            .unwrap()
+    );
+
+    let mut points = vec![0; facts.len()];
+
+    for t in 1..=t_max {
+        let ds: Vec<_> = facts.iter().map(|(_, mob)| mob.distance(t)).collect();
+        let hi = *ds.iter().max().unwrap();
+
+        for (i, d) in ds.into_iter().enumerate() {
+            if d == hi {
+                points[i] += 1;
+            }
+        }
+    }
+
+    println!("{}", points.into_iter().max().unwrap());
 }
