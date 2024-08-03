@@ -41,5 +41,7 @@ fn main() {
         .map(|line| parse_fact(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", facts);
+    let t = 2503;
+    let ds: Vec<_> = facts.into_iter().map(|(_, mob)| mob.distance(t)).collect();
+    println!("{}", ds.into_iter().max().unwrap());
 }
