@@ -3,23 +3,7 @@ using namespace std;
 
 using ll = long long;
 
-static constexpr int M = 4;
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
-template <typename T>
-ostream &operator<<(ostream &os, const vector<vector<T>> &xss) {
-    for (const auto &xs : xss) os << xs << '\n';
-    return os;
-}
+static constexpr int M = 27;
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -54,9 +38,6 @@ int main() {
             }
         }
     }
-
-    cerr << odd << '\n' << endl;
-    cerr << evn << endl;
 
     ll ans = -1LL * accumulate(cbegin(xs), cend(xs), 0LL);
 
