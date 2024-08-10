@@ -1,5 +1,8 @@
+use itertools::Itertools;
 use regex::Regex;
 use std::io::{self, BufRead};
+
+const TOTAL_SPOONS: i8 = 100;
 
 fn parse_fact(src: &str) -> (String, [i8; 5]) {
     let re = Regex::new(r"^([A-Z][a-z]+): capacity (-?\d+), durability (-?\d+), flavor (-?\d+), texture (-?\d+), calories (-?\d+)$").unwrap();
@@ -15,6 +18,16 @@ fn parse_fact(src: &str) -> (String, [i8; 5]) {
     )
 }
 
+fn all_ratios(ingridients_count: usize) -> Vec<Vec<i8>> {
+    assert!(ingridients_count > 1);
+    (1..ingridients_count)
+        .map(|_| (1..TOTAL_SPOONS as i64).collect::<Vec<_>>())
+        .multi_cartesian_product()
+        .filter(|xs| xs.iter().sum::<i64>() < 100)
+        .map(|xs| xs.iter().map(|x| *x as i8).collect::<Vec<_>>())
+        .collect()
+}
+
 fn main() {
     let facts: Vec<_> = io::stdin()
         .lock()
@@ -22,4 +35,6 @@ fn main() {
         .map(|line| parse_fact(&line.unwrap()))
         .collect();
     eprintln!("{:?}", facts);
+
+    eprintln!("{:?}", all_ratios(3));
 }
