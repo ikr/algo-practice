@@ -33,13 +33,25 @@ fn all_ratios(ingridients_count: usize) -> Vec<Vec<i8>> {
         .collect()
 }
 
+fn dot_product(xs: &[i8], ys: &[i8]) -> i32 {
+    xs.iter()
+        .zip(ys.iter())
+        .map(|(x, y)| *x as i32 * *y as i32)
+        .sum::<i32>()
+}
+
 fn main() {
     let facts: Vec<_> = io::stdin()
         .lock()
         .lines()
         .map(|line| parse_fact(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", facts);
 
-    eprintln!("{:?}", all_ratios(2));
+    let rss = all_ratios(facts.first().unwrap().1.len() - 1);
+    let result = facts
+        .into_iter()
+        .map(|(_, cs)| rss.iter().map(|rs| dot_product(&rs, &cs)).max().unwrap())
+        .collect::<Vec<_>>();
+
+    eprintln!("{:?}", result);
 }
