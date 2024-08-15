@@ -24,7 +24,12 @@ fn all_ratios(ingridients_count: usize) -> Vec<Vec<i8>> {
         .map(|_| (1..TOTAL_SPOONS as i64).collect::<Vec<_>>())
         .multi_cartesian_product()
         .filter(|xs| xs.iter().sum::<i64>() < 100)
-        .map(|xs| xs.iter().map(|x| *x as i8).collect::<Vec<_>>())
+        .map(|xs| {
+            let mut v = xs.iter().map(|x| *x as i8).collect::<Vec<_>>();
+            let s = v.iter().sum::<i8>();
+            v.push(TOTAL_SPOONS - s);
+            v
+        })
         .collect()
 }
 
@@ -36,5 +41,5 @@ fn main() {
         .collect();
     eprintln!("{:?}", facts);
 
-    eprintln!("{:?}", all_ratios(3));
+    eprintln!("{:?}", all_ratios(2));
 }
