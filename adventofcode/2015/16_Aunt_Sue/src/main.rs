@@ -32,7 +32,6 @@ fn contains_submap(a: &HashMap<String, i32>, b: &HashMap<String, i32>) -> bool {
 fn parse_sue_props(src: &str) -> HashMap<String, i32> {
     let re = Regex::new(r"^Sue \d+: ([a-z]+): (\d+), ([a-z]+): (\d+), ([a-z]+): (\d+)$").unwrap();
     let caps = re.captures(src).unwrap();
-    eprintln!("{:?}", caps);
 
     (0..3)
         .map(|i| {
@@ -50,5 +49,14 @@ fn main() {
         .map(|line| parse_sue_props(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", sues);
+    let ts = traces_found();
+
+    let result = sues
+        .into_iter()
+        .enumerate()
+        .map(|(i, ps)| (i + 1, ps))
+        .filter(|(_, ps)| contains_submap(&ts, ps))
+        .collect::<Vec<_>>();
+
+    eprintln!("{:?}", result);
 }
