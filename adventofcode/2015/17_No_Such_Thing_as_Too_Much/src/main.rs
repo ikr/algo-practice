@@ -20,8 +20,22 @@ fn main() {
         .collect();
 
     let n = xs.len();
-    let result = (0..(1 << n))
+
+    let result1 = (0..(1 << n))
         .filter(|bits| subset_value(&xs, *bits) == A)
         .count();
-    println!("{}", result);
+
+    println!("{}", result1);
+
+    let min_subset_size = (0..(1u32 << n))
+        .filter(|bits| subset_value(&xs, *bits) == A)
+        .map(|bits| bits.count_ones())
+        .min()
+        .unwrap();
+
+    let result1 = (0..(1u32 << n))
+        .filter(|bits| bits.count_ones() == min_subset_size && subset_value(&xs, *bits) == A)
+        .count();
+
+    println!("{}", result1);
 }
