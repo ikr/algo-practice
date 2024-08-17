@@ -69,6 +69,7 @@ fn main() {
     let rss = all_ratios(ingredients.len());
     let result = rss
         .into_iter()
+        .filter(|rs| property_value_in_a_recipe(&ingredients, rs, M) == 500)
         .map(|rs| score(&ingredients, &rs))
         .max()
         .unwrap();
