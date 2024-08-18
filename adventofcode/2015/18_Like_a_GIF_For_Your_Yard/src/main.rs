@@ -1,17 +1,6 @@
 use itertools::Itertools;
 use std::io::{self, BufRead};
 
-// fn print_to_stderr(grid: &[Vec<bool>]) {
-//     for row in grid {
-//         eprintln!(
-//             "{}",
-//             row.iter()
-//                 .map(|x| if *x { '#' } else { '.' })
-//                 .collect::<String>()
-//         );
-//     }
-// }
-
 fn neighs_count(grid: &[Vec<bool>], ro: usize, co: usize) -> u8 {
     let h = grid.len() as i8;
     assert!(h > 0);
@@ -40,6 +29,11 @@ fn evolve(grid: &[Vec<bool>]) -> Vec<Vec<bool>> {
     let mut result = vec![vec![false; w]; h];
     for r in 0..h {
         for c in 0..w {
+            if [(0, 0), (0, w - 1), (h - 1, w - 1), (h - 1, 0)].contains(&(r, c)) {
+                result[r][c] = true;
+                continue;
+            }
+
             let ns = neighs_count(grid, r, c);
 
             if grid[r][c] {
@@ -64,7 +58,15 @@ fn main() {
         .map(|line| line.unwrap().bytes().map(|b| b == b'#').collect())
         .collect();
 
+    let h = grid.len();
+    assert!(h > 0);
+    let w = grid[0].len();
+
     let mut cur = grid.clone();
+    for (i, j) in [(0, 0), (0, w - 1), (h - 1, w - 1), (h - 1, 0)] {
+        cur[i][j] = true;
+    }
+
     for _ in 0..100 {
         cur = evolve(&cur);
     }
