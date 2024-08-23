@@ -46,6 +46,14 @@ fn main() {
 
     println!("{}", result1.len());
 
+    let left_firsts: HashSet<u8> = rules.iter().map(|(x, _)| x.as_bytes()[0]).collect();
+    let left_lasts: HashSet<u8> = rules
+        .iter()
+        .map(|(x, _)| *x.as_bytes().last().unwrap())
+        .collect();
+    let target_first: u8 = medicine_molecule.as_bytes()[0];
+    let target_last: u8 = *medicine_molecule.as_bytes().last().unwrap();
+
     let mut q: VecDeque<(String, i32)> = VecDeque::new();
     q.push_back(("e".to_owned(), 0));
 
@@ -57,6 +65,14 @@ fn main() {
             .iter()
             .flat_map(|(a, b)| all_replacements(&u, &a, &b))
             .filter(|v| v.len() <= medicine_molecule.len() && !seen.contains(&mhash(v)))
+            .filter(|v| {
+                let x = v.as_bytes()[0];
+                left_firsts.contains(&x) || x == target_first
+            })
+            .filter(|v| {
+                let x = *v.as_bytes().last().unwrap();
+                left_lasts.contains(&x) || x == target_last
+            })
             .collect();
 
         for v in vs {
