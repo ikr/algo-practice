@@ -1,6 +1,7 @@
 use std::{
-    collections::HashSet,
+    collections::{HashSet, VecDeque},
     io::{self, BufRead},
+    process::exit,
 };
 
 fn all_replacements(xs: &str, pattern: &str, replacement: &str) -> Vec<String> {
@@ -31,10 +32,34 @@ fn main() {
         .map(|rule_line| parse_rule(rule_line))
         .collect::<Vec<_>>();
 
-    let xs: HashSet<String> = rules
-        .into_iter()
+    let result1: HashSet<String> = rules
+        .iter()
         .flat_map(|(a, b)| all_replacements(&medicine_molecule, &a, &b))
         .collect();
 
-    println!("{}", xs.len());
+    println!("{}", result1.len());
+
+    let mut q: VecDeque<(String, i32)> = VecDeque::new();
+    q.push_back(("e".to_owned(), 0));
+
+    let mut seen: HashSet<String> = HashSet::new();
+    seen.insert("e".to_owned());
+
+    while let Some((u, d)) = q.pop_front() {
+        let vs: HashSet<String> = rules
+            .iter()
+            .flat_map(|(a, b)| all_replacements(&u, &a, &b))
+            .filter(|v| v.len() <= medicine_molecule.len() && !seen.contains(v))
+            .collect();
+
+        for v in vs {
+            if v == medicine_molecule {
+                println!("{}", d + 1);
+                exit(0);
+            }
+
+            q.push_back((v.clone(), d + 1));
+            seen.insert(v);
+        }
+    }
 }
