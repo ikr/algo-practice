@@ -1,3 +1,4 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::{
     collections::{HashSet, VecDeque},
     io::{self, BufRead},
@@ -15,6 +16,12 @@ fn all_replacements(xs: &str, pattern: &str, replacement: &str) -> Vec<String> {
 fn parse_rule(rule_line: &str) -> (String, String) {
     let parts = rule_line.split(" => ").collect::<Vec<_>>();
     (parts[0].to_owned(), parts[1].to_owned())
+}
+
+fn mhash(xs: &str) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    xs.hash(&mut hasher);
+    hasher.finish()
 }
 
 fn main() {
@@ -42,14 +49,14 @@ fn main() {
     let mut q: VecDeque<(String, i32)> = VecDeque::new();
     q.push_back(("e".to_owned(), 0));
 
-    let mut seen: HashSet<String> = HashSet::new();
-    seen.insert("e".to_owned());
+    let mut seen: HashSet<u64> = HashSet::new();
+    seen.insert(mhash("e"));
 
     while let Some((u, d)) = q.pop_front() {
         let vs: HashSet<String> = rules
             .iter()
             .flat_map(|(a, b)| all_replacements(&u, &a, &b))
-            .filter(|v| v.len() <= medicine_molecule.len() && !seen.contains(v))
+            .filter(|v| v.len() <= medicine_molecule.len() && !seen.contains(&mhash(v)))
             .collect();
 
         for v in vs {
@@ -59,7 +66,7 @@ fn main() {
             }
 
             q.push_back((v.clone(), d + 1));
-            seen.insert(v);
+            seen.insert(mhash(&v));
         }
     }
 }
