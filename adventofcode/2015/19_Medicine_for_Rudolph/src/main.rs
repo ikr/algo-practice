@@ -1,8 +1,6 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::HashSet,
     io::{self, BufRead},
-    process::exit,
 };
 
 fn all_replacements(xs: &str, pattern: &str, replacement: &str) -> Vec<String> {
@@ -18,10 +16,12 @@ fn parse_rule(rule_line: &str) -> (String, String) {
     (parts[0].to_owned(), parts[1].to_owned())
 }
 
-fn mhash(xs: &str) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    xs.hash(&mut hasher);
-    hasher.finish()
+fn solve_part_1(medicine_molecule: &str, rules: &[(String, String)]) -> usize {
+    rules
+        .iter()
+        .flat_map(|(a, b)| all_replacements(medicine_molecule, &a, &b))
+        .collect::<HashSet<_>>()
+        .len()
 }
 
 fn main() {
@@ -39,50 +39,5 @@ fn main() {
         .map(|rule_line| parse_rule(rule_line))
         .collect::<Vec<_>>();
 
-    let result1: HashSet<String> = rules
-        .iter()
-        .flat_map(|(a, b)| all_replacements(&medicine_molecule, &a, &b))
-        .collect();
-
-    println!("{}", result1.len());
-
-    let left_firsts: HashSet<u8> = rules.iter().map(|(x, _)| x.as_bytes()[0]).collect();
-    let left_lasts: HashSet<u8> = rules
-        .iter()
-        .map(|(x, _)| *x.as_bytes().last().unwrap())
-        .collect();
-    let target_first: u8 = medicine_molecule.as_bytes()[0];
-    let target_last: u8 = *medicine_molecule.as_bytes().last().unwrap();
-
-    let mut q: VecDeque<(String, i32)> = VecDeque::new();
-    q.push_back(("e".to_owned(), 0));
-
-    let mut seen: HashSet<u64> = HashSet::new();
-    seen.insert(mhash("e"));
-
-    while let Some((u, d)) = q.pop_front() {
-        let vs: HashSet<String> = rules
-            .iter()
-            .flat_map(|(a, b)| all_replacements(&u, &a, &b))
-            .filter(|v| v.len() <= medicine_molecule.len() && !seen.contains(&mhash(v)))
-            .filter(|v| {
-                let x = v.as_bytes()[0];
-                left_firsts.contains(&x) || x == target_first
-            })
-            .filter(|v| {
-                let x = *v.as_bytes().last().unwrap();
-                left_lasts.contains(&x) || x == target_last
-            })
-            .collect();
-
-        for v in vs {
-            if v == medicine_molecule {
-                println!("{}", d + 1);
-                exit(0);
-            }
-
-            q.push_back((v.clone(), d + 1));
-            seen.insert(mhash(&v));
-        }
-    }
+    println!("{}", solve_part_1(&medicine_molecule, &rules));
 }
