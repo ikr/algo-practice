@@ -19,9 +19,19 @@ fn parse_rule(rule_line: &str) -> (String, String) {
 fn solve_part_1(medicine_molecule: &str, rules: &[(String, String)]) -> usize {
     rules
         .iter()
-        .flat_map(|(a, b)| all_replacements(medicine_molecule, &a, &b))
+        .flat_map(|(a, b)| all_replacements(medicine_molecule, a, b))
         .collect::<HashSet<_>>()
         .len()
+}
+
+fn solve_part_2(medicine_molecule: &str, rules: &[(String, String)]) -> u32 {
+    let rhss = rules.iter().map(|(_, x)| x).collect::<Vec<_>>();
+    let xs = rhss
+        .into_iter()
+        .filter(|rhs| medicine_molecule.contains(*rhs))
+        .collect::<Vec<_>>();
+    eprintln!("{:?}", xs);
+    todo!()
 }
 
 fn main() {
@@ -40,4 +50,5 @@ fn main() {
         .collect::<Vec<_>>();
 
     println!("{}", solve_part_1(&medicine_molecule, &rules));
+    println!("{}", solve_part_2(&medicine_molecule, &rules));
 }
