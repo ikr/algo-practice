@@ -22,11 +22,19 @@ fn number_of_presents(house_number: i64) -> i64 {
     divisors(house_number).into_iter().map(|i| i * 10).sum()
 }
 
-fn main() {
-    let result = (1..=P)
+fn solve_part_1() -> i64 {
+    (1..=P)
         .take_while(|i| number_of_presents(*i) < P)
         .max()
         .unwrap()
-        + 1;
-    println!("{}", result);
+        + 1
+}
+
+fn solve_part_2() -> i64 {
+    todo!()
+}
+
+fn main() {
+    println!("{}", solve_part_1());
+    println!("{}", solve_part_2());
 }
