@@ -35,13 +35,13 @@ fn solve_part_2() -> usize {
     for e in 1..=P {
         for m in 1..=50 {
             let h = (e * m) as usize;
-            presents[h] += e * 11;
-            if presents[h] >= P {
-                return h;
+            if h < presents.len() {
+                presents[h] += e * 11;
             }
         }
     }
-    P as usize
+
+    presents.into_iter().position(|p| p >= P).unwrap()
 }
 
 fn main() {
