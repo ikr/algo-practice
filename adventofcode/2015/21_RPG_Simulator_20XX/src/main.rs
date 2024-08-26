@@ -23,6 +23,14 @@ impl Fighter {
             armor: 0,
         }
     }
+
+    fn equip(&self, item: &Item) -> Fighter {
+        Fighter {
+            hit_points: self.hit_points,
+            damage: self.damage + item.damage,
+            armor: self.armor + item.armor,
+        }
+    }
 }
 
 #[derive(Debug)]
