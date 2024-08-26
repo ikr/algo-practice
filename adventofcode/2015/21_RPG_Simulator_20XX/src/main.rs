@@ -31,6 +31,14 @@ impl Fighter {
             armor: self.armor + item.armor,
         }
     }
+
+    fn attack_return_new_enemy_state(&self, mut enemy: Fighter) -> Fighter {
+        assert!(self.hit_points > 0);
+        assert!(enemy.hit_points > 0);
+        let dealt_damage = (self.damage - enemy.armor).max(1);
+        enemy.hit_points -= dealt_damage;
+        enemy
+    }
 }
 
 #[derive(Debug)]
@@ -90,4 +98,33 @@ impl Item {
     }
 }
 
-fn main() {}
+fn main() {
+    let mut player = Fighter {
+        hit_points: 8,
+        damage: 5,
+        armor: 5,
+    };
+    let mut boss = Fighter {
+        hit_points: 12,
+        damage: 7,
+        armor: 2,
+    };
+
+    boss = player.attack_return_new_enemy_state(boss);
+    eprintln!("{}", boss.hit_points);
+    player = boss.attack_return_new_enemy_state(player);
+    eprintln!("{}", player.hit_points);
+
+    boss = player.attack_return_new_enemy_state(boss);
+    eprintln!("{}", boss.hit_points);
+    player = boss.attack_return_new_enemy_state(player);
+    eprintln!("{}", player.hit_points);
+
+    boss = player.attack_return_new_enemy_state(boss);
+    eprintln!("{}", boss.hit_points);
+    player = boss.attack_return_new_enemy_state(player);
+    eprintln!("{}", player.hit_points);
+
+    boss = player.attack_return_new_enemy_state(boss);
+    eprintln!("{}", boss.hit_points);
+}
