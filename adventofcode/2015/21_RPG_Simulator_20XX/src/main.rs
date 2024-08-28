@@ -129,31 +129,63 @@ impl Item {
 }
 
 fn main() {
-    let mut result = i32::MAX;
-    for xs in Item::weapons() {
-        for ys in Item::armor() {
-            for zs in Item::rings() {
-                let mut p = Fighter::player();
-                let mut c = 0;
+    {
+        let mut result = i32::MAX;
+        for xs in Item::weapons() {
+            for ys in Item::armor() {
+                for zs in Item::rings() {
+                    let mut p = Fighter::player();
+                    let mut c = 0;
 
-                for x in xs.iter() {
-                    p = p.equip(x);
-                    c += x.cost;
-                }
-                for y in ys.iter() {
-                    p = p.equip(y);
-                    c += y.cost;
-                }
-                for z in zs.iter() {
-                    p = p.equip(z);
-                    c += z.cost;
-                }
+                    for x in xs.iter() {
+                        p = p.equip(x);
+                        c += x.cost;
+                    }
+                    for y in ys.iter() {
+                        p = p.equip(y);
+                        c += y.cost;
+                    }
+                    for z in zs.iter() {
+                        p = p.equip(z);
+                        c += z.cost;
+                    }
 
-                if Fighter::simulate_duel_return_winner_index([p, Fighter::boss()]) == 0 {
-                    result = result.min(c);
+                    if Fighter::simulate_duel_return_winner_index([p, Fighter::boss()]) == 0 {
+                        result = result.min(c);
+                    }
                 }
             }
         }
+        println!("{}", result);
     }
-    println!("{}", result);
+
+    {
+        let mut result = 0;
+        for xs in Item::weapons() {
+            for ys in Item::armor() {
+                for zs in Item::rings() {
+                    let mut p = Fighter::player();
+                    let mut c = 0;
+
+                    for x in xs.iter() {
+                        p = p.equip(x);
+                        c += x.cost;
+                    }
+                    for y in ys.iter() {
+                        p = p.equip(y);
+                        c += y.cost;
+                    }
+                    for z in zs.iter() {
+                        p = p.equip(z);
+                        c += z.cost;
+                    }
+
+                    if Fighter::simulate_duel_return_winner_index([p, Fighter::boss()]) == 1 {
+                        result = result.max(c);
+                    }
+                }
+            }
+        }
+        println!("{}", result);
+    }
 }
