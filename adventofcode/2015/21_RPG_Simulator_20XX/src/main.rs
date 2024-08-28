@@ -129,40 +129,31 @@ impl Item {
 }
 
 fn main() {
-    let mut player = Fighter {
-        hit_points: 8,
-        damage: 5,
-        armor: 5,
-    };
-    let mut boss = Fighter {
-        hit_points: 12,
-        damage: 7,
-        armor: 2,
-    };
-    eprintln!(
-        "{}",
-        Fighter::simulate_duel_return_winner_index([player, boss])
-    );
+    let mut result = i32::MAX;
+    for xs in Item::weapons() {
+        for ys in Item::armor() {
+            for zs in Item::rings() {
+                let mut p = Fighter::player();
+                let mut c = 0;
 
-    boss = player.attack_return_new_enemy_state(boss);
-    eprintln!("{}", boss.hit_points);
-    player = boss.attack_return_new_enemy_state(player);
-    eprintln!("{}", player.hit_points);
+                for x in xs.iter() {
+                    p = p.equip(x);
+                    c += x.cost;
+                }
+                for y in ys.iter() {
+                    p = p.equip(y);
+                    c += y.cost;
+                }
+                for z in zs.iter() {
+                    p = p.equip(z);
+                    c += z.cost;
+                }
 
-    boss = player.attack_return_new_enemy_state(boss);
-    eprintln!("{}", boss.hit_points);
-    player = boss.attack_return_new_enemy_state(player);
-    eprintln!("{}", player.hit_points);
-
-    boss = player.attack_return_new_enemy_state(boss);
-    eprintln!("{}", boss.hit_points);
-    player = boss.attack_return_new_enemy_state(player);
-    eprintln!("{}", player.hit_points);
-
-    boss = player.attack_return_new_enemy_state(boss);
-    eprintln!("{}", boss.hit_points);
-
-    eprintln!("{:?}\n", Item::weapons());
-    eprintln!("{:?}\n", Item::armor());
-    eprintln!("{:?}", Item::rings());
+                if Fighter::simulate_duel_return_winner_index([p, Fighter::boss()]) == 0 {
+                    result = result.min(c);
+                }
+            }
+        }
+    }
+    println!("{}", result);
 }
