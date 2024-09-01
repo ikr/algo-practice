@@ -37,7 +37,7 @@ impl Spell {
 #[derive(Clone, Copy, Debug)]
 struct Wizard {
     hit_points: i8,
-    armor: u8,
+    armor: i8,
     mana: u16,
     shield_left: u8,
     recharge_left: u8,
@@ -68,7 +68,7 @@ impl Wizard {
 #[derive(Clone, Copy, Debug)]
 struct Boss {
     hit_points: i8,
-    damage: u8,
+    damage: i8,
     poison_left: u8,
 }
 
@@ -96,6 +96,39 @@ impl Boss {
             poison_left: 0,
         }
     }
+
+    fn consider_poison(&self) -> Boss {
+        assert!(self.hit_points >= 0);
+        if self.poison_left > 0 {
+            let mut result = *self;
+            result.hit_points -= 3;
+            result.poison_left -= 1;
+            result
+        } else {
+            *self
+        }
+    }
+
+    fn act(&self, mut wizard: Wizard) -> TurnOutome {
+        let boss = self.consider_poison();
+        if boss.hit_points <= 0 {
+            TurnOutome::WizardWins
+        } else {
+            let dealt_damage = (self.damage - wizard.armor).max(1);
+            wizard.hit_points -= dealt_damage;
+            if wizard.hit_points <= 0 {
+                TurnOutome::BossWins
+            } else {
+                TurnOutome::FightContinues(wizard, boss)
+            }
+        }
+    }
+}
+
+enum TurnOutome {
+    FightContinues(Wizard, Boss),
+    WizardWins,
+    BossWins,
 }
 
 fn main() {}
