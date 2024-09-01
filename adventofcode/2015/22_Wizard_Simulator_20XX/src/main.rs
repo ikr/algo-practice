@@ -13,7 +13,7 @@ impl WhoseTurn {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Spell {
     MagicMissile,
     Drain,
@@ -64,7 +64,7 @@ impl Wizard {
         }
     }
 
-    fn possible_spells(&self, boss: &Boss) -> Vec<Spell> {
+    fn possible_spells(&self, boss: Boss) -> Vec<Spell> {
         let mut result = vec![Spell::MagicMissile, Spell::Drain];
 
         for (x, s) in [
@@ -94,9 +94,44 @@ impl Wizard {
             *self
         }
     }
+
+    fn consider_shiled(&self) -> Wizard {
+        assert!(self.hit_points >= 0);
+        if self.shield_left > 0 {
+            let mut result = *self;
+            result.shield_left -= 1;
+            if result.shield_left == 0 {
+                result.armor -= 7;
+            }
+            result
+        } else {
+            *self
+        }
+    }
+
+    fn act(&self, casting: Spell, boss: Boss) -> TurnOutome {
+        assert!(self.possible_spells(boss).contains(&casting));
+        match casting {
+            Spell::MagicMissile => {
+                todo!()
+            }
+            Spell::Drain => {
+                todo!()
+            }
+            Spell::Shield => {
+                todo!()
+            }
+            Spell::Poison => {
+                todo!()
+            }
+            Spell::Recharge => {
+                todo!()
+            }
+        }
+    }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[Derive(Clone, Copy, Debug)]
 struct Boss {
     hit_points: i8,
     damage: i8,
@@ -140,7 +175,7 @@ impl Boss {
         }
     }
 
-    fn act(&self, wizard: &Wizard) -> TurnOutome {
+    fn act(&self, wizard: Wizard) -> TurnOutome {
         let boss = self.consider_poison();
         if boss.hit_points <= 0 {
             TurnOutome::WizardWins
