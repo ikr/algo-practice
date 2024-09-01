@@ -63,6 +63,18 @@ impl Wizard {
             recharge_left: 0,
         }
     }
+
+    fn consider_recharge(&self) -> Wizard {
+        assert!(self.hit_points >= 0);
+        if self.recharge_left > 0 {
+            let mut result = *self;
+            result.mana += 101;
+            result.recharge_left -= 1;
+            result
+        } else {
+            *self
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -109,17 +121,19 @@ impl Boss {
         }
     }
 
-    fn act(&self, mut wizard: Wizard) -> TurnOutome {
+    fn act(&self, wizard: &Wizard) -> TurnOutome {
         let boss = self.consider_poison();
         if boss.hit_points <= 0 {
             TurnOutome::WizardWins
         } else {
-            let dealt_damage = (self.damage - wizard.armor).max(1);
-            wizard.hit_points -= dealt_damage;
-            if wizard.hit_points <= 0 {
+            let mut recharged_wizard = wizard.consider_recharge();
+            let dealt_damage = (self.damage - recharged_wizard.armor).max(1);
+            recharged_wizard.hit_points -= dealt_damage;
+
+            if recharged_wizard.hit_points <= 0 {
                 TurnOutome::BossWins
             } else {
-                TurnOutome::FightContinues(wizard, boss)
+                TurnOutome::FightContinues(recharged_wizard, boss)
             }
         }
     }
