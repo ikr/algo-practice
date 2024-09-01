@@ -34,7 +34,7 @@ impl Spell {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct Wizard {
     hit_points: i8,
     armor: i8,
@@ -72,14 +72,20 @@ impl Wizard {
             (boss.poison_left, Spell::Poison),
             (self.recharge_left, Spell::Recharge),
         ] {
-            if x == 0 {
+            if x == 1 {
                 result.push(s);
             }
         }
 
+        let prospective_mana = if self.recharge_left > 0 {
+            self.mana + 101
+        } else {
+            self.mana
+        };
+
         result
             .into_iter()
-            .filter(|s| s.cost_mana() <= self.mana)
+            .filter(|s| s.cost_mana() <= prospective_mana)
             .collect()
     }
 
@@ -109,29 +115,45 @@ impl Wizard {
         }
     }
 
-    fn act(&self, casting: Spell, boss: Boss) -> TurnOutome {
-        assert!(self.possible_spells(boss).contains(&casting));
+    fn act(&self, casting: Spell, mut boss: Boss) -> TurnOutome {
+        boss = boss.consider_poison();
+        let mut wizard = self.consider_recharge().consider_shiled();
+
+        assert!(casting.cost_mana() <= wizard.mana);
+        wizard.mana -= casting.cost_mana();
+
         match casting {
             Spell::MagicMissile => {
-                todo!()
+                boss.hit_points -= 4;
             }
             Spell::Drain => {
-                todo!()
+                boss.hit_points -= 2;
+                wizard.hit_points += 2;
             }
             Spell::Shield => {
-                todo!()
+                assert_eq!(wizard.shield_left, 0);
+                wizard.armor += 7;
+                wizard.shield_left = 6;
             }
             Spell::Poison => {
-                todo!()
+                assert_eq!(boss.poison_left, 0);
+                boss.poison_left = 6;
             }
             Spell::Recharge => {
-                todo!()
+                assert_eq!(wizard.recharge_left, 0);
+                wizard.recharge_left = 5;
             }
+        }
+
+        if boss.hit_points <= 0 {
+            TurnOutome::WizardWins
+        } else {
+            TurnOutome::FightContinues(wizard, boss)
         }
     }
 }
 
-#[Derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct Boss {
     hit_points: i8,
     damage: i8,
@@ -193,10 +215,58 @@ impl Boss {
     }
 }
 
+#[derive(Debug, PartialEq)]
 enum TurnOutome {
     FightContinues(Wizard, Boss),
     WizardWins,
     BossWins,
 }
 
-fn main() {}
+fn main() {
+    let mut w = Wizard::example_a();
+    let mut b = Boss::example_a();
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = w.act(Spell::Poison, b);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    eprintln!("{:?} {:?}", w, b);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = b.act(w);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    eprintln!("{:?} {:?}", w, b);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = w.act(Spell::MagicMissile, b);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    eprintln!("{:?} {:?}", w, b);
+
+    {
+        let r = b.act(w);
+        assert_eq!(r, TurnOutome::WizardWins);
+    }
+}
