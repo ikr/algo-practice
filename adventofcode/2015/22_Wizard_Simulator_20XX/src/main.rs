@@ -224,11 +224,11 @@ enum TurnOutome {
 
 fn main() {
     let mut w = Wizard::example_a();
-    let mut b = Boss::example_a();
+    let mut b = Boss::example_b();
 
     {
         assert!(!w.possible_spells(b).is_empty());
-        let r = w.act(Spell::Poison, b);
+        let r = w.act(Spell::Recharge, b);
         match r {
             TurnOutome::FightContinues(ww, bb) => {
                 w = ww;
@@ -237,7 +237,10 @@ fn main() {
             _ => panic!("Unexpected outcome {:?}", r),
         }
     }
-    eprintln!("{:?} {:?}", w, b);
+    assert_eq!(w.hit_points, 10);
+    assert_eq!(w.armor, 0);
+    assert_eq!(w.mana, 21);
+    assert_eq!(b.hit_points, 14);
 
     {
         assert!(!w.possible_spells(b).is_empty());
@@ -250,11 +253,14 @@ fn main() {
             _ => panic!("Unexpected outcome {:?}", r),
         }
     }
-    eprintln!("{:?} {:?}", w, b);
+    assert_eq!(w.hit_points, 2);
+    assert_eq!(w.armor, 0);
+    assert_eq!(w.mana, 122);
+    assert_eq!(b.hit_points, 14);
 
     {
         assert!(!w.possible_spells(b).is_empty());
-        let r = w.act(Spell::MagicMissile, b);
+        let r = w.act(Spell::Shield, b);
         match r {
             TurnOutome::FightContinues(ww, bb) => {
                 w = ww;
@@ -263,10 +269,8 @@ fn main() {
             _ => panic!("Unexpected outcome {:?}", r),
         }
     }
-    eprintln!("{:?} {:?}", w, b);
-
-    {
-        let r = b.act(w);
-        assert_eq!(r, TurnOutome::WizardWins);
-    }
+    assert_eq!(w.hit_points, 2);
+    assert_eq!(w.armor, 7);
+    assert_eq!(w.mana, 110);
+    assert_eq!(b.hit_points, 14);
 }
