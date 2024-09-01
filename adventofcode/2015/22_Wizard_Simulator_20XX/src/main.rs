@@ -64,6 +64,25 @@ impl Wizard {
         }
     }
 
+    fn possible_spells(&self, boss: &Boss) -> Vec<Spell> {
+        let mut result = vec![Spell::MagicMissile, Spell::Drain];
+
+        for (x, s) in [
+            (self.shield_left, Spell::Shield),
+            (boss.poison_left, Spell::Poison),
+            (self.recharge_left, Spell::Recharge),
+        ] {
+            if x == 0 {
+                result.push(s);
+            }
+        }
+
+        result
+            .into_iter()
+            .filter(|s| s.cost_mana() <= self.mana)
+            .collect()
+    }
+
     fn consider_recharge(&self) -> Wizard {
         assert!(self.hit_points >= 0);
         if self.recharge_left > 0 {
