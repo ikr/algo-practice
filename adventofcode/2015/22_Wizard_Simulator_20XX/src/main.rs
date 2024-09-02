@@ -55,7 +55,7 @@ impl Wizard {
             (boss.poison_left, Spell::Poison),
             (self.recharge_left, Spell::Recharge),
         ] {
-            if x == 1 {
+            if x <= 1 {
                 result.push(s);
             }
         }
@@ -244,7 +244,7 @@ fn main() {
                         }
                     }
                     TurnOutome::BossWins => {
-                        eprintln!("{:?} defeats {:?} on their turn", u.boss, u.wizard);
+                        // eprintln!("{:?} defeats {:?} on their turn", u.boss, u.wizard);
                     }
                     TurnOutome::FightContinues(wizard, boss) => {
                         q.push_back(Vertex {
