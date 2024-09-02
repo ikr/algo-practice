@@ -202,7 +202,7 @@ impl Boss {
         if boss.hit_points <= 0 {
             TurnOutome::WizardWins
         } else {
-            let mut recharged_wizard = wizard.consider_recharge();
+            let mut recharged_wizard = wizard.consider_recharge().consider_shiled();
             let dealt_damage = (self.damage - recharged_wizard.armor).max(1);
             recharged_wizard.hit_points -= dealt_damage;
 
@@ -366,7 +366,7 @@ fn main() {
         }
     }
     assert_eq!(w.hit_points, 1);
-    // assert_eq!(w.armor, 0);
+    assert_eq!(w.armor, 0);
     assert_eq!(w.mana, 114);
     assert_eq!(b.hit_points, 2);
 
