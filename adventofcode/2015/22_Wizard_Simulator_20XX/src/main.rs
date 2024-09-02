@@ -181,12 +181,7 @@ impl Boss {
         if boss.hit_points <= 0 {
             TurnOutome::WizardWins
         } else {
-            let wizard0 = wizard.consider_hardness();
-            if wizard.hit_points == 0 {
-                return TurnOutome::BossWins;
-            }
-
-            let mut recharged_wizard = wizard0.consider_recharge().consider_shield();
+            let mut recharged_wizard = wizard.consider_recharge().consider_shield();
             let dealt_damage = (self.damage - recharged_wizard.armor).max(1);
             recharged_wizard.hit_points -= dealt_damage;
 
