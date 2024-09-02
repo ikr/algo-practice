@@ -215,8 +215,8 @@ fn main() {
                 for spell in u.wizard.possible_spells(u.boss) {
                     match u.wizard.act(spell, u.boss) {
                         TurnOutome::WizardWins => {
-                            if u.mana_spent < result {
-                                result = u.mana_spent;
+                            if u.mana_spent + spell.cost_mana() < result {
+                                result = u.mana_spent + spell.cost_mana();
                                 println!("{}", result);
                             }
                         }
