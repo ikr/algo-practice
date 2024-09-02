@@ -1,16 +1,9 @@
+use std::collections::VecDeque;
+
 #[derive(Clone, Copy, Debug)]
 enum WhoseTurn {
     Wizard,
     Boss,
-}
-
-impl WhoseTurn {
-    fn next(&self) -> WhoseTurn {
-        match self {
-            WhoseTurn::Wizard => WhoseTurn::Boss,
-            WhoseTurn::Boss => WhoseTurn::Wizard,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -49,16 +42,6 @@ impl Wizard {
             hit_points: 50,
             armor: 0,
             mana: 500,
-            shield_left: 0,
-            recharge_left: 0,
-        }
-    }
-
-    fn example_a() -> Wizard {
-        Wizard {
-            hit_points: 10,
-            armor: 0,
-            mana: 250,
             shield_left: 0,
             recharge_left: 0,
         }
@@ -169,22 +152,6 @@ impl Boss {
         }
     }
 
-    fn example_a() -> Boss {
-        Boss {
-            hit_points: 13,
-            damage: 8,
-            poison_left: 0,
-        }
-    }
-
-    fn example_b() -> Boss {
-        Boss {
-            hit_points: 14,
-            damage: 8,
-            poison_left: 0,
-        }
-    }
-
     fn consider_poison(&self) -> Boss {
         assert!(self.hit_points >= 0);
         if self.poison_left > 0 {
@@ -215,163 +182,82 @@ impl Boss {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum TurnOutome {
     FightContinues(Wizard, Boss),
     WizardWins,
     BossWins,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Vertex {
+    whose_turn: WhoseTurn,
+    wizard: Wizard,
+    boss: Boss,
+    mana_spent: u16,
+}
+
 fn main() {
-    let mut w = Wizard::example_a();
-    let mut b = Boss::example_b();
+    let mut q: VecDeque<Vertex> = VecDeque::new();
+    q.push_back(Vertex {
+        whose_turn: WhoseTurn::Wizard,
+        wizard: Wizard::initial(),
+        boss: Boss::initial(),
+        mana_spent: 0,
+    });
 
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = w.act(Spell::Recharge, b);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
+    let mut result = u16::MAX;
+
+    while let Some(u) = q.pop_front() {
+        match u.whose_turn {
+            WhoseTurn::Wizard => {
+                assert!(u.wizard.hit_points > 0);
+                for spell in u.wizard.possible_spells(u.boss) {
+                    match u.wizard.act(spell, u.boss) {
+                        TurnOutome::WizardWins => {
+                            if u.mana_spent < result {
+                                result = u.mana_spent;
+                                println!("{}", result);
+                            }
+                        }
+                        TurnOutome::BossWins => {
+                            panic!("{:?} defeats {:?} on opponent's turn", u.boss, u.wizard);
+                        }
+                        TurnOutome::FightContinues(wizard, boss) => {
+                            q.push_back(Vertex {
+                                whose_turn: WhoseTurn::Boss,
+                                wizard,
+                                boss,
+                                mana_spent: u.mana_spent + spell.cost_mana(),
+                            });
+                        }
+                    }
+                }
             }
-            _ => panic!("Unexpected outcome {:?}", r),
+            WhoseTurn::Boss => {
+                assert!(u.boss.hit_points > 0);
+                match u.boss.act(u.wizard) {
+                    TurnOutome::WizardWins => {
+                        if u.mana_spent < result {
+                            result = u.mana_spent;
+                            println!("{}", result);
+                        }
+                    }
+                    TurnOutome::BossWins => {
+                        eprintln!("{:?} defeats {:?} on their turn", u.boss, u.wizard);
+                    }
+                    TurnOutome::FightContinues(wizard, boss) => {
+                        q.push_back(Vertex {
+                            whose_turn: WhoseTurn::Wizard,
+                            wizard,
+                            boss,
+                            mana_spent: u.mana_spent,
+                        });
+                    }
+                }
+            }
         }
     }
-    assert_eq!(w.hit_points, 10);
-    assert_eq!(w.armor, 0);
-    assert_eq!(w.mana, 21);
-    assert_eq!(b.hit_points, 14);
 
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = b.act(w);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 2);
-    assert_eq!(w.armor, 0);
-    assert_eq!(w.mana, 122);
-    assert_eq!(b.hit_points, 14);
-
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = w.act(Spell::Shield, b);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 2);
-    assert_eq!(w.armor, 7);
-    assert_eq!(w.mana, 110);
-    assert_eq!(b.hit_points, 14);
-
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = b.act(w);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 1);
-    assert_eq!(w.armor, 7);
-    assert_eq!(w.mana, 211);
-    assert_eq!(b.hit_points, 14);
-
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = w.act(Spell::Drain, b);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 3);
-    assert_eq!(w.armor, 7);
-    assert_eq!(w.mana, 239);
-    assert_eq!(b.hit_points, 12);
-
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = b.act(w);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 2);
-    assert_eq!(w.armor, 7);
-    assert_eq!(w.mana, 340);
-    assert_eq!(b.hit_points, 12);
-
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = w.act(Spell::Poison, b);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 2);
-    assert_eq!(w.armor, 7);
-    assert_eq!(w.mana, 167);
-    assert_eq!(b.hit_points, 12);
-
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = b.act(w);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 1);
-    assert_eq!(w.armor, 7);
-    assert_eq!(w.mana, 167);
-    assert_eq!(b.hit_points, 9);
-
-    {
-        assert!(!w.possible_spells(b).is_empty());
-        let r = w.act(Spell::MagicMissile, b);
-        match r {
-            TurnOutome::FightContinues(ww, bb) => {
-                w = ww;
-                b = bb;
-            }
-            _ => panic!("Unexpected outcome {:?}", r),
-        }
-    }
-    assert_eq!(w.hit_points, 1);
-    assert_eq!(w.armor, 0);
-    assert_eq!(w.mana, 114);
-    assert_eq!(b.hit_points, 2);
-
-    {
-        let r = b.act(w);
-        assert_eq!(r, TurnOutome::WizardWins);
-    }
+    println!("{}", result);
 }
