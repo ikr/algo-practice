@@ -72,6 +72,13 @@ impl Wizard {
             .collect()
     }
 
+    fn consider_hardness(&self) -> Wizard {
+        assert!(self.hit_points >= 0);
+        let mut result = *self;
+        result.hit_points -= 1;
+        result
+    }
+
     fn consider_recharge(&self) -> Wizard {
         assert!(self.hit_points >= 0);
         if self.recharge_left > 0 {
@@ -84,7 +91,7 @@ impl Wizard {
         }
     }
 
-    fn consider_shiled(&self) -> Wizard {
+    fn consider_shield(&self) -> Wizard {
         assert!(self.hit_points >= 0);
         if self.shield_left > 0 {
             let mut result = *self;
@@ -100,7 +107,12 @@ impl Wizard {
 
     fn act(&self, casting: Spell, mut boss: Boss) -> TurnOutome {
         boss = boss.consider_poison();
-        let mut wizard = self.consider_recharge().consider_shiled();
+        let mut wizard = self.consider_hardness();
+        if wizard.hit_points == 0 {
+            return TurnOutome::BossWins;
+        }
+
+        wizard = wizard.consider_recharge().consider_shield();
 
         assert!(casting.cost_mana() <= wizard.mana);
         wizard.mana -= casting.cost_mana();
@@ -169,7 +181,12 @@ impl Boss {
         if boss.hit_points <= 0 {
             TurnOutome::WizardWins
         } else {
-            let mut recharged_wizard = wizard.consider_recharge().consider_shiled();
+            let wizard0 = wizard.consider_hardness();
+            if wizard.hit_points == 0 {
+                return TurnOutome::BossWins;
+            }
+
+            let mut recharged_wizard = wizard0.consider_recharge().consider_shield();
             let dealt_damage = (self.damage - recharged_wizard.armor).max(1);
             recharged_wizard.hit_points -= dealt_damage;
 
@@ -221,7 +238,7 @@ fn main() {
                             }
                         }
                         TurnOutome::BossWins => {
-                            panic!("{:?} defeats {:?} on opponent's turn", u.boss, u.wizard);
+                            // eprintln!("{:?} defeats {:?} on opponent's turn", u.boss, u.wizard);
                         }
                         TurnOutome::FightContinues(wizard, boss) => {
                             q.push_back(Vertex {
@@ -258,6 +275,4 @@ fn main() {
             }
         }
     }
-
-    println!("{}", result);
 }
