@@ -273,4 +273,105 @@ fn main() {
     assert_eq!(w.armor, 7);
     assert_eq!(w.mana, 110);
     assert_eq!(b.hit_points, 14);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = b.act(w);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    assert_eq!(w.hit_points, 1);
+    assert_eq!(w.armor, 7);
+    assert_eq!(w.mana, 211);
+    assert_eq!(b.hit_points, 14);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = w.act(Spell::Drain, b);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    assert_eq!(w.hit_points, 3);
+    assert_eq!(w.armor, 7);
+    assert_eq!(w.mana, 239);
+    assert_eq!(b.hit_points, 12);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = b.act(w);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    assert_eq!(w.hit_points, 2);
+    assert_eq!(w.armor, 7);
+    assert_eq!(w.mana, 340);
+    assert_eq!(b.hit_points, 12);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = w.act(Spell::Poison, b);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    assert_eq!(w.hit_points, 2);
+    assert_eq!(w.armor, 7);
+    assert_eq!(w.mana, 167);
+    assert_eq!(b.hit_points, 12);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = b.act(w);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    assert_eq!(w.hit_points, 1);
+    assert_eq!(w.armor, 7);
+    assert_eq!(w.mana, 167);
+    assert_eq!(b.hit_points, 9);
+
+    {
+        assert!(!w.possible_spells(b).is_empty());
+        let r = w.act(Spell::MagicMissile, b);
+        match r {
+            TurnOutome::FightContinues(ww, bb) => {
+                w = ww;
+                b = bb;
+            }
+            _ => panic!("Unexpected outcome {:?}", r),
+        }
+    }
+    assert_eq!(w.hit_points, 1);
+    // assert_eq!(w.armor, 0);
+    assert_eq!(w.mana, 114);
+    assert_eq!(b.hit_points, 2);
+
+    {
+        let r = b.act(w);
+        assert_eq!(r, TurnOutome::WizardWins);
+    }
 }
