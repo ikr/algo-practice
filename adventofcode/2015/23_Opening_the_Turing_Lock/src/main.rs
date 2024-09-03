@@ -137,7 +137,7 @@ fn main() {
     let mut m = Machine {
         program,
         ip: 0,
-        reg: [0, 0],
+        reg: [1, 0],
     };
 
     while !m.is_done() {
