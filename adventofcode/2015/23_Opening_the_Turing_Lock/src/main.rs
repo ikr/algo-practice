@@ -113,7 +113,7 @@ impl Machine {
                 }
             }
             Instr::Jio(r, o) => {
-                if self.reg[r.index()] % 2 != 0 {
+                if self.reg[r.index()] == 1 {
                     self.ip += o;
                 } else {
                     self.ip += 1;
