@@ -38,6 +38,13 @@ impl Reg {
             _ => panic!("Invalid register {}", src),
         }
     }
+
+    fn index(&self) -> usize {
+        match self {
+            Reg::A => 0,
+            Reg::B => 1,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -74,6 +81,52 @@ impl Instr {
     }
 }
 
+struct Machine {
+    program: Vec<Instr>,
+    ip: i32,
+    reg: [i32; 2],
+}
+
+impl Machine {
+    fn tick(&mut self) {
+        let i = self.ip as usize;
+        assert!(i < self.program.len());
+        match self.program[i] {
+            Instr::Hlf(r) => {
+                self.reg[r.index()] /= 2;
+                self.ip += 1;
+            }
+            Instr::Tpl(r) => {
+                self.reg[r.index()] *= 3;
+                self.ip += 1;
+            }
+            Instr::Inc(r) => {
+                self.reg[r.index()] += 1;
+                self.ip += 1;
+            }
+            Instr::Jmp(o) => self.ip += o,
+            Instr::Jie(r, o) => {
+                if self.reg[r.index()] % 2 == 0 {
+                    self.ip += o;
+                } else {
+                    self.ip += 1;
+                }
+            }
+            Instr::Jio(r, o) => {
+                if self.reg[r.index()] % 2 != 0 {
+                    self.ip += o;
+                } else {
+                    self.ip += 1;
+                }
+            }
+        }
+    }
+
+    fn is_done(&self) -> bool {
+        self.ip as usize >= self.program.len()
+    }
+}
+
 fn main() {
     let program: Vec<Instr> = io::stdin()
         .lock()
@@ -81,5 +134,15 @@ fn main() {
         .map(|line| Instr::parse(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", program);
+    let mut m = Machine {
+        program,
+        ip: 0,
+        reg: [0, 0],
+    };
+
+    while !m.is_done() {
+        m.tick();
+    }
+
+    println!("{}", m.reg[1]);
 }
