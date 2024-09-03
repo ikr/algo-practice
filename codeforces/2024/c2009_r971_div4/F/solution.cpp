@@ -38,8 +38,8 @@ vector<ll> sums_for_each_query(const vector<ll> &xs,
     vector<ll> result;
     result.reserve(sz(queries));
     for (const auto &[l, r] : queries) {
-        const auto rl = l / n;
-        const auto rr = r / n;
+        const auto rl = inof(l / n);
+        const auto rr = inof(r / n);
 
         ll s{};
 
@@ -47,12 +47,16 @@ vector<ll> sums_for_each_query(const vector<ll> &xs,
             s += ss.back() * (rr - rl - 1LL);
         }
 
-        const auto il = l % n;
-        const auto ir = r % n;
+        const auto il = inof(l % n);
+        const auto ir = inof(r % n);
 
-        s += ss.back() - prefix_isum_in_a_rotation(rl, ss, il - 1);
-        s += prefix_isum_in_a_rotation(rr, ss, ir);
-
+        if (rl == rr) {
+            s += prefix_isum_in_a_rotation(rr, ss, ir) -
+                 prefix_isum_in_a_rotation(rl, ss, il - 1);
+        } else {
+            s += ss.back() - prefix_isum_in_a_rotation(rl, ss, il - 1);
+            s += prefix_isum_in_a_rotation(rr, ss, ir);
+        }
         result.push_back(s);
     }
     return result;
