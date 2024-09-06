@@ -2,7 +2,7 @@ use std::io::{self, BufRead};
 
 use itertools::Itertools;
 
-fn group_by_bitmask(xs: &[i16], bits: i16) -> (Vec<i16>, Vec<i16>) {
+fn group_by_bitmask(xs: &[i16], bits: u32) -> (Vec<i16>, Vec<i16>) {
     let mut on = vec![];
     let mut off = vec![];
 
