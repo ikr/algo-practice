@@ -2,7 +2,7 @@ use std::io::{self, BufRead};
 
 use itertools::Itertools;
 
-fn group_by_bitmask(xs: &[i16], bits: u32) -> (Vec<i16>, Vec<i16>) {
+fn group_by_bitmask(xs: &[u8], bits: u32) -> (Vec<u8>, Vec<u8>) {
     let mut on = vec![];
     let mut off = vec![];
 
@@ -17,27 +17,25 @@ fn group_by_bitmask(xs: &[i16], bits: u32) -> (Vec<i16>, Vec<i16>) {
     (on, off)
 }
 
-fn all_but(xs: &[i16], ys: &[i16]) -> Vec<i16> {
+fn all_but(xs: &[u8], ys: &[u8]) -> Vec<u8> {
     xs.iter().cloned().filter(|x| !ys.contains(x)).collect()
 }
 
-fn main() {
-    let xs: Vec<i16> = io::stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().parse().unwrap())
-        .collect();
+fn u16sum(xs: &[u8]) -> u16 {
+    xs.iter().map(|x| *x as u16).sum()
+}
 
+fn solve_part_1(xs: &[u8]) -> u64 {
     let n = xs.len();
-    let mut result = i64::MAX;
+    let mut result = u64::MAX;
     for k in 1..n - 1 {
         eprintln!("k:{}", k);
 
         for aa in xs.iter().combinations(k) {
-            let a: Vec<i16> = aa.into_iter().cloned().collect();
-            let sa = a.iter().sum::<i16>();
-            let ys: Vec<i16> = all_but(&xs, &a);
-            if ys.iter().sum::<i16>() != 2 * sa {
+            let a: Vec<u8> = aa.into_iter().cloned().collect();
+            let sa = u16sum(&a);
+            let ys: Vec<u8> = all_but(&xs, &a);
+            if u16sum(&ys) != 2 * sa {
                 continue;
             }
 
@@ -46,19 +44,28 @@ fn main() {
 
             for bits in 0..(1 << m) {
                 let (b, c) = group_by_bitmask(&ys, bits);
-                let sb = b.into_iter().sum::<i16>();
-                let sc = c.into_iter().sum::<i16>();
+                let sb = u16sum(&b);
+                let sc = u16sum(&c);
 
                 if sa == sb && sa == sc {
-                    result = result.min(a.iter().fold(1i64, |acc, y| acc * (*y as i64)));
+                    result = result.min(a.iter().fold(1u64, |acc, y| acc * (*y as u64)));
                 }
             }
         }
 
-        if result != i64::MAX {
+        if result != u64::MAX {
             break;
         }
     }
+    result
+}
 
-    println!("{}", result);
+fn main() {
+    let xs: Vec<u8> = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| line.unwrap().parse().unwrap())
+        .collect();
+
+    println!("{}", solve_part_1(&xs));
 }
