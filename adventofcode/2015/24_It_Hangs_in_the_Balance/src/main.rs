@@ -25,12 +25,20 @@ fn u16sum(xs: &[u8]) -> u16 {
     xs.iter().map(|x| *x as u16).sum()
 }
 
+fn is_splittable_in_two_having_given_sum_each(xs: &[u8], s: u16) -> bool {
+    let m = xs.len();
+    (0..(1 << m)).any(|bits| {
+        let (a, b) = group_by_bitmask(&xs, bits);
+        let sa = u16sum(&a);
+        let sb = u16sum(&b);
+        s == sa && s == sb
+    })
+}
+
 fn solve_part_1(xs: &[u8]) -> u64 {
     let n = xs.len();
     let mut result = u64::MAX;
     for k in 1..n - 1 {
-        eprintln!("k:{}", k);
-
         for aa in xs.iter().combinations(k) {
             let a: Vec<u8> = aa.into_iter().cloned().collect();
             let sa = u16sum(&a);
@@ -39,17 +47,8 @@ fn solve_part_1(xs: &[u8]) -> u64 {
                 continue;
             }
 
-            let m = ys.len();
-            eprintln!("a:{:?} bits:{}..{}", a, 0, 1 << m);
-
-            for bits in 0..(1 << m) {
-                let (b, c) = group_by_bitmask(&ys, bits);
-                let sb = u16sum(&b);
-                let sc = u16sum(&c);
-
-                if sa == sb && sa == sc {
-                    result = result.min(a.iter().fold(1u64, |acc, y| acc * (*y as u64)));
-                }
+            if is_splittable_in_two_having_given_sum_each(&ys, sa) {
+                result = result.min(a.iter().fold(1u64, |acc, y| acc * (*y as u64)));
             }
         }
 
