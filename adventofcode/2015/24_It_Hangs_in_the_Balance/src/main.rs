@@ -28,7 +28,7 @@ fn u16sum(xs: &[u8]) -> u16 {
 fn is_splittable_in_two_having_given_sum_each(xs: &[u8], s: u16) -> bool {
     let m = xs.len();
     (0..(1 << m)).any(|bits| {
-        let (a, b) = group_by_bitmask(&xs, bits);
+        let (a, b) = group_by_bitmask(xs, bits);
         let sa = u16sum(&a);
         let sb = u16sum(&b);
         s == sa && s == sb
@@ -36,18 +36,61 @@ fn is_splittable_in_two_having_given_sum_each(xs: &[u8], s: u16) -> bool {
 }
 
 fn solve_part_1(xs: &[u8]) -> u64 {
-    let n = xs.len();
     let mut result = u64::MAX;
-    for k in 1..n - 1 {
+    for k in 1..xs.len() - 1 {
         for aa in xs.iter().combinations(k) {
             let a: Vec<u8> = aa.into_iter().cloned().collect();
             let sa = u16sum(&a);
-            let ys: Vec<u8> = all_but(&xs, &a);
+            let ys: Vec<u8> = all_but(xs, &a);
             if u16sum(&ys) != 2 * sa {
                 continue;
             }
 
             if is_splittable_in_two_having_given_sum_each(&ys, sa) {
+                result = result.min(a.iter().fold(1u64, |acc, y| acc * (*y as u64)));
+            }
+        }
+
+        if result != u64::MAX {
+            break;
+        }
+    }
+    result
+}
+
+fn is_splittable_in_three_having_given_sum_each(xs: &[u8], s: u16) -> bool {
+    for k in 1..xs.len() - 1 {
+        for aa in xs.iter().combinations(k) {
+            let a: Vec<u8> = aa.into_iter().cloned().collect();
+            let sa = u16sum(&a);
+            if sa != s {
+                continue;
+            }
+
+            let ys: Vec<u8> = all_but(xs, &a);
+            if u16sum(&ys) != 2 * sa {
+                continue;
+            }
+            if is_splittable_in_two_having_given_sum_each(&ys, sa) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn solve_part_2(xs: &[u8]) -> u64 {
+    let mut result = u64::MAX;
+    for k in 1..xs.len() - 1 {
+        for aa in xs.iter().combinations(k) {
+            let a: Vec<u8> = aa.into_iter().cloned().collect();
+            let sa = u16sum(&a);
+            let ys: Vec<u8> = all_but(xs, &a);
+            if u16sum(&ys) != 3 * sa {
+                continue;
+            }
+
+            if is_splittable_in_three_having_given_sum_each(&ys, sa) {
                 result = result.min(a.iter().fold(1u64, |acc, y| acc * (*y as u64)));
             }
         }
@@ -67,4 +110,5 @@ fn main() {
         .collect();
 
     println!("{}", solve_part_1(&xs));
+    println!("{}", solve_part_2(&xs));
 }
