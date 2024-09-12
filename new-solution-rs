@@ -20,27 +20,31 @@ streams_snippet = """
 code = 'use regex::Regex;\n' if args.regex else ""
 
 if args.prefix_output:
-    code = code + """use std::collections::VecDeque;
-use std::io::{self,Write};
+    code = code + """use proconio::input;
+// use proconio::marker::Bytes;
+use proconio_derive::fastout;
 
-fn solve() -> i32 {{
-    return -1
-}}
 
-fn main() {{
-    let mut istream: VecDeque<i32> = std::io::read_to_string(std::io::stdin())
-        .unwrap()
-        .split_whitespace()
-        .map(|x| x.parse::<i32>().unwrap())
-        .collect();
+fn solve(xs: &[i32]) -> i32 {
+    xs.iter().sum::<i32>()
+}
 
-    let cases_num = istream.pop_front().unwrap();
-    let mut out = io::stdout().lock();
-    for 1..=cases_num {
-        let result = solve();
-        writeln!(out, "Case #{}: {}", result).unwrap();
+#[fastout]
+fn main() {
+    input! {
+        cases_num: u16,
     }
-}}
+
+    for t in 1..=cases_num {
+        input! {
+            n: usize,
+            xs: [i32; n],
+        }
+
+        let result = solve(&xs);
+        println!("Case #{}: {}", t, result);
+    }
+}
 """
 else:
     code += """use std::io::{self, BufRead};
@@ -67,6 +71,10 @@ os.chdir(path)
 
 if args.regex:
     os.system('cargo add regex')
+
+if args.prefix_output:
+    os.system('cargo add proconio')
+    os.system('cargo add proconio_derive')
 
 with open("src/main.rs", "w+") as file:
     file.write(code)
