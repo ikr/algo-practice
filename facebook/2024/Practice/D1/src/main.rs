@@ -1,8 +1,25 @@
 use proconio::input;
 use proconio_derive::fastout;
 
+fn suffix_maximums<T>(xs: &[T]) -> Vec<T>
+where
+    T: Clone,
+    T: Copy,
+    T: Ord,
+{
+    let n = xs.len();
+    let mut result = vec![*xs.last().unwrap(); n];
+
+    for i in (0..n - 1).rev() {
+        result[i] = result[i + 1].max(xs[i]);
+    }
+
+    result
+}
+
 fn solve(xs: &[u32], g: u32) -> (usize, u32) {
-    todo!()
+    eprintln!("{:?}", suffix_maximums(xs));
+    (0, 0)
 }
 
 #[fastout]
