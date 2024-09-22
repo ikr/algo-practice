@@ -18,8 +18,19 @@ where
 }
 
 fn solve(xs: &[u32], g: u32) -> (usize, u32) {
-    eprintln!("{:?}", suffix_maximums(xs));
-    (0, 0)
+    let suff_hi = suffix_maximums(xs);
+    suff_hi
+        .into_iter()
+        .enumerate()
+        .fold((usize::MAX, u32::MAX), |(i0, d0), (i, x)| {
+            let d = g.abs_diff(x);
+
+            if d < d0 {
+                (i, d)
+            } else {
+                (i0, d0)
+            }
+        })
 }
 
 #[fastout]
