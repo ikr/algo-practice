@@ -1,36 +1,21 @@
 use proconio::input;
 use proconio_derive::fastout;
 
-fn suffix_maximums<T>(xs: &[T]) -> Vec<T>
-where
-    T: Clone,
-    T: Copy,
-    T: Ord,
-{
+fn solve(mut xs: Vec<u32>, g: u32) -> (usize, u32) {
     let n = xs.len();
-    let mut result = vec![*xs.last().unwrap(); n];
+    xs.sort();
 
-    for i in (0..n - 1).rev() {
-        result[i] = result[i + 1].max(xs[i]);
-    }
+    (0..n).rev().fold((usize::MAX, u32::MAX), |(i0, d0), j| {
+        let i = n - 1 - j;
+        let x = xs[j];
+        let d = g.abs_diff(x);
 
-    result
-}
-
-fn solve(xs: &[u32], g: u32) -> (usize, u32) {
-    let suff_hi = suffix_maximums(xs);
-    suff_hi
-        .into_iter()
-        .enumerate()
-        .fold((usize::MAX, u32::MAX), |(i0, d0), (i, x)| {
-            let d = g.abs_diff(x);
-
-            if d < d0 {
-                (i, d)
-            } else {
-                (i0, d0)
-            }
-        })
+        if d < d0 {
+            (i, d)
+        } else {
+            (i0, d0)
+        }
+    })
 }
 
 #[fastout]
@@ -46,7 +31,7 @@ fn main() {
             xs: [u32; n],
         }
 
-        let (i0, d) = solve(&xs, g);
+        let (i0, d) = solve(xs, g);
         println!("Case #{}: {} {}", t, i0 + 1, d);
     }
 }
