@@ -70,18 +70,19 @@ int main() {
         weights.emplace(pii{u, v}, w);
     }
 
-    const auto ord = toposort(g);
+    auto ord = toposort(g);
+    reverse(begin(ord), end(ord));
     vector<ll> result(n, 0);
     result[ord[0]] = 0;
 
     for (int i = 1; i < n; ++i) {
         const auto v = ord[i];
 
-        if (g_[v].empty()) {
+        if (g[v].empty()) {
             result[v] = 0;
         } else {
-            const auto [u, w] = g_[v][0];
-            result[v] = result[u] + w;
+            const auto [u, w] = g[v][0];
+            result[v] = result[u] - w;
         }
     }
 
