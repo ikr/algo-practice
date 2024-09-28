@@ -1,3 +1,4 @@
+#include <atcoder/scc>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -19,36 +20,6 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-vector<int> toposort(const vector<vector<pii>> &g) {
-    const auto n = sz(g);
-    vector<int> indeg(n, 0);
-    for (int u = 0; u < n; ++u) {
-        for (const auto &[v, _] : g[u]) ++indeg[v];
-    }
-
-    queue<int> q;
-    for (int u = 0; u < n; ++u) {
-        if (!indeg[u]) q.push(u);
-    }
-
-    vector<int> result;
-    result.reserve(n);
-
-    while (!q.empty()) {
-        const auto v = q.front();
-        q.pop();
-        result.push_back(v);
-
-        for (const auto &[u, _] : g[v]) {
-            --indeg[u];
-            if (!indeg[u]) q.push(u);
-        }
-    }
-
-    assert(sz(result) == n);
-    return result;
-}
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -56,33 +27,44 @@ int main() {
     int n, m;
     cin >> n >> m;
 
-    vector<vector<pii>> g(n);
-    vector<vector<pii>> g_(n);
-    map<pii, int> weights;
+    atcoder::scc_graph g(n);
+    vector<vector<pii>> g0(n);
 
     for (int i = 0; i < m; ++i) {
         int u, v, w;
         cin >> u >> v >> w;
         --u;
         --v;
-        g[u].emplace_back(v, w);
-        g_[v].emplace_back(u, w);
-        weights.emplace(pii{u, v}, w);
+        g.add_edge(u, v);
+        g0[u].emplace_back(v, w);
     }
 
-    auto ord = toposort(g);
-    reverse(begin(ord), end(ord));
+    const auto ord = g.scc();
+
+    vector<int> idx(n, -1);
+    for (int i = 0; i < sz(ord); ++i) {
+        for (const auto u : ord[i]) {
+            idx[u] = i;
+        }
+    }
+
     vector<ll> result(n, 0);
-    result[ord[0]] = 0;
+    for (const auto u : ord.back()) {
+        result[u] = 0;
+    }
 
-    for (int i = 1; i < n; ++i) {
-        const auto v = ord[i];
+    for (int i = sz(ord) - 2; i >= 0; --i) {
+        const auto v = ord[i][0];
 
-        if (g[v].empty()) {
-            result[v] = 0;
+        if (g0[v].empty()) {
+            for (const auto vv : ord[i]) {
+                result[vv] = 0;
+            }
         } else {
-            const auto [u, w] = g[v][0];
-            result[v] = result[u] - w;
+            const auto [u, w] = g0[v][0];
+            for (const auto vv : ord[i]) {
+                result[vv] = result[u] - w;
+            }
         }
     }
 
