@@ -48,6 +48,15 @@ int main() {
         }
     }
 
+    vector<vector<pii>> G(sz(ord));
+    for (int u = 0; u < n; ++u) {
+        for (const auto &[v, w] : g0[u]) {
+            if (idx[u] != idx[v]) {
+                G[idx[u]].emplace_back(idx[v], w);
+            }
+        }
+    }
+
     vector<ll> result(n, 0);
     for (const auto u : ord.back()) {
         result[u] = 0;
@@ -56,12 +65,12 @@ int main() {
     for (int i = sz(ord) - 2; i >= 0; --i) {
         const auto v = ord[i][0];
 
-        if (g0[v].empty()) {
+        if (G[idx[v]].empty()) {
             for (const auto vv : ord[i]) {
                 result[vv] = 0;
             }
         } else {
-            const auto [u, w] = g0[v][0];
+            const auto [j, w] = G[idx[v]];
             for (const auto vv : ord[i]) {
                 result[vv] = result[u] - w;
             }
