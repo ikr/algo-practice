@@ -25,13 +25,28 @@ fn solve(xs: String) -> i32 {
         _ => acc,
     });
 
-    let unknowns = xs.bytes().filter(|x| *x == b'?').count() as i32;
+    let mut lo: i32 = 0;
+    let mut hi: i32 = 0;
+    let mut cur: i32 = 0;
 
-    if known_drift <= 0 {
-        -(known_drift - unknowns)
-    } else {
-        known_drift + unknowns
+    for x in xs.bytes() {
+        match x {
+            b'L' => cur += 1,
+            b'R' => cur -= 1,
+            _ => {
+                if known_drift <= 0 {
+                    cur -= 1;
+                } else {
+                    cur += 1;
+                }
+            }
+        }
+
+        lo = lo.min(cur);
+        hi = hi.max(cur);
     }
+
+    (lo - hi).abs()
 }
 
 fn main() {
