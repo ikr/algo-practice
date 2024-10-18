@@ -21,30 +21,55 @@ impl Scanner {
 fn solve(xs: String) -> i32 {
     let bs = xs.bytes().collect::<Vec<_>>();
     let n = bs.len();
-    let mut dp: Vec<(i32, i32)> = vec![(0, 0); n];
+    let mut dpl: Vec<(i32, i32)> = vec![(0, 0); n];
+    let mut dpr: Vec<(i32, i32)> = vec![(0, 0); n];
 
-    dp[0] = match bs[0] {
-        b'L' => (-1, 0),
-        b'R' => (0, 1),
-        _ => (-1, 1),
+    dpl[0] = match bs[0] {
+        b'L' => (-1, -1),
+        b'R' => (1, 1),
+        _ => (-1, -1),
+    };
+
+    dpr[0] = match bs[0] {
+        b'L' => (-1, -1),
+        b'R' => (1, 1),
+        _ => (1, 1),
     };
 
     for i in 1..n {
-        let (a, b) = dp[i - 1];
-        dp[i] = match bs[i] {
-            b'L' => (a - 1, b - 1),
-            b'R' => (a + 1, b + 1),
-            _ => (a - 1, b + 1),
+        let (a, b) = dpl[i - 1];
+        let (c, d) = dpr[i - 1];
+
+        let lo = a.min(c);
+        let hi = b.max(d);
+
+        dpl[i] = match bs[i] {
+            b'L' => (lo - 1, hi - 1),
+            b'R' => (lo + 1, hi + 1),
+            _ => (lo - 1, hi - 1),
+        };
+
+        dpr[i] = match bs[i] {
+            b'L' => (lo - 1, hi - 1),
+            b'R' => (lo + 1, hi + 1),
+            _ => (lo + 1, hi + 1),
         };
     }
 
-    let mut lo = 0;
-    let mut hi = 0;
-    for (a, b) in dp {
-        lo = lo.min(a).min(b);
-        hi = hi.max(a).max(b);
+    let mut lo: i32 = 0;
+    let mut hi: i32 = 0;
+
+    for (a, b) in dpl {
+        lo = lo.min(a);
+        hi = hi.max(b);
     }
-    (lo - hi).abs() / 2
+
+    for (a, b) in dpr {
+        lo = lo.min(a);
+        hi = hi.max(b);
+    }
+
+    (lo - hi).abs()
 }
 
 fn main() {
