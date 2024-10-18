@@ -1,7 +1,4 @@
-use std::{
-    collections::HashSet,
-    io::{self, stdin, BufWriter, Write},
-};
+use std::io::{self, stdin, BufWriter, Write};
 
 #[derive(Default)]
 struct Scanner {
@@ -23,32 +20,31 @@ impl Scanner {
 
 fn solve(xs: String) -> i32 {
     let bs = xs.bytes().collect::<Vec<_>>();
+    let n = bs.len();
+    let mut dp: Vec<(i32, i32)> = vec![(0, 0); n];
 
-    let mut lo: i32 = 0;
-    let mut hi: i32 = 0;
-    let mut cur: i32 = 0;
+    dp[0] = match bs[0] {
+        b'L' => (-1, 0),
+        b'R' => (0, 1),
+        _ => (-1, 1),
+    };
 
-    let mut ls: HashSet<usize> = HashSet::new();
-
-    for (i, x) in bs.iter().enumerate() {
-        match x {
-            b'L' => cur += 1,
-            b'R' => cur -= 1,
-            _ => {
-                if i != 0 && (bs[i - 1] == b'L' || ls.contains(&(i - 1))) {
-                    cur -= 1;
-                    ls.insert(i);
-                } else {
-                    cur += 1;
-                }
-            }
-        }
-
-        lo = lo.min(cur);
-        hi = hi.max(cur);
+    for i in 1..n {
+        let (a, b) = dp[i - 1];
+        dp[i] = match bs[i] {
+            b'L' => (a - 1, b - 1),
+            b'R' => (a + 1, b + 1),
+            _ => (a - 1, b + 1),
+        };
     }
 
-    (lo - hi).abs()
+    let mut lo = 0;
+    let mut hi = 0;
+    for (a, b) in dp {
+        lo = lo.min(a).min(b);
+        hi = hi.max(a).max(b);
+    }
+    (lo - hi).abs() / 2
 }
 
 fn main() {
