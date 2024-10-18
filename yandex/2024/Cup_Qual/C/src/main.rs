@@ -1,4 +1,7 @@
-use std::io::{self, stdin, BufWriter, Write};
+use std::{
+    collections::HashSet,
+    io::{self, stdin, BufWriter, Write},
+};
 
 #[derive(Default)]
 struct Scanner {
@@ -19,23 +22,22 @@ impl Scanner {
 }
 
 fn solve(xs: String) -> i32 {
-    let known_drift = xs.bytes().fold(0, |acc, x| match x {
-        b'L' => acc - 1,
-        b'R' => acc + 1,
-        _ => acc,
-    });
+    let bs = xs.bytes().collect::<Vec<_>>();
 
     let mut lo: i32 = 0;
     let mut hi: i32 = 0;
     let mut cur: i32 = 0;
 
-    for x in xs.bytes() {
+    let mut ls: HashSet<usize> = HashSet::new();
+
+    for (i, x) in bs.iter().enumerate() {
         match x {
             b'L' => cur += 1,
             b'R' => cur -= 1,
             _ => {
-                if known_drift <= 0 {
+                if i != 0 && (bs[i - 1] == b'L' || ls.contains(&(i - 1))) {
                     cur -= 1;
+                    ls.insert(i);
                 } else {
                     cur += 1;
                 }
