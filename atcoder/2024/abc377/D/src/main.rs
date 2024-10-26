@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use proconio::input;
 
 fn num_sought_pairs(m: i64, lrs: &[(i64, i64)]) -> i64 {
@@ -18,6 +19,6 @@ fn main() {
         lrs: [(i64, i64); n],
     }
 
-    let result = num_sought_pairs(m, &lrs);
+    let result = num_sought_pairs(m, &lrs.into_iter().unique().collect::<Vec<_>>());
     println!("{}", result);
 }
