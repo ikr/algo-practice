@@ -1,37 +1,37 @@
-use std::collections::{BTreeMap, BTreeSet, BinaryHeap};
+use std::collections::BTreeMap;
 
-use itertools::Itertools;
 use proconio::input;
 
-fn num_sought_pairs(m: i64, lrs: &[(i64, i64)]) -> i64 {
-    let mut ops: BTreeMap<i64, Vec<usize>> = BTreeMap::new();
-    let mut cls: BTreeMap<i64, Vec<usize>> = BTreeMap::new();
-    let mut mss: BTreeSet<i64> = BTreeSet::new();
+fn num_sought_pairs(m: i32, lrs: &[(i32, i32)]) -> i64 {
+    let max_ls_by_r: BTreeMap<i32, i32> = lrs.iter().fold(BTreeMap::new(), |mut acc, (l, r)| {
+        acc.entry(*r).and_modify(|x| *x = *l.max(x)).or_insert(*l);
+        acc
+    });
 
-    for (i, (l, r)) in lrs.iter().enumerate() {
-        ops.entry(*l)
-            .and_modify(|indices| indices.push(i))
-            .or_insert(vec![i]);
-        cls.entry(*r)
-            .and_modify(|indices| indices.push(i))
-            .or_insert(vec![i]);
-        mss.insert(*l);
-        mss.insert(*r);
+    let mut result: i64 = 0;
+
+    for curr in 1..=m {
+        let range = max_ls_by_r.range(..=curr);
+
+        if let Some((r0, l0)) = range.last() {
+            if !(*r0 == curr && l0 == r0) {
+                result += (curr - l0) as i64;
+            }
+        } else {
+            result += curr as i64;
+        }
     }
 
-    let mut currently_open: BinaryHeap<(i64, usize)> = BinaryHeap::new();
-
-    let mut result = m * (m + 1) / 2;
     result
 }
 
 fn main() {
     input! {
         n: usize,
-        m: i64,
-        lrs: [(i64, i64); n],
+        m: i32,
+        lrs: [(i32, i32); n],
     }
 
-    let result = num_sought_pairs(m, &lrs.into_iter().unique().collect::<Vec<_>>());
+    let result = num_sought_pairs(m, &lrs);
     println!("{}", result);
 }
