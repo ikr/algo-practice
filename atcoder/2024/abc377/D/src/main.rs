@@ -8,21 +8,26 @@ fn num_sought_pairs(m: i32, lrs: &[(i32, i32)]) -> i64 {
         acc
     });
 
-    let mut result: i64 = 0;
+    let mut dp: Vec<i64> = vec![0; (m + 1) as usize];
 
     for curr in 1..=m {
+        let i = curr as usize;
         let range = max_ls_by_r.range(..=curr);
 
         if let Some((r0, l0)) = range.last() {
-            if !(*r0 == curr && l0 == r0) {
-                result += (curr - l0) as i64;
+            if *r0 == curr {
+                if l0 != r0 {
+                    dp[i] = (curr - l0) as i64;
+                }
+            } else {
+                dp[i] += dp[i - 1] + 1;
             }
         } else {
-            result += curr as i64;
+            dp[i] += dp[i - 1] + 1;
         }
     }
 
-    result
+    dp.into_iter().sum()
 }
 
 fn main() {
