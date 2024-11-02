@@ -21,12 +21,12 @@ impl Scanner {
     }
 }
 
-fn all_1100_positions(offset: usize, xs: &[u8]) -> Vec<usize> {
+fn all_1100_positions(xs: &[u8]) -> Vec<usize> {
     let mut result: Vec<usize> = vec![];
     let n = xs.len();
     for i in 3..n {
         if xs[(i - 3)..=i] == [1, 1, 0, 0] {
-            result.push(offset + i - 3);
+            result.push(i - 3);
         }
     }
     result
@@ -40,7 +40,7 @@ fn main() {
     let mut scanner = Scanner::default();
     let cases_num: u16 = scanner.next();
 
-    for _ in 1..=cases_num {
+    for _ in 0..cases_num {
         let mut xs: Vec<u8> = scanner
             .next::<String>()
             .as_bytes()
@@ -49,7 +49,7 @@ fn main() {
             .collect();
         let n = xs.len();
 
-        let mut idx: HashSet<usize> = all_1100_positions(0, &xs).into_iter().collect();
+        let mut idx: HashSet<usize> = all_1100_positions(&xs).into_iter().collect();
 
         let q: u32 = scanner.next();
         for _ in 0..q {
@@ -57,15 +57,15 @@ fn main() {
             let v: u8 = scanner.next();
             xs[i] = v;
 
-            for di in 0..=3 {
+            for di in 0..=8 {
                 idx.remove(&i.saturating_sub(di));
                 idx.remove(&(i + di));
             }
 
-            let lo = i.saturating_sub(3);
-            let hi = (i + 3).min(n - 1);
-            for j in all_1100_positions(lo, &xs[lo..=hi]) {
-                idx.insert(j);
+            let lo = i.saturating_sub(8);
+            let hi = (i + 8).min(n - 1);
+            for j in all_1100_positions(&xs[lo..=hi]) {
+                idx.insert(lo + j);
             }
 
             let contains = !idx.is_empty();
