@@ -5,14 +5,17 @@ import os
 import re
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-r", "--regex",
-                    help="Add regular expressions support",
+parser.add_argument("-a", "--atcoder",
+                    help="Assume the crates available at AtCoder",
+                    action="store_true")
+parser.add_argument("-e", "--embed",
+                    help="Assume running in a “0 crates available” mode; embed input scanner",
                     action="store_true")
 parser.add_argument("-p", "--prefix-output",
                     help="Read STDIN & prefix K-th test case's output with `Case #K: `",
                     action="store_true")
-parser.add_argument("-e", "--embed",
-                    help="Assume running in a “0 crates available” mode; embed input scanner",
+parser.add_argument("-r", "--regex",
+                    help="Add regular expressions support",
                     action="store_true")
 parser.add_argument("name", help="The name of the problem")
 args = parser.parse_args()
@@ -96,6 +99,30 @@ fn main() {
     writer.flush().unwrap();
 }
 """
+elif args.atcoder:
+    code += """use std::io::{self, BufWriter, Write};
+use proconio::input;
+// use proconio::marker::Bytes;
+
+fn solve(xs: &[i32]) -> i32 {
+    xs.iter().sum::<i32>()
+}
+
+fn main() {
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut writer = BufWriter::new(handle);
+
+    input! {
+        n: usize,
+        xs: [i32; n],
+    }
+
+    let result = solve(&xs);
+    writeln!(writer, "{}", result).unwrap();
+    writer.flush().unwrap();
+}
+"""
 else:
     code += """use std::io::{self, BufRead};
 
@@ -119,12 +146,15 @@ os.system('cargo new {0} --name solution'.format(normalize(args.name)))
 path = os.path.join(os.getcwd(), normalize(args.name))
 os.chdir(path)
 
-if args.regex:
-    os.system('cargo add regex')
+if args.atcoder:
+    os.system('cargo add proconio')
 
 if args.prefix_output:
     os.system('cargo add proconio')
     os.system('cargo add proconio_derive')
+
+if args.regex:
+    os.system('cargo add regex')
 
 with open("src/main.rs", "w+") as file:
     file.write(code)
