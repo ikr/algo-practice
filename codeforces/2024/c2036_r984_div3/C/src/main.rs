@@ -64,7 +64,7 @@ fn main() {
 
             let lo = i.saturating_sub(3);
             let hi = (i + 3).min(n - 1);
-            for j in all_1100_positions(i, &xs[lo..=hi]) {
+            for j in all_1100_positions(lo, &xs[lo..=hi]) {
                 idx.insert(j);
             }
 
