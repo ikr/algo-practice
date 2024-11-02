@@ -1,4 +1,7 @@
-use std::io::{self, stdin, BufWriter, Write};
+use std::{
+    collections::HashSet,
+    io::{self, stdin, BufWriter, Write},
+};
 
 #[derive(Default)]
 struct Scanner {
@@ -18,21 +21,15 @@ impl Scanner {
     }
 }
 
-fn contains_1100(xs: &[u8]) -> bool {
+fn all_1100_positions(offset: usize, xs: &[u8]) -> Vec<usize> {
+    let mut result: Vec<usize> = vec![];
     let n = xs.len();
     for i in 3..n {
         if xs[(i - 3)..=i] == [1, 1, 0, 0] {
-            return true;
+            result.push(offset + i - 3);
         }
     }
-    false
-}
-
-fn has_1100_around(xs: &[u8], i0: usize) -> bool {
-    let n = xs.len();
-    let lo = i0.checked_sub(10).unwrap_or(0);
-    let hi = (i0 + 10).min(n - 1);
-    contains_1100(&xs[lo..=hi])
+    result
 }
 
 fn main() {
@@ -50,14 +47,29 @@ fn main() {
             .iter()
             .map(|c| c - b'0')
             .collect();
+        let n = xs.len();
+
+        let mut idx: HashSet<usize> = all_1100_positions(0, &xs).into_iter().collect();
 
         let q: u32 = scanner.next();
         for _ in 0..q {
             let i = scanner.next::<usize>() - 1;
             let v: u8 = scanner.next();
             xs[i] = v;
-            let result = has_1100_around(&xs, i);
-            writeln!(writer, "{}", if result { "YES" } else { "NO" }).unwrap();
+
+            for di in 0..=3 {
+                idx.remove(&i.saturating_sub(di));
+                idx.remove(&(i + di));
+            }
+
+            let lo = i.saturating_sub(3);
+            let hi = (i + 3).min(n - 1);
+            for j in all_1100_positions(i, &xs[lo..=hi]) {
+                idx.insert(j);
+            }
+
+            let contains = !idx.is_empty();
+            writeln!(writer, "{}", if contains { "YES" } else { "NO" }).unwrap();
         }
     }
 
