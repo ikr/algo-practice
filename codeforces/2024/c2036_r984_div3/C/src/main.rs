@@ -57,13 +57,12 @@ fn main() {
             let v: u8 = scanner.next();
             xs[i] = v;
 
-            for di in 0..=8 {
-                idx.remove(&i.saturating_sub(di));
-                idx.remove(&(i + di));
+            for j in (i.saturating_sub(3))..=i {
+                idx.remove(&j);
             }
 
-            let lo = i.saturating_sub(8);
-            let hi = (i + 8).min(n - 1);
+            let lo = i.saturating_sub(3);
+            let hi = (i + 3).min(n - 1);
             for j in all_1100_positions(&xs[lo..=hi]) {
                 idx.insert(lo + j);
             }
