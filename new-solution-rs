@@ -14,16 +14,10 @@ parser.add_argument("-e", "--embed",
 parser.add_argument("-p", "--prefix-output",
                     help="Read STDIN & prefix K-th test case's output with `Case #K: `",
                     action="store_true")
-parser.add_argument("-r", "--regex",
-                    help="Add regular expressions support",
-                    action="store_true")
 parser.add_argument("name", help="The name of the problem")
 args = parser.parse_args()
 
-streams_snippet = """
-"""
-
-code = 'use regex::Regex;\n' if args.regex else ""
+code = ""
 
 if args.prefix_output:
     code = code + """use proconio::input;
@@ -152,9 +146,6 @@ if args.atcoder:
 if args.prefix_output:
     os.system('cargo add proconio')
     os.system('cargo add proconio_derive')
-
-if args.regex:
-    os.system('cargo add regex')
 
 with open("src/main.rs", "w+") as file:
     file.write(code)
