@@ -14,12 +14,26 @@ fn main() {
         .map(|s| s.trim().to_string())
         .collect();
 
-    let haystack = &lines[2];
+    let mut result: usize = 0;
 
-    let result: usize = words
-        .iter()
-        .map(|w| haystack.match_indices(w).count())
-        .sum();
+    for line in lines[2..].iter() {
+        for word in words.iter() {
+            let mut xs: Vec<u8> = word.bytes().collect();
+            xs.reverse();
+            let reversed_word = String::from_utf8(xs).unwrap();
+
+            let variants: Vec<String> = if *word == reversed_word {
+                vec![word.to_string()]
+            } else {
+                vec![word.to_string(), reversed_word]
+            };
+
+            for w in variants {
+                let f = line.match_indices(&w).count();
+                result += f * word.len();
+            }
+        }
+    }
 
     println!("{}", result);
 }
