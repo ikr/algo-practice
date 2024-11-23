@@ -1,4 +1,32 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::HashSet,
+    io::{self, BufRead},
+};
+
+fn reversed(s: &[u8]) -> Vec<u8> {
+    let mut xs = s.to_vec();
+    xs.reverse();
+    xs
+}
+
+fn bimatch_indices(haystack: &[u8], needle: &[u8]) -> HashSet<usize> {
+    let needle_reversed = reversed(needle);
+    let n = haystack.len();
+    let m = needle.len();
+
+    let mut result: HashSet<usize> = HashSet::new();
+
+    for i in 0..=(n - m) {
+        let window = &haystack[i..(i + m)];
+        if window == needle || window == needle_reversed {
+            for j in i..(i + m) {
+                result.insert(j);
+            }
+        }
+    }
+
+    result
+}
 
 fn main() {
     let lines: Vec<String> = io::stdin()
@@ -17,22 +45,13 @@ fn main() {
     let mut result: usize = 0;
 
     for line in lines[2..].iter() {
-        for word in words.iter() {
-            let mut xs: Vec<u8> = word.bytes().collect();
-            xs.reverse();
-            let reversed_word = String::from_utf8(xs).unwrap();
+        let idx = words.iter().fold(HashSet::new(), |acc, word| {
+            acc.union(&bimatch_indices(line.as_bytes(), word.as_bytes()))
+                .cloned()
+                .collect()
+        });
 
-            let variants: Vec<String> = if *word == reversed_word {
-                vec![word.to_string()]
-            } else {
-                vec![word.to_string(), reversed_word]
-            };
-
-            for w in variants {
-                let f = line.match_indices(&w).count();
-                result += f * word.len();
-            }
-        }
+        result += idx.len();
     }
 
     println!("{}", result);
