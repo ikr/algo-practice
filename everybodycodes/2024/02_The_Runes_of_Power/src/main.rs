@@ -125,13 +125,11 @@ fn main() {
     let word_lengths = words.iter().map(|s| s.len()).collect::<Vec<_>>();
     let min_word_length = word_lengths.iter().min().unwrap();
     let max_word_length = word_lengths.iter().max().unwrap();
-    dbg!(min_word_length, max_word_length);
 
-    let grid: Vec<Vec<u8>> = lines[2..]
+    let grid_rows: Vec<Vec<u8>> = lines[2..]
         .iter()
         .map(|line| line.as_bytes().to_vec())
         .collect();
 
-    let a = Crd(0, 0).all_containing_vertical_intervals(3);
-    dbg!(a);
+    let grid = Grid { rows: grid_rows };
 }
