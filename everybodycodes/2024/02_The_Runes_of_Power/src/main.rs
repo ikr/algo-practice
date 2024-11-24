@@ -73,9 +73,12 @@ impl Grid {
     }
 
     fn cell(&self, crd: Crd) -> u8 {
-        let n = self.height();
+        let ro = crd.0;
+        if ro < 0 || ro >= self.height() {
+            return b'@';
+        }
+
         let m = self.width();
-        let ro = (crd.0 + 2 * n) % n;
         let co = (crd.1 + 2 * m) % m;
         self.rows[ro as usize][co as usize]
     }
@@ -160,7 +163,6 @@ fn main() {
                 let ncrd = grid.normalized(Crd(ro, co));
 
                 for crds in [horz, horz_rev, vert, vert_rev].concat() {
-                    dbg!(&crds);
                     let xs = grid.interval(&crds);
                     if word_codes_whitelist.contains(&code_of(&xs)) {
                         good_cells.insert(ncrd);
@@ -175,6 +177,5 @@ fn main() {
         }
     }
 
-    eprintln!("{:?}", good_cells);
     println!("{}", good_cells.len());
 }
