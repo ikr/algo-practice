@@ -8,13 +8,17 @@ struct Crd(i16, i16);
 
 impl Crd {
     fn adjacent(&self) -> Vec<Crd> {
-        let Crd(ro, co) = *self;
-        vec![
-            Crd(ro - 1, co),
-            Crd(ro, co + 1),
-            Crd(ro + 1, co),
-            Crd(ro, co - 1),
-        ]
+        let mut result = vec![];
+        let Crd(ro0, co0) = *self;
+        for ro in ro0 - 1..=ro0 + 1 {
+            for co in co0 - 1..=co0 + 1 {
+                if ro == ro0 && co == co0 {
+                    continue;
+                }
+                result.push(Crd(ro, co));
+            }
+        }
+        result
     }
 }
 
