@@ -61,18 +61,13 @@ impl Machine {
     }
 
     fn current_result(&self) -> u64 {
-        let n = self.chains.len() as u64;
-        let ms = (0..n)
-            .rev()
-            .map(|i| 10u64.pow(i as u32))
-            .collect::<Vec<_>>();
         let xs = self
             .chains
             .iter()
-            .map(|c| c.xs.front().unwrap())
-            .copied()
+            .map(|c| c.xs.front().unwrap().to_string())
             .collect::<Vec<_>>();
-        ms.iter().zip(xs.iter()).map(|(m, x)| m * (*x as u64)).sum()
+
+        xs.join("").parse().unwrap()
     }
 }
 
