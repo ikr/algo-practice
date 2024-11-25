@@ -39,7 +39,13 @@ fn main() {
 
     while let Some(u) = q.pop_front() {
         if u.last().unwrap() == "@" {
-            println!("{}", u.join(""));
+            println!(
+                "{}",
+                u.iter()
+                    .map(|s| String::from_utf8(vec![s.as_bytes()[0]]).unwrap())
+                    .collect::<Vec<_>>()
+                    .join("")
+            );
             continue;
         }
 
