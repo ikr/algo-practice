@@ -1,5 +1,5 @@
 use std::{
-    collections::VecDeque,
+    collections::{HashMap, VecDeque},
     io::{self, BufRead},
 };
 
@@ -26,12 +26,13 @@ impl Chain {
     fn do_clapping(&mut self) {
         let n = self.xs.len() as u8;
         let x0 = self.xs.pop_front().unwrap();
+        let r = x0 % (2 * n);
 
-        if x0 <= n {
-            self.xs.insert((x0 - 1) as usize, x0);
+        if r <= n {
+            self.xs.insert((r - 1) as usize, x0);
         } else {
-            let r = x0 - n;
-            self.xs.insert((n - 1 - r) as usize, x0);
+            let rr = r - n;
+            self.xs.insert((n - 1 - rr) as usize, x0);
         }
     }
 }
@@ -94,9 +95,22 @@ fn main() {
         })
         .collect();
 
+    let mut freqs: HashMap<u64, u64> = HashMap::new();
     let mut m = Machine::new(column_chains);
-    for _ in 0..10 {
+    for round in 1u64..10u64.pow(9) {
         m.play_round();
-        println!("{}", m.current_result());
+        let result = m.current_result();
+
+        freqs.entry(result).and_modify(|e| *e += 1).or_insert(1);
+        let f = freqs[&result];
+        if f == 2024 {
+            println!(
+                "round: {} result: {} puzzle-answer: {}",
+                round,
+                result,
+                round * result
+            );
+            break;
+        }
     }
 }
