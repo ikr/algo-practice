@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::VecDeque,
     io::{self, BufRead},
 };
 
@@ -19,20 +19,20 @@ fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
 
 #[derive(Debug)]
 struct Chain {
-    xs: VecDeque<u8>,
+    xs: VecDeque<u16>,
 }
 
 impl Chain {
     fn do_clapping(&mut self) {
-        let n = self.xs.len() as u8;
         let x0 = self.xs.pop_front().unwrap();
-        let r = x0 % (2 * n);
+        let n = self.xs.len() as u16;
+        let r = (x0 - 1) % (2 * n);
 
-        if r <= n {
-            self.xs.insert((r - 1) as usize, x0);
+        if r < n {
+            self.xs.insert(r as usize, x0);
         } else {
             let rr = r - n;
-            self.xs.insert((n - 1 - rr) as usize, x0);
+            self.xs.insert((n - rr) as usize, x0);
         }
     }
 }
@@ -72,7 +72,7 @@ impl Machine {
 }
 
 fn main() {
-    let rows: Vec<Vec<u8>> = io::stdin()
+    let rows: Vec<Vec<u16>> = io::stdin()
         .lock()
         .lines()
         .map(|line| {
@@ -90,22 +90,18 @@ fn main() {
         })
         .collect();
 
-    let mut freqs: HashMap<u64, u64> = HashMap::new();
+    let mut result: u64 = 0;
     let mut m = Machine::new(column_chains);
-    for round in 1u64..10u64.pow(9) {
+    let hi = 10u64.pow(11);
+    //let hi = 10;
+    for _ in 1u64..=hi {
         m.play_round();
-        let result = m.current_result();
+        let candidate = m.current_result();
+        //eprintln!("{}", candidate);
 
-        freqs.entry(result).and_modify(|e| *e += 1).or_insert(1);
-        let f = freqs[&result];
-        if f == 2024 {
-            println!(
-                "round: {} result: {} puzzle-answer: {}",
-                round,
-                result,
-                round * result
-            );
-            break;
+        if candidate > result {
+            println!("{}", candidate);
+            result = candidate;
         }
     }
 }
