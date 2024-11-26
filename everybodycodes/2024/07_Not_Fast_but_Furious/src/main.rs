@@ -1,5 +1,7 @@
 use std::io::{self, BufRead};
 
+use itertools::Itertools;
+
 fn parse_line(s: &str) -> (String, Vec<i32>) {
     let parts: Vec<&str> = s.split(":").collect();
     let lhs = parts[0].to_string();
@@ -15,10 +17,10 @@ fn parse_line(s: &str) -> (String, Vec<i32>) {
     (lhs, rhs)
 }
 
-fn total_essence_gathered(track: &[i32], loops: usize, initial_essence: i32, xs: &[i32]) -> i32 {
+fn total_essence_gathered(track: &[i32], loops: usize, initial_essence: i32, xs: &[i32]) -> i64 {
     let mut t: usize = 0;
     let mut cur = initial_essence;
-    let mut result = 0;
+    let mut result: i64 = 0;
     let m = xs.len();
 
     for _ in 0..loops {
@@ -29,7 +31,7 @@ fn total_essence_gathered(track: &[i32], loops: usize, initial_essence: i32, xs:
                 (1, _) => cur += 1,
                 _ => panic!("Unknown terrain {} or op {}", terrain, xs[t % m]),
             }
-            result += cur;
+            result += cur as i64;
             t += 1;
         }
     }
@@ -106,11 +108,36 @@ fn track_from(src: &str) -> Vec<i32> {
 }
 
 fn main() {
-    let mut lines = io::stdin()
+    let lines = io::stdin()
         .lock()
         .lines()
         .map(|line| parse_line(&line.unwrap()))
         .collect::<Vec<_>>();
 
-    eprintln!("{:?}", track_from(&track_src()));
+    let track = track_from(&track_src());
+    let (_, opponent_xs) = lines[0].clone();
+    let opponent_result = total_essence_gathered(&track, 2024, 10, &opponent_xs);
+    let mut result = 0;
+
+    for zero_indices in (0..11).combinations(3) {
+        let mut proto: Vec<i32> = vec![1; 11];
+        for i in zero_indices {
+            proto[i] = 0;
+        }
+
+        let one_indices = (0..11).filter(|i| proto[*i] == 1).collect::<Vec<_>>();
+        for minus_one_indices in one_indices.iter().combinations(3) {
+            let mut sample = proto.clone();
+            for i in minus_one_indices {
+                sample[*i] = -1;
+            }
+
+            let candidate = total_essence_gathered(&track, 2024, 10, &sample);
+            if candidate > opponent_result {
+                result += 1;
+            }
+        }
+    }
+
+    println!("{}", result);
 }
