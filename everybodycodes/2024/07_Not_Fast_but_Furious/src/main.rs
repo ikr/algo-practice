@@ -37,32 +37,72 @@ fn total_essence_gathered(track: &[i32], loops: usize, initial_essence: i32, xs:
     result
 }
 
-fn reversed(s: &str) -> String {
-    s.chars().rev().collect()
+fn track_src() -> String {
+    "S+= +=-== +=++=     =+=+=--=    =-= ++=     +=-  =+=++=-+==+ =++=-=-=--
+- + +   + =   =     =      =   == = - -     - =  =         =-=        -
+= + + +-- =-= ==-==-= --++ +  == == = +     - =  =    ==++=    =++=-=++
++ + + =     +         =  + + == == ++ =     = =  ==   =   = =++=       \n\
+= = + + +== +==     =++ == =+=  =  +  +==-=++ =   =++ --= + =          \n\
++ ==- = + =   = =+= =   =       ++--          +     =   = = =--= ==++==
+=     ==- ==+-- = = = ++= +=--      ==+ ==--= +--+=-= ==- ==   =+=    =
+-               = = = =   +  +  ==+ = = +   =        ++    =          -
+-               = + + =   +  -  = + = = +   =        +     =          -
+--==++++==+=+++-= =-= =-+-=  =+-= =-= =--   +=++=+++==     -=+=++==+++-"
+        .to_string()
 }
 
-fn track_src_a() -> String {
-    "+===".to_string() + "+" + &reversed("=+=-+") + "-S"
-}
+fn track_from(src: &str) -> Vec<i32> {
+    let lines = src.split("\n").collect::<Vec<_>>();
+    let grid: Vec<Vec<u8>> = lines.iter().map(|line| line.as_bytes().to_vec()).collect();
 
-fn track_src_1() -> String {
-    "-=++=-==++=++=-=+=-=+=+=--=-=++=-==++=-+=-=+=-=+=+=++=-+==++=++=-=-=--".to_string()
-        + "-=++==-"
-        + &reversed("--==++++==+=+++-=+=-=+=-+-=+-=+-=+=-=+=--=+++=++=+++==++==--=+=++==+++-")
-        + "-=+=+=-S"
-}
+    let neigh = |pre: (usize, usize), crd: (usize, usize)| -> (usize, usize) {
+        let (ro, co) = crd;
+        let h = grid.len();
+        let w = grid[ro].len();
 
-fn track_from(track_src: &str) -> Vec<i32> {
-    track_src
-        .chars()
-        .map(|c| match c {
-            '-' => -1,
-            '=' => 0,
-            '+' => 1,
-            'S' => 0,
-            _ => panic!("Unknown char {}", c),
-        })
-        .collect()
+        if ro != 0 && (ro - 1, co) != pre && grid[ro - 1][co] != b' ' {
+            return (ro - 1, co);
+        }
+
+        if ro != h - 1 && (ro + 1, co) != pre && grid[ro + 1][co] != b' ' {
+            return (ro + 1, co);
+        }
+
+        if co != 0 && (ro, co - 1) != pre && grid[ro][co - 1] != b' ' {
+            return (ro, co - 1);
+        }
+
+        if co != w - 1 && (ro, co + 1) != pre && grid[ro][co + 1] != b' ' {
+            return (ro, co + 1);
+        }
+
+        panic!("No neighbour found")
+    };
+
+    let mut result = vec![1];
+    let mut pre: (usize, usize) = (0, 0);
+    let mut cur: (usize, usize) = (0, 1);
+
+    loop {
+        let (ro, co) = neigh(pre, cur);
+
+        match grid[ro][co] {
+            b'=' => result.push(0),
+            b'S' => result.push(0),
+            b'+' => result.push(1),
+            b'-' => result.push(-1),
+            _ => panic!("Unexpected terrain `{}`", grid[ro][co]),
+        }
+
+        if grid[ro][co] == b'S' {
+            break;
+        }
+
+        pre = cur;
+        cur = (ro, co);
+    }
+
+    result
 }
 
 fn main() {
@@ -72,11 +112,5 @@ fn main() {
         .map(|line| parse_line(&line.unwrap()))
         .collect::<Vec<_>>();
 
-    lines.sort_by_key(|(_, xs)| -total_essence_gathered(&track_from(&track_src_1()), 10, 10, xs));
-    let result = lines
-        .into_iter()
-        .map(|(s, _)| s)
-        .collect::<Vec<_>>()
-        .join("");
-    println!("{}", result);
+    eprintln!("{:?}", track_from(&track_src()));
 }
