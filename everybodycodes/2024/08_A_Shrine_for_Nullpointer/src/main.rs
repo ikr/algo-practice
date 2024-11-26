@@ -4,10 +4,10 @@ fn main() {
     let mut buf = String::new();
     io::stdin().read_to_string(&mut buf).unwrap();
     let num_priests: i64 = buf.trim().parse().unwrap();
-    let num_acolytes: i64 = 1111;
-    //let num_acolytes: i64 = 5;
-    let initially_available_blocks: i64 = 20240000;
-    //let initially_available_blocks: i64 = 50;
+    //let num_acolytes: i64 = 10;
+    let num_acolytes: i64 = 5;
+    //let initially_available_blocks: i64 = 202400000;
+    let initially_available_blocks: i64 = 160;
 
     let mut available_blocks = initially_available_blocks - 1;
     let mut width: i64 = 1;
