@@ -4,10 +4,10 @@ fn main() {
     let mut buf = String::new();
     io::stdin().read_to_string(&mut buf).unwrap();
     let num_priests: i64 = buf.trim().parse().unwrap();
-    //let num_acolytes: i64 = 10;
-    let num_acolytes: i64 = 5;
-    //let initially_available_blocks: i64 = 202400000;
-    let initially_available_blocks: i64 = 160;
+    let num_acolytes: i64 = 10;
+    //let num_acolytes: i64 = 5;
+    let initially_available_blocks: i64 = 202400000;
+    //let initially_available_blocks: i64 = 160;
 
     let fill_next_layer = |mut xs: Vec<i64>| -> Vec<i64> {
         let thickness = xs.last().unwrap();
@@ -43,17 +43,13 @@ fn main() {
 
     let mut xs: Vec<i64> = vec![1];
 
-    for l in 2i32..=4096 {
+    loop {
         xs = fill_next_layer(xs);
         let ys = carve_out_empty_spaces(&xs);
 
-        if l.count_ones() == 1 {
-            eprintln!("{}: {}", l, num_blocks(&ys));
+        if num_blocks(&ys) >= initially_available_blocks {
+            println!("{}", num_blocks(&ys));
+            break;
         }
-
-        // if num_blocks(&ys) >= initially_available_blocks {
-        //     println!("{}", num_blocks(&ys));
-        //     break;
-        // }
     }
 }
