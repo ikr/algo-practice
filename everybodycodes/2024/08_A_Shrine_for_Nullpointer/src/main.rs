@@ -48,7 +48,7 @@ fn main() {
         let ys = carve_out_empty_spaces(&xs);
 
         if num_blocks(&ys) >= initially_available_blocks {
-            println!("{}", num_blocks(&ys));
+            println!("{}", num_blocks(&ys) - initially_available_blocks);
             break;
         }
     }
