@@ -3,37 +3,58 @@ use std::io::{self, BufRead};
 use memoise::memoise;
 
 const INF: u32 = 1_000_000;
+const STAMPS: [u8; 18] = [
+    1, 3, 5, 10, 15, 16, 20, 24, 25, 30, 37, 38, 49, 50, 74, 75, 100, 101,
+];
 
-#[memoise(stamps.len(), x)]
-fn min_stamps_for(stamps: &[u16], x: u16) -> u32 {
+#[memoise(n <= 20, x <= 120_000)]
+fn min_stamps_for(n: u8, x: u32) -> u32 {
     if x == 0 {
         0
-    } else if let Some(y) = stamps.last() {
-        let fewer_stamps: Vec<u16> = stamps[0..stamps.len() - 1].to_vec();
-        if y > &x {
-            min_stamps_for(&fewer_stamps, x)
+    } else if n > 0 {
+        let y = STAMPS[(n as usize) - 1];
+        if y as u32 > x {
+            min_stamps_for(n - 1, x)
         } else {
-            min_stamps_for(&fewer_stamps, x).min(1 + min_stamps_for(stamps, x - y))
+            min_stamps_for(n - 1, x).min(1 + min_stamps_for(n, x - y as u32))
         }
     } else {
         INF
     }
 }
 
-fn main() {
-    let stamps: Vec<u16> = vec![1, 3, 5, 10, 15, 16, 20, 24, 25, 30];
+fn optimal_split(x: u32) -> (u32, u32) {
+    let mut lo = INF;
+    let mut result: (u32, u32) = (INF, INF);
 
-    let xs: Vec<u16> = io::stdin()
+    for y in x / 2 - 100..=x / 2 + 1 {
+        let z = x - y;
+        if z.abs_diff(y) > 100 {
+            continue;
+        }
+
+        let p = min_stamps_for(STAMPS.len() as u8, y);
+        let q = min_stamps_for(STAMPS.len() as u8, z);
+
+        if p + q < lo {
+            lo = p + q;
+            result = (p, q)
+        }
+    }
+
+    result
+}
+
+fn main() {
+    let xs: Vec<u32> = io::stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().parse().unwrap())
         .collect();
 
-    let ys = xs
-        .into_iter()
-        .map(|x| min_stamps_for(&stamps, x))
-        .collect::<Vec<_>>();
-    eprintln!("{:?}", ys);
-    let result: u32 = ys.into_iter().sum();
+    let sps = xs.into_iter().map(optimal_split).collect::<Vec<_>>();
+    eprintln!("{:?}", sps);
+
+    let result: u32 = sps.into_iter().map(|(a, b)| a + b).sum();
     println!("{}", result);
 }
