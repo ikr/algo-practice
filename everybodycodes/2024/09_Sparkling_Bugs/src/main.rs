@@ -13,7 +13,7 @@ fn min_stamps_for(stamps: &[u16], x: u16) -> u32 {
         if y > &x {
             min_stamps_for(&fewer_stamps, x)
         } else {
-            min_stamps_for(&fewer_stamps, x).min(1 + min_stamps_for(&stamps, x - y))
+            min_stamps_for(&fewer_stamps, x).min(1 + min_stamps_for(stamps, x - y))
         }
     } else {
         INF
