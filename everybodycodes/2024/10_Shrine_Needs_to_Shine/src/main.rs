@@ -36,30 +36,35 @@ fn power(s: &str) -> usize {
         .sum()
 }
 
-fn main() {
-    eprintln!("{}", power("PTBVRCZHFLJWGMNS"));
+fn grid_at(lines: &[Vec<char>], i: usize, j: usize) -> Vec<Vec<char>> {
+    let mut grid: Vec<Vec<char>> = vec![];
 
+    for line in lines.iter().skip(i * 6).take(8) {
+        grid.push(line[j * 6..j * 6 + 8].to_vec());
+    }
+    grid
+}
+
+fn eprint_grid(grid: &[Vec<char>]) {
+    for row in grid {
+        eprintln!("{}", row.iter().collect::<String>());
+    }
+}
+
+fn main() {
     let lines: Vec<Vec<char>> = io::stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let h = lines.len().div_ceil(9);
-    let w = lines[0].len().div_ceil(9);
-    eprintln!("{} x {} grids", h, w);
+    let h = lines.len() / 6;
+    let w = lines[0].len() / 6;
 
-    let mut result: usize = 0;
     for i in 0..h {
         for j in 0..w {
-            let mut grid: Vec<Vec<char>> = vec![];
-
-            for line in lines.iter().skip(i * 9).take(8) {
-                grid.push(line[j * 9..j * 9 + 8].to_vec());
-            }
-
-            result += power(&center_piece(&grid));
+            eprint_grid(&grid_at(&lines, i, j));
+            eprintln!("");
         }
     }
-    println!("{}", result);
 }
