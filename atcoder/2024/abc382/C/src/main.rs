@@ -5,15 +5,14 @@ use std::{
 };
 
 fn solve(people: &[i32], sushi: &[i32]) -> Vec<Option<usize>> {
-    let person_index_by_taste: BTreeMap<i32, usize> =
-        people
-            .iter()
-            .enumerate()
-            .rev()
-            .fold(BTreeMap::new(), |mut acc, (i, &t)| {
-                acc.entry(t).and_modify(|j| *j = i).or_insert(i);
-                acc
-            });
+    let mut person_index_by_taste: BTreeMap<i32, usize> = BTreeMap::new();
+    for (i, &p) in people.iter().enumerate().rev() {
+        let rk: Vec<i32> = person_index_by_taste.range(p..).map(|(&x, _)| x).collect();
+        for k in rk {
+            person_index_by_taste.remove(&k).unwrap();
+        }
+        person_index_by_taste.insert(p, i);
+    }
 
     let mut result = vec![None; sushi.len()];
 
