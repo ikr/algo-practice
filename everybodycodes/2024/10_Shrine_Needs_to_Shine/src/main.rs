@@ -51,10 +51,31 @@ fn eprint_grid(grid: &[Vec<char>]) {
     }
 }
 
-fn reinsert_tile(lines: &mut Vec<Vec<char>>, i: usize, j: usize, grid: &[Vec<char>]) {
+fn reinsert_tile(lines: &mut [Vec<char>], i: usize, j: usize, grid: &[Vec<char>]) {
     for (ro, row) in grid.iter().enumerate() {
         for (co, cell) in row.iter().enumerate() {
             lines[i * 6 + ro][j * 6 + co] = *cell;
+        }
+    }
+}
+
+struct Grid {
+    grid: Vec<Vec<char>>,
+}
+
+impl Grid {
+    fn fill_all_possible(&mut self) {
+        for ro in 2..=5 {
+            for co in 2..=5 {
+                let xs = keep_letters(&self.grid[ro]);
+                let ys = keep_letters(&column(&self.grid, co));
+                let zs = xs.intersection(&ys).cloned().collect::<Vec<char>>();
+                if let Some(&c) = zs.first() {
+                    if zs.len() == 1 {
+                        self.grid[ro][co] = c;
+                    }
+                }
+            }
         }
     }
 }
@@ -71,15 +92,18 @@ fn main() {
 
     for i in 0..h {
         for j in 0..w {
-            let g = grid_at(&lines, i, j);
-            reinsert_tile(&mut lines, i, j, &g);
+            let mut g = Grid {
+                grid: grid_at(&lines, i, j),
+            };
+            g.fill_all_possible();
+            reinsert_tile(&mut lines, i, j, &g.grid);
         }
     }
 
     for i in 0..h {
         for j in 0..w {
             eprint_grid(&grid_at(&lines, i, j));
-            eprintln!("");
+            eprintln!();
         }
     }
 }
