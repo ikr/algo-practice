@@ -17,25 +17,6 @@ fn keep_letters(xs: &[char]) -> HashSet<char> {
         .collect()
 }
 
-fn center_piece(grid: &[Vec<char>]) -> String {
-    let mut s: String = String::new();
-    for ro in 2..=5 {
-        for co in 2..=5 {
-            let xs = keep_letters(&grid[ro]);
-            let ys = keep_letters(&column(grid, co));
-            s.push(*xs.intersection(&ys).next().unwrap());
-        }
-    }
-    s
-}
-
-fn power(s: &str) -> usize {
-    s.bytes()
-        .enumerate()
-        .map(|(i, b)| (i + 1) * ((b - b'A' + 1) as usize))
-        .sum()
-}
-
 fn grid_at(lines: &[Vec<char>], i: usize, j: usize) -> Vec<Vec<char>> {
     let mut grid: Vec<Vec<char>> = vec![];
 
@@ -59,6 +40,13 @@ fn reinsert_tile(lines: &mut [Vec<char>], i: usize, j: usize, grid: &[Vec<char>]
     }
 }
 
+fn power(s: &str) -> usize {
+    s.bytes()
+        .enumerate()
+        .map(|(i, b)| (i + 1) * ((b - b'A' + 1) as usize))
+        .sum()
+}
+
 struct Grid {
     grid: Vec<Vec<char>>,
 }
@@ -77,6 +65,25 @@ impl Grid {
                 }
             }
         }
+    }
+
+    fn is_complete(&self) -> bool {
+        let xs: HashSet<u8> = self
+            .center_piece()
+            .bytes()
+            .filter(|x| x.is_ascii_uppercase())
+            .collect();
+        xs.len() == 16
+    }
+
+    fn center_piece(&self) -> String {
+        let mut s: String = String::new();
+        for ro in 2..=5 {
+            for co in 2..=5 {
+                s.push(self.grid[ro][co]);
+            }
+        }
+        s
     }
 }
 
