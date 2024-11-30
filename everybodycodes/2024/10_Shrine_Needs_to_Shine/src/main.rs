@@ -51,8 +51,16 @@ fn eprint_grid(grid: &[Vec<char>]) {
     }
 }
 
+fn reinsert_tile(lines: &mut Vec<Vec<char>>, i: usize, j: usize, grid: &[Vec<char>]) {
+    for (ro, row) in grid.iter().enumerate() {
+        for (co, cell) in row.iter().enumerate() {
+            lines[i * 6 + ro][j * 6 + co] = *cell;
+        }
+    }
+}
+
 fn main() {
-    let lines: Vec<Vec<char>> = io::stdin()
+    let mut lines: Vec<Vec<char>> = io::stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().chars().collect())
@@ -60,6 +68,13 @@ fn main() {
 
     let h = lines.len() / 6;
     let w = lines[0].len() / 6;
+
+    for i in 0..h {
+        for j in 0..w {
+            let g = grid_at(&lines, i, j);
+            reinsert_tile(&mut lines, i, j, &g);
+        }
+    }
 
     for i in 0..h {
         for j in 0..w {
