@@ -33,12 +33,21 @@ fn main() {
         g
     });
 
-    let mut gen = [0usize; 26];
-    gen[25] = 1;
+    let mut lo = usize::MAX;
+    let mut hi = 0;
 
-    for _ in 0..10 {
-        gen = new_generation(&g, &gen);
+    for x0 in 0..3 {
+        let mut gen = [0usize; 26];
+        gen[x0] = 1;
+
+        for _ in 0..20 {
+            gen = new_generation(&g, &gen);
+        }
+
+        let cur = gen.iter().sum::<usize>();
+        lo = lo.min(cur);
+        hi = hi.max(cur);
     }
 
-    println!("{}", gen.iter().sum::<usize>());
+    println!("{}", hi - lo);
 }
