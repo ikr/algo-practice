@@ -1,18 +1,31 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::HashSet,
+    io::{self, BufRead},
+};
 
-fn parse_line_rhs(s: &str) -> Vec<u8> {
-    s.split(",").map(|s| s.as_bytes()[0] - b'A').collect()
+fn code_of(xs: &[u8]) -> u16 {
+    let n = xs.len();
+    (0..n)
+        .map(|i| 27u16.pow(i as u32))
+        .rev()
+        .zip(xs.iter().map(|&x| (x - b'@') as u16))
+        .map(|(a, b)| a * b)
+        .sum()
 }
 
-fn parse_line(s: &str) -> (u8, Vec<u8>) {
+fn parse_line_rhs(s: &str) -> Vec<u16> {
+    s.split(",").map(|s| code_of(s.as_bytes())).collect()
+}
+
+fn parse_line(s: &str) -> (u16, Vec<u16>) {
     let parts: Vec<&str> = s.split(":").collect();
-    let lhs = parts[0].as_bytes()[0] - b'A';
+    let lhs = code_of(parts[0].as_bytes());
     let rhs = parse_line_rhs(parts[1]);
     (lhs, rhs)
 }
 
-fn new_generation(g: &[Vec<u8>], gen: &[usize]) -> [usize; 26] {
-    let mut new_gen = [0; 26];
+fn new_generation(g: &[Vec<u16>], gen: &[usize]) -> Vec<usize> {
+    let mut new_gen = vec![0; 27usize.pow(3)];
     for (u, vs) in g.iter().enumerate() {
         for &v in vs {
             new_gen[v as usize] += gen[u];
@@ -22,23 +35,33 @@ fn new_generation(g: &[Vec<u8>], gen: &[usize]) -> [usize; 26] {
 }
 
 fn main() {
-    let g_src: Vec<(u8, Vec<u8>)> = io::stdin()
+    let g_src: Vec<_> = io::stdin()
         .lock()
         .lines()
         .map(|line| parse_line(&line.unwrap()))
         .collect();
 
-    let g = g_src.into_iter().fold(vec![vec![]; 26], |mut g, (u, vs)| {
-        g[u as usize] = vs;
-        g
+    let vs: HashSet<u16> = g_src.iter().fold(HashSet::new(), |mut acc, (x, ys)| {
+        acc.insert(*x);
+        for y in ys {
+            acc.insert(*y);
+        }
+        acc
     });
+
+    let g = g_src
+        .into_iter()
+        .fold(vec![vec![]; 27usize.pow(3)], |mut g, (u, vs)| {
+            g[u as usize] = vs;
+            g
+        });
 
     let mut lo = usize::MAX;
     let mut hi = 0;
 
-    for x0 in 0..3 {
-        let mut gen = [0usize; 26];
-        gen[x0] = 1;
+    for x0 in vs {
+        let mut gen = vec![0; 27usize.pow(3)];
+        gen[x0 as usize] = 1;
 
         for _ in 0..20 {
             gen = new_generation(&g, &gen);
