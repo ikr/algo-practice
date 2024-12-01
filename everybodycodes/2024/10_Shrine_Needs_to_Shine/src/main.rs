@@ -139,7 +139,7 @@ impl Grid {
     }
 }
 
-fn replace_first_unambiguous(&mut lines: Vec<Vec<u8>>) -> bool {
+fn replace_first_unambiguous(lines: &mut [Vec<u8>]) -> bool {
     let h = lines.len() / 6;
     let w = lines[0].len() / 6;
 
@@ -153,13 +153,13 @@ fn replace_first_unambiguous(&mut lines: Vec<Vec<u8>>) -> bool {
             let gg = g.fill_all_possible();
 
             if gg.is_complete() {
-                gg.reinsert_tile(&mut lines);
+                gg.reinsert_tile(lines);
                 return true;
             } else if !g.locations_of_unknowns().is_empty() {
                 let vs = g.complete_variants();
                 if vs.len() == 1 {
                     let v = vs.first().unwrap();
-                    v.reinsert_tile(&mut lines);
+                    v.reinsert_tile(lines);
                     return true;
                 }
             };
@@ -176,24 +176,28 @@ fn main() {
         .map(|line| line.unwrap().bytes().collect())
         .collect();
 
-    let h = initial_lines.len() / 6;
-    let w = initial_lines[0].len() / 6;
+    let mut lines = initial_lines.clone();
+    loop {
+        if replace_first_unambiguous(&mut lines) {
+            eprint!(".");
+        } else {
+            break;
+        }
+    }
+    eprintln!();
+
+    let h = lines.len() / 6;
+    let w = lines[0].len() / 6;
+    let mut result: usize = 0;
 
     for i in 0..h {
         for j in 0..w {
-            let g = grid_at(&initial_lines, i, j);
-            let gg = g.fill_all_possible();
-
-            let num_variants: usize = if gg.is_complete() {
-                1
-            } else if g.locations_of_unknowns().is_empty() {
-                0
-            } else {
-                g.complete_variants().len()
-            };
-
-            eprint!("{} ", num_variants);
+            let g = grid_at(&lines, i, j);
+            if g.is_complete() {
+                result += power(&g.center_piece());
+            }
         }
-        eprintln!();
     }
+
+    println!("{}", result);
 }
