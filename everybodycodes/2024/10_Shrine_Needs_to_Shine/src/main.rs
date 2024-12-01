@@ -52,19 +52,23 @@ impl Grid {
         })
     }
 
-    fn fill_all_possible(&mut self) {
-        for ro in 2..=5 {
+    fn fill_all_possible(&self) -> Grid {
+        let mut grid = self.grid.clone();
+
+        for (ro, row) in self.grid.iter().enumerate().skip(2).take(4) {
             for co in 2..=5 {
-                let xs = keep_letters(&self.grid[ro]);
+                let xs = keep_letters(row);
                 let ys = keep_letters(&self.column(co));
                 let zs = xs.intersection(&ys).cloned().collect::<Vec<u8>>();
                 if let Some(&c) = zs.first() {
                     if zs.len() == 1 {
-                        self.grid[ro][co] = c;
+                        grid[ro][co] = c;
                     }
                 }
             }
         }
+
+        Grid { grid }
     }
 
     fn is_complete(&self) -> bool {
@@ -99,11 +103,11 @@ fn main() {
 
     for i in 0..h {
         for j in 0..w {
-            let mut g = Grid {
+            let g = Grid {
                 grid: grid_at(&lines, i, j),
             };
-            g.fill_all_possible();
-            reinsert_tile(&mut lines, i, j, &g.grid);
+            let gg = g.fill_all_possible();
+            reinsert_tile(&mut lines, i, j, &gg.grid);
         }
     }
 
