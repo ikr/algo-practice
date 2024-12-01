@@ -3,13 +3,6 @@ use std::{
     io::{self, BufRead},
 };
 
-fn column(grid: &[Vec<char>], co: usize) -> Vec<char> {
-    grid.iter().fold(vec![], |mut acc, row| {
-        acc.push(row[co]);
-        acc
-    })
-}
-
 fn keep_letters(xs: &[char]) -> HashSet<char> {
     xs.iter()
         .cloned()
@@ -40,8 +33,8 @@ fn reinsert_tile(lines: &mut [Vec<char>], i: usize, j: usize, grid: &[Vec<char>]
     }
 }
 
-fn power(s: &str) -> usize {
-    s.bytes()
+fn power(s: &[u8]) -> usize {
+    s.iter()
         .enumerate()
         .map(|(i, b)| (i + 1) * ((b - b'A' + 1) as usize))
         .sum()
@@ -52,11 +45,18 @@ struct Grid {
 }
 
 impl Grid {
+    fn column(&self, co: usize) -> Vec<char> {
+        self.grid.iter().fold(vec![], |mut acc, row| {
+            acc.push(row[co]);
+            acc
+        })
+    }
+
     fn fill_all_possible(&mut self) {
         for ro in 2..=5 {
             for co in 2..=5 {
                 let xs = keep_letters(&self.grid[ro]);
-                let ys = keep_letters(&column(&self.grid, co));
+                let ys = keep_letters(&self.column(co));
                 let zs = xs.intersection(&ys).cloned().collect::<Vec<char>>();
                 if let Some(&c) = zs.first() {
                     if zs.len() == 1 {
