@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 fn keep_letters(xs: &[u8]) -> HashSet<u8> {
     xs.iter()
         .cloned()
@@ -26,6 +28,7 @@ fn power(s: &[u8]) -> usize {
         .sum()
 }
 
+#[derive(Clone)]
 struct Grid {
     i: usize,
     j: usize,
@@ -102,6 +105,33 @@ impl Grid {
         result
     }
 
+    fn complete_variants(&self) -> Vec<Grid> {
+        let g0 = self.fill_all_possible();
+        let taken: Vec<u8> = g0
+            .center_piece()
+            .into_iter()
+            .filter(|x| x.is_ascii_uppercase())
+            .collect();
+        let avs: Vec<u8> = (b'A'..=b'Z').filter(|x| !taken.contains(x)).collect();
+
+        let uks = self.locations_of_unknowns();
+        assert!(!uks.is_empty());
+
+        (0..uks.len())
+            .map(|_| avs.clone())
+            .multi_cartesian_product()
+            .filter(|xs| xs.iter().collect::<HashSet<_>>().len() == uks.len())
+            .map(|substitutions| {
+                let mut g = self.clone();
+                for (x, (ro, co)) in substitutions.into_iter().zip(uks.iter()) {
+                    g.grid[*ro][*co] = x;
+                }
+                g.fill_all_possible()
+            })
+            .filter(|g| g.is_complete())
+            .collect()
+    }
+
     fn eprint(&self) {
         for row in self.grid.iter() {
             eprintln!("{}", String::from_utf8(row.to_vec()).unwrap());
@@ -109,28 +139,61 @@ impl Grid {
     }
 }
 
-fn main() {
-    let mut lines: Vec<Vec<u8>> = io::stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().bytes().collect())
-        .collect();
-
+fn replace_first_unambiguous(&mut lines: Vec<Vec<u8>>) -> bool {
     let h = lines.len() / 6;
     let w = lines[0].len() / 6;
 
     for i in 0..h {
         for j in 0..w {
             let g = grid_at(&lines, i, j);
+            if g.is_complete() {
+                continue;
+            }
+
             let gg = g.fill_all_possible();
-            gg.reinsert_tile(&mut lines);
+
+            if gg.is_complete() {
+                gg.reinsert_tile(&mut lines);
+                return true;
+            } else if !g.locations_of_unknowns().is_empty() {
+                let vs = g.complete_variants();
+                if vs.len() == 1 {
+                    let v = vs.first().unwrap();
+                    v.reinsert_tile(&mut lines);
+                    return true;
+                }
+            };
         }
     }
 
+    false
+}
+
+fn main() {
+    let initial_lines: Vec<Vec<u8>> = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| line.unwrap().bytes().collect())
+        .collect();
+
+    let h = initial_lines.len() / 6;
+    let w = initial_lines[0].len() / 6;
+
     for i in 0..h {
         for j in 0..w {
-            grid_at(&lines, i, j).eprint();
-            eprintln!();
+            let g = grid_at(&initial_lines, i, j);
+            let gg = g.fill_all_possible();
+
+            let num_variants: usize = if gg.is_complete() {
+                1
+            } else if g.locations_of_unknowns().is_empty() {
+                0
+            } else {
+                g.complete_variants().len()
+            };
+
+            eprint!("{} ", num_variants);
         }
+        eprintln!();
     }
 }
