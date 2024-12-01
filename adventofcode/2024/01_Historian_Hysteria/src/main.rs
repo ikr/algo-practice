@@ -4,7 +4,7 @@ use std::{
 };
 
 fn main() {
-    let grid: Vec<(u32, u32)> = io::stdin()
+    let xys: Vec<(u32, u32)> = io::stdin()
         .lock()
         .lines()
         .map(|line| {
@@ -17,20 +17,17 @@ fn main() {
         })
         .collect();
 
-    let mut xs: Vec<u32> = grid.iter().map(|(x, _)| *x).collect();
-    xs.sort();
+    let y_freqs: HashMap<u32, u32> =
+        xys.iter()
+            .map(|(_, y)| *y)
+            .fold(HashMap::new(), |mut acc, y| {
+                acc.entry(y).and_modify(|f| *f += 1).or_insert(1);
+                acc
+            });
 
-    let ys: HashMap<u32, u32> = grid
-        .iter()
-        .map(|(_, y)| *y)
-        .fold(HashMap::new(), |mut acc, y| {
-            acc.entry(y).and_modify(|f| *f += 1).or_insert(1);
-            acc
-        });
-
-    let result: u64 = xs
+    let result: u32 = xys
         .into_iter()
-        .map(|x| (x as u64) * (*ys.get(&x).unwrap_or(&0) as u64))
+        .map(|(x, _)| x * *y_freqs.get(&x).unwrap_or(&0))
         .sum();
 
     println!("{}", result);
