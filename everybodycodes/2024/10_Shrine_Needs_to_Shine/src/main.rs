@@ -25,14 +25,6 @@ fn eprint_grid(grid: &[Vec<u8>]) {
     }
 }
 
-fn reinsert_tile(lines: &mut [Vec<u8>], i: usize, j: usize, grid: &[Vec<u8>]) {
-    for (ro, row) in grid.iter().enumerate() {
-        for (co, cell) in row.iter().enumerate() {
-            lines[i * 6 + ro][j * 6 + co] = *cell;
-        }
-    }
-}
-
 fn power(s: &[u8]) -> usize {
     s.iter()
         .enumerate()
@@ -41,6 +33,8 @@ fn power(s: &[u8]) -> usize {
 }
 
 struct Grid {
+    i: usize,
+    j: usize,
     grid: Vec<Vec<u8>>,
 }
 
@@ -68,7 +62,11 @@ impl Grid {
             }
         }
 
-        Grid { grid }
+        Grid {
+            i: self.i,
+            j: self.j,
+            grid,
+        }
     }
 
     fn is_complete(&self) -> bool {
@@ -89,6 +87,14 @@ impl Grid {
         }
         s
     }
+
+    fn reinsert_tile(&self, lines: &mut [Vec<u8>]) {
+        for (ro, row) in self.grid.iter().enumerate() {
+            for (co, cell) in row.iter().enumerate() {
+                lines[self.i * 6 + ro][self.j * 6 + co] = *cell;
+            }
+        }
+    }
 }
 
 fn main() {
@@ -104,10 +110,12 @@ fn main() {
     for i in 0..h {
         for j in 0..w {
             let g = Grid {
+                i,
+                j,
                 grid: grid_at(&lines, i, j),
             };
             let gg = g.fill_all_possible();
-            reinsert_tile(&mut lines, i, j, &gg.grid);
+            gg.reinsert_tile(&mut lines);
         }
     }
 
