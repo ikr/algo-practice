@@ -3,15 +3,15 @@ use std::{
     io::{self, BufRead},
 };
 
-fn keep_letters(xs: &[char]) -> HashSet<char> {
+fn keep_letters(xs: &[u8]) -> HashSet<u8> {
     xs.iter()
         .cloned()
         .filter(|x| x.is_ascii_uppercase())
         .collect()
 }
 
-fn grid_at(lines: &[Vec<char>], i: usize, j: usize) -> Vec<Vec<char>> {
-    let mut grid: Vec<Vec<char>> = vec![];
+fn grid_at(lines: &[Vec<u8>], i: usize, j: usize) -> Vec<Vec<u8>> {
+    let mut grid: Vec<Vec<u8>> = vec![];
 
     for line in lines.iter().skip(i * 6).take(8) {
         grid.push(line[j * 6..j * 6 + 8].to_vec());
@@ -19,13 +19,13 @@ fn grid_at(lines: &[Vec<char>], i: usize, j: usize) -> Vec<Vec<char>> {
     grid
 }
 
-fn eprint_grid(grid: &[Vec<char>]) {
+fn eprint_grid(grid: &[Vec<u8>]) {
     for row in grid {
-        eprintln!("{}", row.iter().collect::<String>());
+        eprintln!("{}", String::from_utf8(row.to_vec()).unwrap());
     }
 }
 
-fn reinsert_tile(lines: &mut [Vec<char>], i: usize, j: usize, grid: &[Vec<char>]) {
+fn reinsert_tile(lines: &mut [Vec<u8>], i: usize, j: usize, grid: &[Vec<u8>]) {
     for (ro, row) in grid.iter().enumerate() {
         for (co, cell) in row.iter().enumerate() {
             lines[i * 6 + ro][j * 6 + co] = *cell;
@@ -41,11 +41,11 @@ fn power(s: &[u8]) -> usize {
 }
 
 struct Grid {
-    grid: Vec<Vec<char>>,
+    grid: Vec<Vec<u8>>,
 }
 
 impl Grid {
-    fn column(&self, co: usize) -> Vec<char> {
+    fn column(&self, co: usize) -> Vec<u8> {
         self.grid.iter().fold(vec![], |mut acc, row| {
             acc.push(row[co]);
             acc
@@ -57,7 +57,7 @@ impl Grid {
             for co in 2..=5 {
                 let xs = keep_letters(&self.grid[ro]);
                 let ys = keep_letters(&self.column(co));
-                let zs = xs.intersection(&ys).cloned().collect::<Vec<char>>();
+                let zs = xs.intersection(&ys).cloned().collect::<Vec<u8>>();
                 if let Some(&c) = zs.first() {
                     if zs.len() == 1 {
                         self.grid[ro][co] = c;
@@ -70,14 +70,14 @@ impl Grid {
     fn is_complete(&self) -> bool {
         let xs: HashSet<u8> = self
             .center_piece()
-            .bytes()
+            .into_iter()
             .filter(|x| x.is_ascii_uppercase())
             .collect();
         xs.len() == 16
     }
 
-    fn center_piece(&self) -> String {
-        let mut s: String = String::new();
+    fn center_piece(&self) -> Vec<u8> {
+        let mut s = vec![];
         for ro in 2..=5 {
             for co in 2..=5 {
                 s.push(self.grid[ro][co]);
@@ -88,10 +88,10 @@ impl Grid {
 }
 
 fn main() {
-    let mut lines: Vec<Vec<char>> = io::stdin()
+    let mut lines: Vec<Vec<u8>> = io::stdin()
         .lock()
         .lines()
-        .map(|line| line.unwrap().chars().collect())
+        .map(|line| line.unwrap().bytes().collect())
         .collect();
 
     let h = lines.len() / 6;
