@@ -10,19 +10,13 @@ fn keep_letters(xs: &[u8]) -> HashSet<u8> {
         .collect()
 }
 
-fn grid_at(lines: &[Vec<u8>], i: usize, j: usize) -> Vec<Vec<u8>> {
+fn grid_at(lines: &[Vec<u8>], i: usize, j: usize) -> Grid {
     let mut grid: Vec<Vec<u8>> = vec![];
 
     for line in lines.iter().skip(i * 6).take(8) {
         grid.push(line[j * 6..j * 6 + 8].to_vec());
     }
-    grid
-}
-
-fn eprint_grid(grid: &[Vec<u8>]) {
-    for row in grid {
-        eprintln!("{}", String::from_utf8(row.to_vec()).unwrap());
-    }
+    Grid { i, j, grid }
 }
 
 fn power(s: &[u8]) -> usize {
@@ -95,6 +89,24 @@ impl Grid {
             }
         }
     }
+
+    fn locations_of_unknowns(&self) -> Vec<(usize, usize)> {
+        let mut result = vec![];
+        for (ro, row) in self.grid.iter().enumerate() {
+            for (co, cell) in row.iter().enumerate() {
+                if *cell == b'?' {
+                    result.push((ro, co));
+                }
+            }
+        }
+        result
+    }
+
+    fn eprint(&self) {
+        for row in self.grid.iter() {
+            eprintln!("{}", String::from_utf8(row.to_vec()).unwrap());
+        }
+    }
 }
 
 fn main() {
@@ -109,11 +121,7 @@ fn main() {
 
     for i in 0..h {
         for j in 0..w {
-            let g = Grid {
-                i,
-                j,
-                grid: grid_at(&lines, i, j),
-            };
+            let g = grid_at(&lines, i, j);
             let gg = g.fill_all_possible();
             gg.reinsert_tile(&mut lines);
         }
@@ -121,7 +129,7 @@ fn main() {
 
     for i in 0..h {
         for j in 0..w {
-            eprint_grid(&grid_at(&lines, i, j));
+            grid_at(&lines, i, j).eprint();
             eprintln!();
         }
     }
