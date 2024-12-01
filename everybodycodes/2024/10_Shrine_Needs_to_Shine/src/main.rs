@@ -131,12 +131,6 @@ impl Grid {
             .filter(|g| g.is_complete())
             .collect()
     }
-
-    fn eprint(&self) {
-        for row in self.grid.iter() {
-            eprintln!("{}", String::from_utf8(row.to_vec()).unwrap());
-        }
-    }
 }
 
 fn replace_first_unambiguous(lines: &mut [Vec<u8>]) -> bool {
@@ -145,7 +139,7 @@ fn replace_first_unambiguous(lines: &mut [Vec<u8>]) -> bool {
 
     for i in 0..h {
         for j in 0..w {
-            let g = grid_at(&lines, i, j);
+            let g = grid_at(lines, i, j);
             if g.is_complete() {
                 continue;
             }
