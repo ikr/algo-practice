@@ -34,9 +34,9 @@ fn main() {
     });
 
     let mut gen = [0usize; 26];
-    gen[0] = 1;
+    gen[25] = 1;
 
-    for _ in 0..4 {
+    for _ in 0..10 {
         gen = new_generation(&g, &gen);
     }
 
