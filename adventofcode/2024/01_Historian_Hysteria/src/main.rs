@@ -3,12 +3,14 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 fn main() {
-    let xys: Vec<(u32, u32)> = io::stdin()
+    let xys: Vec<(usize, usize)> = io::stdin()
         .lock()
         .lines()
         .map(|line| {
-            let parts: Vec<u32> = line
+            let parts: Vec<usize> = line
                 .unwrap()
                 .split_whitespace()
                 .map(|x| x.parse().unwrap())
@@ -17,15 +19,9 @@ fn main() {
         })
         .collect();
 
-    let y_freqs: HashMap<u32, u32> =
-        xys.iter()
-            .map(|(_, y)| *y)
-            .fold(HashMap::new(), |mut acc, y| {
-                acc.entry(y).and_modify(|f| *f += 1).or_insert(1);
-                acc
-            });
+    let y_freqs: HashMap<usize, usize> = xys.iter().map(|(_, y)| *y).counts();
 
-    let result: u32 = xys
+    let result: usize = xys
         .into_iter()
         .map(|(x, _)| x * *y_freqs.get(&x).unwrap_or(&0))
         .sum();
