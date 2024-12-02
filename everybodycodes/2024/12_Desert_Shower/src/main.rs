@@ -3,12 +3,6 @@ use std::io::{self, BufRead};
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
 
-impl Crd {
-    fn mul_by(self, scalar: i32) -> Crd {
-        Crd(self.0 * scalar, self.1 * scalar)
-    }
-}
-
 impl std::ops::Add<Crd> for Crd {
     type Output = Crd;
 
@@ -59,6 +53,40 @@ impl Grid {
     fn targets(&self) -> Vec<Crd> {
         self.cell_coordinates(|c| c == 'T')
     }
+
+    fn trajectory_end(&self, catapult: Crd, shooting_power: i32) -> Crd {
+        let mut cur: Crd = catapult;
+
+        for _ in 0..shooting_power {
+            cur = cur + Crd(-1, 1);
+            if self.at(cur) == 'T' {
+                return cur;
+            }
+        }
+
+        for _ in 0..shooting_power {
+            cur = cur + Crd(0, 1);
+            if self.at(cur) == 'T' {
+                return cur;
+            }
+        }
+
+        loop {
+            cur = cur + Crd(1, 1);
+            if self.is_ground(cur) || self.at(cur) == 'T' {
+                return cur;
+            }
+        }
+    }
+
+    fn shooting_power_to_hit(&self, catapult: Crd, target: Crd) -> Option<i32> {
+        for sp in 1..64 {
+            if self.trajectory_end(catapult, sp) == target {
+                return Some(sp);
+            }
+        }
+        None
+    }
 }
 
 fn main() {
@@ -67,4 +95,7 @@ fn main() {
         .lines()
         .map(|line| line.unwrap().chars().collect())
         .collect();
+
+    let grid = Grid { rows };
+    eprintln!("{:?}", grid.catapults());
 }
