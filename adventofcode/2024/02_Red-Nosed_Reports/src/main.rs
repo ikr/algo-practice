@@ -11,25 +11,20 @@ fn without(xs: &[i32], i: usize) -> Vec<i32> {
 }
 
 fn is_safe(xs0: &[i32]) -> bool {
-    let n = xs0.len();
-    for i in 0..n {
+    (0..xs0.len()).any(|i| {
         let xs = without(xs0, i);
-        if (xs.windows(2).all(|w| w[0] < w[1]) || xs.windows(2).all(|w| w[0] > w[1]))
+        (xs.windows(2).all(|w| w[0] < w[1]) || xs.windows(2).all(|w| w[0] > w[1]))
             && xs.windows(2).all(|w| w[0].abs_diff(w[1]) <= 3)
-        {
-            return true;
-        }
-    }
-    false
+    })
 }
 
 fn main() {
-    let grid: Vec<Vec<i32>> = io::stdin()
+    let lines: Vec<Vec<i32>> = io::stdin()
         .lock()
         .lines()
         .map(|line| parse_line(&line.unwrap()))
         .collect();
 
-    let result = grid.iter().filter(|row| is_safe(row)).count();
+    let result = lines.iter().filter(|row| is_safe(row)).count();
     eprintln!("{:?}", result);
 }
