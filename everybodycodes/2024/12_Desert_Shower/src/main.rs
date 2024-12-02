@@ -51,7 +51,9 @@ impl Grid {
     }
 
     fn targets(&self) -> Vec<Crd> {
-        self.cell_coordinates(|c| c == 'T')
+        let mut result = self.cell_coordinates(|c| c == 'T');
+        result.sort_by_key(|&Crd(ro, co)| (co, ro));
+        result
     }
 
     fn trajectory_end(&self, catapult: Crd, shooting_power: i32) -> Crd {
@@ -80,12 +82,13 @@ impl Grid {
     }
 
     fn shooting_power_to_hit(&self, catapult: Crd, target: Crd) -> Option<i32> {
-        for sp in 1..64 {
-            if self.trajectory_end(catapult, sp) == target {
-                return Some(sp);
-            }
-        }
-        None
+        (1..64).find(|&sp| self.trajectory_end(catapult, sp) == target)
+    }
+
+    fn target_hit(&mut self, target: Crd) {
+        assert_eq!(self.at(target), 'T');
+        let Crd(ro, co) = target;
+        self.rows[ro as usize][co as usize] = '.';
     }
 }
 
@@ -96,6 +99,21 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let grid = Grid { rows };
-    eprintln!("{:?}", grid.catapults());
+    let mut grid = Grid { rows };
+    let cs = grid.catapults();
+    let mut ts = grid.targets();
+    ts.reverse();
+
+    let mut result = 0;
+    while let Some(target) = ts.pop() {
+        for &catapult in cs.iter() {
+            let mbp = grid.shooting_power_to_hit(catapult, target);
+            if let Some(p) = mbp {
+                grid.target_hit(target);
+                let segment_number = (grid.at(catapult) as u8 - b'A' + 1) as i32;
+                result += p * segment_number as i32;
+            }
+        }
+    }
+    println!("{}", result);
 }
