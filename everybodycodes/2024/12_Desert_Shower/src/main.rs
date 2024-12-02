@@ -11,125 +11,23 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
-struct Grid {
-    rows: Vec<Vec<char>>,
-}
-
-impl Grid {
-    fn in_bounds(&self, crd: Crd) -> bool {
-        let Crd(ro, co) = crd;
-        0 <= ro && ro < self.rows.len() as i32 && 0 <= co && co < self.rows[0].len() as i32
-    }
-
-    fn at(&self, crd: Crd) -> char {
-        if self.in_bounds(crd) {
-            let Crd(ro, co) = crd;
-            self.rows[ro as usize][co as usize]
-        } else {
-            '.'
-        }
-    }
-
-    fn is_ground(&self, crd: Crd) -> bool {
-        crd.0 == (self.rows.len() - 1) as i32
-    }
-
-    fn cell_coordinates(&self, pred: fn(char) -> bool) -> Vec<Crd> {
-        let mut result = vec![];
-        for (i, row) in self.rows.iter().enumerate() {
-            for (j, &cell) in row.iter().enumerate() {
-                if pred(cell) {
-                    result.push(Crd(i as i32, j as i32));
-                }
-            }
-        }
-        result
-    }
-
-    fn catapults(&self) -> Vec<Crd> {
-        self.cell_coordinates(|c| c.is_ascii_uppercase() && c != 'T' && c != 'H')
-    }
-
-    fn targets(&self) -> Vec<Crd> {
-        let mut result = vec![];
-        for target in self.cell_coordinates(|c| c == 'T' || c == 'H') {
-            if self.at(target) == 'H' {
-                result.push(target);
-                result.push(target);
-            } else if self.at(target) == 'T' {
-                result.push(target);
-            } else {
-                panic!("Invalid target cell");
-            }
-        }
-        result.sort_by_key(|&Crd(ro, co)| (co, ro));
-        result
-    }
-
-    fn trajectory_end(&self, catapult: Crd, shooting_power: i32) -> Crd {
-        let mut cur: Crd = catapult;
-
-        for _ in 0..shooting_power {
-            cur = cur + Crd(-1, 1);
-            if self.at(cur) == 'T' || self.at(cur) == 'H' {
-                return cur;
-            }
-        }
-
-        for _ in 0..shooting_power {
-            cur = cur + Crd(0, 1);
-            if self.at(cur) == 'T' || self.at(cur) == 'H' {
-                return cur;
-            }
-        }
-
-        loop {
-            cur = cur + Crd(1, 1);
-            if self.is_ground(cur) || self.at(cur) == 'T' || self.at(cur) == 'H' {
-                return cur;
-            }
-        }
-    }
-
-    fn shooting_power_to_hit(&self, catapult: Crd, target: Crd) -> Option<i32> {
-        (1..100).find(|&sp| self.trajectory_end(catapult, sp) == target)
-    }
-
-    fn target_hit(&mut self, target: Crd) {
-        let Crd(ro, co) = target;
-        match self.at(target) {
-            'T' => self.rows[ro as usize][co as usize] = '.',
-            'H' => self.rows[ro as usize][co as usize] = '.',
-            x => panic!("{} instead of a target at {:?}", x, target),
-        }
-        let Crd(ro, co) = target;
-        self.rows[ro as usize][co as usize] = '.';
-    }
+fn parse_line(s: &str) -> Crd {
+    let xs = s
+        .split_whitespace()
+        .map(|x| x.parse().unwrap())
+        .collect::<Vec<_>>();
+    Crd(xs[0], xs[1])
 }
 
 fn main() {
-    let rows: Vec<Vec<char>> = io::stdin()
+    let meteors_initial: Vec<Crd> = io::stdin()
         .lock()
         .lines()
-        .map(|line| line.unwrap().chars().collect())
+        .map(|line| parse_line(&line.unwrap()))
         .collect();
 
-    let mut grid = Grid { rows };
-    let cs = grid.catapults();
-    let mut ts = grid.targets();
-    ts.reverse();
+    eprintln!("{:?}", meteors_initial);
 
-    let mut result = 0;
-    while let Some(target) = ts.pop() {
-        for &catapult in cs.iter() {
-            let mbp = grid.shooting_power_to_hit(catapult, target);
-            if let Some(p) = mbp {
-                let m = if grid.at(target) == 'H' { 2 } else { 1 };
-                grid.target_hit(target);
-                let segment_number = (grid.at(catapult) as u8 - b'A' + 1) as i32;
-                result += m * p * segment_number as i32;
-            }
-        }
-    }
-    println!("{}", result);
+    let catapults = vec![Crd(0, 0), Crd(0, 1), Crd(0, 2)];
+    eprintln!("{:?}", catapults);
 }
