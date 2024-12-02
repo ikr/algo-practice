@@ -47,11 +47,21 @@ impl Grid {
     }
 
     fn catapults(&self) -> Vec<Crd> {
-        self.cell_coordinates(|c| c.is_ascii_uppercase() && c != 'T')
+        self.cell_coordinates(|c| c.is_ascii_uppercase() && c != 'T' && c != 'H')
     }
 
     fn targets(&self) -> Vec<Crd> {
-        let mut result = self.cell_coordinates(|c| c == 'T');
+        let mut result = vec![];
+        for target in self.cell_coordinates(|c| c == 'T' || c == 'H') {
+            if self.at(target) == 'H' {
+                result.push(target);
+                result.push(target);
+            } else if self.at(target) == 'T' {
+                result.push(target);
+            } else {
+                panic!("Invalid target cell");
+            }
+        }
         result.sort_by_key(|&Crd(ro, co)| (co, ro));
         result
     }
@@ -61,32 +71,37 @@ impl Grid {
 
         for _ in 0..shooting_power {
             cur = cur + Crd(-1, 1);
-            if self.at(cur) == 'T' {
+            if self.at(cur) == 'T' || self.at(cur) == 'H' {
                 return cur;
             }
         }
 
         for _ in 0..shooting_power {
             cur = cur + Crd(0, 1);
-            if self.at(cur) == 'T' {
+            if self.at(cur) == 'T' || self.at(cur) == 'H' {
                 return cur;
             }
         }
 
         loop {
             cur = cur + Crd(1, 1);
-            if self.is_ground(cur) || self.at(cur) == 'T' {
+            if self.is_ground(cur) || self.at(cur) == 'T' || self.at(cur) == 'H' {
                 return cur;
             }
         }
     }
 
     fn shooting_power_to_hit(&self, catapult: Crd, target: Crd) -> Option<i32> {
-        (1..64).find(|&sp| self.trajectory_end(catapult, sp) == target)
+        (1..100).find(|&sp| self.trajectory_end(catapult, sp) == target)
     }
 
     fn target_hit(&mut self, target: Crd) {
-        assert_eq!(self.at(target), 'T');
+        let Crd(ro, co) = target;
+        match self.at(target) {
+            'T' => self.rows[ro as usize][co as usize] = '.',
+            'H' => self.rows[ro as usize][co as usize] = '.',
+            x => panic!("{} instead of a target at {:?}", x, target),
+        }
         let Crd(ro, co) = target;
         self.rows[ro as usize][co as usize] = '.';
     }
@@ -109,9 +124,10 @@ fn main() {
         for &catapult in cs.iter() {
             let mbp = grid.shooting_power_to_hit(catapult, target);
             if let Some(p) = mbp {
+                let m = if grid.at(target) == 'H' { 2 } else { 1 };
                 grid.target_hit(target);
                 let segment_number = (grid.at(catapult) as u8 - b'A' + 1) as i32;
-                result += p * segment_number as i32;
+                result += m * p * segment_number as i32;
             }
         }
     }
