@@ -9,7 +9,6 @@ enum Op {
 }
 
 fn parse_token(s: &str) -> Op {
-    eprintln!("{}", s);
     let parts: Vec<_> = s.strip_suffix(')').unwrap().split('(').collect();
 
     match parts[0] {
@@ -32,8 +31,6 @@ fn main() {
         .find_iter(&input)
         .map(|x| parse_token(x.as_str()))
         .collect();
-
-    eprintln!("{:?}", tokens);
 
     let mut yes = true;
     let mut result: i32 = 0;
