@@ -18,6 +18,9 @@ fn read_path(grid: &[Vec<char>], start: Crd, direction: Crd, length: usize) -> V
     let mut path = Vec::new();
     let mut cur = start;
     loop {
+        if cur.0 < 0 || cur.0 >= grid.len() as i32 || cur.1 < 0 || cur.1 >= grid[0].len() as i32 {
+            break;
+        }
         path.push(grid[cur.0 as usize][cur.1 as usize]);
         if path.len() == length {
             break;
@@ -28,6 +31,10 @@ fn read_path(grid: &[Vec<char>], start: Crd, direction: Crd, length: usize) -> V
         }
     }
     path
+}
+
+fn is_mas(xs: &[char]) -> bool {
+    xs == ['M', 'A', 'S'] || xs == ['S', 'A', 'M']
 }
 
 fn main() {
@@ -43,17 +50,11 @@ fn main() {
 
     for ro in 0..h {
         for co in 0..w {
-            for dr in -1..=1 {
-                for dc in -1..=1 {
-                    if dr == 0 && dc == 0 {
-                        continue;
-                    }
-                    let direction = Crd(dr, dc);
-                    let path = read_path(&grid, Crd(ro, co), direction, 4);
-                    if path == vec!['X', 'M', 'A', 'S'] {
-                        result += 1;
-                    }
-                }
+            let one = read_path(&grid, Crd(ro, co), Crd(1, 1), 3);
+            let two = read_path(&grid, Crd(ro + 2, co), Crd(-1, 1), 3);
+
+            if is_mas(&one) && is_mas(&two) {
+                result += 1;
             }
         }
     }
