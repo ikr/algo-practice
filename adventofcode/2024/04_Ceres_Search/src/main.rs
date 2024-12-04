@@ -1,9 +1,6 @@
-use std::{
-    collections::HashSet,
-    io::{self, BufRead},
-};
+use std::io::{self, BufRead};
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy)]
 struct Crd(i32, i32);
 
 impl std::ops::Add<Crd> for Crd {
@@ -26,9 +23,6 @@ fn read_path(grid: &[Vec<char>], start: Crd, direction: Crd, length: usize) -> V
             break;
         }
         cur = cur + direction;
-        if cur.0 < 0 || cur.0 >= grid.len() as i32 || cur.1 < 0 || cur.1 >= grid[0].len() as i32 {
-            break;
-        }
     }
     path
 }
