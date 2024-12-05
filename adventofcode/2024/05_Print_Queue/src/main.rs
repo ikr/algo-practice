@@ -47,14 +47,23 @@ fn main() {
     eprintln!("{:?}", queues);
 
     let before: HashSet<_> = rules.into_iter().collect();
-    let result = queues
+    let mut incorrect: Vec<_> = queues
         .iter()
-        .filter(|queue| is_ok(&before, queue))
-        .map(|xs| {
-            let n = xs.len();
-            eprintln!("{:?}, {}", xs, xs[n / 2]);
-            xs[n / 2]
-        })
-        .sum::<usize>();
+        .filter(|queue| !is_ok(&before, queue))
+        .collect();
+
+    let mut result: usize = 0;
+    for xs0 in incorrect {
+        let n = xs0.len();
+        let mut xs = xs0.clone();
+        for i in 0..n - 1 {
+            for j in i..n {
+                if before.contains(&(xs[j], xs[i])) {
+                    xs.swap(i, j);
+                }
+            }
+        }
+        result += xs[n / 2];
+    }
     println!("{}", result);
 }
