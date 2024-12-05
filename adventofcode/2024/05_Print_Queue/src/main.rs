@@ -6,11 +6,10 @@ use std::{
 use itertools::Itertools;
 
 fn is_ok(rules: &HashSet<(usize, usize)>, queue: &[usize]) -> bool {
-    queue.iter().combinations(2).all(|ab| {
-        let a = ab[0];
-        let b = ab[1];
-        !rules.contains(&(*b, *a))
-    })
+    queue
+        .iter()
+        .combinations(2)
+        .all(|ab| !rules.contains(&(*ab[1], *ab[0])))
 }
 
 fn parse_rule(s: &str) -> (usize, usize) {
@@ -29,41 +28,30 @@ fn main() {
         .map(|line| line.unwrap().to_string())
         .collect();
 
-    let mut rules: Vec<(usize, usize)> = vec![];
-    let mut queues: Vec<Vec<usize>> = vec![];
+    let isep = lines.iter().position(|line| line.is_empty()).unwrap();
 
-    for (i, line) in lines.iter().enumerate() {
-        if line == "" {
-            lines[i + 1..]
-                .iter()
-                .for_each(|line| queues.push(parse_queue(&line)));
+    let before: HashSet<(usize, usize)> =
+        lines[0..isep].iter().map(|line| parse_rule(line)).collect();
 
-            break;
-        }
-        rules.push(parse_rule(&line));
-    }
-
-    eprintln!("{:?}", rules);
-    eprintln!("{:?}", queues);
-
-    let before: HashSet<_> = rules.into_iter().collect();
-    let mut incorrect: Vec<_> = queues
+    let queues: Vec<Vec<usize>> = lines[isep + 1..]
         .iter()
-        .filter(|queue| !is_ok(&before, queue))
+        .map(|line| parse_queue(line))
         .collect();
 
-    let mut result: usize = 0;
-    for xs0 in incorrect {
-        let n = xs0.len();
-        let mut xs = xs0.clone();
-        for i in 0..n - 1 {
-            for j in i..n {
+    let result: usize = queues
+        .into_iter()
+        .filter(|queue| !is_ok(&before, queue))
+        .map(|xs0| {
+            let n = xs0.len();
+            let mut xs = xs0.clone();
+            for ij in (0..n).combinations(2) {
+                let [i, j] = ij[..] else { panic!() };
                 if before.contains(&(xs[j], xs[i])) {
                     xs.swap(i, j);
                 }
             }
-        }
-        result += xs[n / 2];
-    }
+            xs[n / 2]
+        })
+        .sum();
     println!("{}", result);
 }
