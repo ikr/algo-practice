@@ -1,5 +1,6 @@
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    cmp::Ordering,
+    collections::HashSet,
     io::{self, BufRead},
 };
 
@@ -21,43 +22,18 @@ fn parse_queue(s: &str) -> Vec<usize> {
     s.split(',').map(|x| x.parse().unwrap()).collect()
 }
 
-fn toposort(before: &HashSet<(usize, usize)>, xs: &[usize]) -> Vec<usize> {
-    let after = |u0: usize| -> Vec<usize> {
-        before
-            .iter()
-            .filter(|(u, v)| *u == u0 && xs.contains(v))
-            .map(|(_, v)| *v)
-            .collect()
-    };
-
-    let mut indeg: HashMap<usize, usize> = before
-        .iter()
-        .filter(|(u, v)| xs.contains(u) && xs.contains(v))
-        .fold(
-            xs.iter().map(|x| (*x, 0usize)).collect(),
-            |mut acc, (_, v)| {
-                acc.entry(*v).and_modify(|x| *x += 1);
-                acc
-            },
-        );
-
-    let mut q: VecDeque<usize> = xs
-        .iter()
-        .filter(|x| *indeg.get(x).unwrap() == 0)
-        .cloned()
-        .collect();
-
-    let mut result = vec![];
-    while let Some(u) = q.pop_front() {
-        result.push(u);
-        for v in after(u) {
-            indeg.entry(v).and_modify(|x| *x -= 1);
-            if *indeg.get(&v).unwrap() == 0 {
-                q.push_back(v);
-            }
+fn toposort(before: &HashSet<(usize, usize)>, xs0: &[usize]) -> Vec<usize> {
+    let mut xs = xs0.to_vec();
+    xs.sort_by(|&a, &b| {
+        if before.contains(&(a, b)) {
+            Ordering::Less
+        } else if before.contains(&(b, a)) {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
         }
-    }
-    result
+    });
+    xs
 }
 
 fn main() {
