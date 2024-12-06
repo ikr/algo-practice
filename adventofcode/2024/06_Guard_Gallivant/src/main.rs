@@ -85,22 +85,22 @@ fn is_looped(grid: &[Vec<char>], initial_pos: Crd) -> bool {
 }
 
 fn main() {
-    let grid0: Vec<Vec<char>> = io::stdin()
+    let mut grid: Vec<Vec<char>> = io::stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let initial_pos = guard_position(&grid0);
+    let initial_pos = guard_position(&grid);
     let mut result = 0;
-    for (i, row) in grid0.iter().enumerate() {
-        for (j, &cell) in row.iter().enumerate() {
-            if cell == '.' && Crd(i as i32, j as i32) != initial_pos {
-                let mut grid = grid0.clone();
+    for i in 0..(grid.len()) {
+        for j in 0..(grid[i].len()) {
+            if grid[i][j] == '.' && Crd(i as i32, j as i32) != initial_pos {
                 grid[i][j] = '#';
                 if is_looped(&grid, initial_pos) {
                     result += 1;
                 }
+                grid[i][j] = '.';
             }
         }
     }
