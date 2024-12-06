@@ -26,8 +26,12 @@ fn main() {
         .map(|line| parse_line(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", meteors_initial);
-
     let catapults = vec![Crd(0, 0), Crd(0, 1), Crd(0, 2)];
     eprintln!("{:?}", catapults);
+
+    let x_hi = meteors_initial.iter().map(|Crd(x, _)| *x).max().unwrap();
+    eprintln!("max x: {}", x_hi);
+
+    let y_hi = meteors_initial.iter().map(|Crd(_, y)| *y).max().unwrap();
+    eprintln!("max y: {}", y_hi);
 }
