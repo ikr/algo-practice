@@ -154,16 +154,12 @@ fn simulate_tick_return_hits_ranking_score(
     )
 }
 
-fn min_coordinate(ms: &[Meteor]) -> i16 {
-    ms.iter().map(|m| m.crd.0.min(m.crd.1)).min().unwrap()
-}
-
 fn max_coordinate(ms: &[Meteor]) -> i16 {
     ms.iter().map(|m| m.crd.0.max(m.crd.1)).max().unwrap()
 }
 
 fn new_shots(ms: &[Meteor]) -> Vec<Projectile> {
-    let hi = min_coordinate(ms);
+    let hi = max_coordinate(ms);
     let catapults = [Crd(0, 0), Crd(0, 1), Crd(0, 2)];
 
     catapults
