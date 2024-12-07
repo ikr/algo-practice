@@ -1,4 +1,7 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::HashSet,
+    io::{self, BufRead},
+};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
@@ -110,18 +113,59 @@ fn parse_line(s: &str) -> Crd {
 }
 
 fn main() {
-    let meteors_initial: Vec<Crd> = io::stdin()
+    let mut ms: HashSet<Meteor> = io::stdin()
         .lock()
         .lines()
-        .map(|line| parse_line(&line.unwrap()))
+        .map(|line| Meteor {
+            crd: parse_line(&line.unwrap()),
+        })
         .collect();
 
     let catapults = vec![Crd(0, 0), Crd(0, 1), Crd(0, 2)];
-    eprintln!("{:?}", catapults);
+    let highest_shooting_power: u16 = 4000;
 
-    let x_hi = meteors_initial.iter().map(|Crd(x, _)| *x).max().unwrap();
-    eprintln!("max x: {}", x_hi);
+    let mut ps: HashSet<Projectile> = catapults
+        .into_iter()
+        .enumerate()
+        .flat_map(|(i, crd)| {
+            (1..=highest_shooting_power)
+                .map(|shooting_power| Projectile::new(crd, i, shooting_power))
+                .collect::<HashSet<_>>()
+        })
+        .collect();
 
-    let y_hi = meteors_initial.iter().map(|Crd(_, y)| *y).max().unwrap();
-    eprintln!("max y: {}", y_hi);
+    let mut result: u64 = 0;
+    while !ms.is_empty() {
+        ps = ps.into_iter().map(|p| p.tick()).collect();
+
+        let mut new_ms: HashSet<Meteor> = HashSet::new();
+        let mut hit_projectiles: Vec<Projectile> = vec![];
+
+        for m0 in ms {
+            let m = m0.tick();
+            if m.has_landed() {
+                panic!("Missed the {:?}", m);
+            }
+
+            let mut hit = false;
+            for &p in ps.iter() {
+                if p.crd == m.crd {
+                    hit_projectiles.push(p);
+                    result += p.ranking() as u64;
+                    hit = true;
+                    break;
+                }
+            }
+            if !hit {
+                new_ms.insert(m);
+            }
+        }
+
+        for p in hit_projectiles {
+            ps.remove(&p);
+        }
+
+        ms = new_ms;
+    }
+    println!("{}", result);
 }
