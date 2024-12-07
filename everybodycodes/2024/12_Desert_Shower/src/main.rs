@@ -136,8 +136,6 @@ fn main() {
 
     let mut result: u64 = 0;
     while !ms.is_empty() {
-        ps = ps.into_iter().map(|p| p.tick()).collect();
-
         let mut new_ms: HashSet<Meteor> = HashSet::new();
         let mut hit_projectiles: Vec<Projectile> = vec![];
 
@@ -150,6 +148,7 @@ fn main() {
             let mut hit = false;
             for &p in ps.iter() {
                 if p.crd == m.crd {
+                    eprintln!("{:?} hits {:?}", p, m);
                     hit_projectiles.push(p);
                     result += p.ranking() as u64;
                     hit = true;
@@ -166,6 +165,11 @@ fn main() {
         }
 
         ms = new_ms;
+        ps = ps
+            .into_iter()
+            .map(|p| p.tick())
+            .filter(|p| !p.has_landed())
+            .collect();
     }
     println!("{}", result);
 }
