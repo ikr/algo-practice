@@ -12,14 +12,20 @@ impl std::ops::Add<Crd> for Crd {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-enum ProjectileStage {
+enum ProjectilePhase {
     Upward { remaining: i16 },
     Horizontal { remaining: i16 },
     Downward,
 }
 
-impl ProjectileStage {
-    fn next(&self, shooting_power: i16) -> Self {
+impl ProjectilePhase {
+    fn new(shooting_power: i16) -> Self {
+        Self::Upward {
+            remaining: shooting_power,
+        }
+    }
+
+    fn tick(&self, shooting_power: i16) -> Self {
         match self {
             Self::Upward { remaining: 0 } => Self::Horizontal {
                 remaining: shooting_power,
@@ -27,12 +33,52 @@ impl ProjectileStage {
             Self::Upward { remaining } => Self::Horizontal {
                 remaining: remaining - 1,
             },
+            Self::Horizontal { remaining: 0 } => Self::Downward,
+            Self::Horizontal { remaining } => Self::Horizontal {
+                remaining: remaining - 1,
+            },
+            Self::Downward => Self::Downward,
         }
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Projectile {
+    catapult_index: u8,
+    shooting_power: i16,
     crd: Crd,
+    phase: ProjectilePhase,
+}
+
+impl Projectile {
+    fn new(catapult_crd: Crd, catapult_index: usize, shooting_power: i16) -> Self {
+        Self {
+            catapult_index: catapult_index as u8,
+            shooting_power,
+            crd: catapult_crd,
+            phase: ProjectilePhase::new(shooting_power),
+        }
+    }
+
+    fn tick(&self) -> Self {
+        let crd = match self.phase {
+            ProjectilePhase::Upward { .. } => self.crd + Crd(1, 1),
+            ProjectilePhase::Horizontal { .. } => self.crd + Crd(1, 0),
+            ProjectilePhase::Downward => self.crd + Crd(1, -1),
+        };
+
+        let phase = self.phase.tick(self.shooting_power);
+        Self {
+            catapult_index: self.catapult_index,
+            shooting_power: self.shooting_power,
+            crd,
+            phase,
+        }
+    }
+
+    fn ranking(&self) -> i16 {
+        (self.catapult_index as i16 + 1) * self.shooting_power
+    }
 }
 
 fn parse_line(s: &str) -> Crd {
