@@ -27,13 +27,13 @@ impl ProjectilePhase {
 
     fn tick(&self, shooting_power: i16) -> Self {
         match self {
-            Self::Upward { remaining: 0 } => Self::Horizontal {
+            Self::Upward { remaining: 1 } => Self::Horizontal {
                 remaining: shooting_power,
             },
-            Self::Upward { remaining } => Self::Horizontal {
+            Self::Upward { remaining } => Self::Upward {
                 remaining: remaining - 1,
             },
-            Self::Horizontal { remaining: 0 } => Self::Downward,
+            Self::Horizontal { remaining: 1 } => Self::Downward,
             Self::Horizontal { remaining } => Self::Horizontal {
                 remaining: remaining - 1,
             },
@@ -76,6 +76,10 @@ impl Projectile {
         }
     }
 
+    fn has_landed(&self) -> bool {
+        self.crd.1 == -1
+    }
+
     fn ranking(&self) -> i16 {
         (self.catapult_index as i16 + 1) * self.shooting_power
     }
@@ -104,4 +108,13 @@ fn main() {
 
     let y_hi = meteors_initial.iter().map(|Crd(_, y)| *y).max().unwrap();
     eprintln!("max y: {}", y_hi);
+
+    for shooting_power in 1..=3 {
+        let mut p = Projectile::new(Crd(0, 0), 0, shooting_power);
+        for _ in 0..8 {
+            eprintln!("{:?}", p);
+            p = p.tick();
+        }
+        eprintln!();
+    }
 }
