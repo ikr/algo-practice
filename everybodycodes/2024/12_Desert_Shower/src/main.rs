@@ -1,7 +1,7 @@
 use std::io::{self, BufRead};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Crd(i32, i32);
+struct Crd(i16, i16);
 
 impl std::ops::Add<Crd> for Crd {
     type Output = Crd;
@@ -9,6 +9,30 @@ impl std::ops::Add<Crd> for Crd {
     fn add(self, o: Crd) -> Crd {
         Crd(self.0 + o.0, self.1 + o.1)
     }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+enum ProjectileStage {
+    Upward { remaining: i16 },
+    Horizontal { remaining: i16 },
+    Downward,
+}
+
+impl ProjectileStage {
+    fn next(&self, shooting_power: i16) -> Self {
+        match self {
+            Self::Upward { remaining: 0 } => Self::Horizontal {
+                remaining: shooting_power,
+            },
+            Self::Upward { remaining } => Self::Horizontal {
+                remaining: remaining - 1,
+            },
+        }
+    }
+}
+
+struct Projectile {
+    crd: Crd,
 }
 
 fn parse_line(s: &str) -> Crd {
