@@ -154,6 +154,29 @@ fn simulate_tick_return_hits_ranking_score(
     )
 }
 
+fn min_coordinate(ms: &[Meteor]) -> i16 {
+    ms.iter().map(|m| m.crd.0.min(m.crd.1)).min().unwrap()
+}
+
+fn max_coordinate(ms: &[Meteor]) -> i16 {
+    ms.iter().map(|m| m.crd.0.max(m.crd.1)).max().unwrap()
+}
+
+fn new_shots(ms: &[Meteor]) -> Vec<Projectile> {
+    let hi = min_coordinate(ms);
+    let catapults = [Crd(0, 0), Crd(0, 1), Crd(0, 2)];
+
+    catapults
+        .into_iter()
+        .enumerate()
+        .flat_map(|(i, crd)| {
+            (1..=(hi / 2 + 1))
+                .map(|shooting_power| Projectile::new(crd, i, shooting_power as u16))
+                .collect::<Vec<_>>()
+        })
+        .collect()
+}
+
 fn main() {
     let mut ms: Vec<Meteor> = io::stdin()
         .lock()
@@ -163,29 +186,28 @@ fn main() {
         })
         .collect();
 
-    let catapults = [Crd(0, 0), Crd(0, 1), Crd(0, 2)];
-
-    let mut ps: Vec<Projectile> = vec![];
+    let mut ps: Vec<Projectile> = new_shots(&ms);
     let mut result: u64 = 0;
+    let t_hi = max_coordinate(&ms) / 2 + 1;
 
-    // ps.push(Projectile::new(catapults[0], 0, 2));
-    // ps.push(Projectile::new(catapults[2], 2, 2));
-    // ps.push(Projectile::new(catapults[2], 2, 1));
+    for t in 1..=t_hi {
+        let np = ps.len();
+        let nm = ms.len();
 
-    for t in 1..16 {
-        if ms.is_empty() {
-            break;
-        }
-
-        eprintln!("t = {}", t);
+        eprintln!("t:{} projectiles:{}", t, ps.len());
         let (gain, new_ps, new_ms) = simulate_tick_return_hits_ranking_score(ps, ms);
+        eprintln!("Reduced ps:{} ms:{}", np - new_ps.len(), nm - new_ms.len());
+
         result += gain;
         ps = new_ps;
         ms = new_ms;
 
-        if t == 1 {
-            ps.push(Projectile::new(catapults[0], 0, 2));
+        if ms.is_empty() {
+            eprintln!("All meteors hit");
+            break;
         }
+
+        ps.extend(new_shots(&ms));
     }
 
     println!("{}", result);
