@@ -13,19 +13,19 @@ impl std::ops::Add<Crd> for Crd {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum ProjectilePhase {
-    Upward { remaining: i16 },
-    Horizontal { remaining: i16 },
+    Upward { remaining: u16 },
+    Horizontal { remaining: u16 },
     Downward,
 }
 
 impl ProjectilePhase {
-    fn new(shooting_power: i16) -> Self {
+    fn new(shooting_power: u16) -> Self {
         Self::Upward {
             remaining: shooting_power,
         }
     }
 
-    fn tick(&self, shooting_power: i16) -> Self {
+    fn tick(&self, shooting_power: u16) -> Self {
         match self {
             Self::Upward { remaining: 1 } => Self::Horizontal {
                 remaining: shooting_power,
@@ -45,13 +45,13 @@ impl ProjectilePhase {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Projectile {
     catapult_index: u8,
-    shooting_power: i16,
+    shooting_power: u16,
     crd: Crd,
     phase: ProjectilePhase,
 }
 
 impl Projectile {
-    fn new(catapult_crd: Crd, catapult_index: usize, shooting_power: i16) -> Self {
+    fn new(catapult_crd: Crd, catapult_index: usize, shooting_power: u16) -> Self {
         Self {
             catapult_index: catapult_index as u8,
             shooting_power,
@@ -80,8 +80,24 @@ impl Projectile {
         self.crd.1 == -1
     }
 
-    fn ranking(&self) -> i16 {
-        (self.catapult_index as i16 + 1) * self.shooting_power
+    fn ranking(&self) -> u16 {
+        (self.catapult_index as u16 + 1) * self.shooting_power
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+struct Meteor {
+    crd: Crd,
+}
+
+impl Meteor {
+    fn tick(&self) -> Self {
+        let crd = self.crd + Crd(-1, -1);
+        Self { crd }
+    }
+
+    fn has_landed(&self) -> bool {
+        self.crd.1 == -1
     }
 }
 
@@ -108,13 +124,4 @@ fn main() {
 
     let y_hi = meteors_initial.iter().map(|Crd(_, y)| *y).max().unwrap();
     eprintln!("max y: {}", y_hi);
-
-    for shooting_power in 1..=3 {
-        let mut p = Projectile::new(Crd(0, 0), 0, shooting_power);
-        for _ in 0..8 {
-            eprintln!("{:?}", p);
-            p = p.tick();
-        }
-        eprintln!();
-    }
 }
