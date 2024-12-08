@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::HashMap,
     io::{self, BufRead},
 };
 
@@ -128,6 +128,49 @@ fn main() {
         })
         .collect();
 
+    let hi = max_coordinate(&ms) / 2 + 1;
+    let catapults = [Crd(0, 0), Crd(0, 1), Crd(0, 2)];
+
+    let mut projectiles_by_crd: HashMap<Crd, Vec<Projectile>> = HashMap::new();
+    for (index, catapult) in catapults.into_iter().enumerate() {
+        for shooting_power in 1..=hi {
+            let mut p = Projectile::new(catapult, index, shooting_power as u16);
+            while !p.has_landed() {
+                projectiles_by_crd.entry(p.crd).or_default().push(p);
+                p = p.tick();
+            }
+        }
+    }
+
+    for (_, ps) in projectiles_by_crd.iter_mut() {
+        ps.sort_by_key(|p| (p.ranking(), p.t))
+    }
+
     let mut result: u64 = 0;
+    for (im, m0) in ms.into_iter().enumerate() {
+        let mut m = m0;
+        for t in 0..=hi * 2 {
+            let mut hit = false;
+
+            if let Some(ps) = projectiles_by_crd.get(&m.crd) {
+                for p in ps.iter() {
+                    if p.t <= t as u16 {
+                        result += p.ranking() as u64;
+                        hit = true;
+                        break;
+                    }
+                }
+            }
+
+            if hit {
+                break;
+            }
+
+            m = m.tick();
+            if m.has_landed() {
+                panic!("Missed meter {}", im);
+            }
+        }
+    }
     println!("{}", result);
 }
