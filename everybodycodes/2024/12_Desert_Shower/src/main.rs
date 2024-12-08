@@ -128,7 +128,7 @@ fn main() {
         })
         .collect();
 
-    let hi = max_coordinate(&ms) / 2 + 1;
+    let hi = max_coordinate(&ms) / 3 + 1;
     let catapults = [Crd(0, 0), Crd(0, 1), Crd(0, 2)];
 
     let mut projectiles_by_crd: HashMap<Crd, Vec<Projectile>> = HashMap::new();
@@ -168,7 +168,7 @@ fn main() {
 
             m = m.tick();
             if m.has_landed() {
-                panic!("Missed meter {}", im);
+                panic!("Missed meteor {}", im);
             }
         }
     }
