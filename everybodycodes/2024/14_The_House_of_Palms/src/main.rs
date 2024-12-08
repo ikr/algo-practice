@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet, VecDeque},
     io::{self, BufRead},
 };
 
@@ -25,7 +25,7 @@ enum Dir {
 }
 
 impl Dir {
-    fn new(src: char) -> Self {
+    fn new(src: char) -> Dir {
         match src {
             'U' => Dir::U,
             'D' => Dir::D,
@@ -47,6 +47,10 @@ impl Dir {
             Dir::B => Crd(0, -1, 0),
         }
     }
+
+    fn all() -> Vec<Dir> {
+        vec![Dir::U, Dir::D, Dir::L, Dir::R, Dir::F, Dir::B]
+    }
 }
 
 fn parse_command(s: &str) -> (Dir, u32) {
@@ -55,6 +59,36 @@ fn parse_command(s: &str) -> (Dir, u32) {
         Dir::new(chars[0]),
         chars[1..].iter().collect::<String>().parse().unwrap(),
     )
+}
+
+fn total_distance_to(segs: &HashSet<Crd>, source: Crd, dests: &[Crd]) -> u32 {
+    let mut distances: HashMap<Crd, u32> = HashMap::new();
+    distances.insert(source, 0);
+
+    let mut q: VecDeque<Crd> = VecDeque::new();
+    q.push_back(source);
+
+    while let Some(u) = q.pop_front() {
+        for dir in Dir::all() {
+            let v = u + dir.delta();
+            if segs.contains(&v) && !distances.contains_key(&v) {
+                distances.insert(v, distances[&u] + 1);
+                q.push_back(v);
+            }
+        }
+    }
+
+    dests.iter().map(|d| distances[d]).sum()
+}
+
+fn trunk(segs: &HashSet<Crd>) -> Vec<Crd> {
+    let mut result = vec![Dir::U.delta()];
+
+    while segs.contains(&(*result.last().unwrap() + Dir::U.delta())) {
+        result.push(*result.last().unwrap() + Dir::U.delta());
+    }
+
+    result
 }
 
 fn main() {
@@ -70,6 +104,7 @@ fn main() {
         .collect::<Vec<_>>();
 
     let mut segs: HashSet<Crd> = HashSet::new();
+    let mut leaves: Vec<Crd> = vec![];
 
     for commands in command_lines {
         let mut cur = Crd(0, 0, 0);
@@ -80,7 +115,14 @@ fn main() {
                 segs.insert(cur);
             }
         }
+
+        leaves.push(cur);
     }
 
-    println!("{}", segs.len());
+    let result = trunk(&segs)
+        .into_iter()
+        .map(|source| total_distance_to(&segs, source, &leaves))
+        .min()
+        .unwrap();
+    println!("{}", result);
 }
