@@ -8,6 +8,12 @@ const INF: u16 = 30000;
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(usize, usize);
 
+fn levels_diff(x: u16, y: u16) -> u16 {
+    let mut xs = [x, y];
+    xs.sort();
+    (xs[1] - xs[0]).min(10 - xs[1] + xs[0])
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = io::stdin()
         .lock()
@@ -72,7 +78,7 @@ fn main() {
             let crd0 = Crd(ro0, co0);
             let l0 = level_at(crd0);
             let l = level_at(crd);
-            let len = l.abs_diff(l0) + 1;
+            let len = levels_diff(l0, l) + 1;
 
             if distance.get(&crd0).unwrap_or(&INF) + len < *distance.get(&crd).unwrap_or(&INF) {
                 distance.insert(crd, distance[&crd0] + len);
