@@ -25,12 +25,7 @@ impl std::ops::Sub<Crd> for Crd {
 }
 
 impl Crd {
-    fn antinodes_wrt(&self, h: i8, w: i8, other: Crd) -> Vec<Crd> {
-        let in_bounds = |p: Crd| {
-            let Crd(ro, co) = p;
-            0 <= ro && ro < h && 0 <= co && co < w
-        };
-
+    fn antinodes_wrt<F: Fn(Crd) -> bool>(&self, in_bounds: F, other: Crd) -> Vec<Crd> {
         let delta = other - *self;
         let mut result = vec![];
         let mut cur = other;
@@ -67,8 +62,12 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let h = grid.len() as i8;
-    let w = grid[0].len() as i8;
+    let in_bounds = |p: Crd| {
+        let h = grid.len() as i8;
+        let w = grid[0].len() as i8;
+        let Crd(ro, co) = p;
+        0 <= ro && ro < h && 0 <= co && co < w
+    };
 
     let mut antinodes: HashSet<Crd> = HashSet::new();
 
@@ -77,7 +76,7 @@ fn main() {
             let [p, q] = pq.try_into().unwrap();
             antinodes.insert(p);
             antinodes.insert(q);
-            for crd in [p.antinodes_wrt(h, w, q), q.antinodes_wrt(h, w, p)].concat() {
+            for crd in [p.antinodes_wrt(in_bounds, q), q.antinodes_wrt(in_bounds, p)].concat() {
                 antinodes.insert(crd);
             }
         }
