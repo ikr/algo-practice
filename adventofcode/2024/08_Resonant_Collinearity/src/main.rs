@@ -25,9 +25,20 @@ impl std::ops::Sub<Crd> for Crd {
 }
 
 impl Crd {
-    fn antinode_wrt(&self, other: Crd) -> Crd {
+    fn antinodes_wrt(&self, h: i8, w: i8, other: Crd) -> Vec<Crd> {
+        let in_bounds = |p: Crd| {
+            let Crd(ro, co) = p;
+            0 <= ro && ro < h && 0 <= co && co < w
+        };
+
         let delta = other - *self;
-        other + delta
+        let mut result = vec![];
+        let mut cur = other;
+        while in_bounds(cur + delta) {
+            cur = cur + delta;
+            result.push(cur);
+        }
+        result
     }
 }
 
@@ -56,28 +67,18 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let in_bounds = |crd: Crd| {
-        let h = grid.len() as i8;
-        let w = grid[0].len() as i8;
-        let Crd(ro, co) = crd;
-        0 <= ro && ro < h && 0 <= co && co < w
-    };
-
-    // let cell_at = |crd: Crd| {
-    //     assert!(in_bounds(crd));
-    //     let Crd(ro, co) = crd;
-    //     grid[ro as usize][co as usize]
-    // };
+    let h = grid.len() as i8;
+    let w = grid[0].len() as i8;
 
     let mut antinodes: HashSet<Crd> = HashSet::new();
 
     for (_, crds) in coordinates_by_symbol(&grid) {
         for pq in crds.into_iter().combinations(2) {
             let [p, q] = pq.try_into().unwrap();
-            for crd in [p.antinode_wrt(q), q.antinode_wrt(p)] {
-                if in_bounds(crd) {
-                    antinodes.insert(crd);
-                }
+            antinodes.insert(p);
+            antinodes.insert(q);
+            for crd in [p.antinodes_wrt(h, w, q), q.antinodes_wrt(h, w, p)].concat() {
+                antinodes.insert(crd);
             }
         }
     }
