@@ -54,39 +54,44 @@ fn main() {
         result
     };
 
-    let crd_of = |x: char| -> Crd {
+    let crds_of = |x: char| -> Vec<Crd> {
+        let mut result = vec![];
         for (i, row) in grid.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
                 if *cell == x {
-                    return Crd(i, j);
+                    result.push(Crd(i, j));
                 }
             }
         }
-        panic!("`{}` not found", x);
+        result
     };
 
-    let s_crd = crd_of('S');
-    let e_crd = crd_of('E');
-    let mut distance: HashMap<Crd, u16> = HashMap::new();
-    distance.insert(s_crd, 0);
+    let e_crd = crds_of('E')[0];
 
-    let mut q: BTreeSet<(u16, usize, usize)> = BTreeSet::new();
-    q.insert((0, s_crd.0, s_crd.1));
+    let mut result = INF;
 
-    while let Some((_, ro0, co0)) = q.pop_first() {
-        for crd in adjacent_of(Crd(ro0, co0)) {
-            let crd0 = Crd(ro0, co0);
-            let l0 = level_at(crd0);
-            let l = level_at(crd);
-            let len = levels_diff(l0, l) + 1;
+    for s_crd in crds_of('S') {
+        let mut distance: HashMap<Crd, u16> = HashMap::new();
+        distance.insert(s_crd, 0);
 
-            if distance.get(&crd0).unwrap_or(&INF) + len < *distance.get(&crd).unwrap_or(&INF) {
-                distance.insert(crd, distance[&crd0] + len);
-                q.insert((distance[&crd], crd.0, crd.1));
+        let mut q: BTreeSet<(u16, usize, usize)> = BTreeSet::new();
+        q.insert((0, s_crd.0, s_crd.1));
+
+        while let Some((_, ro0, co0)) = q.pop_first() {
+            for crd in adjacent_of(Crd(ro0, co0)) {
+                let crd0 = Crd(ro0, co0);
+                let l0 = level_at(crd0);
+                let l = level_at(crd);
+                let len = levels_diff(l0, l) + 1;
+
+                if distance.get(&crd0).unwrap_or(&INF) + len < *distance.get(&crd).unwrap_or(&INF) {
+                    distance.insert(crd, distance[&crd0] + len);
+                    q.insert((distance[&crd], crd.0, crd.1));
+                }
             }
         }
-    }
 
-    let result = distance.get(&e_crd).unwrap();
+        result = result.min(*distance.get(&e_crd).unwrap());
+    }
     println!("{}", result);
 }
