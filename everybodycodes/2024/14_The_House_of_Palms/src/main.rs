@@ -1,13 +1,10 @@
-use std::io::Read;
+use std::{
+    collections::HashSet,
+    io::{self, BufRead},
+};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32, i32);
-
-impl Crd {
-    fn mul_by(&self, n: i32) -> Crd {
-        Crd(self.0 * n, self.1 * n, self.2 * n)
-    }
-}
 
 impl std::ops::Add<Crd> for Crd {
     type Output = Crd;
@@ -61,20 +58,29 @@ fn parse_command(s: &str) -> (Dir, u32) {
 }
 
 fn main() {
-    let mut buf: String = String::new();
-    std::io::stdin().read_to_string(&mut buf).unwrap();
-
-    let commands = buf
-        .trim_end()
-        .split(',')
-        .map(parse_command)
+    let command_lines = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| {
+            line.unwrap()
+                .split(',')
+                .map(parse_command)
+                .collect::<Vec<_>>()
+        })
         .collect::<Vec<_>>();
 
-    let mut result: i32 = 0;
-    let mut cur = Crd(0, 0, 0);
-    for (dir, l) in commands {
-        cur = cur + dir.delta().mul_by(l as i32);
-        result = result.max(cur.2);
+    let mut segs: HashSet<Crd> = HashSet::new();
+
+    for commands in command_lines {
+        let mut cur = Crd(0, 0, 0);
+
+        for (dir, l) in commands {
+            for _ in 0..l {
+                cur = cur + dir.delta();
+                segs.insert(cur);
+            }
+        }
     }
-    println!("{}", result);
+
+    println!("{}", segs.len());
 }
