@@ -47,6 +47,7 @@ impl ProjectilePhase {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Projectile {
+    t: u16,
     catapult_index: u8,
     shooting_power: u16,
     crd: Crd,
@@ -56,6 +57,7 @@ struct Projectile {
 impl Projectile {
     fn new(catapult_crd: Crd, catapult_index: usize, shooting_power: u16) -> Self {
         Self {
+            t: 0,
             catapult_index: catapult_index as u8,
             shooting_power,
             crd: catapult_crd,
@@ -72,6 +74,7 @@ impl Projectile {
 
         let phase = self.phase.tick(self.shooting_power);
         Self {
+            t: self.t + 1,
             catapult_index: self.catapult_index,
             shooting_power: self.shooting_power,
             crd,
@@ -112,69 +115,12 @@ fn parse_line(s: &str) -> Crd {
     Crd(xs[0], xs[1])
 }
 
-fn simulate_tick_return_hits_ranking_score(
-    mut ps: Vec<Projectile>,
-    mut ms: Vec<Meteor>,
-) -> (u64, Vec<Projectile>, Vec<Meteor>) {
-    let mut hits_ranking_score: u64 = 0;
-
-    ps = ps
-        .into_iter()
-        .map(|p| p.tick())
-        .filter(|p| !p.has_landed())
-        .collect();
-    ps.sort_by_key(|p| p.ranking());
-
-    let mut hit_projectiles: HashSet<Projectile> = HashSet::new();
-    let mut hit_meteors: HashSet<Meteor> = HashSet::new();
-
-    ms = ms.iter().map(|x| x.tick()).collect();
-
-    for &m in ms.iter() {
-        assert!(!m.has_landed());
-        for &p in ps.iter() {
-            if p.crd == m.crd {
-                eprintln!("{:?} hits {:?}", p, m);
-                hit_projectiles.insert(p);
-                hit_meteors.insert(m);
-                hits_ranking_score += p.ranking() as u64;
-                break;
-            }
-        }
-    }
-
-    (
-        hits_ranking_score,
-        ps.into_iter()
-            .filter(|p| !hit_projectiles.contains(p))
-            .collect(),
-        ms.into_iter()
-            .filter(|m| !hit_meteors.contains(m))
-            .collect(),
-    )
-}
-
 fn max_coordinate(ms: &[Meteor]) -> i16 {
     ms.iter().map(|m| m.crd.0.max(m.crd.1)).max().unwrap()
 }
 
-fn new_shots(ms: &[Meteor]) -> Vec<Projectile> {
-    let hi = max_coordinate(ms);
-    let catapults = [Crd(0, 0), Crd(0, 1), Crd(0, 2)];
-
-    catapults
-        .into_iter()
-        .enumerate()
-        .flat_map(|(i, crd)| {
-            (1..=(hi / 2 + 1))
-                .map(|shooting_power| Projectile::new(crd, i, shooting_power as u16))
-                .collect::<Vec<_>>()
-        })
-        .collect()
-}
-
 fn main() {
-    let mut ms: Vec<Meteor> = io::stdin()
+    let ms: Vec<Meteor> = io::stdin()
         .lock()
         .lines()
         .map(|line| Meteor {
@@ -182,29 +128,6 @@ fn main() {
         })
         .collect();
 
-    let mut ps: Vec<Projectile> = new_shots(&ms);
     let mut result: u64 = 0;
-    let t_hi = max_coordinate(&ms) / 2 + 1;
-
-    for t in 1..=t_hi {
-        let np = ps.len();
-        let nm = ms.len();
-
-        eprintln!("t:{} projectiles:{}", t, ps.len());
-        let (gain, new_ps, new_ms) = simulate_tick_return_hits_ranking_score(ps, ms);
-        eprintln!("Reduced ps:{} ms:{}", np - new_ps.len(), nm - new_ms.len());
-
-        result += gain;
-        ps = new_ps;
-        ms = new_ms;
-
-        if ms.is_empty() {
-            eprintln!("All meteors hit");
-            break;
-        }
-
-        ps.extend(new_shots(&ms));
-    }
-
     println!("{}", result);
 }
