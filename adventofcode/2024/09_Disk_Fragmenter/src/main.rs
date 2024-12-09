@@ -87,10 +87,28 @@ fn main() {
         }
     }
 
-    eprintln!("{:?} {}", xs, tail_content_length(&xs));
-    let tail = pop_tail_content(&mut xs);
-    eprintln!("{:?}", tail);
-    eprintln!("{:?}", index_of_empty_space_large_enough(&xs, 21));
+    eprintln!("{:?}", xs);
+
+    loop {
+        while Some(&Content::Empty) == xs.back() {
+            xs.pop_back();
+        }
+        if xs.is_empty() {
+            break;
+        }
+
+        let m = tail_content_length(&xs);
+        if let Some(i0) = index_of_empty_space_large_enough(&xs, m) {
+            let tail = pop_tail_content(&mut xs);
+            for k in 0..m {
+                xs[i0 + k] = tail[k];
+            }
+        } else {
+            break;
+        }
+    }
+
+    eprintln!("{:?}", xs);
 
     let result: usize = xs
         .into_iter()
