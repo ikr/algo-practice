@@ -3,10 +3,12 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
 
-fn min_distance(grid: &[Vec<u8>], source: Crd, destinations: &[Crd]) -> u32 {
+fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u32 {
     let in_bounds = |crd: Crd| -> bool {
         0 <= crd.0 && crd.0 < grid.len() as i32 && 0 <= crd.1 && crd.1 < grid[0].len() as i32
     };
@@ -38,7 +40,7 @@ fn min_distance(grid: &[Vec<u8>], source: Crd, destinations: &[Crd]) -> u32 {
         }
     }
 
-    destinations.iter().map(|crd| distances[crd]).min().unwrap()
+    distances[&destination]
 }
 
 fn main() {
@@ -67,5 +69,18 @@ fn main() {
     };
 
     let n = crds_by_node.len();
-    let mut g: Vec<Vec<u32>> = vec![vec![10u32.pow(7); n]; n];
+    let hi = *crds_by_node.keys().max().unwrap();
+    let ks = (b'@'..=hi).collect::<Vec<_>>();
+    let mut result = 10u32.pow(7);
+
+    for herbs_indices in (1..n).permutations(n - 1) {
+        let plan = herbs_indices
+            .into_iter()
+            .map(|i| crds_by_node[&ks[i]].clone())
+            .multi_cartesian_product()
+            .collect::<Vec<_>>();
+        todo!();
+    }
+
+    println!("{}", result);
 }
