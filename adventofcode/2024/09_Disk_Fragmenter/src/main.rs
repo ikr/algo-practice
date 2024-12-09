@@ -18,6 +18,36 @@ fn empty_space_length(xs: &VecDeque<Content>, i0: usize) -> usize {
     i - i0 + 1
 }
 
+fn backwards_content_length(xs: &VecDeque<Content>, i0: usize) -> usize {
+    let Content::File(id0) = xs[i0] else { panic!() };
+    let mut i = i0;
+    while i != 0 && xs[i - 1] != Content::Empty {
+        let Content::File(id) = xs[i - 1] else {
+            panic!()
+        };
+        if id == id0 {
+            i -= 1;
+        } else {
+            break;
+        }
+    }
+    i0 - i + 1
+}
+
+fn backwards_content_begin(xs: &VecDeque<Content>, i0: usize) -> Option<usize> {
+    let mut i = i0;
+    loop {
+        if xs[i] != Content::Empty {
+            return Some(i);
+        }
+        if i == 0 {
+            break;
+        }
+        i -= 1;
+    }
+    None
+}
+
 fn index_of_empty_space_large_enough(xs: &VecDeque<Content>, l: usize) -> Option<usize> {
     let mut i: usize = 0;
     while i < xs.len() {
@@ -27,42 +57,6 @@ fn index_of_empty_space_large_enough(xs: &VecDeque<Content>, l: usize) -> Option
         i += 1;
     }
     None
-}
-
-fn pop_tail_content(xs: &mut VecDeque<Content>) -> Vec<Content> {
-    let Content::File(id0) = *(xs.back().unwrap()) else {
-        panic!()
-    };
-
-    let mut result = vec![];
-    while let Some(Content::File(id)) = xs.back() {
-        if *id == id0 {
-            result.push(Content::File(*id));
-            xs.pop_back();
-        } else {
-            break;
-        }
-    }
-    result
-}
-
-fn tail_content_length(xs: &VecDeque<Content>) -> usize {
-    let Content::File(id0) = xs.back().unwrap() else {
-        panic!()
-    };
-    let n = xs.len();
-    let mut i = n - 1;
-    while i != 0 && xs[i - 1] != Content::Empty {
-        let Content::File(id) = xs[i - 1] else {
-            panic!()
-        };
-        if id == *id0 {
-            i -= 1;
-        } else {
-            break;
-        }
-    }
-    n - i
 }
 
 fn main() {
@@ -87,28 +81,27 @@ fn main() {
         }
     }
 
-    eprintln!("{:?}", xs);
-
-    loop {
-        while Some(&Content::Empty) == xs.back() {
-            xs.pop_back();
-        }
-        if xs.is_empty() {
-            break;
-        }
-
-        let m = tail_content_length(&xs);
-        if let Some(i0) = index_of_empty_space_large_enough(&xs, m) {
-            let tail = pop_tail_content(&mut xs);
-            for k in 0..m {
-                xs[i0 + k] = tail[k];
+    let mut mbj = backwards_content_begin(&xs, xs.len() - 1);
+    while let Some(j) = mbj {
+        let m = backwards_content_length(&xs, j);
+        if let Some(i) = index_of_empty_space_large_enough(&xs, m) {
+            if i + m - 1 < j {
+                let Content::File(id) = xs[j] else { panic!() };
+                for jj in j + 1 - m..=j {
+                    xs[jj] = Content::Empty;
+                }
+                for ii in i..i + m {
+                    xs[ii] = Content::File(id);
+                }
             }
-        } else {
+        }
+
+        if j == m - 1 {
             break;
         }
-    }
 
-    eprintln!("{:?}", xs);
+        mbj = backwards_content_begin(&xs, j - m);
+    }
 
     let result: usize = xs
         .into_iter()
