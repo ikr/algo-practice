@@ -1,7 +1,4 @@
-use std::{
-    collections::VecDeque,
-    io::{self, BufRead},
-};
+use std::io::{self, BufRead};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Content {
@@ -9,7 +6,7 @@ enum Content {
     Empty,
 }
 
-fn empty_space_length(xs: &VecDeque<Content>, i0: usize) -> usize {
+fn empty_space_length(xs: &[Content], i0: usize) -> usize {
     assert_eq!(xs[i0], Content::Empty);
     let mut i = i0;
     while i + 1 < xs.len() && xs[i + 1] == Content::Empty {
@@ -18,7 +15,7 @@ fn empty_space_length(xs: &VecDeque<Content>, i0: usize) -> usize {
     i - i0 + 1
 }
 
-fn backwards_content_length(xs: &VecDeque<Content>, i0: usize) -> usize {
+fn backwards_content_length(xs: &[Content], i0: usize) -> usize {
     let Content::File(id0) = xs[i0] else { panic!() };
     let mut i = i0;
     while i != 0 && xs[i - 1] != Content::Empty {
@@ -34,7 +31,7 @@ fn backwards_content_length(xs: &VecDeque<Content>, i0: usize) -> usize {
     i0 - i + 1
 }
 
-fn backwards_content_begin(xs: &VecDeque<Content>, i0: usize) -> Option<usize> {
+fn backwards_content_begin(xs: &[Content], i0: usize) -> Option<usize> {
     let mut i = i0;
     loop {
         if xs[i] != Content::Empty {
@@ -48,7 +45,7 @@ fn backwards_content_begin(xs: &VecDeque<Content>, i0: usize) -> Option<usize> {
     None
 }
 
-fn index_of_empty_space_large_enough(xs: &VecDeque<Content>, l: usize) -> Option<usize> {
+fn index_of_empty_space_large_enough(xs: &[Content], l: usize) -> Option<usize> {
     let mut i: usize = 0;
     while i < xs.len() {
         if xs[i] == Content::Empty && empty_space_length(xs, i) >= l {
@@ -67,7 +64,7 @@ fn main() {
         .collect();
     let src = lines[0].clone();
 
-    let mut xs: VecDeque<Content> = VecDeque::new();
+    let mut xs: Vec<Content> = vec![];
     for (i, x) in src.into_iter().enumerate() {
         let id = i / 2;
         let v: Content = if i % 2 == 0 {
@@ -77,7 +74,7 @@ fn main() {
         };
         let m = x - b'0';
         for _ in 0..m {
-            xs.push_back(v);
+            xs.push(v);
         }
     }
 
