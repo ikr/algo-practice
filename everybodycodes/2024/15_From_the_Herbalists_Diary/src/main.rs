@@ -74,12 +74,27 @@ fn main() {
     let mut result = 10u32.pow(7);
 
     for herbs_indices in (1..n).permutations(n - 1) {
-        let plan = herbs_indices
+        for mut plan in herbs_indices
             .into_iter()
             .map(|i| crds_by_node[&ks[i]].clone())
             .multi_cartesian_product()
-            .collect::<Vec<_>>();
-        todo!();
+            .collect::<Vec<_>>()
+        {
+            plan.insert(0, source);
+            plan.push(source);
+
+            let candidate = plan
+                .windows(2)
+                .map(|pq| {
+                    let [p, q] = pq else { panic!() };
+                    min_distance(&grid, *p, *q)
+                })
+                .sum();
+            if candidate < result {
+                result = candidate;
+                eprintln!("{}", result);
+            }
+        }
     }
 
     println!("{}", result);
