@@ -12,30 +12,23 @@ fn locations_of(grid: &[Vec<u8>], x0: u8) -> Vec<(usize, usize)> {
     locations
 }
 
-fn nines_reachable_from(
-    grid: &[Vec<u8>],
-    exclude: &mut Vec<(usize, usize)>,
-    ro: usize,
-    co: usize,
-) -> usize {
+fn nines_reachable_from(grid: &[Vec<u8>], ro: usize, co: usize) -> usize {
     let x0 = grid[ro][co];
     if x0 == 9 {
-        //exclude.push((ro, co));
         1
     } else {
         let mut sub = 0;
-        if ro != 0 && grid[ro - 1][co] == x0 + 1 && !exclude.contains(&(ro - 1, co)) {
-            sub += nines_reachable_from(grid, exclude, ro - 1, co);
+        if ro != 0 && grid[ro - 1][co] == x0 + 1 {
+            sub += nines_reachable_from(grid, ro - 1, co);
         }
-        if co < grid[0].len() - 1 && grid[ro][co + 1] == x0 + 1 && !exclude.contains(&(ro, co + 1))
-        {
-            sub += nines_reachable_from(grid, exclude, ro, co + 1);
+        if co < grid[0].len() - 1 && grid[ro][co + 1] == x0 + 1 {
+            sub += nines_reachable_from(grid, ro, co + 1);
         }
-        if ro < grid.len() - 1 && grid[ro + 1][co] == x0 + 1 && !exclude.contains(&(ro + 1, co)) {
-            sub += nines_reachable_from(grid, exclude, ro + 1, co);
+        if ro < grid.len() - 1 && grid[ro + 1][co] == x0 + 1 {
+            sub += nines_reachable_from(grid, ro + 1, co);
         }
-        if co != 0 && grid[ro][co - 1] == x0 + 1 && !exclude.contains(&(ro, co - 1)) {
-            sub += nines_reachable_from(grid, exclude, ro, co - 1);
+        if co != 0 && grid[ro][co - 1] == x0 + 1 {
+            sub += nines_reachable_from(grid, ro, co - 1);
         }
         sub
     }
@@ -56,10 +49,7 @@ fn main() {
     let zs = locations_of(&grid, 0);
     let result = zs
         .iter()
-        .map(|&(ro, co)| {
-            let mut exclude = vec![];
-            nines_reachable_from(&grid, &mut exclude, ro, co)
-        })
+        .map(|&(ro, co)| nines_reachable_from(&grid, ro, co))
         .sum::<usize>();
     println!("{}", result);
 }
