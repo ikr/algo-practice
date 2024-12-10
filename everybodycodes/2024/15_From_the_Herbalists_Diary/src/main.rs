@@ -10,7 +10,7 @@ use memoize::memoize;
 struct Crd(i16, i16);
 
 #[memoize(Ignore: grid)]
-fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u32 {
+fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u16 {
     let in_bounds = |crd: Crd| -> bool {
         0 <= crd.0 && crd.0 < grid.len() as i16 && 0 <= crd.1 && crd.1 < grid[0].len() as i16
     };
@@ -30,7 +30,7 @@ fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u32 {
         .collect()
     };
 
-    let mut distances: HashMap<Crd, u32> = HashMap::from([(source, 0)]);
+    let mut distances: HashMap<Crd, u16> = HashMap::from([(source, 0)]);
     let mut q: VecDeque<Crd> = VecDeque::from([source]);
 
     while let Some(u) = q.pop_front() {
@@ -85,7 +85,7 @@ fn main() {
 
     let ks = herbs_by_node.keys().collect::<Vec<_>>();
     let m = ks.len();
-    let mut result = 10u32.pow(7);
+    let mut result: u16 = 20_000;
 
     for herbs_indices in ks.into_iter().permutations(m) {
         for mut plan in herbs_indices
