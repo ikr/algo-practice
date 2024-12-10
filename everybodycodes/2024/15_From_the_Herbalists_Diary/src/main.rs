@@ -92,7 +92,6 @@ fn main() {
             .into_iter()
             .map(|k| herbs_by_node[&k].clone())
             .multi_cartesian_product()
-            .collect::<Vec<_>>()
         {
             plan.insert(0, source);
             plan.push(source);
