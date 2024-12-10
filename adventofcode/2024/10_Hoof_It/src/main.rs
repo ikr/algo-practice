@@ -20,7 +20,7 @@ fn nines_reachable_from(
 ) -> usize {
     let x0 = grid[ro][co];
     if x0 == 9 {
-        exclude.push((ro, co));
+        //exclude.push((ro, co));
         1
     } else {
         let mut sub = 0;
