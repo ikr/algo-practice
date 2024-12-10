@@ -4,13 +4,12 @@ use std::{
 };
 
 use itertools::Itertools;
-use memoise::memoise;
+use memoize::memoize;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
 
-
-#[memoise(0 <= source.0 < 256, 0 <= source.1 < 256, 0 <= destination.0 < 256, 0 <= destination.1 < 256)]
+#[memoize(Ignore: grid)]
 fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u32 {
     let in_bounds = |crd: Crd| -> bool {
         0 <= crd.0 && crd.0 < grid.len() as i16 && 0 <= crd.1 && crd.1 < grid[0].len() as i16
@@ -72,10 +71,10 @@ fn main() {
     };
 
     let herb_kind_counts = herbs_by_node
-            .values()
-            .map(|ps| ps.len())
-            .sorted()
-            .collect::<Vec<_>>();
+        .values()
+        .map(|ps| ps.len())
+        .sorted()
+        .collect::<Vec<_>>();
 
     eprintln!(
         "There are {} herb kinds; counts per kind: {:?}; Π:{}",
@@ -83,7 +82,6 @@ fn main() {
         herb_kind_counts,
         herb_kind_counts.iter().product::<usize>()
     );
-
 
     let ks = herbs_by_node.keys().collect::<Vec<_>>();
     let m = ks.len();
