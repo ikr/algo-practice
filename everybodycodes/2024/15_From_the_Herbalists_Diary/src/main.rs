@@ -4,13 +4,16 @@ use std::{
 };
 
 use itertools::Itertools;
+use memoise::memoise;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Crd(i32, i32);
+struct Crd(i16, i16);
 
+
+#[memoise(0 <= source.0 < 256, 0 <= source.1 < 256, 0 <= destination.0 < 256, 0 <= destination.1 < 256)]
 fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u32 {
     let in_bounds = |crd: Crd| -> bool {
-        0 <= crd.0 && crd.0 < grid.len() as i32 && 0 <= crd.1 && crd.1 < grid[0].len() as i32
+        0 <= crd.0 && crd.0 < grid.len() as i16 && 0 <= crd.1 && crd.1 < grid[0].len() as i16
     };
 
     let cell_at = |crd: Crd| -> u8 { grid[crd.0 as usize][crd.1 as usize] };
@@ -51,32 +54,45 @@ fn main() {
         .collect();
 
     let source_column = grid[0].iter().position(|&x| x == b'.').unwrap();
-    let source = Crd(0, source_column as i32);
+    let source = Crd(0, source_column as i16);
 
-    let crds_by_node = {
-        let mut result: HashMap<u8, Vec<Crd>> = HashMap::from([(b'@', vec![source])]);
+    let herbs_by_node = {
+        let mut result: HashMap<u8, Vec<Crd>> = HashMap::new();
         for (i, row) in grid.iter().enumerate() {
             for (j, &cell) in row.iter().enumerate() {
                 if cell.is_ascii_uppercase() {
                     result
                         .entry(cell)
                         .or_default()
-                        .push(Crd(i as i32, j as i32));
+                        .push(Crd(i as i16, j as i16));
                 }
             }
         }
         result
     };
 
-    let n = crds_by_node.len();
-    let hi = *crds_by_node.keys().max().unwrap();
-    let ks = (b'@'..=hi).collect::<Vec<_>>();
+    let herb_kind_counts = herbs_by_node
+            .values()
+            .map(|ps| ps.len())
+            .sorted()
+            .collect::<Vec<_>>();
+
+    eprintln!(
+        "There are {} herb kinds; counts per kind: {:?}; Π:{}",
+        herbs_by_node.len(),
+        herb_kind_counts,
+        herb_kind_counts.iter().product::<usize>()
+    );
+
+
+    let ks = herbs_by_node.keys().collect::<Vec<_>>();
+    let m = ks.len();
     let mut result = 10u32.pow(7);
 
-    for herbs_indices in (1..n).permutations(n - 1) {
+    for herbs_indices in ks.into_iter().permutations(m) {
         for mut plan in herbs_indices
             .into_iter()
-            .map(|i| crds_by_node[&ks[i]].clone())
+            .map(|k| herbs_by_node[&k].clone())
             .multi_cartesian_product()
             .collect::<Vec<_>>()
         {
