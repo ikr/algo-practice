@@ -1,4 +1,9 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::HashMap,
+    io::{self, BufRead},
+};
+
+use itertools::Itertools;
 
 fn evolve(x: u64) -> Vec<u64> {
     if x == 0 {
@@ -22,16 +27,22 @@ fn main() {
         .map(|line| line.unwrap().to_string())
         .collect();
 
-    let mut xs: Vec<u64> = lines[0]
+    let xs: Vec<u64> = lines[0]
         .split_whitespace()
         .map(|x| x.parse().unwrap())
         .collect();
-    eprintln!("{:?}", xs);
 
-    for _ in 0..25 {
-        let new_xs: Vec<u64> = xs.iter().flat_map(|&x| evolve(x)).collect();
-        xs = new_xs;
+    let mut fqs: HashMap<u64, usize> = xs.into_iter().counts();
+
+    for _ in 0..75 {
+        let mut new_fqs: HashMap<u64, usize> = HashMap::new();
+        for (x, f) in fqs.iter() {
+            for y in evolve(*x) {
+                *new_fqs.entry(y).or_insert(0) += f;
+            }
+        }
+        fqs = new_fqs;
     }
 
-    println!("{}", xs.len());
+    println!("{}", fqs.values().sum::<usize>());
 }
