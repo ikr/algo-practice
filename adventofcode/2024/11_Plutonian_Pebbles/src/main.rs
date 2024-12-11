@@ -31,7 +31,6 @@ fn main() {
     for _ in 0..25 {
         let new_xs: Vec<u64> = xs.iter().flat_map(|&x| evolve(x)).collect();
         xs = new_xs;
-        eprintln!("{:?}", xs);
     }
 
     println!("{}", xs.len());
