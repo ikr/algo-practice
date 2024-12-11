@@ -1,19 +1,17 @@
-use std::{
-    collections::HashMap,
-    io::{self, BufRead},
-};
-
 use itertools::Itertools;
+use std::collections::HashMap;
 
 fn evolve(x: u64) -> Vec<u64> {
     if x == 0 {
         vec![1]
     } else {
-        let ds: Vec<u8> = x.to_string().bytes().collect();
-        if ds.len() % 2 == 0 {
-            let a: String = String::from_utf8(ds[0..ds.len() / 2].to_vec()).unwrap();
-            let b: String = String::from_utf8(ds[ds.len() / 2..].to_vec()).unwrap();
-            [a, b].iter().map(|x| x.parse().unwrap()).collect()
+        let ds = x.to_string();
+        let n = ds.len();
+        if n % 2 == 0 {
+            [&ds[0..n / 2], &ds[n / 2..]]
+                .into_iter()
+                .map(|x| x.parse().unwrap())
+                .collect()
         } else {
             vec![x * 2024]
         }
@@ -21,13 +19,8 @@ fn evolve(x: u64) -> Vec<u64> {
 }
 
 fn main() {
-    let lines: Vec<String> = io::stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().to_string())
-        .collect();
-
-    let xs: Vec<u64> = lines[0]
+    let xs: Vec<u64> = std::io::read_to_string(std::io::stdin())
+        .unwrap()
         .split_whitespace()
         .map(|x| x.parse().unwrap())
         .collect();
@@ -35,13 +28,13 @@ fn main() {
     let mut fqs: HashMap<u64, usize> = xs.into_iter().counts();
 
     for _ in 0..75 {
-        let mut new_fqs: HashMap<u64, usize> = HashMap::new();
-        for (x, f) in fqs.iter() {
-            for y in evolve(*x) {
-                *new_fqs.entry(y).or_insert(0) += f;
-            }
-        }
-        fqs = new_fqs;
+        fqs = fqs
+            .iter()
+            .flat_map(|(&x, &f)| evolve(x).into_iter().map(|y| (y, f)).collect::<Vec<_>>())
+            .fold(HashMap::new(), |mut acc, (x, f)| {
+                acc.entry(x).and_modify(|ff| *ff += f).or_insert(f);
+                acc
+            });
     }
 
     println!("{}", fqs.values().sum::<usize>());
