@@ -4,7 +4,7 @@ use std::{
     io::{self, BufRead},
 };
 
-fn number_of_sides(ps: &BTreeSet<(i16, i16)>) -> usize {
+fn number_of_sides(ps: &[(i16, i16)]) -> usize {
     let v = ps.iter().collect::<Vec<_>>();
 
     let index_of = |p: (i16, i16)| v.iter().position(|&q| *q == p).unwrap();
@@ -105,13 +105,13 @@ fn main() {
     let mut result: usize = 0;
     for codes in dsu.groups() {
         let area = codes.len();
-        let border: BTreeSet<(i16, i16)> = codes
+        let border: Vec<(i16, i16)> = codes
             .iter()
             .map(|&code| {
                 let crd = crd_of(code);
                 border_crds(crd.0, crd.1)
             })
-            .fold(BTreeSet::new(), |mut acc, xs| {
+            .fold(vec![], |mut acc, xs| {
                 acc.extend(xs);
                 acc
             });
