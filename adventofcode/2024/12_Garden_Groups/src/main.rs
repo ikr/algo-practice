@@ -54,7 +54,6 @@ fn main() {
     let w = grid[0].len();
 
     let code_of = |ro: usize, co: usize| -> usize { ro * w + co };
-
     let crd_of = |code: usize| -> (usize, usize) { (code / w, code % w) };
 
     let adjacent_of = |ro: usize, co: usize| -> Vec<(usize, usize)> {
@@ -122,17 +121,14 @@ fn main() {
         let mut sides = 0;
 
         for ps in vert_border_by_level.iter_mut() {
-            ps.sort();
             sides += connected_components_num(ps);
         }
 
         for ps in horz_border_by_level.iter_mut() {
-            ps.sort();
             sides += connected_components_num(ps);
         }
 
         let area = codes.len();
-        eprintln!("area:{} sides:{}", area, sides);
         result += area * sides;
     }
     println!("{}", result);
