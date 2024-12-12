@@ -12,6 +12,7 @@ fn split_border_crds_into_vert_and_horz(
     let left = (p.0, p.1 - 1);
 
     match border.iter().cloned().sorted().collect::<Vec<_>>()[..] {
+        [] => (vec![], vec![]),
         [x] if x == up || x == down => (vec![], vec![x]),
         [x] if x == left || x == right => (vec![x], vec![]),
         [x, y] if x == up && y == down => (vec![], vec![x, y]),
@@ -29,14 +30,17 @@ fn split_border_crds_into_vert_and_horz(
     }
 }
 
-fn count_breaks(ps: &[(i16, i16)]) -> usize {
-    ps.windows(2)
-        .filter(|&pq| {
-            let p = pq[0];
-            let q = pq[1];
-            p.0.abs_diff(q.0) + p.1.abs_diff(q.1) == 1
-        })
-        .count()
+fn connected_components_num(ps: &[(i16, i16)]) -> usize {
+    let n = ps.len();
+    let mut dsu = Dsu::new(n);
+    for pq in ps.iter().enumerate().combinations(2) {
+        let (i, (pro, pco)) = pq[0];
+        let (j, (qro, qco)) = pq[1];
+        if pro.abs_diff(*qro) + pco.abs_diff(*qco) == 1 {
+            dsu.merge(i, j);
+        }
+    }
+    dsu.groups().len()
 }
 
 fn main() {
@@ -119,12 +123,12 @@ fn main() {
 
         for ps in vert_border_by_level.iter_mut() {
             ps.sort();
-            sides += count_breaks(ps);
+            sides += connected_components_num(ps);
         }
 
         for ps in horz_border_by_level.iter_mut() {
             ps.sort();
-            sides += count_breaks(ps) + 1;
+            sides += connected_components_num(ps);
         }
 
         let area = codes.len();
