@@ -4,8 +4,8 @@ use std::{
     io::{self, BufRead},
 };
 
-fn number_of_sides(ps: &[(i16, i16)]) -> usize {
-    let v = ps.iter().collect::<Vec<_>>();
+fn number_of_sides(figure: &BTreeSet<(i16, i16)>, border: &BTreeSet<(i16, i16)>) -> usize {
+    let v = border.iter().collect::<Vec<_>>();
 
     let index_of = |p: (i16, i16)| v.iter().position(|&q| *q == p).unwrap();
 
@@ -15,16 +15,16 @@ fn number_of_sides(ps: &[(i16, i16)]) -> usize {
         let co = p.1;
 
         let mut ret: Vec<usize> = Vec::new();
-        if ps.contains(&(ro - 1, co)) {
+        if border.contains(&(ro - 1, co)) {
             ret.push(index_of((ro - 1, co)));
         }
-        if ps.contains(&(ro, co - 1)) {
+        if border.contains(&(ro, co - 1)) {
             ret.push(index_of((ro, co - 1)));
         }
-        if ps.contains(&(ro + 1, co)) {
+        if border.contains(&(ro + 1, co)) {
             ret.push(index_of((ro + 1, co)));
         }
-        if ps.contains(&(ro, co + 1)) {
+        if border.contains(&(ro, co + 1)) {
             ret.push(index_of((ro, co + 1)));
         }
         ret
@@ -36,7 +36,30 @@ fn number_of_sides(ps: &[(i16, i16)]) -> usize {
             dsu.merge(i, j);
         }
     }
-    dsu.groups().len()
+
+    let mut result = 0;
+    for border_ps in dsu.groups() {
+        let mut m: usize = 0;
+
+        for ibp in border_ps {
+            let (iro, ico) = *v[ibp];
+            let mut cm = 0;
+            for adj in [
+                (iro - 1, ico),
+                (iro, ico - 1),
+                (iro + 1, ico),
+                (iro, ico + 1),
+            ] {
+                if figure.contains(&adj) {
+                    cm += 1;
+                }
+            }
+            m = m.max(cm);
+        }
+
+        result += m;
+    }
+    result
 }
 
 fn main() {
@@ -105,18 +128,25 @@ fn main() {
     let mut result: usize = 0;
     for codes in dsu.groups() {
         let area = codes.len();
-        let border: Vec<(i16, i16)> = codes
+        let border: BTreeSet<(i16, i16)> = codes
             .iter()
             .map(|&code| {
                 let crd = crd_of(code);
                 border_crds(crd.0, crd.1)
             })
-            .fold(vec![], |mut acc, xs| {
+            .fold(BTreeSet::new(), |mut acc, xs| {
                 acc.extend(xs);
                 acc
             });
-        let num_sides = number_of_sides(&border);
-        eprintln!("{:?} {:?} {:?}", border, area, num_sides);
+        let figure = codes
+            .iter()
+            .map(|&code| {
+                let (ro, co) = crd_of(code);
+                (ro as i16, co as i16)
+            })
+            .collect::<BTreeSet<_>>();
+        let num_sides = number_of_sides(&figure, &border);
+        eprintln!("{:?} {:?}", area, num_sides);
         result += area * num_sides;
     }
     println!("{}", result);
