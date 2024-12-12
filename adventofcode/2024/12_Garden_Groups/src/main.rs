@@ -1,65 +1,42 @@
 use ac_library::Dsu;
-use std::{
-    collections::BTreeSet,
-    io::{self, BufRead},
-};
+use itertools::Itertools;
+use std::io::{self, BufRead};
 
-fn number_of_sides(figure: &BTreeSet<(i16, i16)>, border: &BTreeSet<(i16, i16)>) -> usize {
-    let v = border.iter().collect::<Vec<_>>();
+fn split_border_crds_into_vert_and_horz(
+    p: (i16, i16),
+    border: &[(i16, i16)],
+) -> (Vec<(i16, i16)>, Vec<(i16, i16)>) {
+    let up = (p.0 - 1, p.1);
+    let right = (p.0, p.1 + 1);
+    let down = (p.0 + 1, p.1);
+    let left = (p.0, p.1 - 1);
 
-    let index_of = |p: (i16, i16)| v.iter().position(|&q| *q == p).unwrap();
-
-    let neighs_of = |i: usize| -> Vec<usize> {
-        let p = v.iter().find(|&&p| p.0 == v[i].0 && p.1 == v[i].1).unwrap();
-        let ro = p.0;
-        let co = p.1;
-
-        let mut ret: Vec<usize> = Vec::new();
-        if border.contains(&(ro - 1, co)) {
-            ret.push(index_of((ro - 1, co)));
-        }
-        if border.contains(&(ro, co - 1)) {
-            ret.push(index_of((ro, co - 1)));
-        }
-        if border.contains(&(ro + 1, co)) {
-            ret.push(index_of((ro + 1, co)));
-        }
-        if border.contains(&(ro, co + 1)) {
-            ret.push(index_of((ro, co + 1)));
-        }
-        ret
-    };
-
-    let mut dsu = Dsu::new(v.len());
-    for i in 0..v.len() {
-        for &j in neighs_of(i).iter() {
-            dsu.merge(i, j);
-        }
+    match border.iter().cloned().sorted().collect::<Vec<_>>()[..] {
+        [x] if x == up || x == down => (vec![], vec![x]),
+        [x] if x == left || x == right => (vec![x], vec![]),
+        [x, y] if x == up && y == down => (vec![], vec![x, y]),
+        [x, y] if x == left && y == right => (vec![x, y], vec![]),
+        [x, y] if x == up && y == right => (vec![y], vec![x]),
+        [x, y] if x == right && y == down => (vec![x], vec![y]),
+        [x, y] if x == left && y == down => (vec![x], vec![y]),
+        [x, y] if x == up && y == left => (vec![y], vec![x]),
+        [x, y, z] if x == left && y == right && z == down => (vec![x, y], vec![z]),
+        [x, y, z] if x == up && y == left && z == down => (vec![y], vec![x, z]),
+        [x, y, z] if x == up && y == left && z == right => (vec![y, z], vec![x]),
+        [x, y, z] if x == up && y == right && z == down => (vec![y], vec![x, z]),
+        [w, x, y, z] => (vec![x, y], vec![w, z]),
+        _ => panic!("Unexpected border {:?} for {:?}", p, border),
     }
+}
 
-    let mut result = 0;
-    for border_ps in dsu.groups() {
-        let mut m: usize = 0;
-
-        for ibp in border_ps {
-            let (iro, ico) = *v[ibp];
-            let mut cm = 0;
-            for adj in [
-                (iro - 1, ico),
-                (iro, ico - 1),
-                (iro + 1, ico),
-                (iro, ico + 1),
-            ] {
-                if figure.contains(&adj) {
-                    cm += 1;
-                }
-            }
-            m = m.max(cm);
-        }
-
-        result += m;
-    }
-    result
+fn count_breaks(ps: &[(i16, i16)]) -> usize {
+    ps.windows(2)
+        .filter(|&pq| {
+            let p = pq[0];
+            let q = pq[1];
+            p.0.abs_diff(q.0) + p.1.abs_diff(q.1) == 1
+        })
+        .count()
 }
 
 fn main() {
@@ -94,7 +71,7 @@ fn main() {
         adjacent
     };
 
-    let border_crds = |ro: usize, co: usize| -> BTreeSet<(i16, i16)> {
+    let border_crds = |ro: usize, co: usize| -> Vec<(i16, i16)> {
         let adj: Vec<(i16, i16)> = adjacent_of(ro, co)
             .into_iter()
             .map(|(ro2, co2)| (ro2 as i16, co2 as i16))
@@ -123,31 +100,36 @@ fn main() {
         }
     }
 
-    let borders_num_of = |ro: usize, co: usize| -> usize { 4 - adjacent_of(ro, co).len() };
-
-    let mut result: usize = 0;
+    let mut result = 0;
     for codes in dsu.groups() {
+        let mut vert_border_by_level: Vec<Vec<(i16, i16)>> = vec![vec![]; w];
+        let mut horz_border_by_level: Vec<Vec<(i16, i16)>> = vec![vec![]; h];
+
+        for &code in codes.iter() {
+            let crd = crd_of(code);
+            let (vert, horz) = split_border_crds_into_vert_and_horz(
+                (crd.0 as i16, crd.1 as i16),
+                &border_crds(crd.0, crd.1),
+            );
+            vert_border_by_level[crd.1].extend(vert);
+            horz_border_by_level[crd.0].extend(horz);
+        }
+
+        let mut sides = 0;
+
+        for ps in vert_border_by_level.iter_mut() {
+            ps.sort();
+            sides += count_breaks(ps);
+        }
+
+        for ps in horz_border_by_level.iter_mut() {
+            ps.sort();
+            sides += count_breaks(ps) + 1;
+        }
+
         let area = codes.len();
-        let border: BTreeSet<(i16, i16)> = codes
-            .iter()
-            .map(|&code| {
-                let crd = crd_of(code);
-                border_crds(crd.0, crd.1)
-            })
-            .fold(BTreeSet::new(), |mut acc, xs| {
-                acc.extend(xs);
-                acc
-            });
-        let figure = codes
-            .iter()
-            .map(|&code| {
-                let (ro, co) = crd_of(code);
-                (ro as i16, co as i16)
-            })
-            .collect::<BTreeSet<_>>();
-        let num_sides = number_of_sides(&figure, &border);
-        eprintln!("{:?} {:?}", area, num_sides);
-        result += area * num_sides;
+        eprintln!("area:{} sides:{}", area, sides);
+        result += area * sides;
     }
     println!("{}", result);
 }
