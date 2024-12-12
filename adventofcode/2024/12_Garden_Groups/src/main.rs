@@ -1,5 +1,43 @@
 use ac_library::Dsu;
-use std::io::{self, BufRead};
+use std::{
+    collections::BTreeSet,
+    io::{self, BufRead},
+};
+
+fn number_of_sides(ps: &BTreeSet<(i16, i16)>) -> usize {
+    let v = ps.iter().collect::<Vec<_>>();
+
+    let index_of = |p: (i16, i16)| v.iter().position(|&q| *q == p).unwrap();
+
+    let neighs_of = |i: usize| -> Vec<usize> {
+        let p = v.iter().find(|&&p| p.0 == v[i].0 && p.1 == v[i].1).unwrap();
+        let ro = p.0;
+        let co = p.1;
+
+        let mut ret: Vec<usize> = Vec::new();
+        if ps.contains(&(ro - 1, co)) {
+            ret.push(index_of((ro - 1, co)));
+        }
+        if ps.contains(&(ro, co - 1)) {
+            ret.push(index_of((ro, co - 1)));
+        }
+        if ps.contains(&(ro + 1, co)) {
+            ret.push(index_of((ro + 1, co)));
+        }
+        if ps.contains(&(ro, co + 1)) {
+            ret.push(index_of((ro, co + 1)));
+        }
+        ret
+    };
+
+    let mut dsu = Dsu::new(v.len());
+    for i in 0..v.len() {
+        for &j in neighs_of(i).iter() {
+            dsu.merge(i, j);
+        }
+    }
+    dsu.groups().len()
+}
 
 fn main() {
     let grid: Vec<Vec<u8>> = io::stdin()
@@ -33,6 +71,25 @@ fn main() {
         adjacent
     };
 
+    let border_crds = |ro: usize, co: usize| -> BTreeSet<(i16, i16)> {
+        let adj: Vec<(i16, i16)> = adjacent_of(ro, co)
+            .into_iter()
+            .map(|(ro2, co2)| (ro2 as i16, co2 as i16))
+            .collect();
+
+        let iro = ro as i16;
+        let ico = co as i16;
+        [
+            (iro - 1, ico),
+            (iro, ico - 1),
+            (iro + 1, ico),
+            (iro, ico + 1),
+        ]
+        .into_iter()
+        .filter(|crd| !adj.contains(crd))
+        .collect()
+    };
+
     let mut dsu = Dsu::new(h * w);
 
     for ro in 0..h {
@@ -48,15 +105,19 @@ fn main() {
     let mut result: usize = 0;
     for codes in dsu.groups() {
         let area = codes.len();
-        let perimeter = codes
+        let border: BTreeSet<(i16, i16)> = codes
             .iter()
             .map(|&code| {
                 let crd = crd_of(code);
-                borders_num_of(crd.0, crd.1)
+                border_crds(crd.0, crd.1)
             })
-            .sum::<usize>();
-        eprintln!("area = {}, perimeter = {}", area, perimeter);
-        result += area * perimeter;
+            .fold(BTreeSet::new(), |mut acc, xs| {
+                acc.extend(xs);
+                acc
+            });
+        let num_sides = number_of_sides(&border);
+        eprintln!("{:?} {:?} {:?}", border, area, num_sides);
+        result += area * num_sides;
     }
     println!("{}", result);
 }
