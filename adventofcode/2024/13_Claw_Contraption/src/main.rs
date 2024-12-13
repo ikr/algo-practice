@@ -14,6 +14,12 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
+impl Crd {
+    fn mul_by(&self, n: u32) -> Crd {
+        Crd(self.0 * n, self.1 * n)
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Machine {
     da: Crd,
@@ -45,6 +51,7 @@ fn parse_machine(tri: &[String]) -> Machine {
 
 const A_COST: u32 = 3;
 const B_COST: u32 = 1;
+const MAX_PRESSESS: u32 = 100;
 
 impl Machine {
     fn is_steppable(&self, delta: Crd) -> bool {
@@ -54,14 +61,19 @@ impl Machine {
     }
 
     fn optimal_cost(&self) -> Option<u32> {
-        if !self.is_steppable(self.da) && !self.is_steppable(self.prize) {
+        let mut result = u32::MAX;
+        for a in 0..=MAX_PRESSESS {
+            for b in 0..=MAX_PRESSESS {
+                if self.da.mul_by(a) + self.db.mul_by(b) == self.prize {
+                    result = result.min(a * A_COST + b * B_COST);
+                }
+            }
+        }
+        eprintln!("{}", result);
+        if result == u32::MAX {
             None
-        } else if self.is_steppable(self.da) && !self.is_steppable(self.db) {
-            Some((self.prize.0 / self.da.0) * A_COST)
-        } else if self.is_steppable(self.db) && !self.is_steppable(self.da) {
-            Some((self.prize.0 / self.da.0) * B_COST)
         } else {
-            todo!()
+            Some(result)
         }
     }
 }
@@ -81,5 +93,10 @@ fn main() {
         .map(|tri| parse_machine(&tri.collect::<Vec<_>>()))
         .collect::<Vec<_>>();
 
-    let result = machines.into_iter().map(|m| m);
+    let result = machines
+        .into_iter()
+        .filter_map(|m| m.optimal_cost())
+        .sum::<u32>();
+
+    println!("{}", result);
 }
