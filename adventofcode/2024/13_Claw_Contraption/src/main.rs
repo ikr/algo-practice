@@ -4,7 +4,11 @@ use itertools::Itertools;
 use regex::Regex;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Crd(u64, u64);
+struct Crd(i64, i64);
+
+const A_COST: i64 = 3;
+const B_COST: i64 = 1;
+const ADDENDUM: i64 = 10000000000000;
 
 impl std::ops::Add<Crd> for Crd {
     type Output = Crd;
@@ -15,7 +19,7 @@ impl std::ops::Add<Crd> for Crd {
 }
 
 impl Crd {
-    fn mul_by(&self, n: u64) -> Crd {
+    fn mul_by(&self, n: i64) -> Crd {
         Crd(self.0 * n, self.1 * n)
     }
 }
@@ -37,8 +41,8 @@ fn parse_prize(s: &str) -> Crd {
     let re = Regex::new(r"^Prize: X=(\d+), Y=(\d+)$").unwrap();
     let caps = re.captures(s).unwrap();
     Crd(
-        ADDENDUM + caps[1].parse::<u64>().unwrap(),
-        ADDENDUM + caps[2].parse::<u64>().unwrap(),
+        ADDENDUM + caps[1].parse::<i64>().unwrap(),
+        ADDENDUM + caps[2].parse::<i64>().unwrap(),
     )
 }
 
@@ -51,26 +55,30 @@ fn parse_machine(tri: &[String]) -> Machine {
     }
 }
 
-const A_COST: u64 = 3;
-const B_COST: u64 = 1;
-const ADDENDUM: u64 = 10000000000000;
-const MAX_PRESSESS: u64 = 100;
-
 impl Machine {
-    fn optimal_cost(&self) -> Option<u64> {
-        let mut result = u64::MAX;
-        for a in 0..=MAX_PRESSESS {
-            for b in 0..=MAX_PRESSESS {
-                if self.da.mul_by(a) + self.db.mul_by(b) == self.prize {
-                    result = result.min(a * A_COST + b * B_COST);
-                }
-            }
+    fn optimal_cost(&self) -> Option<i64> {
+        let Crd(dxa, dya) = self.da;
+        let Crd(dxb, dyb) = self.db;
+        let Crd(x0, y0) = self.prize;
+
+        let kap = x0 * dyb - y0 * dxb;
+        let kaq = dxa * dyb - dya * dxb;
+        if kaq == 0 || kap % kaq != 0 {
+            return None;
         }
-        if result == u64::MAX {
-            None
-        } else {
-            Some(result)
+
+        let ka = kap / kaq;
+        if ka < 0 {
+            return None;
         }
+
+        let kbp = y0 - ka * dya;
+        if kbp % dyb != 0 {
+            return None;
+        }
+        let kb = kbp / dyb;
+
+        Some(ka * A_COST + kb * B_COST)
     }
 }
 
@@ -89,5 +97,14 @@ fn main() {
         .map(|tri| parse_machine(&tri.collect::<Vec<_>>()))
         .collect::<Vec<_>>();
 
-    eprintln!("{:?}", machines);
+    let result = machines
+        .into_iter()
+        .map(|m| {
+            eprintln!("{:?}", m.optimal_cost());
+            m
+        })
+        .filter_map(|m| m.optimal_cost())
+        .sum::<i64>();
+
+    println!("{}", result);
 }
