@@ -4,7 +4,7 @@ use itertools::Itertools;
 use regex::Regex;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Crd(u32, u32);
+struct Crd(u64, u64);
 
 impl std::ops::Add<Crd> for Crd {
     type Output = Crd;
@@ -15,7 +15,7 @@ impl std::ops::Add<Crd> for Crd {
 }
 
 impl Crd {
-    fn mul_by(&self, n: u32) -> Crd {
+    fn mul_by(&self, n: u64) -> Crd {
         Crd(self.0 * n, self.1 * n)
     }
 }
@@ -36,11 +36,13 @@ fn parse_dbutton(s: &str) -> Crd {
 fn parse_prize(s: &str) -> Crd {
     let re = Regex::new(r"^Prize: X=(\d+), Y=(\d+)$").unwrap();
     let caps = re.captures(s).unwrap();
-    Crd(caps[1].parse().unwrap(), caps[2].parse().unwrap())
+    Crd(
+        ADDENDUM + caps[1].parse::<u64>().unwrap(),
+        ADDENDUM + caps[2].parse::<u64>().unwrap(),
+    )
 }
 
 fn parse_machine(tri: &[String]) -> Machine {
-    eprintln!("{:?}", tri);
     assert_eq!(tri.len(), 3);
     Machine {
         da: parse_dbutton(&tri[0]),
@@ -49,19 +51,14 @@ fn parse_machine(tri: &[String]) -> Machine {
     }
 }
 
-const A_COST: u32 = 3;
-const B_COST: u32 = 1;
-const MAX_PRESSESS: u32 = 100;
+const A_COST: u64 = 3;
+const B_COST: u64 = 1;
+const ADDENDUM: u64 = 10000000000000;
+const MAX_PRESSESS: u64 = 100;
 
 impl Machine {
-    fn is_steppable(&self, delta: Crd) -> bool {
-        let Crd(x0, y0) = self.prize;
-        let Crd(dx, dy) = delta;
-        x0 % dx == 0 && y0 % dy == 0 && x0 / dx == y0 / dy
-    }
-
-    fn optimal_cost(&self) -> Option<u32> {
-        let mut result = u32::MAX;
+    fn optimal_cost(&self) -> Option<u64> {
+        let mut result = u64::MAX;
         for a in 0..=MAX_PRESSESS {
             for b in 0..=MAX_PRESSESS {
                 if self.da.mul_by(a) + self.db.mul_by(b) == self.prize {
@@ -69,8 +66,7 @@ impl Machine {
                 }
             }
         }
-        eprintln!("{}", result);
-        if result == u32::MAX {
+        if result == u64::MAX {
             None
         } else {
             Some(result)
@@ -93,10 +89,5 @@ fn main() {
         .map(|tri| parse_machine(&tri.collect::<Vec<_>>()))
         .collect::<Vec<_>>();
 
-    let result = machines
-        .into_iter()
-        .filter_map(|m| m.optimal_cost())
-        .sum::<u32>();
-
-    println!("{}", result);
+    eprintln!("{:?}", machines);
 }
