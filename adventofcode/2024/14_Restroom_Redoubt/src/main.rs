@@ -66,26 +66,17 @@ fn connected_components_num(ps: &[Crd]) -> usize {
     dsu.groups().len()
 }
 
-fn sleep(millis: u64) {
-    std::thread::sleep(std::time::Duration::from_millis(millis));
-}
-
-fn display_robots_on_a_grid(t: u32, robots: &Vec<Robot>) {
+fn display_robots_on_a_grid(t: u32, cs: usize, robots: &[Robot]) {
     let mut grid = vec![vec!['.'; W as usize]; H as usize];
     for robot in robots.iter() {
         let Crd(x, y) = robot.position;
         grid[y as usize][x as usize] = '#';
     }
 
-    let cs = connected_components_num(&robots.iter().map(|r| r.position).collect::<Vec<_>>());
-
     execute!(
         io::stdout(),
         terminal::Clear(ClearType::All),
-        cursor::Hide,
-        cursor::MoveTo(1, 1),
-        Print(t.to_string() + " cs:" + cs.to_string().as_str()),
-        Print("\n")
+        cursor::MoveTo(0, 0),
     )
     .unwrap();
 
@@ -98,7 +89,17 @@ fn display_robots_on_a_grid(t: u32, robots: &Vec<Robot>) {
         .unwrap();
     }
 
-    execute!(io::stdout(), Print("\n")).unwrap();
+    execute!(
+        io::stdout(),
+        Print(
+            "Time: ".to_string()
+                + t.to_string().as_str()
+                + " components: "
+                + cs.to_string().as_str()
+        ),
+        Print("\n")
+    )
+    .unwrap();
 }
 
 fn main() {
@@ -116,7 +117,7 @@ fn main() {
         .map(|(p, v)| Robot::new(*p, *v))
         .collect();
 
-    let hi = 1_000_000;
+    let hi = 100_000;
     let mut locs = usize::MAX;
     for t in 1..=hi {
         for robot in robots.iter_mut() {
@@ -124,7 +125,7 @@ fn main() {
         }
         let cs = connected_components_num(&robots.iter().map(|r| r.position).collect::<Vec<_>>());
         if cs < locs {
-            display_robots_on_a_grid(t, &robots);
+            display_robots_on_a_grid(t, cs, &robots);
             locs = cs;
         }
     }
