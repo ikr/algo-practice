@@ -9,6 +9,7 @@ use memoize::memoize;
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
 
+#[memoize(Ignore: grid)]
 fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u16 {
     let in_bounds = |crd: Crd| -> bool {
         0 <= crd.0 && crd.0 < grid.len() as i16 && 0 <= crd.1 && crd.1 < grid[0].len() as i16
