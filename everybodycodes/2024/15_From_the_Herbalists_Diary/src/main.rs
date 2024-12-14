@@ -45,6 +45,16 @@ fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u16 {
     distances[&destination]
 }
 
+struct Tsp {
+    herb_kind_crds: HashMap<u8, Vec<Crd>>,
+    source: Crd,
+}
+
+#[memoize(Ignore: tsp)]
+fn min_tour_distance(tsp: &Tsp) -> u16 {
+    todo!()
+}
+
 fn main() {
     let grid: Vec<Vec<u8>> = io::stdin()
         .lock()
@@ -55,7 +65,7 @@ fn main() {
     let source_column = grid[0].iter().position(|&x| x == b'.').unwrap();
     let source = Crd(0, source_column as i16);
 
-    let herbs_by_node = {
+    let herb_kind_crds = {
         let mut result: HashMap<u8, Vec<Crd>> = HashMap::new();
         for (i, row) in grid.iter().enumerate() {
             for (j, &cell) in row.iter().enumerate() {
@@ -70,7 +80,7 @@ fn main() {
         result
     };
 
-    let herb_kind_counts = herbs_by_node
+    let herb_kind_counts = herb_kind_crds
         .values()
         .map(|ps| ps.len())
         .sorted()
@@ -78,19 +88,19 @@ fn main() {
 
     eprintln!(
         "There are {} herb kinds; counts per kind: {:?}; Π:{}",
-        herbs_by_node.len(),
+        herb_kind_crds.len(),
         herb_kind_counts,
         herb_kind_counts.iter().product::<usize>()
     );
 
-    let ks = herbs_by_node.keys().collect::<Vec<_>>();
+    let ks = herb_kind_crds.keys().collect::<Vec<_>>();
     let m = ks.len();
     let mut result: u16 = 20_000;
 
     for herbs_indices in ks.into_iter().permutations(m) {
         for mut plan in herbs_indices
             .into_iter()
-            .map(|k| herbs_by_node[&k].clone())
+            .map(|k| herb_kind_crds[&k].clone())
             .multi_cartesian_product()
         {
             plan.insert(0, source);
