@@ -1,11 +1,15 @@
-use std::io::{self, BufRead};
-
+use ac_library::Dsu;
+use crossterm::{
+    cursor, execute,
+    style::Print,
+    terminal::{self, ClearType},
+};
+use itertools::Itertools;
 use regex::Regex;
+use std::io::{self, BufRead};
 
 const H: i32 = 103;
 const W: i32 = 101;
-// const H: i32 = 7;
-// const W: i32 = 11;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -49,6 +53,54 @@ fn parse_point_and_velocity(s: &str) -> (Crd, Crd) {
     )
 }
 
+fn connected_components_num(ps: &[Crd]) -> usize {
+    let n = ps.len();
+    let mut dsu = Dsu::new(n);
+    for pq in ps.iter().enumerate().combinations(2) {
+        let (i, Crd(px, py)) = pq[0];
+        let (j, Crd(qx, qy)) = pq[1];
+        if px.abs_diff(*qx).max(py.abs_diff(*qy)) == 1 {
+            dsu.merge(i, j);
+        }
+    }
+    dsu.groups().len()
+}
+
+fn sleep(millis: u64) {
+    std::thread::sleep(std::time::Duration::from_millis(millis));
+}
+
+fn display_robots_on_a_grid(t: u32, robots: &Vec<Robot>) {
+    let mut grid = vec![vec!['.'; W as usize]; H as usize];
+    for robot in robots.iter() {
+        let Crd(x, y) = robot.position;
+        grid[y as usize][x as usize] = '#';
+    }
+
+    let cs = connected_components_num(&robots.iter().map(|r| r.position).collect::<Vec<_>>());
+
+    execute!(
+        io::stdout(),
+        terminal::Clear(ClearType::All),
+        cursor::Hide,
+        cursor::MoveTo(1, 1),
+        Print(t.to_string() + " cs:" + cs.to_string().as_str()),
+        Print("\n")
+    )
+    .unwrap();
+
+    for row in grid.iter() {
+        execute!(
+            io::stdout(),
+            Print(row.iter().collect::<String>()),
+            Print("\n")
+        )
+        .unwrap();
+    }
+
+    execute!(io::stdout(), Print("\n")).unwrap();
+}
+
 fn main() {
     let lines: Vec<String> = io::stdin()
         .lock()
@@ -64,29 +116,16 @@ fn main() {
         .map(|(p, v)| Robot::new(*p, *v))
         .collect();
 
-    for _ in 0..100 {
+    let hi = 1_000_000;
+    let mut locs = usize::MAX;
+    for t in 1..=hi {
         for robot in robots.iter_mut() {
             *robot = robot.tick();
         }
-    }
-
-    let mut quadrants = [0 as usize; 4];
-
-    for robot in robots.iter() {
-        let Crd(x, y) = robot.position;
-        if x < W / 2 && y < H / 2 {
-            quadrants[0] += 1;
-        } else if x > W / 2 && y < H / 2 {
-            quadrants[1] += 1;
-        } else if x < W / 2 && y > H / 2 {
-            quadrants[2] += 1;
-        } else if x > W / 2 && y > H / 2 {
-            quadrants[3] += 1;
+        let cs = connected_components_num(&robots.iter().map(|r| r.position).collect::<Vec<_>>());
+        if cs < locs {
+            display_robots_on_a_grid(t, &robots);
+            locs = cs;
         }
     }
-
-    eprintln!("{:?}", quadrants);
-
-    let result: usize = quadrants.iter().product();
-    println!("{}", result);
 }
