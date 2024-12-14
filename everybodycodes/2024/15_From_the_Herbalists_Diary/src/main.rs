@@ -85,7 +85,7 @@ fn min_route_length(
                             grid,
                             source,
                             herb_kind_crds,
-                            visited_kind_bits ^ (1u16 << i),
+                            visited_kind_bits ^ (1u16 << last_visited_kind_index),
                             i,
                             j,
                         ),
