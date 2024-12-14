@@ -45,13 +45,15 @@ fn min_distance(grid: &[Vec<u8>], source: Crd, destination: Crd) -> u16 {
     distances[&destination]
 }
 
-struct Tsp {
-    herb_kind_crds: HashMap<u8, Vec<Crd>>,
+#[memoize(Ignore: source, Ignore: herb_kind_crds)]
+fn min_tour_distance(
     source: Crd,
-}
-
-#[memoize(Ignore: tsp)]
-fn min_tour_distance(tsp: &Tsp) -> u16 {
+    herb_kind_crds: &HashMap<u8, Vec<Crd>>,
+    visited_kind_bits: u16,
+    last_visited_kind_index: u8,
+    last_visited_crd_index: u8,
+) -> u16 {
+    let ks: Vec<u8> = herb_kind_crds.keys().copied().sorted().collect();
     todo!()
 }
 
@@ -92,33 +94,4 @@ fn main() {
         herb_kind_counts,
         herb_kind_counts.iter().product::<usize>()
     );
-
-    let ks = herb_kind_crds.keys().collect::<Vec<_>>();
-    let m = ks.len();
-    let mut result: u16 = 20_000;
-
-    for herbs_indices in ks.into_iter().permutations(m) {
-        for mut plan in herbs_indices
-            .into_iter()
-            .map(|k| herb_kind_crds[&k].clone())
-            .multi_cartesian_product()
-        {
-            plan.insert(0, source);
-            plan.push(source);
-
-            let candidate = plan
-                .windows(2)
-                .map(|pq| {
-                    let [p, q] = pq else { panic!() };
-                    min_distance(&grid, *p, *q)
-                })
-                .sum();
-            if candidate < result {
-                result = candidate;
-                eprintln!("{}", result);
-            }
-        }
-    }
-
-    println!("{}", result);
 }
