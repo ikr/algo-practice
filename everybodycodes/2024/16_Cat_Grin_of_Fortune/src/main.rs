@@ -78,7 +78,7 @@ fn main() {
         .iter()
         .zip(ps.iter())
         .map(|(w, p)| w[*p].clone())
-        .join("");
+        .join(" ");
 
     println!("{}", result);
 }
