@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
 
 impl std::ops::Add<Crd> for Crd {
@@ -16,7 +16,7 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy)]
 enum Dir {
     N,
     E,
@@ -45,7 +45,6 @@ impl Dir {
     }
 }
 
-#[derive(Clone, Debug)]
 struct Grid {
     robot: Crd,
     walls: HashSet<Crd>,
@@ -83,7 +82,6 @@ impl Grid {
     }
 
     fn boxes_hit_clique(&self, crd0: Crd, dir: Dir) -> Vec<Crd> {
-        assert!(self.boxes.contains(&crd0));
         let crd1 = crd0 + Dir::E.delta();
         let mut result = vec![crd0];
 
@@ -141,24 +139,6 @@ impl Grid {
             .map(|Crd(i, j)| (*i as i32) * 100 + *j as i32)
             .sum()
     }
-
-    // fn eprintln(&self, h: usize, w: usize) {
-    //     let mut grid = vec![vec!['.'; w]; h];
-    //     for Crd(i, j) in self.walls.iter() {
-    //         grid[*i as usize][*j as usize] = '#';
-    //     }
-    //     for Crd(i, j) in self.boxes.iter() {
-    //         grid[*i as usize][*j as usize] = '[';
-    //         grid[*i as usize][*j as usize + 1] = ']';
-    //     }
-
-    //     let Crd(ri, rj) = self.robot;
-    //     grid[ri as usize][rj as usize] = '@';
-
-    //     for row in grid {
-    //         eprintln!("{}", row.iter().collect::<String>());
-    //     }
-    // }
 }
 
 fn main() {
@@ -221,16 +201,9 @@ fn main() {
         boxes: boxes_initial.into_iter().collect(),
     };
 
-    // let h = grid0.len();
-    // let w = grid0[0].len();
-    // grid.eprintln(h, w);
-    // println!();
-
     for symbol in program.chars() {
         let dir = Dir::from_symbol(symbol);
         grid.move_robot(dir);
-        // grid.eprintln(h, w);
-        // eprintln!();
     }
 
     println!("{}", grid.sum_of_box_gps_coordinates());
