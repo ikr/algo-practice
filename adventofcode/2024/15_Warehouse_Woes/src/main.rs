@@ -23,10 +23,6 @@ enum Dir {
 }
 
 impl Dir {
-    fn all() -> Vec<Dir> {
-        vec![Dir::N, Dir::E, Dir::S, Dir::W]
-    }
-
     fn from_symbol(x: char) -> Dir {
         match x {
             '^' => Dir::N,
@@ -99,22 +95,22 @@ impl Grid {
             .sum()
     }
 
-    fn eprintln(&self, h: usize, w: usize) {
-        let mut grid = vec![vec!['.'; w]; h];
-        for Crd(i, j) in self.walls.iter() {
-            grid[*i as usize][*j as usize] = '#';
-        }
-        for Crd(i, j) in self.boxes.iter() {
-            grid[*i as usize][*j as usize] = 'O';
-        }
+    // fn eprintln(&self, h: usize, w: usize) {
+    //     let mut grid = vec![vec!['.'; w]; h];
+    //     for Crd(i, j) in self.walls.iter() {
+    //         grid[*i as usize][*j as usize] = '#';
+    //     }
+    //     for Crd(i, j) in self.boxes.iter() {
+    //         grid[*i as usize][*j as usize] = 'O';
+    //     }
 
-        let Crd(ri, rj) = self.robot;
-        grid[ri as usize][rj as usize] = '@';
+    //     let Crd(ri, rj) = self.robot;
+    //     grid[ri as usize][rj as usize] = '@';
 
-        for row in grid {
-            eprintln!("{}", row.iter().collect::<String>());
-        }
-    }
+    //     for row in grid {
+    //         eprintln!("{}", row.iter().collect::<String>());
+    //     }
+    // }
 }
 
 fn main() {
@@ -133,7 +129,7 @@ fn main() {
 
     let program: String = lines[isep + 1..].join("");
 
-    let (robot_initial, boxes_initial, walls): (Crd, Vec<Crd>, Vec<Crd>) = (|| {
+    let (robot_initial, boxes_initial, walls): (Crd, Vec<Crd>, Vec<Crd>) = {
         let mut r = Crd(-1, -1);
         let mut bs = vec![];
         let mut ws = vec![];
@@ -151,7 +147,7 @@ fn main() {
         }
 
         (r, bs, ws)
-    })();
+    };
 
     let mut grid = Grid {
         robot: robot_initial,
@@ -159,15 +155,15 @@ fn main() {
         boxes: boxes_initial.into_iter().collect(),
     };
 
-    let h = grid0.len();
-    let w = grid0[0].len();
-    grid.eprintln(h, w);
-    //println!();
+    // let h = grid0.len();
+    // let w = grid0[0].len();
+    // grid.eprintln(h, w);
+    // println!();
 
     for symbol in program.chars() {
         grid.move_robot(Dir::from_symbol(symbol));
-        grid.eprintln(h, w);
-        //eprintln!();
+        // grid.eprintln(h, w);
+        // eprintln!();
     }
 
     println!("{}", grid.sum_of_box_gps_coordinates());
