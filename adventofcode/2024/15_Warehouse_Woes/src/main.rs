@@ -51,6 +51,17 @@ struct Grid {
 }
 
 impl Grid {
+    fn will_hit_a_box(&self, dir: Dir) -> bool {
+        let crd = self.robot + dir.delta();
+        match dir {
+            Dir::N | Dir::S => {
+                self.boxes.contains(&crd) || self.boxes.contains(&(crd + Dir::W.delta()))
+            }
+            Dir::E => self.boxes.contains(&crd),
+            Dir::W => self.boxes.contains(&(crd + Dir::W.delta())),
+        }
+    }
+
     fn push_boxes_in_dir(&mut self, mut crd: Crd, dir: Dir) -> bool {
         assert!(self.boxes.contains(&crd));
         let mut to_shift: Vec<Crd> = vec![crd];
