@@ -14,7 +14,7 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Dir {
     N,
     E,
@@ -51,15 +51,37 @@ struct Grid {
 }
 
 impl Grid {
-    fn will_hit_a_box(&self, dir: Dir) -> bool {
+    fn hit_box(&self, crd: Crd, dir: Dir) -> Option<Crd> {
         let crd = self.robot + dir.delta();
         match dir {
             Dir::N | Dir::S => {
-                self.boxes.contains(&crd) || self.boxes.contains(&(crd + Dir::W.delta()))
+                if self.boxes.contains(&crd) {
+                    Some(crd)
+                } else if self.boxes.contains(&(crd + Dir::W.delta())) {
+                    Some(crd + Dir::W.delta())
+                } else {
+                    None
+                }
             }
-            Dir::E => self.boxes.contains(&crd),
-            Dir::W => self.boxes.contains(&(crd + Dir::W.delta())),
+            Dir::E => {
+                if self.boxes.contains(&crd) {
+                    Some(crd)
+                } else {
+                    None
+                }
+            }
+            Dir::W => {
+                if self.boxes.contains(&(crd + Dir::W.delta())) {
+                    Some(crd + Dir::W.delta())
+                } else {
+                    None
+                }
+            }
         }
+    }
+
+    fn hit_boxes(&self, crd0: Crd, dir: Dir) -> Vec<Crd> {
+        todo!()
     }
 
     fn push_boxes_in_dir(&mut self, mut crd: Crd, dir: Dir) -> bool {
