@@ -104,39 +104,33 @@ impl Grid {
         }
     }
 
-    fn push_boxes_in_dir(&mut self, mut crd: Crd, dir: Dir) -> bool {
-        assert!(self.boxes.contains(&crd));
-        let mut to_shift: Vec<Crd> = vec![crd];
-        while self.boxes.contains(&(crd + dir.delta())) {
-            crd = crd + dir.delta();
-            to_shift.push(crd);
-        }
-
-        let last_box = *to_shift.last().unwrap();
-        if !self.walls.contains(&(last_box + dir.delta()))
-            && !self.boxes.contains(&(last_box + dir.delta()))
-        {
-            for b in to_shift.iter() {
-                self.boxes.remove(b);
-            }
-            for b in to_shift {
-                self.boxes.insert(b + dir.delta());
-            }
-            true
-        } else {
-            false
-        }
+    fn can_all_move(&self, boxes: &[Crd], dir: Dir) -> bool {
+        let xs: HashSet<Crd> = boxes.iter().copied().collect();
+        boxes.iter().all(|&crd0| {
+            let crd1 = crd0 + Dir::E.delta();
+            [crd0, crd1].into_iter().all(|cause_crd| {
+                if let Some(crd) = self.hit_box(cause_crd, dir) {
+                    xs.contains(&crd)
+                } else {
+                    !self.walls.contains(&(cause_crd + dir.delta()))
+                }
+            })
+        })
     }
 
     fn move_robot(&mut self, dir: Dir) {
-        let new_robot = self.robot + dir.delta();
-        if !self.walls.contains(&new_robot) {
-            if self.boxes.contains(&new_robot) {
-                if self.push_boxes_in_dir(new_robot, dir) {
-                    self.robot = new_robot;
+        if !self.walls.contains(&(self.robot + dir.delta())) {
+            let to_shift = self.boxes_hit_by_robot(dir);
+            if to_shift.is_empty() {
+                self.robot = self.robot + dir.delta();
+            } else if self.can_all_move(&to_shift, dir) {
+                for b in to_shift.iter() {
+                    self.boxes.remove(b);
                 }
-            } else {
-                self.robot = new_robot;
+                for b in to_shift {
+                    self.boxes.insert(b + dir.delta());
+                }
+                self.robot = self.robot + dir.delta();
             }
         }
     }
@@ -148,23 +142,23 @@ impl Grid {
             .sum()
     }
 
-    fn eprintln(&self, h: usize, w: usize) {
-        let mut grid = vec![vec!['.'; w]; h];
-        for Crd(i, j) in self.walls.iter() {
-            grid[*i as usize][*j as usize] = '#';
-        }
-        for Crd(i, j) in self.boxes.iter() {
-            grid[*i as usize][*j as usize] = '[';
-            grid[*i as usize][*j as usize + 1] = ']';
-        }
+    // fn eprintln(&self, h: usize, w: usize) {
+    //     let mut grid = vec![vec!['.'; w]; h];
+    //     for Crd(i, j) in self.walls.iter() {
+    //         grid[*i as usize][*j as usize] = '#';
+    //     }
+    //     for Crd(i, j) in self.boxes.iter() {
+    //         grid[*i as usize][*j as usize] = '[';
+    //         grid[*i as usize][*j as usize + 1] = ']';
+    //     }
 
-        let Crd(ri, rj) = self.robot;
-        grid[ri as usize][rj as usize] = '@';
+    //     let Crd(ri, rj) = self.robot;
+    //     grid[ri as usize][rj as usize] = '@';
 
-        for row in grid {
-            eprintln!("{}", row.iter().collect::<String>());
-        }
-    }
+    //     for row in grid {
+    //         eprintln!("{}", row.iter().collect::<String>());
+    //     }
+    // }
 }
 
 fn main() {
@@ -221,19 +215,20 @@ fn main() {
         (r, bs, ws)
     };
 
-    let grid = Grid {
+    let mut grid = Grid {
         robot: robot_initial,
         walls: walls.into_iter().collect(),
         boxes: boxes_initial.into_iter().collect(),
     };
 
-    let h = grid0.len();
-    let w = grid0[0].len();
-    grid.eprintln(h, w);
-    println!();
+    // let h = grid0.len();
+    // let w = grid0[0].len();
+    // grid.eprintln(h, w);
+    // println!();
 
     for symbol in program.chars() {
-        //grid.move_robot(Dir::from_symbol(symbol));
+        let dir = Dir::from_symbol(symbol);
+        grid.move_robot(dir);
         // grid.eprintln(h, w);
         // eprintln!();
     }
