@@ -95,22 +95,23 @@ impl Grid {
             .sum()
     }
 
-    // fn eprintln(&self, h: usize, w: usize) {
-    //     let mut grid = vec![vec!['.'; w]; h];
-    //     for Crd(i, j) in self.walls.iter() {
-    //         grid[*i as usize][*j as usize] = '#';
-    //     }
-    //     for Crd(i, j) in self.boxes.iter() {
-    //         grid[*i as usize][*j as usize] = 'O';
-    //     }
+    fn eprintln(&self, h: usize, w: usize) {
+        let mut grid = vec![vec!['.'; w]; h];
+        for Crd(i, j) in self.walls.iter() {
+            grid[*i as usize][*j as usize] = '#';
+        }
+        for Crd(i, j) in self.boxes.iter() {
+            grid[*i as usize][*j as usize] = '[';
+            grid[*i as usize][*j as usize + 1] = ']';
+        }
 
-    //     let Crd(ri, rj) = self.robot;
-    //     grid[ri as usize][rj as usize] = '@';
+        let Crd(ri, rj) = self.robot;
+        grid[ri as usize][rj as usize] = '@';
 
-    //     for row in grid {
-    //         eprintln!("{}", row.iter().collect::<String>());
-    //     }
-    // }
+        for row in grid {
+            eprintln!("{}", row.iter().collect::<String>());
+        }
+    }
 }
 
 fn main() {
@@ -124,7 +125,25 @@ fn main() {
 
     let grid0: Vec<Vec<char>> = lines[..isep]
         .iter()
-        .map(|x| x.chars().collect::<Vec<_>>())
+        .map(|line| {
+            line.chars().fold(vec![], |mut acc, x| {
+                match x {
+                    'O' => {
+                        acc.push('[');
+                        acc.push(']');
+                    }
+                    '@' => {
+                        acc.push('@');
+                        acc.push('.');
+                    }
+                    _ => {
+                        acc.push(x);
+                        acc.push(x);
+                    }
+                }
+                acc
+            })
+        })
         .collect::<Vec<_>>();
 
     let program: String = lines[isep + 1..].join("");
@@ -139,7 +158,7 @@ fn main() {
                 let crd = Crd(i as i8, j as i8);
                 match cell {
                     '@' => r = crd,
-                    'O' => bs.push(crd),
+                    '[' => bs.push(crd),
                     '#' => ws.push(crd),
                     _ => {}
                 }
@@ -149,19 +168,19 @@ fn main() {
         (r, bs, ws)
     };
 
-    let mut grid = Grid {
+    let grid = Grid {
         robot: robot_initial,
         walls: walls.into_iter().collect(),
         boxes: boxes_initial.into_iter().collect(),
     };
 
-    // let h = grid0.len();
-    // let w = grid0[0].len();
-    // grid.eprintln(h, w);
-    // println!();
+    let h = grid0.len();
+    let w = grid0[0].len();
+    grid.eprintln(h, w);
+    println!();
 
     for symbol in program.chars() {
-        grid.move_robot(Dir::from_symbol(symbol));
+        //grid.move_robot(Dir::from_symbol(symbol));
         // grid.eprintln(h, w);
         // eprintln!();
     }
