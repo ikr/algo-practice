@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
 
@@ -51,8 +53,8 @@ struct Grid {
 }
 
 impl Grid {
-    fn hit_box(&self, crd: Crd, dir: Dir) -> Option<Crd> {
-        let crd = self.robot + dir.delta();
+    fn hit_box(&self, crd0: Crd, dir: Dir) -> Option<Crd> {
+        let crd = crd0 + dir.delta();
         match dir {
             Dir::N | Dir::S => {
                 if self.boxes.contains(&crd) {
@@ -80,8 +82,26 @@ impl Grid {
         }
     }
 
-    fn hit_boxes(&self, crd0: Crd, dir: Dir) -> Vec<Crd> {
-        todo!()
+    fn boxes_hit_clique(&self, crd0: Crd, dir: Dir) -> Vec<Crd> {
+        assert!(self.boxes.contains(&crd0));
+        let crd1 = crd0 + Dir::E.delta();
+        let mut result = vec![crd0];
+
+        for cause_crd in [crd0, crd1] {
+            if let Some(crd) = self.hit_box(cause_crd, dir) {
+                result.extend(self.boxes_hit_clique(crd, dir));
+            }
+        }
+
+        result.into_iter().unique().collect()
+    }
+
+    fn boxes_hit_by_robot(&self, dir: Dir) -> Vec<Crd> {
+        if let Some(crd) = self.hit_box(self.robot, dir) {
+            self.boxes_hit_clique(crd, dir)
+        } else {
+            vec![]
+        }
     }
 
     fn push_boxes_in_dir(&mut self, mut crd: Crd, dir: Dir) -> bool {
