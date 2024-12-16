@@ -81,24 +81,7 @@ impl Vert {
     }
 }
 
-fn main() {
-    let grid: Vec<Vec<char>> = io::stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().chars().collect())
-        .collect();
-
-    let crd_of = |c: char| {
-        grid.iter()
-            .enumerate()
-            .find_map(|(r, row)| {
-                row.iter()
-                    .position(|&x| x == c)
-                    .map(|c| Crd(r as i16, c as i16))
-            })
-            .unwrap()
-    };
-
+fn dijkstra(grid: &[Vec<char>], start: Vert) -> (HashMap<Vert, u32>, HashMap<Vert, Vert>) {
     let cell_at = |crd: Crd| grid[crd.0 as usize][crd.1 as usize];
 
     let adjacent = |u: Vert| -> Vec<(Vert, u32)> {
@@ -115,15 +98,6 @@ fn main() {
         }
         vs
     };
-
-    let start = Vert::new(crd_of('S'), Dir::E);
-    let end_crd = crd_of('E');
-    let ends = [
-        Vert::new(end_crd, Dir::N),
-        Vert::new(end_crd, Dir::E),
-        Vert::new(end_crd, Dir::S),
-        Vert::new(end_crd, Dir::W),
-    ];
 
     let mut distances: HashMap<Vert, u32> = HashMap::new();
     distances.insert(start, 0);
@@ -146,6 +120,38 @@ fn main() {
             }
         }
     }
+
+    (distances, prev)
+}
+
+fn main() {
+    let grid: Vec<Vec<char>> = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| line.unwrap().chars().collect())
+        .collect();
+
+    let crd_of = |c: char| {
+        grid.iter()
+            .enumerate()
+            .find_map(|(r, row)| {
+                row.iter()
+                    .position(|&x| x == c)
+                    .map(|c| Crd(r as i16, c as i16))
+            })
+            .unwrap()
+    };
+
+    let start = Vert::new(crd_of('S'), Dir::E);
+    let end_crd = crd_of('E');
+    let ends = [
+        Vert::new(end_crd, Dir::N),
+        Vert::new(end_crd, Dir::E),
+        Vert::new(end_crd, Dir::S),
+        Vert::new(end_crd, Dir::W),
+    ];
+
+    let (distances, prev) = dijkstra(&grid, start);
 
     let result_variants: Vec<u32> = ends
         .iter()
