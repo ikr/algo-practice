@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeSet, HashMap},
+    collections::{BTreeSet, HashMap, HashSet},
     io::{self, BufRead},
 };
 
@@ -27,10 +27,6 @@ enum Dir {
 }
 
 impl Dir {
-    fn all() -> Vec<Dir> {
-        vec![Dir::N, Dir::E, Dir::S, Dir::W]
-    }
-
     fn delta(&self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -122,7 +118,7 @@ fn main() {
 
     let start = Vert::new(crd_of('S'), Dir::E);
     let end_crd = crd_of('E');
-    let ends = vec![
+    let ends = [
         Vert::new(end_crd, Dir::N),
         Vert::new(end_crd, Dir::E),
         Vert::new(end_crd, Dir::S),
@@ -135,6 +131,8 @@ fn main() {
     let mut queue: BTreeSet<(u32, Vert)> = BTreeSet::new();
     queue.insert((0, start));
 
+    let mut prev: HashMap<Vert, Vert> = HashMap::new();
+
     while let Some((wu, u)) = queue.pop_first() {
         queue.remove(&(wu, u));
 
@@ -144,14 +142,53 @@ fn main() {
                 queue.remove(&(c, v));
                 distances.insert(v, wu + c);
                 queue.insert((wu + c, v));
+                prev.insert(v, u);
             }
         }
     }
 
-    let result = ends
+    let result_variants: Vec<u32> = ends
         .iter()
-        .map(|v| distances.get(v).unwrap_or(&INF))
-        .min()
-        .unwrap();
-    println!("{}", result);
+        .map(|v| *distances.get(v).unwrap_or(&INF))
+        .collect();
+    eprintln!("{:?}", result_variants);
+
+    let optimal_total_cost = result_variants.iter().min().unwrap();
+    println!("Optimal total cost: {}", optimal_total_cost);
+
+    let trace_path_from = |v: Vert| -> Vec<Vert> {
+        let mut path = vec![v];
+        let mut u = v;
+        while let Some(&prev_u) = prev.get(&u) {
+            path.push(prev_u);
+            u = prev_u;
+        }
+        path.reverse();
+        path
+    };
+
+    let mut all_optimal_path_crds: HashSet<Crd> = HashSet::new();
+    for end in ends
+        .iter()
+        .filter(|v| *distances.get(v).unwrap() == *optimal_total_cost)
+    {
+        let path = trace_path_from(*end);
+        for v in path.iter() {
+            all_optimal_path_crds.insert(v.crd);
+        }
+    }
+
+    println!(
+        "{} tiles are part of at least one of the best paths through the maze",
+        all_optimal_path_crds.len()
+    );
+
+    eprintln!();
+    let mut raster = grid.clone();
+    for Crd(i, j) in all_optimal_path_crds.iter() {
+        raster[*i as usize][*j as usize] = 'O';
+    }
+    for row in raster.iter() {
+        eprintln!("{}", row.iter().collect::<String>());
+    }
 }
