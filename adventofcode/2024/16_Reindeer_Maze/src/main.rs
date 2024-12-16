@@ -27,6 +27,10 @@ enum Dir {
 }
 
 impl Dir {
+    fn all() -> Vec<Dir> {
+        vec![Dir::N, Dir::E, Dir::S, Dir::W]
+    }
+
     fn delta(&self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -81,7 +85,7 @@ impl Vert {
     }
 }
 
-fn dijkstra(grid: &[Vec<char>], start: Vert) -> (HashMap<Vert, u32>, HashMap<Vert, Vert>) {
+fn dijkstra(grid: &[Vec<char>], start: Vert) -> HashMap<Vert, u32> {
     let cell_at = |crd: Crd| grid[crd.0 as usize][crd.1 as usize];
 
     let adjacent = |u: Vert| -> Vec<(Vert, u32)> {
@@ -105,8 +109,6 @@ fn dijkstra(grid: &[Vec<char>], start: Vert) -> (HashMap<Vert, u32>, HashMap<Ver
     let mut queue: BTreeSet<(u32, Vert)> = BTreeSet::new();
     queue.insert((0, start));
 
-    let mut prev: HashMap<Vert, Vert> = HashMap::new();
-
     while let Some((wu, u)) = queue.pop_first() {
         queue.remove(&(wu, u));
 
@@ -116,12 +118,11 @@ fn dijkstra(grid: &[Vec<char>], start: Vert) -> (HashMap<Vert, u32>, HashMap<Ver
                 queue.remove(&(c, v));
                 distances.insert(v, wu + c);
                 queue.insert((wu + c, v));
-                prev.insert(v, u);
             }
         }
     }
 
-    (distances, prev)
+    distances
 }
 
 fn main() {
@@ -151,7 +152,7 @@ fn main() {
         Vert::new(end_crd, Dir::W),
     ];
 
-    let (distances, prev) = dijkstra(&grid, start);
+    let distances = dijkstra(&grid, start);
 
     let result_variants: Vec<u32> = ends
         .iter()
@@ -159,42 +160,42 @@ fn main() {
         .collect();
     eprintln!("{:?}", result_variants);
 
-    let optimal_total_cost = result_variants.iter().min().unwrap();
+    let optimal_total_cost = *result_variants.iter().min().unwrap();
     println!("Optimal total cost: {}", optimal_total_cost);
 
-    let trace_path_from = |v: Vert| -> Vec<Vert> {
-        let mut path = vec![v];
-        let mut u = v;
-        while let Some(&prev_u) = prev.get(&u) {
-            path.push(prev_u);
-            u = prev_u;
-        }
-        path.reverse();
-        path
-    };
-
     let mut all_optimal_path_crds: HashSet<Crd> = HashSet::new();
-    for end in ends
-        .iter()
-        .filter(|v| *distances.get(v).unwrap() == *optimal_total_cost)
-    {
-        let path = trace_path_from(*end);
-        for v in path.iter() {
-            all_optimal_path_crds.insert(v.crd);
+
+    for (i, row) in grid.iter().enumerate() {
+        for (j, &cell) in row.iter().enumerate() {
+            eprint!(".");
+            if cell != '#' {
+                for mid_dir in Dir::all() {
+                    let mid_crd = Crd(i as i16, j as i16);
+                    let mid = Vert::new(mid_crd, mid_dir);
+                    let sub = dijkstra(&grid, mid);
+                    if ends
+                        .iter()
+                        .any(|end_v| distances[&mid] + sub[end_v] == optimal_total_cost)
+                    {
+                        all_optimal_path_crds.insert(mid_crd);
+                    }
+                }
+            }
         }
     }
+    eprintln!();
 
     println!(
         "{} tiles are part of at least one of the best paths through the maze",
         all_optimal_path_crds.len()
     );
 
-    eprintln!();
-    let mut raster = grid.clone();
-    for Crd(i, j) in all_optimal_path_crds.iter() {
-        raster[*i as usize][*j as usize] = 'O';
-    }
-    for row in raster.iter() {
-        eprintln!("{}", row.iter().collect::<String>());
-    }
+    // eprintln!();
+    // let mut raster = grid.clone();
+    // for Crd(i, j) in all_optimal_path_crds.iter() {
+    //     raster[*i as usize][*j as usize] = 'O';
+    // }
+    // for row in raster.iter() {
+    //     eprintln!("{}", row.iter().collect::<String>());
+    // }
 }
