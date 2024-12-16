@@ -1,6 +1,7 @@
 use std::io::{self, BufRead};
 
 use itertools::Itertools;
+use num_integer::lcm;
 
 fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!grid.is_empty());
@@ -22,6 +23,20 @@ fn pad_right_to(n: usize, s: &str) -> String {
     } else {
         s.to_string()
     }
+}
+
+fn coins_for(display: &[String]) -> u64 {
+    let xs: Vec<u8> = display
+        .iter()
+        .flat_map(|s| vec![s.as_bytes()[0], s.as_bytes()[2]])
+        .collect();
+
+    let fqs: Vec<usize> = xs.into_iter().counts().values().copied().collect();
+
+    fqs.into_iter()
+        .filter(|&f| f >= 3)
+        .map(|f| f as u64 - 2)
+        .sum()
 }
 
 fn main() {
@@ -49,7 +64,9 @@ fn main() {
                 .map(|row| String::from_utf8(row).unwrap().trim_end().to_string())
                 .collect()
         })
+        .filter(|s: &String| !s.is_empty())
         .collect();
+    eprintln!("wheel_bands:\n{:?}", wheel_bands);
 
     let wheels: Vec<Vec<String>> = wheel_bands
         .into_iter()
@@ -61,7 +78,12 @@ fn main() {
                 .collect()
         })
         .collect();
+    eprintln!("wheels:\n{:?}", wheels);
+    eprintln!("steppings: {:?}", steppings);
     assert_eq!(wheels.len(), steppings.len());
+
+    let common_perion: u64 = steppings.iter().fold(1, |acc, &p| lcm(acc, p as u64));
+    eprintln!("common_period:{}", common_perion);
 
     let n = wheels.len();
     let mut ps = vec![0; n];
