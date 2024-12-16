@@ -87,20 +87,25 @@ fn main() {
 
     let n = wheels.len();
     let mut ps = vec![0; n];
-    for _ in 0..100 {
+
+    let mut total_coins: u64 = 0;
+    let current_display = |ps: &[usize]| -> Vec<String> {
+        wheels
+            .iter()
+            .zip(ps.iter())
+            .map(|(w, p)| w[*p].clone())
+            .collect()
+    };
+
+    for _ in 1..=100 {
         ps = ps
             .iter()
             .enumerate()
             .zip(steppings.iter())
             .map(|((i, p), step)| (p + step) % wheels[i].len())
-            .collect()
+            .collect();
+
+        total_coins += coins_for(&current_display(&ps));
+        println!("{}", total_coins);
     }
-
-    let result: String = wheels
-        .iter()
-        .zip(ps.iter())
-        .map(|(w, p)| w[*p].clone())
-        .join(" ");
-
-    println!("{}", result);
 }
