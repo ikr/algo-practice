@@ -145,12 +145,10 @@ fn main() {
 
     let start = Vert::new(crd_of('S'), Dir::E);
     let end_crd = crd_of('E');
-    let ends = [
-        Vert::new(end_crd, Dir::N),
-        Vert::new(end_crd, Dir::E),
-        Vert::new(end_crd, Dir::S),
-        Vert::new(end_crd, Dir::W),
-    ];
+    let ends: Vec<Vert> = Dir::all()
+        .iter()
+        .map(|&dir| Vert::new(end_crd, dir))
+        .collect();
 
     let distances = dijkstra(&grid, start);
 
@@ -183,19 +181,9 @@ fn main() {
             }
         }
     }
-    eprintln!();
 
     println!(
-        "{} tiles are part of at least one of the best paths through the maze",
+        "\n{} tiles are part of at least one of the best paths through the maze",
         all_optimal_path_crds.len()
     );
-
-    // eprintln!();
-    // let mut raster = grid.clone();
-    // for Crd(i, j) in all_optimal_path_crds.iter() {
-    //     raster[*i as usize][*j as usize] = 'O';
-    // }
-    // for row in raster.iter() {
-    //     eprintln!("{}", row.iter().collect::<String>());
-    // }
 }
