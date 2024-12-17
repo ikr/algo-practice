@@ -1,12 +1,5 @@
 use std::io::{self, BufRead};
 
-//use itertools::Itertools;
-
-fn parse_register_value(s: &str) -> u64 {
-    let parts = s.split(": ").collect::<Vec<_>>();
-    parts[1].parse().unwrap()
-}
-
 fn parse_program(s: &str) -> Vec<u8> {
     let parts = s.split(": ").collect::<Vec<_>>();
     parts[1].split(",").map(|t| t.parse().unwrap()).collect()
@@ -39,12 +32,11 @@ impl OpCode {
     }
 }
 
-#[derive(Debug)]
 struct Machine {
     registers: [u64; 3],
     program: Vec<u8>,
     ip: usize,
-    output: Vec<u64>,
+    output: Vec<u8>,
 }
 
 impl Machine {
@@ -105,7 +97,7 @@ impl Machine {
             OpCode::Out => {
                 assert!(self.ip + 1 < self.program.len());
                 let x = self.eval_combo(self.program[self.ip + 1]) % 8;
-                self.output.push(x);
+                self.output.push(x as u8);
                 self.ip += 2;
             }
             OpCode::Bdv => {
@@ -124,6 +116,12 @@ impl Machine {
             }
         }
     }
+
+    fn run(&mut self) {
+        while !self.is_halted() {
+            self.tick();
+        }
+    }
 }
 
 fn value_from_bit_triples(xs: &[u8]) -> u64 {
@@ -135,6 +133,85 @@ fn value_from_bit_triples(xs: &[u8]) -> u64 {
     result
 }
 
+struct Backtracking {
+    program: Vec<u8>,
+    solution_bit_triples: Option<Vec<u8>>,
+}
+
+impl Backtracking {
+    fn new(program: Vec<u8>) -> Self {
+        Backtracking {
+            program,
+            solution_bit_triples: None,
+        }
+    }
+
+    fn backtrack(&mut self, candidate_bit_triples: Vec<u8>) {
+        eprintln!("{:?}", candidate_bit_triples);
+
+        if self.reject(&candidate_bit_triples) {
+            return;
+        }
+
+        if self.accept(&candidate_bit_triples) {
+            self.solution_bit_triples = Some(candidate_bit_triples);
+            return;
+        }
+
+        let mut cur: Option<Vec<u8>> = Some(self.first(candidate_bit_triples));
+        while let Some(cur_inner) = cur {
+            self.backtrack(cur_inner.clone());
+            cur = self.next(cur_inner);
+        }
+    }
+
+    fn produce_output(&self, bit_triples_reg_a: &[u8]) -> Vec<u8> {
+        let mut m = Machine::new(
+            [value_from_bit_triples(bit_triples_reg_a), 0, 0],
+            self.program.clone(),
+        );
+        m.run();
+        m.output
+    }
+
+    fn reject(&self, candidate_bit_triples: &[u8]) -> bool {
+        if candidate_bit_triples.is_empty() {
+            false
+        } else if candidate_bit_triples.len() > self.program.len() + 1 {
+            true
+        } else {
+            let output = self.produce_output(candidate_bit_triples);
+            output.len() > self.program.len() || output != self.program[0..output.len()]
+        }
+    }
+
+    fn accept(&self, candidate_bit_triples: &[u8]) -> bool {
+        let output = self.produce_output(candidate_bit_triples);
+        output == self.program
+    }
+
+    fn first(&self, mut candidate_bit_triples: Vec<u8>) -> Vec<u8> {
+        candidate_bit_triples.insert(0, 0);
+        candidate_bit_triples
+    }
+
+    fn next(&self, mut candidate_bit_triples: Vec<u8>) -> Option<Vec<u8>> {
+        assert!(!candidate_bit_triples.is_empty());
+        if candidate_bit_triples[0] == 7 {
+            None
+        } else {
+            candidate_bit_triples[0] += 1;
+            Some(candidate_bit_triples)
+        }
+    }
+
+    fn solution_numeric_value(&self) -> Option<u64> {
+        self.solution_bit_triples
+            .clone()
+            .map(|tris| value_from_bit_triples(&tris))
+    }
+}
+
 fn main() {
     let lines: Vec<String> = io::stdin()
         .lock()
@@ -142,65 +219,8 @@ fn main() {
         .map(|line| line.unwrap().to_string())
         .collect();
 
-    let registers: [u64; 3] = lines[0..3]
-        .iter()
-        .map(|line| parse_register_value(line))
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
-
     let program = parse_program(&lines[4]);
-    let target: Vec<u64> = program.iter().map(|x| *x as u64).collect();
-
-    // let os: Vec<u8> = (0..8).collect();
-    // let n = target.len();
-    // let guessed_tail: Vec<u8> = vec![1, 4, 1, 1];
-    // let mut runs: u64 = 0;
-    // for a in (0..(n - guessed_tail.len()))
-    //     .map(|_| os.clone())
-    //     .multi_cartesian_product()
-    //     .map(|mut xs| {
-    //         xs.extend(&guessed_tail);
-    //         value_from_bit_triples(&xs)
-    //     })
-    // {
-    //     let mut machine = Machine::new(registers, program.clone());
-    //     machine.registers[0] = a;
-    //     while !machine.is_halted() {
-    //         machine.tick();
-    //         if !machine.output.is_empty() && machine.output != target[0..machine.output.len()] {
-    //             break;
-    //         }
-    //     }
-    //     if machine.output == target {
-    //         println!("\n{}", a);
-    //         break;
-    //     } else {
-    //         //eprintln!("\n{} {:?}", machine.output.len(), machine.output);
-    //     }
-    //     runs += 1;
-    //     if runs % 10_000_000 == 0 {
-    //         eprint!(".");
-    //     }
-    //     if runs % 1_000_000_000 == 0 {
-    //         eprintln!("\n{} runs -  {} {:?}", runs, machine.output.len(), machine.output);
-    //     }
-    // }
-
-    let tris = [1, 1, 3, 4, 3, 3, 6, 7, 5, 6, 1, 7, 1, 4, 1, 1];
-    eprintln!("{} tris {:?}", tris.len(), tris);
-    let a: u64 = value_from_bit_triples(&tris);
-    let mut machine = Machine::new(registers, program.clone());
-    machine.registers[0] = a;
-    while !machine.is_halted() {
-        machine.tick();
-        if !machine.output.is_empty() && machine.output != target[0..machine.output.len()] {
-            break;
-        }
-    }
-    if machine.output == target {
-        println!("{}", a);
-    } else {
-        eprintln!("{} {:?}", machine.output.len(), machine.output);
-    }
+    let mut bt = Backtracking::new(program);
+    bt.backtrack(vec![]);
+    println!("{:?}", bt.solution_numeric_value());
 }
