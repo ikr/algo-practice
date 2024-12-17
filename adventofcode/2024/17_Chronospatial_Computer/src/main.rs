@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use itertools::Itertools;
+//use itertools::Itertools;
 
 fn parse_register_value(s: &str) -> u64 {
     let parts = s.split(": ").collect::<Vec<_>>();
@@ -152,34 +152,52 @@ fn main() {
     let program = parse_program(&lines[4]);
     let target: Vec<u64> = program.iter().map(|x| *x as u64).collect();
 
-    let os: Vec<u8> = (0..8).collect();
-    let n = target.len();
-    let mut runs: u64 = 0;
-    for a in (1..n)
-        .map(|_| os.clone())
-        .multi_cartesian_product()
-        .map(|mut xs| {
-            xs.push(0);
-            value_from_bit_triples(&xs)
-        })
-    {
-        let mut machine = Machine::new(registers, program.clone());
-        machine.registers[0] = a;
-        while !machine.is_halted() {
-            machine.tick();
-        }
-        if machine.output == target {
-            println!("\n{}", a);
+    // let os: Vec<u8> = (0..8).collect();
+    // let n = target.len();
+    // let mut runs: u64 = 0;
+    // for a in (1..n)
+    //     .map(|_| os.clone())
+    //     .multi_cartesian_product()
+    //     .map(|mut xs| {
+    //         xs.push(0);
+    //         value_from_bit_triples(&xs)
+    //     })
+    // {
+    //     let mut machine = Machine::new(registers, program.clone());
+    //     machine.registers[0] = a;
+    //     while !machine.is_halted() {
+    //         machine.tick();
+    //         if !machine.output.is_empty() && machine.output != target[0..machine.output.len()] {
+    //             break;
+    //         }
+    //     }
+    //     if machine.output == target {
+    //         println!("\n{}", a);
+    //         break;
+    //     } else {
+    //         // eprintln!("\n{} {:?}", machine.output.len(), machine.output);
+    //     }
+    //     runs += 1;
+    //     if runs % 10_000_000 == 0 {
+    //         eprint!(".");
+    //     }
+    //     if runs % 1_000_000_000 == 0 {
+    //         eprintln!("\n{} runs", runs);
+    //     }
+    // }
+
+    let a: u64 = value_from_bit_triples(&[0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 3, 6, 1, 4, 1, 1]);
+    let mut machine = Machine::new(registers, program.clone());
+    machine.registers[0] = a;
+    while !machine.is_halted() {
+        machine.tick();
+        if !machine.output.is_empty() && machine.output != target[0..machine.output.len()] {
             break;
-        } else {
-            // eprintln!("\n{} {:?}", machine.output.len(), machine.output);
         }
-        runs += 1;
-        if runs % 1_000_000 == 0 {
-            eprint!(".");
-        }
-        if runs % 1_000_000_000 == 0 {
-            eprintln!("\n{} runs", runs);
-        }
+    }
+    if machine.output == target {
+        println!("{}", a);
+    } else {
+        eprintln!("{} {:?}", machine.output.len(), machine.output);
     }
 }
