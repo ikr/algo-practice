@@ -147,9 +147,7 @@ impl Backtracking {
     }
 
     fn backtrack(&mut self, candidate_bit_triples: Vec<u8>) {
-        eprintln!("{:?}", candidate_bit_triples);
-
-        if self.reject(&candidate_bit_triples) {
+        if self.solution_bit_triples.is_some() || self.reject(&candidate_bit_triples) {
             return;
         }
 
@@ -158,7 +156,7 @@ impl Backtracking {
             return;
         }
 
-        let mut cur: Option<Vec<u8>> = Some(self.first(candidate_bit_triples));
+        let mut cur = self.first(candidate_bit_triples);
         while let Some(cur_inner) = cur {
             self.backtrack(cur_inner.clone());
             cur = self.next(cur_inner);
@@ -190,18 +188,32 @@ impl Backtracking {
         output == self.program
     }
 
-    fn first(&self, mut candidate_bit_triples: Vec<u8>) -> Vec<u8> {
+    fn first(&self, mut candidate_bit_triples: Vec<u8>) -> Option<Vec<u8>> {
         candidate_bit_triples.insert(0, 0);
-        candidate_bit_triples
+        Some(candidate_bit_triples)
     }
 
     fn next(&self, mut candidate_bit_triples: Vec<u8>) -> Option<Vec<u8>> {
         assert!(!candidate_bit_triples.is_empty());
-        if candidate_bit_triples[0] == 7 {
-            None
-        } else {
-            candidate_bit_triples[0] += 1;
+
+        let rightmost_bumpable_index = candidate_bit_triples
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(_, &x)| x != 7)
+            .map(|(i, _)| i);
+
+        if let Some(i) = rightmost_bumpable_index {
+            let n = candidate_bit_triples.len();
+            candidate_bit_triples[i] += 1;
+            if i < n - 1 {
+                for j in i + 1..n {
+                    candidate_bit_triples[j] = 0;
+                }
+            }
             Some(candidate_bit_triples)
+        } else {
+            None
         }
     }
 
