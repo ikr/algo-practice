@@ -142,10 +142,24 @@ fn main() {
 
     let program = parse_program(&lines[4]);
 
-    let mut machine = Machine::new(registers, program);
-    while !machine.is_halted() {
-        machine.tick();
-        eprintln!("{:?}", machine);
+    for a in 0..1_000_000_000 {
+        let mut machine = Machine::new(registers.clone(), program.clone());
+        machine.registers[0] = a;
+        let mut ticks = 0;
+        while !machine.is_halted() {
+            machine.tick();
+            ticks += 1;
+            if ticks > 100_000 {
+                break;
+            }
+        }
+        if machine.output == program.iter().map(|x| *x as u64).collect::<Vec<_>>() {
+            println!("\n{}", a);
+            break;
+        }
+
+        if a % 100_000 == 0 && a != 0 {
+            eprint!(".");
+        }
     }
-    println!("{}", join(machine.output, ","));
 }
