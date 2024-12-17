@@ -140,14 +140,14 @@ fn main() {
 
     let program = parse_program(&lines[4]);
 
-    for a in 0..1_000_000_000 {
+    for a in 0..10_000_000_000 {
         let mut machine = Machine::new(registers, program.clone());
         machine.registers[0] = a;
         let mut ticks = 0;
         while !machine.is_halted() {
             machine.tick();
             ticks += 1;
-            if ticks > 100_000 {
+            if ticks > 10_000_000 {
                 break;
             }
         }
