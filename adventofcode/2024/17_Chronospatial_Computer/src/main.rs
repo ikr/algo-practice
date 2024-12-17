@@ -187,8 +187,8 @@ fn main() {
     //     }
     // }
 
-    let tris = [1, 1, 1, 1, 1, 3, 6, 7, 5, 6, 1, 7, 1, 4, 1, 1];
-    eprintln!("tris: {:?}", tris);
+    let tris = [1, 1, 3, 4, 3, 3, 6, 7, 5, 6, 1, 7, 1, 4, 1, 1];
+    eprintln!("{} tris {:?}", tris.len(), tris);
     let a: u64 = value_from_bit_triples(&tris);
     let mut machine = Machine::new(registers, program.clone());
     machine.registers[0] = a;
