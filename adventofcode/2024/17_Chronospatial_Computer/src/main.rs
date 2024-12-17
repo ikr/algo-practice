@@ -154,6 +154,7 @@ fn main() {
 
     let os: Vec<u8> = (0..8).collect();
     let n = target.len();
+    let mut runs: u64 = 0;
     for a in (1..n)
         .map(|_| os.clone())
         .multi_cartesian_product()
@@ -168,10 +169,17 @@ fn main() {
             machine.tick();
         }
         if machine.output == target {
-            println!("{}", a);
+            println!("\n{}", a);
             break;
         } else {
-            eprintln!("{} {:?}", machine.output.len(), machine.output);
+            // eprintln!("\n{} {:?}", machine.output.len(), machine.output);
+        }
+        runs += 1;
+        if runs % 1_000_000 == 0 {
+            eprint!(".");
+        }
+        if runs % 1_000_000_000 == 0 {
+            eprintln!("\n{} runs", runs);
         }
     }
 }
