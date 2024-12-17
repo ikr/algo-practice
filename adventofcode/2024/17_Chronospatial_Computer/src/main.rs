@@ -1,5 +1,7 @@
 use std::io::{self, BufRead};
 
+use itertools::Itertools;
+
 fn parse_register_value(s: &str) -> u64 {
     let parts = s.split(": ").collect::<Vec<_>>();
     parts[1].parse().unwrap()
@@ -124,6 +126,15 @@ impl Machine {
     }
 }
 
+fn value_from_bit_triples(xs: &[u8]) -> u64 {
+    let mut result: u64 = 0;
+    for &x in xs {
+        result <<= 3;
+        result |= x as u64;
+    }
+    result
+}
+
 fn main() {
     let lines: Vec<String> = io::stdin()
         .lock()
@@ -139,25 +150,28 @@ fn main() {
         .unwrap();
 
     let program = parse_program(&lines[4]);
+    let target: Vec<u64> = program.iter().map(|x| *x as u64).collect();
 
-    for a in 0..10_000_000_000 {
+    let os: Vec<u8> = (0..8).collect();
+    let n = target.len();
+    for a in (1..n)
+        .map(|_| os.clone())
+        .multi_cartesian_product()
+        .map(|mut xs| {
+            xs.push(0);
+            value_from_bit_triples(&xs)
+        })
+    {
         let mut machine = Machine::new(registers, program.clone());
         machine.registers[0] = a;
-        let mut ticks = 0;
         while !machine.is_halted() {
             machine.tick();
-            ticks += 1;
-            if ticks > 10_000_000 {
-                break;
-            }
         }
-        if machine.output == program.iter().map(|x| *x as u64).collect::<Vec<_>>() {
-            println!("\n{}", a);
+        if machine.output == target {
+            println!("{}", a);
             break;
-        }
-
-        if a % 100_000 == 0 && a != 0 {
-            eprint!(".");
+        } else {
+            eprintln!("{} {:?}", machine.output.len(), machine.output);
         }
     }
 }
