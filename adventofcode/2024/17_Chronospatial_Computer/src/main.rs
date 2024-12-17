@@ -186,7 +186,7 @@ fn main() {
     //     }
     // }
 
-    let a: u64 = value_from_bit_triples(&[0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 3, 6, 1, 4, 1, 1]);
+    let a: u64 = value_from_bit_triples(&[0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 5, 7, 1, 4, 1, 1]);
     let mut machine = Machine::new(registers, program.clone());
     machine.registers[0] = a;
     while !machine.is_halted() {
