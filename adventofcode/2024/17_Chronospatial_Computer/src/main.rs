@@ -1,7 +1,5 @@
 use std::io::{self, BufRead};
 
-use itertools::join;
-
 fn parse_register_value(s: &str) -> u64 {
     let parts = s.split(": ").collect::<Vec<_>>();
     parts[1].parse().unwrap()
@@ -59,8 +57,8 @@ impl Machine {
 
     fn eval_combo(&self, x: u8) -> u64 {
         match x {
-            0 | 1 | 2 | 3 => x as u64,
-            4 | 5 | 6 => self.registers[(x - 4) as usize],
+            0..=3 => x as u64,
+            4..=6 => self.registers[(x - 4) as usize],
             _ => panic!("Invalid combo operand {}", x),
         }
     }
@@ -81,7 +79,7 @@ impl Machine {
             }
             OpCode::Bxl => {
                 assert!(self.ip + 1 < self.program.len());
-                self.registers[1] = self.registers[1] ^ (self.program[self.ip + 1] as u64);
+                self.registers[1] ^= self.program[self.ip + 1] as u64;
                 self.ip += 2;
             }
             OpCode::Bst => {
@@ -98,7 +96,7 @@ impl Machine {
                 }
             }
             OpCode::Bxc => {
-                self.registers[1] = self.registers[1] ^ self.registers[2];
+                self.registers[1] ^= self.registers[2];
                 assert!(self.ip + 1 < self.program.len());
                 self.ip += 2;
             }
@@ -143,7 +141,7 @@ fn main() {
     let program = parse_program(&lines[4]);
 
     for a in 0..1_000_000_000 {
-        let mut machine = Machine::new(registers.clone(), program.clone());
+        let mut machine = Machine::new(registers, program.clone());
         machine.registers[0] = a;
         let mut ticks = 0;
         while !machine.is_halted() {
