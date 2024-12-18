@@ -138,24 +138,11 @@ struct Backtracking {
     solution_bit_triples: Option<Vec<u8>>,
 }
 
-fn tails_equal<T: PartialEq>(ignore_first_k: usize, xs: &[T], ys: &[T]) -> bool {
-    if xs.len() <= ignore_first_k {
-        return true;
-    }
-
-    let mut i = xs.len() - 1;
-    let mut j = ys.len() - 1;
-    while i >= ignore_first_k {
-        if xs[i] != ys[j] {
-            return false;
-        }
-        if i == 0 || j == 0 {
-            break;
-        }
-        i -= 1;
-        j -= 1;
-    }
-    true
+fn tails_equal<T: PartialEq + Copy>(ignore_first_k: usize, xs: &[T], ys: &[T]) -> bool {
+    let n = xs.len().saturating_sub(ignore_first_k);
+    let tx: Vec<T> = xs.iter().rev().copied().collect();
+    let ty: Vec<T> = ys.iter().rev().copied().collect();
+    tx[0..n] == ty[0..n.min(ys.len())]
 }
 
 impl Backtracking {
