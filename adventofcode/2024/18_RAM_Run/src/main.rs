@@ -3,7 +3,6 @@ use std::{
     io::{self, BufRead},
 };
 
-//const HI: usize = 6;
 const HI: usize = 70;
 
 fn parse_pair(s: &str) -> (i8, i8) {
