@@ -251,6 +251,6 @@ fn main() {
 
     let program = parse_program(&lines[4]);
     let mut bt = Backtracking::new(program);
-    bt.backtrack(vec![4, 1, 1]);
+    bt.backtrack(vec![]);
     println!("{:?}", bt.solution_numeric_value());
 }
