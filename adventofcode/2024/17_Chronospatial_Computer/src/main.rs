@@ -138,7 +138,7 @@ struct Backtracking {
     solution_bit_triples: Option<Vec<u8>>,
 }
 
-fn tails_equal(ignore_first_k: usize, xs: &[u8], ys: &[u8]) -> bool {
+fn tails_equal<T: PartialEq>(ignore_first_k: usize, xs: &[T], ys: &[T]) -> bool {
     if xs.len() <= ignore_first_k {
         return true;
     }
@@ -148,6 +148,9 @@ fn tails_equal(ignore_first_k: usize, xs: &[u8], ys: &[u8]) -> bool {
     while i >= ignore_first_k {
         if xs[i] != ys[j] {
             return false;
+        }
+        if i == 0 || j == 0 {
+            break;
         }
         i -= 1;
         j -= 1;
@@ -253,4 +256,31 @@ fn main() {
     let mut bt = Backtracking::new(program);
     bt.backtrack(vec![]);
     println!("{:?}", bt.solution_numeric_value());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tails_equal_works() {
+        for (k, xs, ys, expected) in [
+            (0, vec![], vec![], true),
+            (0, vec![1], vec![2], false),
+            (1, vec![1], vec![2], true),
+            (3, vec![7, 7, 7, 4, 3, 0], vec![0, 0, 3, 5, 4, 3, 0], true),
+            (3, vec![7, 7, 7, 4, 3, 0], vec![4, 3, 0], true),
+            (3, vec![4, 3, 2], vec![0, 0, 3, 5, 7, 7, 7], true),
+            (3, vec![4, 3, 2, 0], vec![0, 0, 3, 5], false),
+            (2, vec![1, 2, 3], vec![1, 2, 3], true),
+            (3, vec![1, 2, 3, 1, 2, 3], vec![1, 2, 3, 1, 2, 3], true),
+            (0, vec![1, 2, 3], vec![1, 2, 3], true),
+            (0, vec![], vec![1, 2, 3], true),
+            (0, vec![1, 2], vec![3], false),
+            (1, vec![1, 2], vec![3], false),
+            (1, vec![1, 2], vec![2], true),
+        ] {
+            assert_eq!(tails_equal::<u8>(k, &xs, &ys), expected);
+        }
+    }
 }
