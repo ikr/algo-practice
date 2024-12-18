@@ -138,6 +138,23 @@ struct Backtracking {
     solution_bit_triples: Option<Vec<u8>>,
 }
 
+fn tails_equal(ignore_first_k: usize, xs: &[u8], ys: &[u8]) -> bool {
+    if xs.len() <= ignore_first_k {
+        return true;
+    }
+
+    let mut i = xs.len() - 1;
+    let mut j = ys.len() - 1;
+    while i >= ignore_first_k {
+        if xs[i] != ys[j] {
+            return false;
+        }
+        i -= 1;
+        j -= 1;
+    }
+    true
+}
+
 impl Backtracking {
     fn new(program: Vec<u8>) -> Self {
         Backtracking {
@@ -179,7 +196,7 @@ impl Backtracking {
             true
         } else {
             let output = self.produce_output(candidate_bit_triples);
-            output.len() > self.program.len() || output != self.program[0..output.len()]
+            output.len() > self.program.len() || !tails_equal(3, &output, &self.program)
         }
     }
 
@@ -196,7 +213,9 @@ impl Backtracking {
     fn next(&self, mut candidate_bit_triples: Vec<u8>) -> Option<Vec<u8>> {
         assert!(!candidate_bit_triples.is_empty());
 
-        let rightmost_bumpable_index = candidate_bit_triples
+        let lim = candidate_bit_triples.len().min(3);
+
+        let rightmost_bumpable_index = candidate_bit_triples[0..lim]
             .iter()
             .enumerate()
             .rev()
@@ -204,10 +223,9 @@ impl Backtracking {
             .map(|(i, _)| i);
 
         if let Some(i) = rightmost_bumpable_index {
-            let n = candidate_bit_triples.len();
             candidate_bit_triples[i] += 1;
-            if i < n - 1 {
-                for j in i + 1..n {
+            if i < lim - 1 {
+                for j in i + 1..lim {
                     candidate_bit_triples[j] = 0;
                 }
             }
@@ -233,6 +251,6 @@ fn main() {
 
     let program = parse_program(&lines[4]);
     let mut bt = Backtracking::new(program);
-    bt.backtrack(vec![]);
+    bt.backtrack(vec![4, 1, 1]);
     println!("{:?}", bt.solution_numeric_value());
 }
