@@ -283,4 +283,18 @@ mod tests {
             assert_eq!(tails_equal::<u8>(k, &xs, &ys), expected);
         }
     }
+
+    #[test]
+    fn backtracking_next_works() {
+        let program: Vec<u8> = vec![0, 3, 5, 4, 3, 0];
+        let bt = Backtracking::new(program);
+
+        assert_eq!(bt.next(vec![0]), Some(vec![1]));
+        assert_eq!(bt.next(vec![7]), None);
+        assert_eq!(bt.next(vec![7, 7]), None);
+        assert_eq!(bt.next(vec![3, 7]), Some(vec![4, 0]));
+        assert_eq!(bt.next(vec![6, 7, 7]), Some(vec![7, 0, 0]));
+        assert_eq!(bt.next(vec![7, 7, 7, 0]), None);
+        assert_eq!(bt.next(vec![1, 4, 1, 1]), Some(vec![1, 4, 2, 1]));
+    }
 }
