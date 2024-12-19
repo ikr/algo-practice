@@ -139,7 +139,6 @@ fn value_from_bit_triples(xs: &[u8]) -> u64 {
 struct Backtracking {
     program: Vec<u8>,
     solution: u64,
-    max_match_length: usize,
 }
 
 fn heads_equal<T: PartialEq + Copy>(ignore_last_k: usize, xs: &[T], ys: &[T]) -> bool {
@@ -152,7 +151,6 @@ impl Backtracking {
         Backtracking {
             program,
             solution: u64::MAX,
-            max_match_length: 0,
         }
     }
 
@@ -193,21 +191,6 @@ impl Backtracking {
             true
         } else {
             let output = self.produce_output(candidate_bit_triples);
-
-            let k = output
-                .iter()
-                .zip(self.program.iter())
-                .take_while(|(a, b)| a == b)
-                .count();
-
-            if k > self.max_match_length {
-                self.max_match_length = k;
-                eprintln!(
-                    "New max_match_length: {} - {:?} on {:?}",
-                    self.max_match_length, output, candidate_bit_triples
-                );
-            }
-
             output.len() > self.program.len() || !heads_equal(2, &output, &self.program)
         }
     }
