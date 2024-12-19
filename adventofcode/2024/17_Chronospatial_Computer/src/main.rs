@@ -1,4 +1,7 @@
-use std::io::{self, BufRead};
+use std::{
+    io::{self, BufRead},
+    u64,
+};
 
 fn parse_program(s: &str) -> Vec<u8> {
     let parts = s.split(": ").collect::<Vec<_>>();
@@ -135,15 +138,8 @@ fn value_from_bit_triples(xs: &[u8]) -> u64 {
 
 struct Backtracking {
     program: Vec<u8>,
-    solution_bit_triples: Option<Vec<u8>>,
+    solution: u64,
     max_match_length: usize,
-}
-
-fn tails_equal<T: PartialEq + Copy>(ignore_first_k: usize, xs: &[T], ys: &[T]) -> bool {
-    let n = xs.len().saturating_sub(ignore_first_k);
-    let tx: Vec<T> = xs.iter().rev().copied().collect();
-    let ty: Vec<T> = ys.iter().rev().copied().collect();
-    tx[0..n] == ty[0..n.min(ys.len())]
 }
 
 fn heads_equal<T: PartialEq + Copy>(ignore_last_k: usize, xs: &[T], ys: &[T]) -> bool {
@@ -155,18 +151,22 @@ impl Backtracking {
     fn new(program: Vec<u8>) -> Self {
         Backtracking {
             program,
-            solution_bit_triples: None,
+            solution: u64::MAX,
             max_match_length: 0,
         }
     }
 
     fn backtrack(&mut self, candidate_bit_triples: Vec<u8>) {
-        if self.solution_bit_triples.is_some() || self.reject(&candidate_bit_triples) {
+        if self.reject(&candidate_bit_triples) {
             return;
         }
 
         if self.accept(&candidate_bit_triples) {
-            self.solution_bit_triples = Some(candidate_bit_triples);
+            let candidate = value_from_bit_triples(&candidate_bit_triples);
+            if candidate < self.solution {
+                eprintln!("Found {}", candidate);
+                self.solution = candidate;
+            }
             return;
         }
 
@@ -189,15 +189,14 @@ impl Backtracking {
     fn reject(&mut self, candidate_bit_triples: &[u8]) -> bool {
         if candidate_bit_triples.is_empty() {
             false
-        } else if candidate_bit_triples.len() > self.program.len() + 1 {
+        } else if candidate_bit_triples.len() > self.program.len() {
             true
         } else {
             let output = self.produce_output(candidate_bit_triples);
 
             let k = output
                 .iter()
-                .rev()
-                .zip(self.program.iter().rev())
+                .zip(self.program.iter())
                 .take_while(|(a, b)| a == b)
                 .count();
 
@@ -251,12 +250,6 @@ impl Backtracking {
             None
         }
     }
-
-    fn solution_numeric_value(&self) -> Option<u64> {
-        self.solution_bit_triples
-            .clone()
-            .map(|tris| value_from_bit_triples(&tris))
-    }
 }
 
 fn main() {
@@ -269,34 +262,12 @@ fn main() {
     let program = parse_program(&lines[4]);
     let mut bt = Backtracking::new(program);
     bt.backtrack(vec![]);
-    println!("{:?}", bt.solution_numeric_value());
+    println!("{}", bt.solution);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn tails_equal_works() {
-        for (k, xs, ys, expected) in [
-            (0, vec![], vec![], true),
-            (0, vec![1], vec![2], false),
-            (1, vec![1], vec![2], true),
-            (3, vec![7, 7, 7, 4, 3, 0], vec![0, 0, 3, 5, 4, 3, 0], true),
-            (3, vec![7, 7, 7, 4, 3, 0], vec![4, 3, 0], true),
-            (3, vec![4, 3, 2], vec![0, 0, 3, 5, 7, 7, 7], true),
-            (3, vec![4, 3, 2, 0], vec![0, 0, 3, 5], false),
-            (2, vec![1, 2, 3], vec![1, 2, 3], true),
-            (3, vec![1, 2, 3, 1, 2, 3], vec![1, 2, 3, 1, 2, 3], true),
-            (0, vec![1, 2, 3], vec![1, 2, 3], true),
-            (0, vec![], vec![1, 2, 3], true),
-            (0, vec![1, 2], vec![3], false),
-            (1, vec![1, 2], vec![3], false),
-            (1, vec![1, 2], vec![2], true),
-        ] {
-            assert_eq!(tails_equal::<u8>(k, &xs, &ys), expected);
-        }
-    }
 
     #[test]
     fn backtracking_next_works() {
