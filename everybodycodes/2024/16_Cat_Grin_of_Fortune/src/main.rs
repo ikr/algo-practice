@@ -1,9 +1,6 @@
 use std::io::{self, BufRead};
 
 use itertools::Itertools;
-use num_integer::{gcd, lcm};
-
-const HI: usize = 202420242024;
 
 fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!grid.is_empty());
@@ -78,17 +75,20 @@ fn main() {
 
     assert_eq!(wheels.len(), steppings.len());
 
-    assert!(wheels
-        .iter()
-        .zip(steppings.iter())
-        .all(|(w, &k)| gcd(w.len(), k) == 1));
+    let k_steps_gain = |shift: i8, k: usize| -> usize {
+        let mut ps: Vec<usize> = wheels
+            .iter()
+            .map(|w| {
+                let m = w.len();
+                match shift {
+                    -1 => m - 1,
+                    0 => 0,
+                    1 => 1,
+                    _ => panic!("Unsupported shift of {}", shift),
+                }
+            })
+            .collect();
 
-    let common_period: usize = wheels.iter().fold(1, |acc, w| lcm(acc, w.len()));
-    eprintln!("common_period:{}", common_period);
-
-    let k_steps_gain = |k: usize| -> usize {
-        let n = wheels.len();
-        let mut ps = vec![0; n];
         let mut total_coins: usize = 0;
 
         let current_display = |ps: &[usize]| -> Vec<String> {
@@ -112,9 +112,7 @@ fn main() {
         total_coins
     };
 
-    let period_gaid = k_steps_gain(common_period);
-    let q = HI / common_period;
-    let r = HI % common_period;
-    let result = q * period_gaid + k_steps_gain(r);
-    println!("{}", result);
+    let mut gains = [-1, 0, 1].map(|shift| k_steps_gain(shift, 2));
+    gains.sort();
+    println!("{:?}", gains);
 }
