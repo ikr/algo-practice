@@ -156,18 +156,6 @@ impl Backtracking {
     }
 
     fn backtrack(&mut self, candidate_bit_triples: Vec<u8>) {
-        let k = candidate_bit_triples
-            .iter()
-            .rev()
-            .zip(self.program.iter().rev())
-            .take_while(|(a, b)| a == b)
-            .count();
-
-        if k > self.max_match_length {
-            self.max_match_length = k;
-            eprintln!("New max_match_length: {}", self.max_match_length);
-        }
-
         if self.solution_bit_triples.is_some() || self.reject(&candidate_bit_triples) {
             return;
         }
@@ -193,14 +181,30 @@ impl Backtracking {
         m.output
     }
 
-    fn reject(&self, candidate_bit_triples: &[u8]) -> bool {
+    fn reject(&mut self, candidate_bit_triples: &[u8]) -> bool {
         if candidate_bit_triples.is_empty() {
             false
         } else if candidate_bit_triples.len() > self.program.len() + 1 {
             true
         } else {
             let output = self.produce_output(candidate_bit_triples);
-            output.len() > self.program.len() || !tails_equal(3, &output, &self.program)
+
+            let k = output
+                .iter()
+                .rev()
+                .zip(self.program.iter().rev())
+                .take_while(|(a, b)| a == b)
+                .count();
+
+            if k > self.max_match_length {
+                self.max_match_length = k;
+                eprintln!(
+                    "New max_match_length: {} - {:?} on {:?}",
+                    self.max_match_length, output, candidate_bit_triples
+                );
+            }
+
+            output.len() > self.program.len() || !tails_equal(2, &output, &self.program)
         }
     }
 
