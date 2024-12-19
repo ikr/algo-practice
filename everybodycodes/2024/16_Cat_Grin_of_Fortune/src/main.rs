@@ -1,7 +1,9 @@
 use std::io::{self, BufRead};
 
 use itertools::Itertools;
-use num_integer::lcm;
+use num_integer::{gcd, lcm};
+
+const HI: usize = 202420242024;
 
 fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!grid.is_empty());
@@ -25,18 +27,14 @@ fn pad_right_to(n: usize, s: &str) -> String {
     }
 }
 
-fn coins_for(display: &[String]) -> u64 {
+fn coins_for(display: &[String]) -> usize {
     let xs: Vec<u8> = display
         .iter()
         .flat_map(|s| vec![s.as_bytes()[0], s.as_bytes()[2]])
         .collect();
 
     let fqs: Vec<usize> = xs.into_iter().counts().values().copied().collect();
-
-    fqs.into_iter()
-        .filter(|&f| f >= 3)
-        .map(|f| f as u64 - 2)
-        .sum()
+    fqs.into_iter().filter(|&f| f >= 3).map(|f| f - 2).sum()
 }
 
 fn main() {
@@ -82,30 +80,43 @@ fn main() {
     eprintln!("steppings: {:?}", steppings);
     assert_eq!(wheels.len(), steppings.len());
 
-    let common_perion: u64 = steppings.iter().fold(1, |acc, &p| lcm(acc, p as u64));
-    eprintln!("common_period:{}", common_perion);
+    assert!(wheels
+        .iter()
+        .zip(steppings.iter())
+        .all(|(w, &k)| gcd(w.len(), k) == 1));
 
-    let n = wheels.len();
-    let mut ps = vec![0; n];
+    let common_period: usize = wheels.iter().fold(1, |acc, w| lcm(acc, w.len()));
+    eprintln!("common_period:{}", common_period);
 
-    let mut total_coins: u64 = 0;
-    let current_display = |ps: &[usize]| -> Vec<String> {
-        wheels
-            .iter()
-            .zip(ps.iter())
-            .map(|(w, p)| w[*p].clone())
-            .collect()
+    let k_steps_gain = |k: usize| -> usize {
+        let n = wheels.len();
+        let mut ps = vec![0; n];
+        let mut total_coins: usize = 0;
+
+        let current_display = |ps: &[usize]| -> Vec<String> {
+            wheels
+                .iter()
+                .zip(ps.iter())
+                .map(|(w, p)| w[*p].clone())
+                .collect()
+        };
+
+        for _ in 1..=k {
+            ps = ps
+                .iter()
+                .enumerate()
+                .zip(steppings.iter())
+                .map(|((i, p), step)| (p + step) % wheels[i].len())
+                .collect();
+
+            total_coins += coins_for(&current_display(&ps));
+        }
+        total_coins
     };
 
-    for _ in 1..=100 {
-        ps = ps
-            .iter()
-            .enumerate()
-            .zip(steppings.iter())
-            .map(|((i, p), step)| (p + step) % wheels[i].len())
-            .collect();
-
-        total_coins += coins_for(&current_display(&ps));
-        println!("{}", total_coins);
-    }
+    let period_gaid = k_steps_gain(common_period);
+    let q = HI / common_period;
+    let r = HI % common_period;
+    let result = q * period_gaid + k_steps_gain(r);
+    println!("{}", result);
 }
