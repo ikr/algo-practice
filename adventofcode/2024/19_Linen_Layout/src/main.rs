@@ -9,14 +9,17 @@ fn stringify(xs: &[u8]) -> String {
 }
 
 fn is_possible(patterns: &[Vec<u8>], design: &[u8]) -> bool {
-    if design.is_empty() || patterns.contains(&design.to_vec()) {
-        true
-    } else {
-        patterns.iter().any(|pattern| {
-            let m = pattern.len();
-            m <= design.len() && design[0..m] == *pattern && is_possible(patterns, &design[m..])
-        })
+    let n = design.len();
+    let mut yes: Vec<bool> = vec![false; n];
+    for i in 0..n {
+        for p in patterns {
+            let m = p.len();
+            if i + m <= n && (i == 0 || yes[i - 1]) && design[i..i + m] == *p {
+                yes[i + m - 1] = true;
+            }
+        }
     }
+    yes[n - 1]
 }
 
 fn main() {
