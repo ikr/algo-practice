@@ -146,6 +146,11 @@ fn tails_equal<T: PartialEq + Copy>(ignore_first_k: usize, xs: &[T], ys: &[T]) -
     tx[0..n] == ty[0..n.min(ys.len())]
 }
 
+fn heads_equal<T: PartialEq + Copy>(ignore_last_k: usize, xs: &[T], ys: &[T]) -> bool {
+    let n = xs.len().saturating_sub(ignore_last_k);
+    xs[0..n] == ys[0..n.min(ys.len())]
+}
+
 impl Backtracking {
     fn new(program: Vec<u8>) -> Self {
         Backtracking {
@@ -204,7 +209,7 @@ impl Backtracking {
                 );
             }
 
-            output.len() > self.program.len() || !tails_equal(2, &output, &self.program)
+            output.len() > self.program.len() || !heads_equal(2, &output, &self.program)
         }
     }
 
