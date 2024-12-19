@@ -64,7 +64,6 @@ fn main() {
         })
         .filter(|s: &String| !s.is_empty())
         .collect();
-    eprintln!("wheel_bands:\n{:?}", wheel_bands);
 
     let wheels: Vec<Vec<String>> = wheel_bands
         .into_iter()
@@ -76,8 +75,7 @@ fn main() {
                 .collect()
         })
         .collect();
-    eprintln!("wheels:\n{:?}", wheels);
-    eprintln!("steppings: {:?}", steppings);
+
     assert_eq!(wheels.len(), steppings.len());
 
     assert!(wheels
