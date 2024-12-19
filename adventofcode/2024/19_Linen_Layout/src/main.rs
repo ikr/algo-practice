@@ -4,22 +4,18 @@ fn parse_patterns(s: &str) -> Vec<Vec<u8>> {
     s.split(", ").map(|t| t.bytes().collect()).collect()
 }
 
-fn stringify(xs: &[u8]) -> String {
-    String::from_utf8(xs.to_vec()).unwrap()
-}
-
-fn is_possible(patterns: &[Vec<u8>], design: &[u8]) -> bool {
+fn num_ways(patterns: &[Vec<u8>], design: &[u8]) -> u64 {
     let n = design.len();
-    let mut yes: Vec<bool> = vec![false; n];
+    let mut dp: Vec<u64> = vec![0; n];
     for i in 0..n {
         for p in patterns {
             let m = p.len();
-            if i + m <= n && (i == 0 || yes[i - 1]) && design[i..i + m] == *p {
-                yes[i + m - 1] = true;
+            if i + m <= n && (i == 0 || dp[i - 1] != 0) && design[i..i + m] == *p {
+                dp[i + m - 1] += if i == 0 { 1 } else { dp[i - 1] };
             }
         }
     }
-    yes[n - 1]
+    dp[n - 1]
 }
 
 fn main() {
@@ -38,9 +34,9 @@ fn main() {
         .map(|line| line.bytes().collect())
         .collect();
 
-    let result = designs
+    let result: u64 = designs
         .iter()
-        .filter(|design| is_possible(&patterns, design))
-        .count();
+        .map(|design| num_ways(&patterns, design))
+        .sum();
     println!("{}", result);
 }
