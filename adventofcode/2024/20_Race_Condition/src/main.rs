@@ -31,15 +31,6 @@ impl Dir {
         vec![Dir::N, Dir::E, Dir::S, Dir::W]
     }
 
-    fn opposite(&self) -> Dir {
-        match self {
-            Dir::N => Dir::S,
-            Dir::E => Dir::W,
-            Dir::S => Dir::N,
-            Dir::W => Dir::E,
-        }
-    }
-
     fn delta(&self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -137,11 +128,10 @@ fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> Vec<(Crd,
                 if d < 19 && !seen.contains(&q) {
                     queue.push_back((q, d + 1));
                 }
-            } else {
-                if !seen.contains(&q) {
-                    result.push((q, d + 1));
-                }
+            } else if !seen.contains(&q) {
+                result.push((q, d + 1));
             }
+
             seen.insert(q);
         }
     }
@@ -161,6 +151,13 @@ fn wormhole_entrances(grid: &[Vec<char>], source: Crd) -> Vec<Crd> {
             }
         })
         .collect()
+}
+
+fn eprintln_grid(grid: &[Vec<char>]) {
+    for row in grid {
+        eprintln!("{}", row.iter().collect::<String>());
+    }
+    eprintln!();
 }
 
 fn main() {
@@ -190,19 +187,26 @@ fn main() {
 
     for source in gather_non_walls(&grid) {
         for entrance in wormhole_entrances(&grid, source) {
-            if done.contains(&(source, entrance)) {
-                continue;
-            } else {
-                done.insert((source, entrance));
-            }
-
             for (exit, warp) in wormhole_exits(&grid, source, entrance) {
+                if done.contains(&(source, exit)) {
+                    continue;
+                } else {
+                    done.insert((source, exit));
+                }
                 let distance = optimal_distance(&grid, start, source)
                     + warp
                     + optimal_distance(&grid, exit, end);
                 let saved = initial_distance.saturating_sub(distance);
                 if saved != 0 {
                     savings.push(saved);
+                }
+
+                if saved == 76 {
+                    let mut grid1 = grid.clone();
+                    grid1[source.0 as usize][source.1 as usize] = 'o';
+                    grid1[entrance.0 as usize][entrance.1 as usize] = 'X';
+                    grid1[exit.0 as usize][exit.1 as usize] = 'O';
+                    eprintln_grid(&grid1);
                 }
             }
         }
