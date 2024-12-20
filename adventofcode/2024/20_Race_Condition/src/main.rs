@@ -51,12 +51,12 @@ impl Dir {
 }
 
 fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u32 {
-    let mut seen: HashSet<Crd> = HashSet::new();
-    seen.insert(start);
+    if start == end {
+        return 0;
+    }
 
-    let mut queue: VecDeque<(Crd, u32)> = VecDeque::new();
-    queue.push_back((start, 0));
-
+    let mut seen: HashSet<Crd> = HashSet::from([start]);
+    let mut queue: VecDeque<(Crd, u32)> = VecDeque::from([(start, 0)]);
     let cell_at = |c: Crd| -> char { grid[c.0 as usize][c.1 as usize] };
 
     let adjacent = |p: Crd| -> Vec<Crd> {
@@ -89,20 +89,20 @@ fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u32 {
     INF
 }
 
-fn gather_non_walls(grid: &[Vec<char>]) -> HashSet<Crd> {
-    let mut result = HashSet::new();
+fn gather_non_walls(grid: &[Vec<char>]) -> Vec<Crd> {
+    let mut result = vec![];
     for (i, row) in grid.iter().enumerate() {
         for (j, &cell) in row.iter().enumerate() {
             if cell != '#' {
-                result.insert(Crd(i as i16, j as i16));
+                result.push(Crd(i as i16, j as i16));
             }
         }
     }
     result
 }
 
-fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> HashSet<Crd> {
-    let mut result = HashSet::new();
+fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> Vec<(Crd, u32)> {
+    let mut result = vec![];
     let mut seen: HashSet<Crd> = HashSet::from([source, first_wall]);
     let mut queue: VecDeque<(Crd, u32)> = VecDeque::from([(first_wall, 1)]);
 
@@ -117,7 +117,7 @@ fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> HashSet<C
 
     let adjacent = |p: Crd| -> Vec<Crd> {
         Dir::all()
-            .iter()
+            .into_iter()
             .filter_map(|d| {
                 let q = p + d.delta();
                 if in_bounds(q) {
@@ -138,7 +138,7 @@ fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> HashSet<C
                 }
             } else {
                 if !seen.contains(&q) {
-                    result.insert(q);
+                    result.push((q, d + 1));
                 }
             }
             seen.insert(q);
@@ -147,41 +147,30 @@ fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> HashSet<C
     result
 }
 
-fn possible_cheats(grid: &[Vec<char>]) -> Vec<(Crd, Dir)> {
-    let in_bounds = |c: Crd| -> bool {
-        c.0 >= 0 && c.0 < grid.len() as i16 && c.1 >= 0 && c.1 < grid[0].len() as i16
-    };
-
-    let mut result = vec![];
-    for (i, row) in grid.iter().enumerate() {
-        for (j, &cell) in row.iter().enumerate() {
-            if cell == '.' {
-                let u = Crd(i as i16, j as i16);
-                for d in Dir::all() {
-                    let p = u + d.delta();
-                    let q = p + d.delta();
-                    if grid[p.0 as usize][p.1 as usize] == '#'
-                        && in_bounds(q)
-                        && grid[q.0 as usize][q.1 as usize] != '#'
-                    {
-                        result.push((p, d));
-                    }
-                }
+fn wormhole_entrances(grid: &[Vec<char>], source: Crd) -> Vec<Crd> {
+    assert_ne!(grid[source.0 as usize][source.1 as usize], '#');
+    Dir::all()
+        .into_iter()
+        .filter_map(|d| {
+            let q = source + d.delta();
+            if grid[q.0 as usize][q.1 as usize] == '#' {
+                Some(q)
+            } else {
+                None
             }
-        }
-    }
-    result
+        })
+        .collect()
 }
 
 fn main() {
-    let initial_grid: Vec<Vec<char>> = io::stdin()
+    let grid: Vec<Vec<char>> = io::stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
     let crd_of = |c: char| -> Crd {
-        for (i, row) in initial_grid.iter().enumerate() {
+        for (i, row) in grid.iter().enumerate() {
             if let Some(j) = row.iter().position(|&x| x == c) {
                 return Crd(i as i16, j as i16);
             }
@@ -191,32 +180,25 @@ fn main() {
 
     let start = crd_of('S');
     let end = crd_of('E');
-    let initial_distance = optimal_distance(&initial_grid, start, end);
+    assert_eq!(optimal_distance(&grid, start, start), 0);
+    let initial_distance = optimal_distance(&grid, start, end);
+    eprintln!("initial_distance:{}", initial_distance);
 
-    let mut grid = initial_grid.clone();
+    let mut savings: Vec<u32> = vec![];
 
-    eprintln!("{:?}", wormhole_exits(&grid, start, start + Dir::S.delta()));
-
-    let savings = possible_cheats(&initial_grid)
-        .into_iter()
-        .map(|(p, d)| {
-            let q = p + d.delta();
-            let original_p = grid[p.0 as usize][p.1 as usize];
-            let original_q = grid[q.0 as usize][q.1 as usize];
-
-            let pre_p = p + d.opposite().delta();
-            let one = optimal_distance(&grid, start, pre_p);
-
-            grid[p.0 as usize][p.1 as usize] = '1';
-            grid[q.0 as usize][q.1 as usize] = '2';
-
-            let distance = one + 1 + optimal_distance(&grid, p, end);
-
-            grid[p.0 as usize][p.1 as usize] = original_p;
-            grid[q.0 as usize][q.1 as usize] = original_q;
-            initial_distance.saturating_sub(distance)
-        })
-        .collect::<Vec<_>>();
+    for source in gather_non_walls(&grid) {
+        for entrance in wormhole_entrances(&grid, source) {
+            for (exit, warp) in wormhole_exits(&grid, source, entrance) {
+                let distance = optimal_distance(&grid, source, start)
+                    + warp
+                    + optimal_distance(&grid, exit, end);
+                let saved = initial_distance.saturating_sub(distance);
+                if saved != 0 {
+                    savings.push(saved);
+                }
+            }
+        }
+    }
 
     let mut fq = savings
         .iter()
