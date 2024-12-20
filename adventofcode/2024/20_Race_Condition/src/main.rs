@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     io::{self, BufRead},
 };
 
@@ -182,33 +182,30 @@ fn main() {
     let initial_distance = optimal_distance(&grid, start, end);
     eprintln!("initial_distance:{}", initial_distance);
 
-    let mut savings: Vec<u32> = vec![];
-    let mut done: HashSet<(Crd, Crd)> = HashSet::new();
+    let mut warps_by_source_and_exit: HashMap<(Crd, Crd), u32> = HashMap::new();
 
     for source in gather_non_walls(&grid) {
         for entrance in wormhole_entrances(&grid, source) {
             for (exit, warp) in wormhole_exits(&grid, source, entrance) {
-                if done.contains(&(source, exit)) {
-                    continue;
-                } else {
-                    done.insert((source, exit));
-                }
-                let distance = optimal_distance(&grid, start, source)
-                    + warp
-                    + optimal_distance(&grid, exit, end);
-                let saved = initial_distance.saturating_sub(distance);
-                if saved != 0 {
-                    savings.push(saved);
-                }
-
-                if saved == 76 {
-                    let mut grid1 = grid.clone();
-                    grid1[source.0 as usize][source.1 as usize] = 'o';
-                    grid1[entrance.0 as usize][entrance.1 as usize] = 'X';
-                    grid1[exit.0 as usize][exit.1 as usize] = 'O';
-                    eprintln_grid(&grid1);
-                }
+                warps_by_source_and_exit
+                    .entry((source, exit))
+                    .and_modify(|w| {
+                        if &warp < w {
+                            *w = warp;
+                        }
+                    })
+                    .or_insert(warp);
             }
+        }
+    }
+
+    let mut savings: Vec<u32> = vec![];
+    for ((source, exit), warp) in warps_by_source_and_exit {
+        let distance =
+            optimal_distance(&grid, start, source) + warp + optimal_distance(&grid, exit, end);
+        let saved = initial_distance.saturating_sub(distance);
+        if saved != 0 {
+            savings.push(saved);
         }
     }
 
