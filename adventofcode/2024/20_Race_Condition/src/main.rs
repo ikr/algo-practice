@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 const INF: u32 = 1_000_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -155,6 +157,17 @@ fn main() {
             initial_distance.saturating_sub(distance)
         })
         .collect::<Vec<_>>();
+
+    let mut fq = savings
+        .iter()
+        .filter(|&&d| d >= 50)
+        .copied()
+        .filter(|d| *d > 0)
+        .counts()
+        .into_iter()
+        .collect::<Vec<_>>();
+    fq.sort();
+    eprintln!("{:?}", fq);
 
     let result = savings.iter().filter(|&&d| d >= 100).count();
     println!("{}", result);
