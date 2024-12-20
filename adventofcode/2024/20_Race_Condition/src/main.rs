@@ -41,13 +41,14 @@ impl Dir {
     }
 }
 
-fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u32 {
+fn optimal_path(grid: &[Vec<char>], start: Crd, end: Crd) -> Vec<Crd> {
     if start == end {
-        return 0;
+        return vec![start];
     }
 
-    let mut seen: HashSet<Crd> = HashSet::from([start]);
-    let mut queue: VecDeque<(Crd, u32)> = VecDeque::from([(start, 0)]);
+    let mut distance: HashMap<Crd, u32> = HashMap::from([(start, 0)]);
+    let mut pre: HashMap<Crd, Crd> = HashMap::new();
+    let mut queue: VecDeque<Crd> = VecDeque::from([start]);
     let cell_at = |c: Crd| -> char { grid[c.0 as usize][c.1 as usize] };
 
     let adjacent = |p: Crd| -> Vec<Crd> {
@@ -64,32 +65,29 @@ fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u32 {
             .collect()
     };
 
-    while let Some((p, d)) = queue.pop_front() {
+    while let Some(p) = queue.pop_front() {
         for q in adjacent(p) {
-            if q == end {
-                return d + 1;
-            }
-
-            if !seen.contains(&q) {
-                seen.insert(q);
-                queue.push_back((q, d + 1));
+            if !distance.contains_key(&q) {
+                distance.insert(q, distance[&p] + 1);
+                pre.insert(q, p);
+                queue.push_back(q);
             }
         }
     }
 
-    INF
-}
+    let mut path = vec![];
+    let mut p = end;
 
-fn gather_non_walls(grid: &[Vec<char>]) -> Vec<Crd> {
-    let mut result = vec![];
-    for (i, row) in grid.iter().enumerate() {
-        for (j, &cell) in row.iter().enumerate() {
-            if cell != '#' {
-                result.push(Crd(i as i16, j as i16));
-            }
+    loop {
+        path.push(p);
+        if !pre.contains_key(&p) {
+            break;
         }
+        p = pre[&p];
     }
-    result
+
+    path.reverse();
+    path
 }
 
 fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> Vec<(Crd, u32)> {
@@ -178,38 +176,33 @@ fn main() {
 
     let start = crd_of('S');
     let end = crd_of('E');
-    assert_eq!(optimal_distance(&grid, start, start), 0);
-    let initial_distance = optimal_distance(&grid, start, end);
+    let initial_path = optimal_path(&grid, start, end);
+    let initial_distance = initial_path.len() - 1;
     eprintln!("initial_distance:{}", initial_distance);
 
-    let mut entrances_and_warps_by_source_and_exit: HashMap<(Crd, Crd), (Crd, u32)> =
-        HashMap::new();
-
-    for source in gather_non_walls(&grid) {
-        for entrance in wormhole_entrances(&grid, source) {
-            for (exit, warp) in wormhole_exits(&grid, source, entrance) {
-                entrances_and_warps_by_source_and_exit
-                    .entry((source, exit))
-                    .and_modify(|(e, w)| {
-                        if &warp < w {
-                            *e = entrance;
-                            *w = warp;
-                        }
-                    })
-                    .or_insert((entrance, warp));
-            }
-        }
-    }
-
-    let mut savings: Vec<u32> = vec![];
-    for ((source, exit), (_, warp)) in entrances_and_warps_by_source_and_exit {
-        let distance =
-            optimal_distance(&grid, start, source) + warp + optimal_distance(&grid, exit, end);
-        let saved = initial_distance.saturating_sub(distance);
-        if saved != 0 {
-            savings.push(saved);
-        }
-    }
+    let savings: Vec<usize> = initial_path
+        .iter()
+        .cloned()
+        .enumerate()
+        .combinations(2)
+        .map(|iajb| {
+            let [(i, a), (j, b)] = iajb[..] else { panic!() };
+            wormhole_entrances(&grid, a)
+                .into_iter()
+                .map(|entrance| {
+                    if let Some((_, warp)) = wormhole_exits(&grid, a, entrance)
+                        .into_iter()
+                        .find(|(e, _)| *e == b)
+                    {
+                        (j - i).saturating_sub(warp as usize)
+                    } else {
+                        0 as usize
+                    }
+                })
+                .max()
+                .unwrap_or(0)
+        })
+        .collect();
 
     let mut fq = savings
         .iter()
