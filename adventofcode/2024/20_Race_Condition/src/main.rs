@@ -3,6 +3,10 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
+const INF: u32 = 1_000_000;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
 
@@ -27,6 +31,15 @@ impl Dir {
         vec![Dir::N, Dir::E, Dir::S, Dir::W]
     }
 
+    fn opposite(&self) -> Dir {
+        match self {
+            Dir::N => Dir::S,
+            Dir::E => Dir::W,
+            Dir::S => Dir::N,
+            Dir::W => Dir::E,
+        }
+    }
+
     fn delta(&self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -37,11 +50,11 @@ impl Dir {
     }
 }
 
-fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u16 {
+fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u32 {
     let mut seen: HashSet<Crd> = HashSet::new();
     seen.insert(start);
 
-    let mut queue: VecDeque<(Crd, u16)> = VecDeque::new();
+    let mut queue: VecDeque<(Crd, u32)> = VecDeque::new();
     queue.push_back((start, 0));
 
     let cell_at = |c: Crd| -> char { grid[c.0 as usize][c.1 as usize] };
@@ -73,7 +86,7 @@ fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u16 {
         }
     }
 
-    u16::MAX
+    INF
 }
 
 fn possible_cheats(grid: &[Vec<char>]) -> Vec<(Crd, Dir)> {
@@ -85,10 +98,14 @@ fn possible_cheats(grid: &[Vec<char>]) -> Vec<(Crd, Dir)> {
     for (i, row) in grid.iter().enumerate() {
         for (j, &cell) in row.iter().enumerate() {
             if cell == '.' {
-                let p = Crd(i as i16, j as i16);
+                let u = Crd(i as i16, j as i16);
                 for d in Dir::all() {
+                    let p = u + d.delta();
                     let q = p + d.delta();
-                    if grid[q.0 as usize][q.1 as usize] == '#' && in_bounds(q + d.delta()) {
+                    if grid[p.0 as usize][p.1 as usize] == '#'
+                        && in_bounds(q)
+                        && grid[q.0 as usize][q.1 as usize] != '#'
+                    {
                         result.push((p, d));
                     }
                 }
@@ -96,6 +113,13 @@ fn possible_cheats(grid: &[Vec<char>]) -> Vec<(Crd, Dir)> {
         }
     }
     result
+}
+
+fn eprintln_grid(grid: &[Vec<char>]) {
+    for row in grid {
+        eprintln!("{}", row.iter().collect::<String>());
+    }
+    eprintln!();
 }
 
 fn main() {
@@ -126,10 +150,17 @@ fn main() {
             let q = p + d.delta();
             let original_p = grid[p.0 as usize][p.1 as usize];
             let original_q = grid[q.0 as usize][q.1 as usize];
-            grid[p.0 as usize][p.1 as usize] = '.';
-            grid[q.0 as usize][q.1 as usize] = '.';
 
-            let distance = optimal_distance(&grid, start, end);
+            let pre_p = p + d.opposite().delta();
+            let one = optimal_distance(&grid, start, pre_p);
+            if one == INF {
+                return 0;
+            }
+
+            grid[p.0 as usize][p.1 as usize] = '1';
+            grid[q.0 as usize][q.1 as usize] = '2';
+
+            let distance = one + 1 + optimal_distance(&grid, p, end);
 
             grid[p.0 as usize][p.1 as usize] = original_p;
             grid[q.0 as usize][q.1 as usize] = original_q;
@@ -140,6 +171,16 @@ fn main() {
             }
         })
         .collect::<Vec<_>>();
+
+    let mut fq = savings
+        .iter()
+        .copied()
+        .filter(|d| *d > 0)
+        .counts()
+        .into_iter()
+        .collect::<Vec<_>>();
+    fq.sort();
+    eprintln!("{:?}", fq);
 
     let result = savings.iter().filter(|&&d| d >= 100).count();
     println!("{}", result);
