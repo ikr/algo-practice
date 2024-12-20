@@ -1,7 +1,4 @@
-use std::{
-    io::{self, BufRead},
-    u64,
-};
+use std::io::{self, BufRead};
 
 use itertools::Itertools;
 use rand::{random, seq::SliceRandom, thread_rng};
