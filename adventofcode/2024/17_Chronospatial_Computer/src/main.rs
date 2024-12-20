@@ -3,6 +3,12 @@ use std::{
     u64,
 };
 
+use itertools::Itertools;
+use rand::{random, seq::SliceRandom, thread_rng};
+
+const POPULATION: usize = 1000;
+const EXTERNALS: usize = 100;
+
 fn parse_program(s: &str) -> Vec<u8> {
     let parts = s.split(": ").collect::<Vec<_>>();
     parts[1].split(",").map(|t| t.parse().unwrap()).collect()
@@ -136,103 +142,75 @@ fn value_from_bit_triples(xs: &[u8]) -> u64 {
     result
 }
 
-struct Backtracking {
-    program: Vec<u8>,
-    solution: u64,
+fn produce_output(program: Vec<u8>, bit_triples_reg_a: &[u8]) -> Vec<u8> {
+    let mut m = Machine::new([value_from_bit_triples(bit_triples_reg_a), 0, 0], program);
+    m.run();
+    m.output
 }
 
-fn heads_equal<T: PartialEq + Copy>(ignore_last_k: usize, xs: &[T], ys: &[T]) -> bool {
-    let n = xs.len().saturating_sub(ignore_last_k);
-    xs[0..n] == ys[0..n.min(ys.len())]
+#[derive(Clone)]
+struct Entity {
+    input_tris: Vec<u8>,
+    output: Vec<u8>,
 }
 
-impl Backtracking {
-    fn new(program: Vec<u8>) -> Self {
-        Backtracking {
-            program,
-            solution: u64::MAX,
-        }
+impl Entity {
+    fn new(program: Vec<u8>) -> Entity {
+        let input_tris: Vec<u8> = (0..16).map(|_| random::<u8>() % 8).collect();
+        let output = produce_output(program, &input_tris);
+        Entity { input_tris, output }
     }
 
-    fn backtrack(&mut self, candidate_bit_triples: Vec<u8>) {
-        if self.reject(&candidate_bit_triples) {
-            return;
-        }
-
-        if self.accept(&candidate_bit_triples) {
-            let candidate = value_from_bit_triples(&candidate_bit_triples);
-            if candidate < self.solution {
-                eprintln!("Found {}", candidate);
-                self.solution = candidate;
-            }
-            return;
-        }
-
-        let mut cur = self.first(candidate_bit_triples);
-        while let Some(cur_inner) = cur {
-            self.backtrack(cur_inner.clone());
-            cur = self.next(cur_inner);
-        }
-    }
-
-    fn produce_output(&self, bit_triples_reg_a: &[u8]) -> Vec<u8> {
-        let mut m = Machine::new(
-            [value_from_bit_triples(bit_triples_reg_a), 0, 0],
-            self.program.clone(),
-        );
-        m.run();
-        m.output
-    }
-
-    fn reject(&mut self, candidate_bit_triples: &[u8]) -> bool {
-        if candidate_bit_triples.is_empty() {
-            false
-        } else if candidate_bit_triples.len() > self.program.len() {
-            true
-        } else {
-            let output = self.produce_output(candidate_bit_triples);
-            output.len() > self.program.len() || !heads_equal(2, &output, &self.program)
-        }
-    }
-
-    fn accept(&self, candidate_bit_triples: &[u8]) -> bool {
-        let output = self.produce_output(candidate_bit_triples);
-        output == self.program
-    }
-
-    fn first(&self, mut candidate_bit_triples: Vec<u8>) -> Option<Vec<u8>> {
-        candidate_bit_triples.insert(0, 0);
-        let n = candidate_bit_triples.len().min(3);
-        for i in 1..n {
-            candidate_bit_triples[i] = 0;
-        }
-        Some(candidate_bit_triples)
-    }
-
-    fn next(&self, mut candidate_bit_triples: Vec<u8>) -> Option<Vec<u8>> {
-        assert!(!candidate_bit_triples.is_empty());
-
-        let lim = candidate_bit_triples.len().min(3);
-
-        let rightmost_bumpable_index = candidate_bit_triples[0..lim]
+    fn fitness(&self, target_output: &[u8]) -> (u8, i64) {
+        let matches = self
+            .output
             .iter()
-            .enumerate()
-            .rev()
-            .find(|(_, &x)| x != 7)
-            .map(|(i, _)| i);
+            .zip(target_output)
+            .take_while(|(a, b)| a == b)
+            .count() as u8;
 
-        if let Some(i) = rightmost_bumpable_index {
-            candidate_bit_triples[i] += 1;
-            if i < lim - 1 {
-                for j in i + 1..lim {
-                    candidate_bit_triples[j] = 0;
-                }
-            }
-            Some(candidate_bit_triples)
-        } else {
-            None
-        }
+        (matches, -(value_from_bit_triples(&self.input_tris) as i64))
     }
+
+    fn interbreed(&self, program: Vec<u8>, other: Entity) -> Entity {
+        let n = self.input_tris.len();
+        let i = (random::<u8>() % (n as u8)) as usize;
+        let mut input_tris = self.input_tris[0..i].to_vec();
+        input_tris.extend(&other.input_tris[i..]);
+        let output = produce_output(program, &input_tris);
+        Entity { input_tris, output }
+    }
+}
+
+fn evolve(program: &[u8], es: &[Entity]) -> Vec<Entity> {
+    let mut p: Vec<Entity> = es
+        .iter()
+        .combinations(2)
+        .map(|ab| {
+            let a = ab[0];
+            let b = ab[1];
+            a.interbreed(program.to_vec(), b.clone())
+        })
+        .collect();
+    p.sort_by_key(|e| e.fitness(program));
+    p.reverse();
+
+    let mut result = p[0..POPULATION - EXTERNALS].to_vec();
+    for _ in 0..EXTERNALS {
+        result.push(Entity::new(program.to_vec()));
+    }
+
+    let mut rng = thread_rng();
+    result.shuffle(&mut rng);
+    result
+}
+
+fn first_gen(program: &[u8]) -> Vec<Entity> {
+    let mut result = vec![];
+    for _ in 0..POPULATION {
+        result.push(Entity::new(program.to_vec()))
+    }
+    result
 }
 
 fn main() {
@@ -243,26 +221,19 @@ fn main() {
         .collect();
 
     let program = parse_program(&lines[4]);
-    let mut bt = Backtracking::new(program);
-    bt.backtrack(vec![]);
-    println!("{}", bt.solution);
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn backtracking_next_works() {
-        let program: Vec<u8> = vec![0, 3, 5, 4, 3, 0];
-        let bt = Backtracking::new(program);
-
-        assert_eq!(bt.next(vec![0]), Some(vec![1]));
-        assert_eq!(bt.next(vec![7]), None);
-        assert_eq!(bt.next(vec![7, 7]), None);
-        assert_eq!(bt.next(vec![3, 7]), Some(vec![4, 0]));
-        assert_eq!(bt.next(vec![6, 7, 7]), Some(vec![7, 0, 0]));
-        assert_eq!(bt.next(vec![7, 7, 7, 0]), None);
-        assert_eq!(bt.next(vec![1, 4, 1, 1]), Some(vec![1, 4, 2, 1]));
+    let mut es = first_gen(&program);
+    let mut result: u64 = u64::MAX;
+    for _ in 0..100_000 {
+        es = evolve(&program, &es);
+        for e in es.iter() {
+            if e.fitness(&program).0 == 16 {
+                let input = value_from_bit_triples(&e.input_tris);
+                if input < result {
+                    result = input;
+                    eprintln!("\nFound {}", result);
+                }
+            }
+        }
     }
 }
