@@ -1,9 +1,11 @@
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, VecDeque},
     io::{self, BufRead},
 };
 
 use itertools::Itertools;
+
+const INF: usize = 10_000_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
@@ -88,23 +90,24 @@ fn optimal_path(grid: &[Vec<char>], start: Crd, end: Crd) -> Vec<Crd> {
     path
 }
 
-fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> Vec<(Crd, u32)> {
-    let mut result = vec![];
-    let mut seen: HashSet<Crd> = HashSet::from([source, first_wall]);
-    let mut queue: VecDeque<(Crd, u32)> = VecDeque::from([(first_wall, 1)]);
+fn optimal_distance_in_the_walls_under_20(grid: &[Vec<char>], start: Crd, end: Crd) -> usize {
+    for p in [start, end] {
+        assert_ne!(grid[p.0 as usize][p.1 as usize], '#');
+    }
+
+    if start == end {
+        return 0;
+    }
 
     let in_bounds = |c: Crd| -> bool {
-        c.0 >= 0 && c.0 < grid.len() as i16 && c.1 >= 0 && c.1 < grid[0].len() as i16
+        0 <= c.0 && c.0 < grid.len() as i16 && 0 <= c.1 && c.1 < grid[0].len() as i16
     };
 
     let cell_at = |c: Crd| -> char { grid[c.0 as usize][c.1 as usize] };
 
-    assert_ne!(cell_at(source), '#');
-    assert_eq!(cell_at(first_wall), '#');
-
     let adjacent = |p: Crd| -> Vec<Crd> {
         Dir::all()
-            .into_iter()
+            .iter()
             .filter_map(|d| {
                 let q = p + d.delta();
                 if in_bounds(q) {
@@ -116,45 +119,33 @@ fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> Vec<(Crd,
             .collect()
     };
 
-    while let Some((p, d)) = queue.pop_front() {
-        assert!(d < 20);
+    let mut distance: HashMap<Crd, usize> = HashMap::from([(start, 0)]);
+    let mut queue: VecDeque<Crd> = VecDeque::from([start]);
 
+    while let Some(p) = queue.pop_front() {
         for q in adjacent(p) {
-            if cell_at(q) == '#' {
-                if d < 19 && !seen.contains(&q) {
-                    queue.push_back((q, d + 1));
+            if !distance.contains_key(&q) && distance[&p] < 20 {
+                if q == end {
+                    return distance[&p] + 1;
                 }
-            } else if !seen.contains(&q) {
-                result.push((q, d + 1));
-            }
 
-            seen.insert(q);
+                if cell_at(q) == '#' {
+                    distance.insert(q, distance[&p] + 1);
+                    queue.push_back(q);
+                }
+            }
         }
     }
-    result
+
+    INF
 }
 
-fn wormhole_entrances(grid: &[Vec<char>], source: Crd) -> Vec<Crd> {
-    assert_ne!(grid[source.0 as usize][source.1 as usize], '#');
-    Dir::all()
-        .into_iter()
-        .filter_map(|d| {
-            let q = source + d.delta();
-            if grid[q.0 as usize][q.1 as usize] == '#' {
-                Some(q)
-            } else {
-                None
-            }
-        })
-        .collect()
-}
-
-fn eprintln_grid(grid: &[Vec<char>]) {
-    for row in grid {
-        eprintln!("{}", row.iter().collect::<String>());
-    }
-    eprintln!();
-}
+// fn eprintln_grid(grid: &[Vec<char>]) {
+//     for row in grid {
+//         eprintln!("{}", row.iter().collect::<String>());
+//     }
+//     eprintln!();
+// }
 
 fn main() {
     let grid: Vec<Vec<char>> = io::stdin()
@@ -186,20 +177,8 @@ fn main() {
         .map(|iajb| {
             let [(i, a), (j, b)] = iajb[..] else { panic!() };
             assert!(i < j);
-            wormhole_entrances(&grid, a)
-                .into_iter()
-                .map(|entrance| {
-                    if let Some((_, warp)) = wormhole_exits(&grid, a, entrance)
-                        .into_iter()
-                        .find(|(e, _)| *e == b)
-                    {
-                        (j - i).saturating_sub(warp as usize)
-                    } else {
-                        0
-                    }
-                })
-                .max()
-                .unwrap_or(0)
+            let warp = optimal_distance_in_the_walls_under_20(&grid, a, b);
+            (j - i).saturating_sub(warp)
         })
         .collect();
 
