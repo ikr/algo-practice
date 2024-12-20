@@ -130,10 +130,11 @@ fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> Vec<(Crd,
     };
 
     while let Some((p, d)) = queue.pop_front() {
-        assert!(d <= 20);
+        assert!(d < 20);
+
         for q in adjacent(p) {
             if cell_at(q) == '#' {
-                if d < 20 && !seen.contains(&q) {
+                if d < 19 && !seen.contains(&q) {
                     queue.push_back((q, d + 1));
                 }
             } else {
@@ -185,11 +186,18 @@ fn main() {
     eprintln!("initial_distance:{}", initial_distance);
 
     let mut savings: Vec<u32> = vec![];
+    let mut done: HashSet<(Crd, Crd)> = HashSet::new();
 
     for source in gather_non_walls(&grid) {
         for entrance in wormhole_entrances(&grid, source) {
+            if done.contains(&(source, entrance)) {
+                continue;
+            } else {
+                done.insert((source, entrance));
+            }
+
             for (exit, warp) in wormhole_exits(&grid, source, entrance) {
-                let distance = optimal_distance(&grid, source, start)
+                let distance = optimal_distance(&grid, start, source)
                     + warp
                     + optimal_distance(&grid, exit, end);
                 let saved = initial_distance.saturating_sub(distance);
