@@ -5,8 +5,6 @@ use std::{
 
 use itertools::Itertools;
 
-const INF: u32 = 1_000_000;
-
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
 
@@ -187,6 +185,7 @@ fn main() {
         .combinations(2)
         .map(|iajb| {
             let [(i, a), (j, b)] = iajb[..] else { panic!() };
+            assert!(i < j);
             wormhole_entrances(&grid, a)
                 .into_iter()
                 .map(|entrance| {
@@ -196,7 +195,7 @@ fn main() {
                     {
                         (j - i).saturating_sub(warp as usize)
                     } else {
-                        0 as usize
+                        0
                     }
                 })
                 .max()
