@@ -89,6 +89,64 @@ fn optimal_distance(grid: &[Vec<char>], start: Crd, end: Crd) -> u32 {
     INF
 }
 
+fn gather_non_walls(grid: &[Vec<char>]) -> HashSet<Crd> {
+    let mut result = HashSet::new();
+    for (i, row) in grid.iter().enumerate() {
+        for (j, &cell) in row.iter().enumerate() {
+            if cell != '#' {
+                result.insert(Crd(i as i16, j as i16));
+            }
+        }
+    }
+    result
+}
+
+fn wormhole_exits(grid: &[Vec<char>], source: Crd, first_wall: Crd) -> HashSet<Crd> {
+    let mut result = HashSet::new();
+    let mut seen: HashSet<Crd> = HashSet::from([source, first_wall]);
+    let mut queue: VecDeque<(Crd, u32)> = VecDeque::from([(first_wall, 1)]);
+
+    let in_bounds = |c: Crd| -> bool {
+        c.0 >= 0 && c.0 < grid.len() as i16 && c.1 >= 0 && c.1 < grid[0].len() as i16
+    };
+
+    let cell_at = |c: Crd| -> char { grid[c.0 as usize][c.1 as usize] };
+
+    assert_ne!(cell_at(source), '#');
+    assert_eq!(cell_at(first_wall), '#');
+
+    let adjacent = |p: Crd| -> Vec<Crd> {
+        Dir::all()
+            .iter()
+            .filter_map(|d| {
+                let q = p + d.delta();
+                if in_bounds(q) {
+                    Some(q)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    };
+
+    while let Some((p, d)) = queue.pop_front() {
+        assert!(d <= 20);
+        for q in adjacent(p) {
+            if cell_at(q) == '#' {
+                if d < 20 && !seen.contains(&q) {
+                    queue.push_back((q, d + 1));
+                }
+            } else {
+                if !seen.contains(&q) {
+                    result.insert(q);
+                }
+            }
+            seen.insert(q);
+        }
+    }
+    result
+}
+
 fn possible_cheats(grid: &[Vec<char>]) -> Vec<(Crd, Dir)> {
     let in_bounds = |c: Crd| -> bool {
         c.0 >= 0 && c.0 < grid.len() as i16 && c.1 >= 0 && c.1 < grid[0].len() as i16
@@ -136,6 +194,8 @@ fn main() {
     let initial_distance = optimal_distance(&initial_grid, start, end);
 
     let mut grid = initial_grid.clone();
+
+    eprintln!("{:?}", wormhole_exits(&grid, start, start + Dir::S.delta()));
 
     let savings = possible_cheats(&initial_grid)
         .into_iter()
