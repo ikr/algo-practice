@@ -182,25 +182,27 @@ fn main() {
     let initial_distance = optimal_distance(&grid, start, end);
     eprintln!("initial_distance:{}", initial_distance);
 
-    let mut warps_by_source_and_exit: HashMap<(Crd, Crd), u32> = HashMap::new();
+    let mut entrances_and_warps_by_source_and_exit: HashMap<(Crd, Crd), (Crd, u32)> =
+        HashMap::new();
 
     for source in gather_non_walls(&grid) {
         for entrance in wormhole_entrances(&grid, source) {
             for (exit, warp) in wormhole_exits(&grid, source, entrance) {
-                warps_by_source_and_exit
+                entrances_and_warps_by_source_and_exit
                     .entry((source, exit))
-                    .and_modify(|w| {
+                    .and_modify(|(e, w)| {
                         if &warp < w {
+                            *e = entrance;
                             *w = warp;
                         }
                     })
-                    .or_insert(warp);
+                    .or_insert((entrance, warp));
             }
         }
     }
 
     let mut savings: Vec<u32> = vec![];
-    for ((source, exit), warp) in warps_by_source_and_exit {
+    for ((source, exit), (_, warp)) in entrances_and_warps_by_source_and_exit {
         let distance =
             optimal_distance(&grid, start, source) + warp + optimal_distance(&grid, exit, end);
         let saved = initial_distance.saturating_sub(distance);
