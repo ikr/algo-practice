@@ -3,8 +3,6 @@ use std::{
     io::{self, BufRead},
 };
 
-use itertools::Itertools;
-
 const INF: u32 = 1_000_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -115,13 +113,6 @@ fn possible_cheats(grid: &[Vec<char>]) -> Vec<(Crd, Dir)> {
     result
 }
 
-fn eprintln_grid(grid: &[Vec<char>]) {
-    for row in grid {
-        eprintln!("{}", row.iter().collect::<String>());
-    }
-    eprintln!();
-}
-
 fn main() {
     let initial_grid: Vec<Vec<char>> = io::stdin()
         .lock()
@@ -153,9 +144,6 @@ fn main() {
 
             let pre_p = p + d.opposite().delta();
             let one = optimal_distance(&grid, start, pre_p);
-            if one == INF {
-                return 0;
-            }
 
             grid[p.0 as usize][p.1 as usize] = '1';
             grid[q.0 as usize][q.1 as usize] = '2';
@@ -164,23 +152,9 @@ fn main() {
 
             grid[p.0 as usize][p.1 as usize] = original_p;
             grid[q.0 as usize][q.1 as usize] = original_q;
-            if distance < initial_distance {
-                initial_distance - distance
-            } else {
-                0
-            }
+            initial_distance.saturating_sub(distance)
         })
         .collect::<Vec<_>>();
-
-    let mut fq = savings
-        .iter()
-        .copied()
-        .filter(|d| *d > 0)
-        .counts()
-        .into_iter()
-        .collect::<Vec<_>>();
-    fq.sort();
-    eprintln!("{:?}", fq);
 
     let result = savings.iter().filter(|&&d| d >= 100).count();
     println!("{}", result);
