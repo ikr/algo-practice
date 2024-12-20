@@ -174,9 +174,12 @@ fn main() {
         .cloned()
         .enumerate()
         .combinations(2)
+        .filter(|iajb| {
+            let [(i, _), (j, _)] = iajb[..] else { panic!() };
+            j - i > 20
+        })
         .map(|iajb| {
             let [(i, a), (j, b)] = iajb[..] else { panic!() };
-            assert!(i < j);
             let warp = optimal_distance_in_the_walls_under_20(&grid, a, b);
             (j - i).saturating_sub(warp)
         })
@@ -185,8 +188,6 @@ fn main() {
     let mut fq = savings
         .iter()
         .filter(|&&d| d >= 50)
-        .copied()
-        .filter(|d| *d > 0)
         .counts()
         .into_iter()
         .collect::<Vec<_>>();
