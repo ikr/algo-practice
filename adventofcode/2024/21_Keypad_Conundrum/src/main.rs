@@ -307,6 +307,15 @@ impl ArrKey {
             (ArrKey::A, ArrKey::A) => vec![],
         }
     }
+
+    fn from_dir(dir: Dir) -> Self {
+        match dir {
+            Dir::N => ArrKey::U,
+            Dir::E => ArrKey::R,
+            Dir::S => ArrKey::D,
+            Dir::W => ArrKey::L,
+        }
+    }
 }
 
 fn parse_numpad_code(s: &str) -> Vec<NumKey> {
@@ -325,6 +334,45 @@ fn numeric_value(nks: &[NumKey]) -> usize {
         .fold(0, |acc, x| acc * 10 + x)
 }
 
+fn arrpad_programs_for_given_code(code: &[NumKey]) -> Vec<Vec<ArrKey>> {
+    let mut programs: Vec<Vec<ArrKey>> = vec![];
+    let mut pointing_at = NumKey::A;
+
+    for &x in code {
+        let variants = pointing_at.transitions(x);
+
+        if programs.is_empty() {
+            programs = variants
+                .iter()
+                .map(|v| {
+                    let mut w = v
+                        .into_iter()
+                        .map(|d| ArrKey::from_dir(*d))
+                        .collect::<Vec<_>>();
+                    w.push(ArrKey::A);
+                    w
+                })
+                .collect();
+        } else {
+            programs = programs
+                .iter()
+                .cartesian_product(variants.iter())
+                .map(|(p, v)| {
+                    let mut q = p.clone();
+                    let mut w = v.iter().map(|d| ArrKey::from_dir(*d)).collect::<Vec<_>>();
+                    w.push(ArrKey::A);
+                    q.extend(w);
+                    q
+                })
+                .collect();
+        }
+
+        pointing_at = x;
+    }
+
+    programs
+}
+
 fn main() {
     let numpad_codes: Vec<Vec<NumKey>> = io::stdin()
         .lock()
@@ -332,13 +380,7 @@ fn main() {
         .map(|line| parse_numpad_code(&line.unwrap()))
         .collect();
 
-    eprintln!("{:?}", unique_permutations(&[1, 1, 2]));
-
-    eprintln!(
-        "{:?}",
-        numpad_codes
-            .iter()
-            .map(|xs| numeric_value(xs))
-            .collect::<Vec<_>>()
-    );
+    let mut ps = arrpad_programs_for_given_code(&parse_numpad_code("029A"));
+    ps.sort_by_key(|p| -1 * p.len() as i64);
+    eprintln!("{:?}", ps);
 }
