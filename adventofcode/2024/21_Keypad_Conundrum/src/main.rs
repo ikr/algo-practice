@@ -416,11 +416,19 @@ fn arrpad_programs_for_given_protoprogram(protoprogram: &[ArrKey]) -> Vec<Vec<Ar
 }
 
 fn complexity(code: &[NumKey]) -> usize {
-    let ps = arrpad_programs_for_given_code(code)
-        .into_iter()
-        .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
-        .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
-        .collect::<Vec<_>>();
+    let lim: usize = 300;
+
+    let mut ps = arrpad_programs_for_given_code(code);
+
+    for t in 1..=25 {
+        eprintln!("t:{}", t);
+        ps = ps
+            .into_iter()
+            .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
+            .sorted_by_key(|p| p.len())
+            .take(lim)
+            .collect::<Vec<_>>()
+    }
 
     let l = ps.into_iter().map(|p| p.len()).min().unwrap();
     l * numeric_value(code)
