@@ -273,6 +273,42 @@ enum ArrKey {
     A,
 }
 
+impl ArrKey {
+    fn transitions(&self, to: ArrKey) -> Vec<Vec<Dir>> {
+        match (self, to) {
+            (ArrKey::U, ArrKey::U) => vec![],
+            (ArrKey::U, ArrKey::R) => unique_permutations(&[Dir::S, Dir::E]),
+            (ArrKey::U, ArrKey::D) => vec![vec![Dir::S]],
+            (ArrKey::U, ArrKey::L) => vec![vec![Dir::S, Dir::W]],
+            (ArrKey::U, ArrKey::A) => vec![vec![Dir::E]],
+
+            (ArrKey::R, ArrKey::U) => unique_permutations(&[Dir::N, Dir::W]),
+            (ArrKey::R, ArrKey::R) => vec![],
+            (ArrKey::R, ArrKey::D) => vec![vec![Dir::W]],
+            (ArrKey::R, ArrKey::L) => vec![vec![Dir::W, Dir::W]],
+            (ArrKey::R, ArrKey::A) => vec![vec![Dir::N]],
+
+            (ArrKey::D, ArrKey::U) => vec![vec![Dir::N]],
+            (ArrKey::D, ArrKey::R) => vec![vec![Dir::E]],
+            (ArrKey::D, ArrKey::D) => vec![],
+            (ArrKey::D, ArrKey::L) => vec![vec![Dir::W]],
+            (ArrKey::D, ArrKey::A) => unique_permutations(&[Dir::N, Dir::E]),
+
+            (ArrKey::L, ArrKey::U) => vec![vec![Dir::E, Dir::N]],
+            (ArrKey::L, ArrKey::R) => vec![vec![Dir::E, Dir::E]],
+            (ArrKey::L, ArrKey::D) => vec![vec![Dir::E]],
+            (ArrKey::L, ArrKey::L) => vec![],
+            (ArrKey::L, ArrKey::A) => push_front(Dir::E, unique_permutations(&[Dir::N, Dir::E])),
+
+            (ArrKey::A, ArrKey::U) => vec![vec![Dir::W]],
+            (ArrKey::A, ArrKey::R) => vec![vec![Dir::S]],
+            (ArrKey::A, ArrKey::D) => unique_permutations(&[Dir::S, Dir::W]),
+            (ArrKey::A, ArrKey::L) => push_back(unique_permutations(&[Dir::S, Dir::W]), Dir::W),
+            (ArrKey::A, ArrKey::A) => vec![],
+        }
+    }
+}
+
 fn parse_numpad_code(s: &str) -> Vec<NumKey> {
     s.chars().map(NumKey::parse).collect()
 }
