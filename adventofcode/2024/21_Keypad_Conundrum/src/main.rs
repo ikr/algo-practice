@@ -225,11 +225,6 @@ impl NumKey {
     }
 }
 
-fn append<T>(mut xss: Vec<T>, ys: T) -> Vec<T> {
-    xss.push(ys);
-    xss
-}
-
 fn push_front<T: Clone>(what: T, mut xss: Vec<Vec<T>>) -> Vec<Vec<T>> {
     xss.iter_mut().for_each(|xs| xs.insert(0, what.clone()));
     xss
@@ -340,6 +335,10 @@ fn arrpad_programs_for_given_code(code: &[NumKey]) -> Vec<Vec<ArrKey>> {
 
     for &x in code {
         let variants = pointing_at.transitions(x);
+        if variants.is_empty() {
+            programs.iter_mut().for_each(|p| p.push(ArrKey::A));
+            continue;
+        }
 
         if programs.is_empty() {
             programs = variants
@@ -373,6 +372,60 @@ fn arrpad_programs_for_given_code(code: &[NumKey]) -> Vec<Vec<ArrKey>> {
     programs
 }
 
+fn arrpad_programs_for_given_protoprogram(protoprogram: &[ArrKey]) -> Vec<Vec<ArrKey>> {
+    let mut programs: Vec<Vec<ArrKey>> = vec![];
+    let mut pointing_at = ArrKey::A;
+
+    for &x in protoprogram {
+        let variants = pointing_at.transitions(x);
+        if variants.is_empty() {
+            programs.iter_mut().for_each(|p| p.push(ArrKey::A));
+            continue;
+        }
+
+        if programs.is_empty() {
+            programs = variants
+                .iter()
+                .map(|v| {
+                    let mut w = v
+                        .into_iter()
+                        .map(|d| ArrKey::from_dir(*d))
+                        .collect::<Vec<_>>();
+                    w.push(ArrKey::A);
+                    w
+                })
+                .collect();
+        } else {
+            programs = programs
+                .iter()
+                .cartesian_product(variants.iter())
+                .map(|(p, v)| {
+                    let mut q = p.clone();
+                    let mut w = v.iter().map(|d| ArrKey::from_dir(*d)).collect::<Vec<_>>();
+                    w.push(ArrKey::A);
+                    q.extend(w);
+                    q
+                })
+                .collect();
+        }
+
+        pointing_at = x;
+    }
+
+    programs
+}
+
+fn complexity(code: &[NumKey]) -> usize {
+    let ps = arrpad_programs_for_given_code(code)
+        .into_iter()
+        .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
+        .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
+        .collect::<Vec<_>>();
+
+    let l = ps.into_iter().map(|p| p.len()).min().unwrap();
+    l * numeric_value(code)
+}
+
 fn main() {
     let numpad_codes: Vec<Vec<NumKey>> = io::stdin()
         .lock()
@@ -380,7 +433,6 @@ fn main() {
         .map(|line| parse_numpad_code(&line.unwrap()))
         .collect();
 
-    let mut ps = arrpad_programs_for_given_code(&parse_numpad_code("029A"));
-    ps.sort_by_key(|p| -1 * p.len() as i64);
-    eprintln!("{:?}", ps);
+    let result: usize = numpad_codes.into_iter().map(|code| complexity(&code)).sum();
+    println!("{}", result);
 }
