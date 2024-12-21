@@ -1,5 +1,6 @@
 use std::io::{self, BufRead};
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum NumKey {
     N0,
     N1,
@@ -31,8 +32,16 @@ impl NumKey {
             _ => panic!("Invalid numpad key source `{}`", c),
         }
     }
+
+    fn numeric_value(&self) -> usize {
+        let os: Vec<char> = ('0'..='9').collect();
+        os.into_iter()
+            .position(|c| *self == Self::parse(c))
+            .unwrap()
+    }
 }
 
+#[derive(Clone, Copy, Debug)]
 enum ArrKey {
     U,
     R,
@@ -45,10 +54,32 @@ fn parse_numpad_code(s: &str) -> Vec<NumKey> {
     s.chars().map(NumKey::parse).collect()
 }
 
+fn numeric_value(nks: &[NumKey]) -> usize {
+    nks.iter()
+        .filter_map(|&nk| {
+            if nk == NumKey::A {
+                None
+            } else {
+                Some(nk.numeric_value())
+            }
+        })
+        .fold(0, |acc, x| acc * 10 + x)
+}
+
 fn main() {
-    let grid: Vec<Vec<char>> = io::stdin()
+    let numpad_codes: Vec<Vec<NumKey>> = io::stdin()
         .lock()
         .lines()
-        .map(|line| line.unwrap().chars().collect())
+        .map(|line| parse_numpad_code(&line.unwrap()))
         .collect();
+
+    eprintln!("{}", NumKey::N9.numeric_value());
+
+    eprintln!(
+        "{:?}",
+        numpad_codes
+            .iter()
+            .map(|xs| numeric_value(xs))
+            .collect::<Vec<_>>()
+    );
 }
