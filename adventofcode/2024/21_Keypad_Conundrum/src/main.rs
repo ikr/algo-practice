@@ -55,60 +55,17 @@ impl NumKey {
 
     fn transitions(&self, to: NumKey) -> Vec<Vec<Dir>> {
         match (self, to) {
-            (NumKey::A, NumKey::N0) => vec![vec![Dir::W]],
-            (NumKey::A, NumKey::N1) => {
-                vec![vec![Dir::N, Dir::W, Dir::W], vec![Dir::W, Dir::N, Dir::W]]
-            }
-            (NumKey::A, NumKey::N2) => unique_permutations(&[Dir::N, Dir::W]),
-            (NumKey::A, NumKey::N3) => vec![vec![Dir::N]],
-            (NumKey::A, NumKey::N4) => [
-                vec![
-                    vec![Dir::N, Dir::W, Dir::W, Dir::N],
-                    vec![Dir::W, Dir::N, Dir::W, Dir::N],
-                ],
-                prefix(vec![Dir::N, Dir::W], unique_permutations(&[Dir::N, Dir::W])),
-                prefix(vec![Dir::W, Dir::N], unique_permutations(&[Dir::N, Dir::W])),
-                push_front(Dir::N, unique_permutations(&[Dir::N, Dir::W, Dir::W])),
-            ]
-            .concat(),
-            (NumKey::A, NumKey::N5) => unique_permutations(&[Dir::N, Dir::N, Dir::W]),
-            (NumKey::A, NumKey::N6) => vec![vec![Dir::N, Dir::N]],
-            (NumKey::A, NumKey::N7) => [
-                vec![
-                    vec![Dir::N, Dir::W, Dir::W, Dir::N, Dir::N],
-                    vec![Dir::W, Dir::N, Dir::W, Dir::N, Dir::N],
-                ],
-                prefix(
-                    vec![Dir::N, Dir::W],
-                    unique_permutations(&[Dir::N, Dir::N, Dir::W]),
-                ),
-                prefix(
-                    vec![Dir::W, Dir::N],
-                    unique_permutations(&[Dir::N, Dir::N, Dir::W]),
-                ),
-                push_front(
-                    Dir::N,
-                    unique_permutations(&[Dir::N, Dir::N, Dir::W, Dir::W]),
-                ),
-            ]
-            .concat(),
-            (NumKey::A, NumKey::N8) => unique_permutations(&[Dir::N, Dir::N, Dir::N, Dir::W]),
-            (NumKey::A, NumKey::N9) => vec![vec![Dir::N, Dir::N, Dir::N]],
-            (NumKey::A, NumKey::A) => vec![],
-
             (NumKey::N0, NumKey::N0) => vec![],
             (NumKey::N0, NumKey::N1) => vec![vec![Dir::N, Dir::W]],
             (NumKey::N0, NumKey::N2) => vec![vec![Dir::N]],
             (NumKey::N0, NumKey::N3) => unique_permutations(&[Dir::N, Dir::E]),
-            (NumKey::N0, NumKey::N4) => {
-                vec![vec![Dir::N, Dir::N, Dir::W], vec![Dir::N, Dir::W, Dir::N]]
-            }
+            (NumKey::N0, NumKey::N4) => push_front(Dir::N, unique_permutations(&[Dir::N, Dir::W])),
             (NumKey::N0, NumKey::N5) => vec![vec![Dir::N, Dir::N]],
             (NumKey::N0, NumKey::N6) => unique_permutations(&[Dir::N, Dir::N, Dir::E]),
-            (NumKey::N0, NumKey::N7) => append(
-                push_front(Dir::N, unique_permutations(&[Dir::N, Dir::N, Dir::W])),
-                vec![Dir::N, Dir::W, Dir::N, Dir::N],
-            ),
+            (NumKey::N0, NumKey::N7) => {
+                push_front(Dir::N, unique_permutations(&[Dir::N, Dir::N, Dir::W]))
+            }
+
             (NumKey::N0, NumKey::N8) => vec![vec![Dir::N, Dir::N, Dir::N]],
             (NumKey::N0, NumKey::N9) => unique_permutations(&[Dir::N, Dir::N, Dir::N, Dir::E]),
             (NumKey::N0, NumKey::A) => vec![vec![Dir::E]],
@@ -116,7 +73,7 @@ impl NumKey {
             (NumKey::N1, NumKey::N0) => vec![vec![Dir::E, Dir::S]],
             (NumKey::N1, NumKey::N1) => vec![],
             (NumKey::N1, NumKey::N2) => vec![vec![Dir::E]],
-            (NumKey::N1, NumKey::N3) => unique_permutations(&[Dir::E, Dir::E]),
+            (NumKey::N1, NumKey::N3) => vec![vec![Dir::E, Dir::E]],
             (NumKey::N1, NumKey::N4) => vec![vec![Dir::N]],
             (NumKey::N1, NumKey::N5) => unique_permutations(&[Dir::N, Dir::E]),
             (NumKey::N1, NumKey::N6) => unique_permutations(&[Dir::N, Dir::E, Dir::E]),
@@ -157,13 +114,12 @@ impl NumKey {
             (NumKey::N4, NumKey::N3) => unique_permutations(&[Dir::S, Dir::E, Dir::E]),
             (NumKey::N4, NumKey::N4) => vec![vec![]],
             (NumKey::N4, NumKey::N5) => vec![vec![Dir::E]],
-            (NumKey::N4, NumKey::N6) => unique_permutations(&[Dir::E, Dir::E]),
+            (NumKey::N4, NumKey::N6) => vec![vec![Dir::E, Dir::E]],
             (NumKey::N4, NumKey::N7) => vec![vec![Dir::N]],
             (NumKey::N4, NumKey::N8) => unique_permutations(&[Dir::N, Dir::E]),
             (NumKey::N4, NumKey::N9) => unique_permutations(&[Dir::N, Dir::E, Dir::E]),
             (NumKey::N4, NumKey::A) => [
-                prefix(vec![Dir::S, Dir::E], unique_permutations(&[Dir::S, Dir::E])),
-                prefix(vec![Dir::E, Dir::S], unique_permutations(&[Dir::S, Dir::E])),
+                suffix(unique_permutations(&[Dir::S, Dir::E]), vec![Dir::S, Dir::E]),
                 push_back(unique_permutations(&[Dir::S, Dir::E, Dir::E]), Dir::S),
             ]
             .concat(),
@@ -209,10 +165,6 @@ impl NumKey {
                     unique_permutations(&[Dir::S, Dir::S, Dir::E]),
                     vec![Dir::S, Dir::E],
                 ),
-                suffix(
-                    unique_permutations(&[Dir::S, Dir::S, Dir::E]),
-                    vec![Dir::E, Dir::S],
-                ),
                 push_back(
                     unique_permutations(&[Dir::S, Dir::S, Dir::E, Dir::E]),
                     Dir::S,
@@ -243,6 +195,32 @@ impl NumKey {
             (NumKey::N9, NumKey::N8) => vec![vec![Dir::W]],
             (NumKey::N9, NumKey::N9) => vec![],
             (NumKey::N9, NumKey::A) => vec![vec![Dir::S, Dir::S, Dir::S]],
+
+            (NumKey::A, NumKey::N0) => vec![vec![Dir::W]],
+            (NumKey::A, NumKey::N1) => push_back(unique_permutations(&[Dir::N, Dir::W]), Dir::W),
+            (NumKey::A, NumKey::N2) => unique_permutations(&[Dir::N, Dir::W]),
+            (NumKey::A, NumKey::N3) => vec![vec![Dir::N]],
+            (NumKey::A, NumKey::N4) => [
+                prefix(vec![Dir::W, Dir::N], unique_permutations(&[Dir::N, Dir::W])),
+                push_front(Dir::N, unique_permutations(&[Dir::N, Dir::W, Dir::W])),
+            ]
+            .concat(),
+            (NumKey::A, NumKey::N5) => unique_permutations(&[Dir::N, Dir::N, Dir::W]),
+            (NumKey::A, NumKey::N6) => vec![vec![Dir::N, Dir::N]],
+            (NumKey::A, NumKey::N7) => [
+                prefix(
+                    vec![Dir::W, Dir::N],
+                    unique_permutations(&[Dir::N, Dir::N, Dir::W]),
+                ),
+                push_front(
+                    Dir::N,
+                    unique_permutations(&[Dir::N, Dir::N, Dir::W, Dir::W]),
+                ),
+            ]
+            .concat(),
+            (NumKey::A, NumKey::N8) => unique_permutations(&[Dir::N, Dir::N, Dir::N, Dir::W]),
+            (NumKey::A, NumKey::N9) => vec![vec![Dir::N, Dir::N, Dir::N]],
+            (NumKey::A, NumKey::A) => vec![],
         }
     }
 }
