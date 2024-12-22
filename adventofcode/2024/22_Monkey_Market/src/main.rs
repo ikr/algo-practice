@@ -48,13 +48,9 @@ fn banana_windows(xs: &[u64]) -> Vec<(i8, [i8; 4])> {
         .collect()
 }
 
-fn max_banana_by_window(bws: &[(i8, [i8; 4])]) -> HashMap<[i8; 4], i8> {
+fn first_banana_by_window(bws: &[(i8, [i8; 4])]) -> HashMap<[i8; 4], i8> {
     bws.iter().fold(HashMap::new(), |mut acc, (b, w)| {
-        acc.entry(*w)
-            .and_modify(|x| {
-                *x = if b > x { *b } else { *x };
-            })
-            .or_insert(*b);
+        acc.entry(*w).or_insert(*b);
         acc
     })
 }
@@ -66,28 +62,38 @@ fn main() {
         .map(|line| line.unwrap().parse().unwrap())
         .collect();
 
-    let mbbws = xs
+    let bws = xs
         .into_iter()
         .map(evolve_2000)
-        .map(|xs| max_banana_by_window(&banana_windows(&xs)))
+        .map(|xs| banana_windows(&xs))
         .collect::<Vec<_>>();
 
     let mut all_windows: HashSet<[i8; 4]> = HashSet::new();
-    for mbbw in mbbws.iter() {
-        for (k, _) in mbbw {
+    for mbbw in bws.iter() {
+        for (_, k) in mbbw {
             all_windows.insert(*k);
         }
     }
+
+    let fbbws = bws
+        .into_iter()
+        .map(|bw| first_banana_by_window(&bw))
+        .collect::<Vec<_>>();
 
     let mut result: u16 = 0;
     for w in all_windows {
         let mut candidate: u16 = 0;
 
-        for mbbw in mbbws.iter() {
-            candidate += *mbbw.get(&w).unwrap_or(&0) as u16;
+        for mbbw in fbbws.iter() {
+            if let Some(b) = mbbw.get(&w) {
+                candidate += *b as u16;
+            }
         }
 
-        result = result.max(candidate);
+        if result < candidate {
+            eprintln!("Improved to {} on window {:?}", candidate, w);
+            result = candidate;
+        }
     }
     println!("{}", result);
 }
