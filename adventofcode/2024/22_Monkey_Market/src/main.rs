@@ -1,4 +1,7 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::{HashMap, HashSet},
+    io::{self, BufRead},
+};
 
 const M: u64 = 16777216;
 
@@ -12,11 +15,12 @@ fn evolve(mut x: u64) -> u64 {
     x
 }
 
-fn evolve_2000(mut x: u64) -> u64 {
+fn evolve_2000(x: u64) -> Vec<u64> {
+    let mut result = vec![x];
     for _ in 0..2000 {
-        x = evolve(x);
+        result.push(evolve(*result.last().unwrap()));
     }
-    x
+    result
 }
 
 fn banana_windows(xs: &[u64]) -> Vec<(i8, [i8; 4])> {
@@ -44,6 +48,17 @@ fn banana_windows(xs: &[u64]) -> Vec<(i8, [i8; 4])> {
         .collect()
 }
 
+fn max_banana_by_window(bws: &[(i8, [i8; 4])]) -> HashMap<[i8; 4], i8> {
+    bws.iter().fold(HashMap::new(), |mut acc, (b, w)| {
+        acc.entry(*w)
+            .and_modify(|x| {
+                *x = if b > x { *b } else { *x };
+            })
+            .or_insert(*b);
+        acc
+    })
+}
+
 fn main() {
     let xs: Vec<u64> = io::stdin()
         .lock()
@@ -51,11 +66,28 @@ fn main() {
         .map(|line| line.unwrap().parse().unwrap())
         .collect();
 
-    println!("{}", xs.into_iter().map(evolve_2000).sum::<u64>());
+    let mbbws = xs
+        .into_iter()
+        .map(evolve_2000)
+        .map(|xs| max_banana_by_window(&banana_windows(&xs)))
+        .collect::<Vec<_>>();
 
-    let ys: Vec<u64> = vec![
-        123, 15887950, 16495136, 527345, 704524, 1553684, 12683156, 11100544, 12249484, 7753432,
-    ];
+    let mut all_windows: HashSet<[i8; 4]> = HashSet::new();
+    for mbbw in mbbws.iter() {
+        for (k, _) in mbbw {
+            all_windows.insert(*k);
+        }
+    }
 
-    eprintln!("{:?}", banana_windows(&ys));
+    let mut result: u16 = 0;
+    for w in all_windows {
+        let mut candidate: u16 = 0;
+
+        for mbbw in mbbws.iter() {
+            candidate += *mbbw.get(&w).unwrap_or(&0) as u16;
+        }
+
+        result = result.max(candidate);
+    }
+    println!("{}", result);
 }
