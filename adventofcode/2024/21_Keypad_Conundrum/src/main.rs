@@ -358,10 +358,7 @@ fn arrpad_programs_for_given_code(code: &[NumKey]) -> Vec<Vec<ArrKey>> {
             programs = variants
                 .iter()
                 .map(|v| {
-                    let mut w = v
-                        .into_iter()
-                        .map(|d| ArrKey::from_dir(*d))
-                        .collect::<Vec<_>>();
+                    let mut w = v.iter().map(|d| ArrKey::from_dir(*d)).collect::<Vec<_>>();
                     w.push(ArrKey::A);
                     w
                 })
@@ -401,10 +398,7 @@ fn arrpad_programs_for_given_protoprogram(protoprogram: &[ArrKey]) -> Vec<Vec<Ar
             programs = variants
                 .iter()
                 .map(|v| {
-                    let mut w = v
-                        .into_iter()
-                        .map(|d| ArrKey::from_dir(*d))
-                        .collect::<Vec<_>>();
+                    let mut w = v.iter().map(|d| ArrKey::from_dir(*d)).collect::<Vec<_>>();
                     w.push(ArrKey::A);
                     w
                 })
@@ -433,10 +427,7 @@ fn complexity(code: &[NumKey]) -> usize {
     let lim: usize = 300;
 
     let mut ps = arrpad_programs_for_given_code(code);
-    eprintln!(
-        "{}",
-        stringify(ps.iter().min_by_key(|p| (p.len(), stringify(p))).unwrap())
-    );
+    let mut p: Vec<ArrKey> = vec![];
 
     for t in 1..=2 {
         eprintln!("t:{}", t);
@@ -447,18 +438,36 @@ fn complexity(code: &[NumKey]) -> usize {
             .take(lim)
             .collect::<Vec<_>>();
 
-        eprintln!(
-            "{}",
-            stringify(ps.iter().min_by_key(|p| (p.len(), stringify(p))).unwrap())
-        );
+        if t == 2 {
+            p = ps
+                .iter()
+                .min_by_key(|p| (p.len(), stringify(p)))
+                .unwrap()
+                .to_vec();
+        }
     }
 
-    let p0 = ps
-        .into_iter()
-        .min_by_key(|p| (p.len(), stringify(p)))
-        .unwrap();
-    let l = p0.len();
-    l * numeric_value(code)
+    for t in 3..=25 {
+        eprintln!("t:{}", t);
+        let mut pointing_at = ArrKey::A;
+        let mut new_p: Vec<ArrKey> = vec![];
+
+        for x in p {
+            let variants = pointing_at.transitions(x);
+
+            if let Some(f) = variants.first() {
+                let suff = f.iter().map(|&d| ArrKey::from_dir(d)).collect::<Vec<_>>();
+                new_p.extend(suff);
+            }
+            new_p.push(ArrKey::A);
+            pointing_at = x;
+        }
+
+        p = new_p;
+        eprintln!("L:{}", p.len());
+    }
+
+    p.len() * numeric_value(code)
 }
 
 fn main() {
