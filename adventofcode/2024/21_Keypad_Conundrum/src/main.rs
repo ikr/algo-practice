@@ -321,6 +321,21 @@ impl ArrKey {
             ArrKey::A => 'A',
         }
     }
+
+    fn byte(&self) -> u8 {
+        self.symbol() as u8
+    }
+
+    fn from_byte(b: u8) -> Self {
+        match b {
+            b'^' => ArrKey::U,
+            b'>' => ArrKey::R,
+            b'v' => ArrKey::D,
+            b'<' => ArrKey::L,
+            b'A' => ArrKey::A,
+            _ => panic!("Invalid byte: {}", b),
+        }
+    }
 }
 
 fn stringify(ks: &[ArrKey]) -> String {
@@ -447,27 +462,32 @@ fn complexity(code: &[NumKey]) -> usize {
         }
     }
 
+    let mut pb: Vec<u8> = p.into_iter().map(|x| x.byte()).collect();
+
     for t in 3..=25 {
         eprintln!("t:{}", t);
-        let mut pointing_at = ArrKey::A;
-        let mut new_p: Vec<ArrKey> = vec![];
+        let mut pointing_at = b'A';
+        let mut new_pb: Vec<u8> = vec![];
 
-        for x in p {
-            let variants = pointing_at.transitions(x);
+        for x in pb {
+            let variants = ArrKey::from_byte(pointing_at).transitions(ArrKey::from_byte(x));
 
             if let Some(f) = variants.first() {
-                let suff = f.iter().map(|&d| ArrKey::from_dir(d)).collect::<Vec<_>>();
-                new_p.extend(suff);
+                let suff = f
+                    .iter()
+                    .map(|&d| ArrKey::from_dir(d).byte())
+                    .collect::<Vec<_>>();
+                new_pb.extend(suff);
             }
-            new_p.push(ArrKey::A);
+            new_pb.push(b'A');
             pointing_at = x;
         }
 
-        p = new_p;
-        eprintln!("L:{}", p.len());
+        pb = new_pb;
+        eprintln!("L:{}", pb.len());
     }
 
-    p.len() * numeric_value(code)
+    pb.len() * numeric_value(code)
 }
 
 fn main() {
