@@ -311,6 +311,20 @@ impl ArrKey {
             Dir::W => ArrKey::L,
         }
     }
+
+    fn symbol(&self) -> char {
+        match self {
+            ArrKey::U => '^',
+            ArrKey::R => '>',
+            ArrKey::D => 'v',
+            ArrKey::L => '<',
+            ArrKey::A => 'A',
+        }
+    }
+}
+
+fn stringify(ks: &[ArrKey]) -> String {
+    ks.iter().map(ArrKey::symbol).collect()
 }
 
 fn parse_numpad_code(s: &str) -> Vec<NumKey> {
@@ -419,18 +433,31 @@ fn complexity(code: &[NumKey]) -> usize {
     let lim: usize = 300;
 
     let mut ps = arrpad_programs_for_given_code(code);
+    eprintln!(
+        "{}",
+        stringify(ps.iter().min_by_key(|p| (p.len(), stringify(p))).unwrap())
+    );
 
-    for t in 1..=25 {
+    for t in 1..=2 {
         eprintln!("t:{}", t);
         ps = ps
             .into_iter()
             .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
             .sorted_by_key(|p| p.len())
             .take(lim)
-            .collect::<Vec<_>>()
+            .collect::<Vec<_>>();
+
+        eprintln!(
+            "{}",
+            stringify(ps.iter().min_by_key(|p| (p.len(), stringify(p))).unwrap())
+        );
     }
 
-    let l = ps.into_iter().map(|p| p.len()).min().unwrap();
+    let p0 = ps
+        .into_iter()
+        .min_by_key(|p| (p.len(), stringify(p)))
+        .unwrap();
+    let l = p0.len();
     l * numeric_value(code)
 }
 
