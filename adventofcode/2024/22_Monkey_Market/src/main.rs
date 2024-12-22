@@ -35,7 +35,7 @@ fn banana_windows(xs: &[u64]) -> Vec<(i8, [i8; 4])> {
 
     let xds: Vec<(i8, i8)> = xs[1..]
         .iter()
-        .zip(deltas.into_iter())
+        .zip(deltas)
         .map(|(&x, d)| ((x % 10) as i8, d))
         .collect();
 
@@ -90,10 +90,7 @@ fn main() {
             }
         }
 
-        if result < candidate {
-            eprintln!("Improved to {} on window {:?}", candidate, w);
-            result = candidate;
-        }
+        result = result.max(candidate);
     }
     println!("{}", result);
 }
