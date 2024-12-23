@@ -1,0 +1,8 @@
+[package]
+name = "solution"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ac-library-rs = "0.1.1"
+itertools = "0.13.0"
