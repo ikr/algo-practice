@@ -1,7 +1,4 @@
-use std::{
-    collections::HashSet,
-    io::{self, BufRead},
-};
+use std::io::{self, BufRead};
 
 use itertools::Itertools;
 
@@ -19,21 +16,13 @@ fn decode(x: usize) -> String {
     String::from_utf8(vec![(x / 27) as u8 + b'`', (x % 27) as u8 + b'`']).unwrap()
 }
 
-fn starts_with_t(u: usize) -> bool {
-    decode(u).as_bytes()[0] == b't'
-}
-
-fn normalize(mut tri: [usize; 3]) -> [usize; 3] {
-    tri.sort();
-    tri
+fn represent(vs: &[usize]) -> String {
+    let mut ss: Vec<String> = vs.iter().map(|v| decode(*v)).collect();
+    ss.sort();
+    ss.join(",")
 }
 
 fn main() {
-    assert_eq!(decode(encode("fx")), "fx");
-    assert_eq!(decode(encode("aa")), "aa");
-    assert_eq!(decode(encode("zz")), "zz");
-    assert_ne!(decode(encode("zz")), "aa");
-
     let pairs: Vec<(String, String)> = io::stdin()
         .lock()
         .lines()
@@ -48,20 +37,28 @@ fn main() {
 
     let are_connected = |u: usize, v: usize| g[u].contains(&v);
 
-    let mut tris: HashSet<[usize; 3]> = HashSet::new();
+    let every_pair_is_connected = |vs: &[usize]| {
+        vs.iter().combinations(2).all(|v1v2| {
+            let v1 = *v1v2[0];
+            let v2 = *v1v2[1];
+            are_connected(v1, v2)
+        })
+    };
+
+    let mut hi: Vec<usize> = vec![];
+    let mut hi_len: usize = 0;
 
     for (u, vs) in g.iter().enumerate() {
         if vs.len() >= 2 {
-            for v1v2 in vs.iter().combinations(2) {
-                let v1 = *v1v2[0];
-                let v2 = *v1v2[1];
-                let tri = normalize([u, v1, v2]);
-                if are_connected(v1, v2) && tri.iter().any(|v| starts_with_t(*v)) {
-                    tris.insert(tri);
+            for vs in vs.iter().cloned().powerset() {
+                if every_pair_is_connected(&vs) && vs.len() + 1 > hi_len {
+                    hi = vs.clone();
+                    hi.push(u);
+                    hi_len = vs.len();
                 }
             }
         }
     }
 
-    println!("{}", tris.len());
+    println!("{}", represent(&hi));
 }
