@@ -1,4 +1,9 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::HashSet,
+    io::{self, BufRead},
+};
+
+use itertools::Itertools;
 
 fn parse_line(s: &str) -> (String, String) {
     let parts = s.split("-").collect::<Vec<_>>();
@@ -43,10 +48,20 @@ fn main() {
 
     let are_connected = |u: usize, v: usize| g[u].contains(&v);
 
-    for (u, vs) in g.into_iter().enumerate() {
-        if !vs.is_empty() {
-            let vss: Vec<String> = vs.iter().map(|v| decode(*v)).collect();
-            eprintln!("{} {:?}", decode(u), vss);
+    let mut tris: HashSet<[usize; 3]> = HashSet::new();
+
+    for (u, vs) in g.iter().enumerate() {
+        if vs.len() >= 2 {
+            for v1v2 in vs.iter().combinations(2) {
+                let v1 = *v1v2[0];
+                let v2 = *v1v2[1];
+                let tri = normalize([u, v1, v2]);
+                if are_connected(v1, v2) && tri.iter().any(|v| contains_t(*v)) {
+                    tris.insert(tri);
+                }
+            }
         }
     }
+
+    println!("{}", tris.len());
 }
