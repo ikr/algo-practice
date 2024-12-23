@@ -19,8 +19,8 @@ fn decode(x: usize) -> String {
     String::from_utf8(vec![(x / 27) as u8 + b'`', (x % 27) as u8 + b'`']).unwrap()
 }
 
-fn contains_t(u: usize) -> bool {
-    decode(u).contains('t')
+fn starts_with_t(u: usize) -> bool {
+    decode(u).as_bytes()[0] == b't'
 }
 
 fn normalize(mut tri: [usize; 3]) -> [usize; 3] {
@@ -56,7 +56,7 @@ fn main() {
                 let v1 = *v1v2[0];
                 let v2 = *v1v2[1];
                 let tri = normalize([u, v1, v2]);
-                if are_connected(v1, v2) && tri.iter().any(|v| contains_t(*v)) {
+                if are_connected(v1, v2) && tri.iter().any(|v| starts_with_t(*v)) {
                     tris.insert(tri);
                 }
             }
