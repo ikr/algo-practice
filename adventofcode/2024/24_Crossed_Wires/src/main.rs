@@ -60,9 +60,28 @@ fn parse_input(s: &str) -> (String, u8) {
 struct Machine {
     values: BTreeMap<String, u8>,
     gates_by_input: BTreeMap<String, Vec<Gate>>,
+    input_ids: Vec<String>,
 }
 
 impl Machine {
+    fn new(values: BTreeMap<String, u8>, gates: &[Gate]) -> Self {
+        let input_ids: Vec<String> = values.keys().cloned().collect();
+
+        let gates_by_input: BTreeMap<String, Vec<Gate>> =
+            gates.iter().fold(BTreeMap::new(), |mut acc, gate| {
+                acc.entry(gate.lhs_id.clone())
+                    .or_insert_with(Vec::new)
+                    .push(gate.clone());
+                acc
+            });
+
+        Machine {
+            values,
+            gates_by_input,
+            input_ids,
+        }
+    }
+
     fn propagate(&mut self, id: &str) {
         let mut ids_to_propagate: Vec<String> = vec![];
 
@@ -99,6 +118,15 @@ impl Machine {
         }
         result
     }
+
+    fn run(&mut self) -> usize {
+        for _ in 0..100 {
+            for id in self.input_ids.clone().iter() {
+                self.propagate(&id);
+            }
+        }
+        self.gather_value('z')
+    }
 }
 
 fn main() {
@@ -111,26 +139,6 @@ fn main() {
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
     let values: BTreeMap<String, u8> = lines[0..isep].iter().map(|s| parse_input(&s)).collect();
     let gates: Vec<Gate> = lines[isep + 1..].iter().map(|s| Gate::parse(&s)).collect();
-    let input_ids: Vec<String> = values.keys().cloned().collect();
 
-    let gates_by_input: BTreeMap<String, Vec<Gate>> =
-        gates.iter().fold(BTreeMap::new(), |mut acc, gate| {
-            acc.entry(gate.lhs_id.clone())
-                .or_insert_with(Vec::new)
-                .push(gate.clone());
-            acc
-        });
-
-    let mut m = Machine {
-        values,
-        gates_by_input,
-    };
-
-    for _ in 0..100 {
-        for id in input_ids.iter() {
-            m.propagate(&id);
-        }
-    }
-
-    println!("{}", m.gather_value('z'));
+    println!("{}", Machine::new(values, &gates).run());
 }
