@@ -88,10 +88,10 @@ impl Machine {
         }
     }
 
-    fn gather_zvalues(&self) -> usize {
+    fn gather_value(&self, prefix: char) -> usize {
         let mut result = 0;
         for i in 0..63 {
-            let id: String = format!("z{:02}", i);
+            let id: String = format!("{}{:02}", prefix, i);
             if let Some(value) = self.values.get(&id) {
                 let x = (*value as usize) << i;
                 result |= x;
@@ -126,11 +126,11 @@ fn main() {
         gates_by_input,
     };
 
-    for _ in 0..1000 {
+    for _ in 0..100 {
         for id in input_ids.iter() {
             m.propagate(&id);
         }
     }
 
-    println!("{}", m.gather_zvalues());
+    println!("{}", m.gather_value('z'));
 }
