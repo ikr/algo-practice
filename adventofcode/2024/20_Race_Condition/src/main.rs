@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 const INF: usize = 10_000_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -96,7 +98,12 @@ fn recover_path(pre: &[Vec<Option<Crd>>], end: Crd) -> Vec<Crd> {
     path
 }
 
-fn optimal_distance_in_the_walls_under_20(grid: &[Vec<char>], start: Crd, end: Crd) -> usize {
+fn optimal_distance_in_the_walls_up_to_k(
+    k: usize,
+    grid: &[Vec<char>],
+    start: Crd,
+    end: Crd,
+) -> usize {
     for p in [start, end] {
         assert_ne!(grid[p.0][p.1], '#');
     }
@@ -121,7 +128,7 @@ fn optimal_distance_in_the_walls_under_20(grid: &[Vec<char>], start: Crd, end: C
 
     while let Some(p) = queue.pop_front() {
         for q in adjacent(p) {
-            if !distance.contains_key(&q) && distance[&p] < 20 {
+            if !distance.contains_key(&q) && distance[&p] < k {
                 if q == end {
                     return distance[&p] + 1;
                 }
@@ -137,12 +144,17 @@ fn optimal_distance_in_the_walls_under_20(grid: &[Vec<char>], start: Crd, end: C
     INF
 }
 
-// fn eprintln_grid(grid: &[Vec<char>]) {
-//     for row in grid {
-//         eprintln!("{}", row.iter().collect::<String>());
-//     }
-//     eprintln!();
-// }
+fn non_wall_coordinates(grid: &[Vec<char>]) -> Vec<Crd> {
+    let mut result: Vec<Crd> = vec![];
+    for (i, row) in grid.iter().enumerate() {
+        for (j, &cell) in row.iter().enumerate() {
+            if cell != '#' {
+                result.push(Crd(i, j));
+            }
+        }
+    }
+    result
+}
 
 fn main() {
     let grid: Vec<Vec<char>> = io::stdin()
@@ -171,31 +183,27 @@ fn main() {
     assert_eq!(initial_distance, initial_path.len() - 1);
     eprintln!("initial_distance:{}", initial_distance);
 
-    // let savings: Vec<usize> = initial_path
-    //     .iter()
-    //     .cloned()
-    //     .enumerate()
-    //     .combinations(2)
-    //     .filter(|iajb| {
-    //         let [(i, _), (j, _)] = iajb[..] else { panic!() };
-    //         j - i > 20
-    //     })
-    //     .map(|iajb| {
-    //         let [(i, a), (j, b)] = iajb[..] else { panic!() };
-    //         let warp = optimal_distance_in_the_walls_under_20(&grid, a, b);
-    //         (j - i).saturating_sub(warp)
-    //     })
-    //     .collect();
+    let savings: Vec<usize> = non_wall_coordinates(&grid)
+        .into_iter()
+        .combinations(2)
+        .flat_map(|pq| {
+            let [p, q] = pq[..] else { panic!() };
+            let dpq = optimal_distance_in_the_walls_up_to_k(2, &grid, p, q);
+            let mut result: Vec<usize> = vec![];
+            if dpq < INF {
+                let d1 = start_d[p.0][p.1] + dpq + end_d[q.0][q.1];
+                if d1 < initial_distance {
+                    result.push(initial_distance - d1);
+                }
+                let d2 = start_d[q.0][q.1] + dpq + end_d[p.0][p.1];
+                if d2 < initial_distance {
+                    result.push(initial_distance - d2);
+                }
+            }
+            result
+        })
+        .collect();
 
-    // let mut fq = savings
-    //     .iter()
-    //     .filter(|&&d| d >= 50)
-    //     .counts()
-    //     .into_iter()
-    //     .collect::<Vec<_>>();
-    // fq.sort();
-    // eprintln!("{:?}", fq);
-
-    // let result = savings.iter().filter(|&&d| d >= 100).count();
-    // println!("{}", result);
+    let result = savings.into_iter().filter(|&d| d >= 100).count();
+    println!("{}", result);
 }
