@@ -181,7 +181,7 @@ fn main() {
                         ans.push(gates[f].out_id.clone());
                         ans.push(gates[g].out_id.clone());
                         ans.push(gates[h].out_id.clone());
-                        asn.sort();
+                        ans.sort();
 
                         println!("{}", ans.join(","));
                     }
