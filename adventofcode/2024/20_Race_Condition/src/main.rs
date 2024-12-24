@@ -107,10 +107,7 @@ fn optimal_distance_in_the_walls_up_to_k(
     for p in [start, end] {
         assert_ne!(grid[p.0][p.1], '#');
     }
-
-    if start == end {
-        return 0;
-    }
+    assert_ne!(start, end);
 
     let h = grid.len();
     let w = grid[0].len();
