@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+use itertools::Itertools;
+
 #[derive(Debug, Clone, Copy)]
 enum OpCode {
     And,
@@ -107,26 +109,30 @@ impl Machine {
         }
     }
 
-    fn gather_value(&self, prefix: char) -> usize {
-        let mut result = 0;
-        for i in 0..63 {
-            let id: String = format!("{}{:02}", prefix, i);
-            if let Some(value) = self.values.get(&id) {
-                let x = (*value as usize) << i;
-                result |= x;
-            }
-        }
-        result
-    }
-
     fn run(&mut self) -> usize {
         for _ in 0..100 {
             for id in self.input_ids.clone().iter() {
                 self.propagate(&id);
             }
         }
-        self.gather_value('z')
+        gather_value(&self.values, 'z')
     }
+}
+
+fn gather_value(values: &BTreeMap<String, u8>, prefix: char) -> usize {
+    let mut result = 0;
+    for i in 0..63 {
+        let id: String = format!("{}{:02}", prefix, i);
+        if let Some(value) = values.get(&id) {
+            let x = (*value as usize) << i;
+            result |= x;
+        }
+    }
+    result
+}
+
+fn without(xs: &[usize], a: usize, b: usize) -> Vec<usize> {
+    xs.iter().filter(|&&x| x != a && x != b).copied().collect()
 }
 
 fn main() {
@@ -138,7 +144,49 @@ fn main() {
 
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
     let values: BTreeMap<String, u8> = lines[0..isep].iter().map(|s| parse_input(&s)).collect();
-    let gates: Vec<Gate> = lines[isep + 1..].iter().map(|s| Gate::parse(&s)).collect();
+    let x0 = gather_value(&values, 'x');
+    let y0 = gather_value(&values, 'y');
+    let initial_gates: Vec<Gate> = lines[isep + 1..].iter().map(|s| Gate::parse(&s)).collect();
 
-    println!("{}", Machine::new(values, &gates).run());
+    let n = initial_gates.len();
+    let ii: Vec<usize> = (0..n).collect();
+    for (a, b) in (0..n).tuple_combinations() {
+        let jj = without(&ii, a, b);
+        for (&c, &d) in jj.iter().tuple_combinations() {
+            let kk = without(&jj, c, d);
+            for (&e, &f) in kk.iter().tuple_combinations() {
+                let ll = without(&kk, e, f);
+                for (&g, &h) in ll.iter().tuple_combinations() {
+                    let mut gates = initial_gates.clone();
+                    let mut swap_outputs = |i: usize, j: usize| {
+                        let s = gates[i].out_id.clone();
+                        let t = gates[j].out_id.clone();
+                        gates[i].out_id = t;
+                        gates[j].out_id = s;
+                    };
+
+                    swap_outputs(a, b);
+                    swap_outputs(c, d);
+                    swap_outputs(e, f);
+                    swap_outputs(g, h);
+
+                    let z = Machine::new(values.clone(), &gates).run();
+                    if x0 + y0 == z {
+                        let mut ans: Vec<String> = vec![];
+                        ans.push(gates[a].out_id.clone());
+                        ans.push(gates[b].out_id.clone());
+                        ans.push(gates[c].out_id.clone());
+                        ans.push(gates[d].out_id.clone());
+                        ans.push(gates[e].out_id.clone());
+                        ans.push(gates[f].out_id.clone());
+                        ans.push(gates[g].out_id.clone());
+                        ans.push(gates[h].out_id.clone());
+                        asn.sort();
+
+                        println!("{}", ans.join(","));
+                    }
+                }
+            }
+        }
+    }
 }
