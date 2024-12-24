@@ -11,7 +11,7 @@ struct Crd(usize, usize);
 impl Crd {
     fn north(&self) -> Option<Crd> {
         if self.0 != 0 {
-            Some(Crd(self.0, self.1))
+            Some(Crd(self.0 - 1, self.1))
         } else {
             None
         }
@@ -62,7 +62,7 @@ fn bfs(grid: &[Vec<char>], start: Crd) -> (Vec<Vec<usize>>, Vec<Vec<Option<Crd>>
     let adjacent = |p: Crd| -> Vec<Crd> {
         p.adjacent(h, w)
             .into_iter()
-            .filter_map(|q| if grid[q.0][q.1] != '#' { Some(q) } else { None })
+            .filter(|q| grid[q.0][q.1] != '#')
             .collect()
     };
 
@@ -79,7 +79,7 @@ fn bfs(grid: &[Vec<char>], start: Crd) -> (Vec<Vec<usize>>, Vec<Vec<Option<Crd>>
     (distance, pre)
 }
 
-fn recover_path(pre: &Vec<Vec<Option<Crd>>>, end: Crd) -> Vec<Crd> {
+fn recover_path(pre: &[Vec<Option<Crd>>], end: Crd) -> Vec<Crd> {
     let mut path = vec![];
     let mut p = end;
 
@@ -107,14 +107,12 @@ fn optimal_distance_in_the_walls_under_20(grid: &[Vec<char>], start: Crd, end: C
 
     let h = grid.len();
     let w = grid[0].len();
-
-    let in_bounds =
-        |c: Crd| -> bool { 0 <= c.0 && c.0 < grid.len() && 0 <= c.1 && c.1 < grid[0].len() };
+    let in_bounds = |c: Crd| -> bool { c.0 < grid.len() && c.1 < grid[0].len() };
 
     let adjacent = |p: Crd| -> Vec<Crd> {
         p.adjacent(h, w)
             .into_iter()
-            .filter_map(|q| if in_bounds(q) { Some(q) } else { None })
+            .filter(|&q| in_bounds(q))
             .collect()
     };
 
@@ -164,35 +162,40 @@ fn main() {
 
     let start = crd_of('S');
     let end = crd_of('E');
-    let initial_path = optimal_path(&grid, start, end);
-    let initial_distance = initial_path.len() - 1;
+
+    let (start_d, start_pre) = bfs(&grid, start);
+    let (end_d, _) = bfs(&grid, end);
+
+    let initial_path = recover_path(&start_pre, end);
+    let initial_distance = start_d[end.0][end.1];
+    assert_eq!(initial_distance, initial_path.len() - 1);
     eprintln!("initial_distance:{}", initial_distance);
 
-    let savings: Vec<usize> = initial_path
-        .iter()
-        .cloned()
-        .enumerate()
-        .combinations(2)
-        .filter(|iajb| {
-            let [(i, _), (j, _)] = iajb[..] else { panic!() };
-            j - i > 20
-        })
-        .map(|iajb| {
-            let [(i, a), (j, b)] = iajb[..] else { panic!() };
-            let warp = optimal_distance_in_the_walls_under_20(&grid, a, b);
-            (j - i).saturating_sub(warp)
-        })
-        .collect();
+    // let savings: Vec<usize> = initial_path
+    //     .iter()
+    //     .cloned()
+    //     .enumerate()
+    //     .combinations(2)
+    //     .filter(|iajb| {
+    //         let [(i, _), (j, _)] = iajb[..] else { panic!() };
+    //         j - i > 20
+    //     })
+    //     .map(|iajb| {
+    //         let [(i, a), (j, b)] = iajb[..] else { panic!() };
+    //         let warp = optimal_distance_in_the_walls_under_20(&grid, a, b);
+    //         (j - i).saturating_sub(warp)
+    //     })
+    //     .collect();
 
-    let mut fq = savings
-        .iter()
-        .filter(|&&d| d >= 50)
-        .counts()
-        .into_iter()
-        .collect::<Vec<_>>();
-    fq.sort();
-    eprintln!("{:?}", fq);
+    // let mut fq = savings
+    //     .iter()
+    //     .filter(|&&d| d >= 50)
+    //     .counts()
+    //     .into_iter()
+    //     .collect::<Vec<_>>();
+    // fq.sort();
+    // eprintln!("{:?}", fq);
 
-    let result = savings.iter().filter(|&&d| d >= 100).count();
-    println!("{}", result);
+    // let result = savings.iter().filter(|&&d| d >= 100).count();
+    // println!("{}", result);
 }
