@@ -188,7 +188,7 @@ fn main() {
         .combinations(2)
         .flat_map(|pq| {
             let [p, q] = pq[..] else { panic!() };
-            let dpq = optimal_distance_in_the_walls_up_to_k(2, &grid, p, q);
+            let dpq = optimal_distance_in_the_walls_up_to_k(20, &grid, p, q);
             let mut result: Vec<usize> = vec![];
             if dpq < INF {
                 let d1 = start_d[p.0][p.1] + dpq + end_d[q.0][q.1];
@@ -203,6 +203,15 @@ fn main() {
             result
         })
         .collect();
+
+    let fq: Vec<_> = savings
+        .iter()
+        .filter(|&&d| d >= 50)
+        .counts()
+        .into_iter()
+        .sorted()
+        .collect();
+    eprintln!("{:?}", fq);
 
     let result = savings.into_iter().filter(|&d| d >= 100).count();
     println!("{}", result);
