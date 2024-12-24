@@ -111,20 +111,11 @@ fn optimal_distance_in_the_walls_up_to_k(
 
     let h = grid.len();
     let w = grid[0].len();
-    let in_bounds = |c: Crd| -> bool { c.0 < grid.len() && c.1 < grid[0].len() };
-
-    let adjacent = |p: Crd| -> Vec<Crd> {
-        p.adjacent(h, w)
-            .into_iter()
-            .filter(|&q| in_bounds(q))
-            .collect()
-    };
-
     let mut distance: HashMap<Crd, usize> = HashMap::from([(start, 0)]);
     let mut queue: VecDeque<Crd> = VecDeque::from([start]);
 
     while let Some(p) = queue.pop_front() {
-        for q in adjacent(p) {
+        for q in p.adjacent(h, w) {
             if !distance.contains_key(&q) && distance[&p] < k {
                 if q == end {
                     return distance[&p] + 1;
