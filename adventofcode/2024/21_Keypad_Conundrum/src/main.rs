@@ -424,23 +424,50 @@ fn arrpad_programs_for_given_protoprogram(protoprogram: &[ArrKey]) -> Vec<Vec<Ar
 }
 
 fn complexity(code: &[NumKey]) -> usize {
-    let lim: usize = 300;
     let mut ps = arrpad_programs_for_given_code(code);
 
     for _ in 1..=2 {
         ps = ps
             .into_iter()
             .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
-            .sorted_by_key(|p| p.len())
-            .take(lim)
             .collect::<Vec<_>>();
     }
 
     let p: Vec<ArrKey> = ps
-        .iter()
+        .into_iter()
         .min_by_key(|p| (p.len(), stringify(p)))
         .unwrap()
         .to_vec();
+
+    p.len() * numeric_value(code)
+}
+
+fn experimental_complexity(code: &[NumKey]) -> usize {
+    let mut ps = arrpad_programs_for_given_code(code);
+    ps = ps
+        .into_iter()
+        .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
+        .collect::<Vec<_>>();
+
+    let mut p: Vec<ArrKey> = ps
+        .into_iter()
+        .min_by_key(|p| (p.len(), stringify(p)))
+        .unwrap()
+        .to_vec();
+
+    p = p.into_iter().fold(vec![], |mut acc, x| {
+        let pointing_at: ArrKey = *acc.last().unwrap_or(&ArrKey::A);
+        if let Some(program) = pointing_at.transitions(x).first() {
+            acc.extend(
+                program
+                    .iter()
+                    .map(|d| ArrKey::from_dir(*d))
+                    .collect::<Vec<_>>(),
+            );
+        }
+        acc.push(ArrKey::A);
+        acc
+    });
 
     p.len() * numeric_value(code)
 }
@@ -452,6 +479,13 @@ fn main() {
         .map(|line| parse_numpad_code(&line.unwrap()))
         .collect();
 
-    let result: usize = numpad_codes.into_iter().map(|code| complexity(&code)).sum();
+    let result: usize = numpad_codes
+        .into_iter()
+        .map(|code| {
+            let c = complexity(&code);
+            assert_eq!(experimental_complexity(&code), c);
+            c
+        })
+        .sum();
     println!("{}", result);
 }
