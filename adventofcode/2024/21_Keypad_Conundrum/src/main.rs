@@ -321,21 +321,6 @@ impl ArrKey {
             ArrKey::A => 'A',
         }
     }
-
-    fn byte(&self) -> u8 {
-        self.symbol() as u8
-    }
-
-    fn from_byte(b: u8) -> Self {
-        match b {
-            b'^' => ArrKey::U,
-            b'>' => ArrKey::R,
-            b'v' => ArrKey::D,
-            b'<' => ArrKey::L,
-            b'A' => ArrKey::A,
-            _ => panic!("Invalid byte: {}", b),
-        }
-    }
 }
 
 fn stringify(ks: &[ArrKey]) -> String {
@@ -440,54 +425,24 @@ fn arrpad_programs_for_given_protoprogram(protoprogram: &[ArrKey]) -> Vec<Vec<Ar
 
 fn complexity(code: &[NumKey]) -> usize {
     let lim: usize = 300;
-
     let mut ps = arrpad_programs_for_given_code(code);
-    let mut p: Vec<ArrKey> = vec![];
 
-    for t in 1..=2 {
-        eprintln!("t:{}", t);
+    for _ in 1..=2 {
         ps = ps
             .into_iter()
             .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
             .sorted_by_key(|p| p.len())
             .take(lim)
             .collect::<Vec<_>>();
-
-        if t == 2 {
-            p = ps
-                .iter()
-                .min_by_key(|p| (p.len(), stringify(p)))
-                .unwrap()
-                .to_vec();
-        }
     }
 
-    let mut pb: Vec<u8> = p.into_iter().map(|x| x.byte()).collect();
+    let p: Vec<ArrKey> = ps
+        .iter()
+        .min_by_key(|p| (p.len(), stringify(p)))
+        .unwrap()
+        .to_vec();
 
-    for t in 3..=25 {
-        eprintln!("t:{}", t);
-        let mut pointing_at = b'A';
-        let mut new_pb: Vec<u8> = vec![];
-
-        for x in pb {
-            let variants = ArrKey::from_byte(pointing_at).transitions(ArrKey::from_byte(x));
-
-            if let Some(f) = variants.first() {
-                let suff = f
-                    .iter()
-                    .map(|&d| ArrKey::from_dir(d).byte())
-                    .collect::<Vec<_>>();
-                new_pb.extend(suff);
-            }
-            new_pb.push(b'A');
-            pointing_at = x;
-        }
-
-        pb = new_pb;
-        eprintln!("L:{}", pb.len());
-    }
-
-    pb.len() * numeric_value(code)
+    p.len() * numeric_value(code)
 }
 
 fn main() {
