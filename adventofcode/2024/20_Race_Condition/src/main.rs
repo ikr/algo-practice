@@ -98,38 +98,30 @@ fn recover_path(pre: &[Vec<Option<Crd>>], end: Crd) -> Vec<Crd> {
     path
 }
 
-fn optimal_distance_in_the_walls_up_to_k(
+fn optimal_distances_through_the_walls_up_to_k(
     k: usize,
     grid: &[Vec<char>],
     start: Crd,
-    end: Crd,
-) -> usize {
-    for p in [start, end] {
-        assert_ne!(grid[p.0][p.1], '#');
-    }
-    assert_ne!(start, end);
+) -> HashMap<Crd, usize> {
+    assert_ne!(grid[start.0][start.1], '#');
 
     let h = grid.len();
     let w = grid[0].len();
-    let mut distance: HashMap<Crd, usize> = HashMap::from([(start, 0)]);
+    let mut distances: HashMap<Crd, usize> = HashMap::from([(start, 0)]);
     let mut queue: VecDeque<Crd> = VecDeque::from([start]);
 
     while let Some(p) = queue.pop_front() {
         for q in p.adjacent(h, w) {
-            if !distance.contains_key(&q) && distance[&p] < k {
-                if q == end {
-                    return distance[&p] + 1;
-                }
-
+            if !distances.contains_key(&q) && distances[&p] < k {
                 if grid[q.0][q.1] == '#' {
-                    distance.insert(q, distance[&p] + 1);
                     queue.push_back(q);
                 }
+                distances.insert(q, distances[&p] + 1);
             }
         }
     }
 
-    INF
+    distances
 }
 
 fn non_wall_coordinates(grid: &[Vec<char>]) -> Vec<Crd> {
@@ -173,19 +165,15 @@ fn main() {
 
     let savings: Vec<usize> = non_wall_coordinates(&grid)
         .into_iter()
-        .combinations(2)
-        .flat_map(|pq| {
-            let [p, q] = pq[..] else { panic!() };
-            let dpq = optimal_distance_in_the_walls_up_to_k(20, &grid, p, q);
+        .flat_map(|p| {
+            let dpqs = optimal_distances_through_the_walls_up_to_k(20, &grid, p);
             let mut result: Vec<usize> = vec![];
-            if dpq < INF {
-                let d1 = start_d[p.0][p.1] + dpq + end_d[q.0][q.1];
-                if d1 < initial_distance {
-                    result.push(initial_distance - d1);
-                }
-                let d2 = start_d[q.0][q.1] + dpq + end_d[p.0][p.1];
-                if d2 < initial_distance {
-                    result.push(initial_distance - d2);
+            for (q, dpq) in dpqs {
+                if grid[q.0][q.1] != '#' {
+                    let d = start_d[p.0][p.1] + dpq + end_d[q.0][q.1];
+                    if d < initial_distance {
+                        result.push(initial_distance - d);
+                    }
                 }
             }
             result
