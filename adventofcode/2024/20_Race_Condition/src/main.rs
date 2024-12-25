@@ -113,10 +113,8 @@ fn optimal_distances_through_the_walls_up_to_k(
     while let Some(p) = queue.pop_front() {
         for q in p.adjacent(h, w) {
             if !distances.contains_key(&q) && distances[&p] < k {
-                if grid[q.0][q.1] == '#' {
-                    queue.push_back(q);
-                }
                 distances.insert(q, distances[&p] + 1);
+                queue.push_back(q);
             }
         }
     }
