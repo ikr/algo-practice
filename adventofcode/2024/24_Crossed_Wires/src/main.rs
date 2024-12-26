@@ -143,14 +143,30 @@ fn main() {
     let initial_gates: Vec<Gate> = lines[isep + 1..].iter().map(|s| Gate::parse(s)).collect();
 
     let mut gates = initial_gates.clone();
-    for uv in [["z05", "hdt"], ["z09", "gbf"], ["z30", "nbf"]] {
+    let swaps = [
+        ["z05", "hdt"],
+        ["z09", "gbf"],
+        ["mht", "jgt"],
+        ["z30", "nbf"],
+    ];
+    for uv in swaps.iter() {
         let ij = uv
             .into_iter()
-            .map(|u| initial_gates.iter().position(|g| g.out_id == u).unwrap())
+            .map(|u| initial_gates.iter().position(|g| g.out_id == *u).unwrap())
             .collect::<Vec<_>>();
-        gates.swap(ij[0], ij[1]);
+        gates[ij[0]].out_id = uv[1].to_string();
+        gates[ij[1]].out_id = uv[0].to_string();
     }
 
     let z = Machine::new(values.clone(), &gates).run();
     assert_eq!(z, x0 + y0);
+
+    let mut ids: Vec<String> = swaps.into_iter().fold(vec![], |mut acc, ab| {
+        acc.push(ab[0].to_string());
+        acc.push(ab[1].to_string());
+        acc
+    });
+    ids.sort();
+    let result = ids.join(",");
+    println!("{}", result);
 }
