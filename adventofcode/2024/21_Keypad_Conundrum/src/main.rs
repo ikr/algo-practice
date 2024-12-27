@@ -488,19 +488,23 @@ fn apress_tokens(s: &str) -> Vec<String> {
         .collect()
 }
 
-fn evolve(fqs: HashMap<String, usize>) -> HashMap<String, usize> {
+fn evolve(subs: &HashMap<String, String>, fqs: &HashMap<String, usize>) -> HashMap<String, usize> {
     let mut new_fqs: HashMap<String, usize> = HashMap::new();
     for (s, f) in fqs {
-        let xs = apress_tokens(&s);
-        todo!()
+        eprintln!("{:?}", fqs);
+        eprintln!("subs[{}]", s);
+        let t = subs.get(s).unwrap();
+        for x in apress_tokens(t) {
+            new_fqs.entry(x).and_modify(|g| *g += f).or_insert(1);
+        }
     }
     new_fqs
 }
 
-fn end_length(p: &str) -> usize {
+fn end_length(subs: &HashMap<String, String>, p: &str) -> usize {
     let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
     for _ in 3..=25 {
-        fqs = evolve(fqs);
+        fqs = evolve(subs, &fqs);
     }
     fqs.into_values().sum()
 }
@@ -526,7 +530,7 @@ fn main() {
 
     let mut result2: usize = 0;
     for (i, p) in ps.into_iter().enumerate() {
-        result2 += end_length(&p) * numeric_value(&numpad_codes[i]);
+        result2 += end_length(&subs, &p) * numeric_value(&numpad_codes[i]);
     }
     println!("result2: {}", result2);
 }
