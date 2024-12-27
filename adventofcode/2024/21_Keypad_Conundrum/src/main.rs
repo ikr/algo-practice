@@ -563,8 +563,9 @@ fn main() {
         .collect();
 
     let mut subs: HashMap<String, String> = [
-        (">^>A", "vA<^Av>A^A"),
+        (">^>A", "vAA^AA"),
         ("^<A", "<Av<A>>^A"),
+        ("<v<A", "v<A<AA>>^A"),
         // ("<^A", "v<<A>^A>A"),
         // ("v<<A", "v<A<AA>>^A"),
         // ("^>A", "<Av>A^A"),
@@ -589,13 +590,6 @@ fn main() {
     }
     println!("result1: {}", result1);
     assert_eq!(ps.len(), numpad_codes.len());
-    eprintln!("{} {:?}", subs.len(), subs);
-
-    for code_src in ["980A", "179A", "456A", "379A"] {
-        let code = parse_numpad_code(code_src);
-        let (subsubs, _) = gather_substiturions_return_optimal_program_for_2_arrpads(&code);
-        subs.extend(subsubs);
-    }
     eprintln!("{} {:?}", subs.len(), subs);
 
     let mut result2: usize = 0;
