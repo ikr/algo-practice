@@ -563,9 +563,9 @@ fn main() {
         .collect();
 
     let mut subs: HashMap<String, String> = [
-        (">^>A", "vAA^AA"),
+        (">^>A", "vA<^Av>A^A"),
         ("^<A", "<Av<A>>^A"),
-        ("<v<A", "v<A<AA>>^A"),
+        ("<v<A", "v<<A>A<A>>^A"),
         // ("<^A", "v<<A>^A>A"),
         // ("v<<A", "v<A<AA>>^A"),
         // ("^>A", "<Av>A^A"),
