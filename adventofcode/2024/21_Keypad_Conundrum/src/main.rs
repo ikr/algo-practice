@@ -543,9 +543,19 @@ fn positions_of(xs: &str, x0: char, lim: usize) -> Vec<usize> {
 }
 
 fn gather_substitutions(a: &str, b: &str) -> HashMap<String, String> {
-    let i0 = positions_of(a, 'A', 1).first().copied().unwrap();
-    let j0 = positions_of(b, 'A', i0 + 1).last().copied().unwrap();
-    todo!()
+    if a.is_empty() {
+        assert!(b.is_empty());
+        HashMap::new()
+    } else {
+        let i0 = positions_of(a, 'A', 1).first().copied().unwrap();
+        let j0 = positions_of(b, 'A', i0 + 1).last().copied().unwrap();
+        eprintln!("i0:{} j0:{}", i0, j0);
+        let mut result: HashMap<String, String> =
+            HashMap::from([(a[0..i0 + 1].to_string(), b[0..j0 + 1].to_string())]);
+        let sub = gather_substitutions(&a[i0 + 1..], &b[j0 + 1..]);
+        result.extend(sub);
+        result
+    }
 }
 
 fn main() {
@@ -579,17 +589,20 @@ mod tests {
                 "v<<A>>^A<A>AvA<^AA>A<vAAA>^A",
                 "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
             ),
-            HashMap::from([
-                ("<A", "<v<A>>^A"),
-                ("<^A", "<v<A>^A>A"),
-                ("<vA", "<v<A>A>^A"),
-                (">>^A", "vAA<^A>A"),
-                (">A", "vA^A"),
-                (">^A", "vA<^A>A"),
-                ("A", "A"),
-                ("v<<A", "<vA<AA>>^A"),
-                ("vA", "<vA>^A"),
-            ])
+            HashMap::from(
+                [
+                    ("<A", "<v<A>>^A"),
+                    ("<^A", "<v<A>^A>A"),
+                    ("<vA", "<v<A>A>^A"),
+                    (">>^A", "vAA<^A>A"),
+                    (">A", "vA^A"),
+                    (">^A", "vA<^A>A"),
+                    ("A", "A"),
+                    ("v<<A", "<vA<AA>>^A"),
+                    ("vA", "<vA>^A"),
+                ]
+                .map(|(a, b)| (a.to_string(), b.to_string()))
+            )
         );
     }
 }
