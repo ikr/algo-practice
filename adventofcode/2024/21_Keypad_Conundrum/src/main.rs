@@ -496,7 +496,7 @@ fn evolve(subs: &HashMap<String, String>, fqs: &HashMap<String, usize>) -> HashM
         }
         let t = subs.get(s).unwrap();
         for x in apress_tokens(t) {
-            new_fqs.entry(x).and_modify(|g| *g += f).or_insert(1);
+            new_fqs.entry(x).and_modify(|g| *g += f).or_insert(*f);
         }
     }
     new_fqs
@@ -518,10 +518,10 @@ fn main() {
         .collect();
 
     let mut subs: HashMap<String, String> = [
-        ("<^A", "v<<A^>A>A"),
+        ("<^A", "v<<A>^A>A"),
         ("v<<A", "v<A<AA>>^A"),
-        ("^>A", "<Av>A^A"),
-        ("v>A", "v<A>A^A"),
+        //("^>A", "<Av>A^A"),
+        //("v>A", "v<A>A^A"),
     ]
     .into_iter()
     .map(|(a, b)| (a.to_string(), b.to_string()))
