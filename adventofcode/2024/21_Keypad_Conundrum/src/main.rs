@@ -472,6 +472,39 @@ fn substitutions(a: &str, b: &str) -> HashMap<String, String> {
     }
 }
 
+fn apress_tokens(s: &str) -> Vec<String> {
+    let mut ais: Vec<usize> = vec![usize::MAX];
+    ais.extend(positions_of(s, 'A', usize::MAX));
+    ais.windows(2)
+        .map(|ij| {
+            let i = ij[0];
+            let j = ij[1];
+            if i == usize::MAX {
+                s[0..j + 1].to_string()
+            } else {
+                s[i + 1..j + 1].to_string()
+            }
+        })
+        .collect()
+}
+
+fn evolve(fqs: HashMap<String, usize>) -> HashMap<String, usize> {
+    let mut new_fqs: HashMap<String, usize> = HashMap::new();
+    for (s, f) in fqs {
+        let xs = apress_tokens(&s);
+        todo!()
+    }
+    new_fqs
+}
+
+fn end_length(p: &str) -> usize {
+    let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
+    for _ in 3..=25 {
+        fqs = evolve(fqs);
+    }
+    fqs.into_values().sum()
+}
+
 fn main() {
     let numpad_codes: Vec<Vec<NumKey>> = io::stdin()
         .lock()
@@ -481,13 +514,21 @@ fn main() {
 
     let mut subs: HashMap<String, String> = HashMap::new();
     let mut result1: usize = 0;
-    for code in numpad_codes {
-        let (subsubs, p) = gather_substiturions_return_optimal_program_for_2_arrpads(&code);
+    let mut ps: Vec<String> = vec![];
+    for code in numpad_codes.iter() {
+        let (subsubs, p) = gather_substiturions_return_optimal_program_for_2_arrpads(code);
         subs.extend(subsubs);
-        result1 += p.len() * numeric_value(&code);
+        ps.push(stringify(&p));
+        result1 += p.len() * numeric_value(code);
     }
     println!("result1: {}", result1);
     eprintln!("{} {:?}", subs.len(), subs);
+
+    let mut result2: usize = 0;
+    for (i, p) in ps.into_iter().enumerate() {
+        result2 += end_length(&p) * numeric_value(&numpad_codes[i]);
+    }
+    println!("result2: {}", result2);
 }
 
 #[cfg(test)]
@@ -518,5 +559,24 @@ mod tests {
                 .map(|(a, b)| (a.to_string(), b.to_string()))
             )
         );
+    }
+
+    #[test]
+    fn apress_tokens_works_0() {
+        assert!(apress_tokens("").is_empty());
+    }
+
+    #[test]
+    fn apress_tokens_works_1() {
+        assert_eq!(apress_tokens("A"), vec!["A"]);
+        assert_eq!(apress_tokens("AA"), vec!["A", "A"]);
+    }
+
+    #[test]
+    fn apress_tokens_works_2() {
+        assert_eq!(
+            apress_tokens("<A^A>^^AvvvA"),
+            vec!["<A", "^A", ">^^A", "vvvA"]
+        )
     }
 }
