@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     hash::Hash,
     io::{self, BufRead},
 };
@@ -533,6 +534,20 @@ fn experimental_complexity(code: &[NumKey]) -> usize {
     p.len() * numeric_value(code)
 }
 
+fn positions_of(xs: &str, x0: char, lim: usize) -> Vec<usize> {
+    xs.chars()
+        .enumerate()
+        .filter_map(|(i, x)| if x == x0 { Some(i) } else { None })
+        .take(lim)
+        .collect()
+}
+
+fn gather_substitutions(a: &str, b: &str) -> HashMap<String, String> {
+    let i0 = positions_of(a, 'A', 1).first().copied().unwrap();
+    let j0 = positions_of(b, 'A', i0 + 1).last().copied().unwrap();
+    todo!()
+}
+
 fn main() {
     let numpad_codes: Vec<Vec<NumKey>> = io::stdin()
         .lock()
@@ -549,4 +564,32 @@ fn main() {
         })
         .sum();
     println!("{}", result);
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use super::*;
+
+    #[test]
+    fn gather_substitutions_works() {
+        assert_eq!(
+            gather_substitutions(
+                "v<<A>>^A<A>AvA<^AA>A<vAAA>^A",
+                "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
+            ),
+            HashMap::from([
+                ("<A", "<v<A>>^A"),
+                ("<^A", "<v<A>^A>A"),
+                ("<vA", "<v<A>A>^A"),
+                (">>^A", "vAA<^A>A"),
+                (">A", "vA^A"),
+                (">^A", "vA<^A>A"),
+                ("A", "A"),
+                ("v<<A", "<vA<AA>>^A"),
+                ("vA", "<vA>^A"),
+            ])
+        );
+    }
 }
