@@ -491,7 +491,9 @@ fn apress_tokens(s: &str) -> Vec<String> {
 fn evolve(subs: &HashMap<String, String>, fqs: &HashMap<String, usize>) -> HashMap<String, usize> {
     let mut new_fqs: HashMap<String, usize> = HashMap::new();
     for (s, f) in fqs {
-        eprintln!("subs[{}]", s);
+        if !subs.contains_key(s) {
+            eprintln!("subs[{}]", s);
+        }
         let t = subs.get(s).unwrap();
         for x in apress_tokens(t) {
             new_fqs.entry(x).and_modify(|g| *g += f).or_insert(1);
@@ -515,10 +517,15 @@ fn main() {
         .map(|line| parse_numpad_code(&line.unwrap()))
         .collect();
 
-    let mut subs: HashMap<String, String> = [("<^A", "v<<A>^A>A"), ("v<<A", "v<A<AA>>^A")]
-        .into_iter()
-        .map(|(a, b)| (a.to_string(), b.to_string()))
-        .collect();
+    let mut subs: HashMap<String, String> = [
+        ("<^A", "v<<A^>A>A"),
+        ("v<<A", "v<A<AA>>^A"),
+        ("^>A", "<Av>A^A"),
+        ("v>A", "v<A>A^A"),
+    ]
+    .into_iter()
+    .map(|(a, b)| (a.to_string(), b.to_string()))
+    .collect();
 
     let mut result1: usize = 0;
     let mut ps: Vec<String> = vec![];
@@ -529,7 +536,6 @@ fn main() {
         result1 += p.len() * numeric_value(code);
     }
     println!("result1: {}", result1);
-    eprintln!("{} {:?}", subs.len(), subs);
 
     let mut result2: usize = 0;
     for (i, p) in ps.into_iter().enumerate() {
