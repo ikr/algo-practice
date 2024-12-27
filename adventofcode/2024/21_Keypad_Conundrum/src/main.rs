@@ -304,40 +304,6 @@ impl ArrKey {
         }
     }
 
-    fn optimal_transition(&self, to: ArrKey) -> Vec<Dir> {
-        match (self, to) {
-            (ArrKey::U, ArrKey::U) => vec![],
-            (ArrKey::U, ArrKey::R) => vec![Dir::S, Dir::E],
-            (ArrKey::U, ArrKey::D) => vec![Dir::S],
-            (ArrKey::U, ArrKey::L) => vec![Dir::S, Dir::W],
-            (ArrKey::U, ArrKey::A) => vec![Dir::E],
-
-            (ArrKey::R, ArrKey::U) => vec![Dir::N, Dir::W],
-            (ArrKey::R, ArrKey::R) => vec![],
-            (ArrKey::R, ArrKey::D) => vec![Dir::W],
-            (ArrKey::R, ArrKey::L) => vec![Dir::W, Dir::W],
-            (ArrKey::R, ArrKey::A) => vec![Dir::N],
-
-            (ArrKey::D, ArrKey::U) => vec![Dir::N],
-            (ArrKey::D, ArrKey::R) => vec![Dir::E],
-            (ArrKey::D, ArrKey::D) => vec![],
-            (ArrKey::D, ArrKey::L) => vec![Dir::W],
-            (ArrKey::D, ArrKey::A) => vec![Dir::N, Dir::E],
-
-            (ArrKey::L, ArrKey::U) => vec![Dir::E, Dir::N],
-            (ArrKey::L, ArrKey::R) => vec![Dir::E, Dir::E],
-            (ArrKey::L, ArrKey::D) => vec![Dir::E],
-            (ArrKey::L, ArrKey::L) => vec![],
-            (ArrKey::L, ArrKey::A) => vec![Dir::E, Dir::E, Dir::N],
-
-            (ArrKey::A, ArrKey::U) => vec![Dir::W],
-            (ArrKey::A, ArrKey::R) => vec![Dir::S],
-            (ArrKey::A, ArrKey::D) => vec![Dir::S, Dir::W],
-            (ArrKey::A, ArrKey::L) => vec![Dir::S, Dir::W, Dir::W],
-            (ArrKey::A, ArrKey::A) => vec![],
-        }
-    }
-
     fn from_dir(dir: Dir) -> Self {
         match dir {
             Dir::N => ArrKey::U,
@@ -458,80 +424,29 @@ fn arrpad_programs_for_given_protoprogram(protoprogram: &[ArrKey]) -> Vec<Vec<Ar
     programs
 }
 
-fn complexity(code: &[NumKey]) -> usize {
-    let mut ps = arrpad_programs_for_given_code(code);
-
-    let p0: Vec<ArrKey> = ps
+fn gather_substiturions_return_optimal_program_for_2_arrpads(
+    code: &[NumKey],
+) -> (HashMap<String, String>, Vec<ArrKey>) {
+    let ps = arrpad_programs_for_given_code(code);
+    let qs = ps
+        .into_iter()
+        .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
+        .collect::<Vec<_>>();
+    let q0: Vec<ArrKey> = qs
         .iter()
         .min_by_key(|p| (p.len(), stringify(p)))
         .unwrap()
         .to_vec();
-    eprintln!("{} {}", p0.len(), stringify(&p0));
-
-    for _ in 1..=2 {
-        ps = ps
-            .into_iter()
-            .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
-            .collect::<Vec<_>>();
-
-        let p0: Vec<ArrKey> = ps
-            .iter()
-            .min_by_key(|p| (p.len(), stringify(p)))
-            .unwrap()
-            .to_vec();
-        eprintln!("{} {}", p0.len(), stringify(&p0));
-    }
-
-    let mut fq: Vec<(usize, usize)> = ps.iter().map(|p| p.len()).counts().into_iter().collect();
-    fq.sort();
-    eprintln!("fq: {:?}", fq);
-
-    let p: Vec<ArrKey> = ps
-        .into_iter()
-        .min_by_key(|p| (p.len(), stringify(p)))
-        .unwrap()
-        .to_vec();
-
-    p.len() * numeric_value(code)
-}
-
-fn experimental_complexity(code: &[NumKey]) -> usize {
-    let mut ps = arrpad_programs_for_given_code(code);
-    ps = ps
+    let rs = qs
         .into_iter()
         .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
         .collect::<Vec<_>>();
-
-    let mut p: Vec<ArrKey> = ps
-        .into_iter()
+    let r0: Vec<ArrKey> = rs
+        .iter()
         .min_by_key(|p| (p.len(), stringify(p)))
         .unwrap()
         .to_vec();
-
-    p = p
-        .into_iter()
-        .fold((ArrKey::A, vec![]), |(pointing_at, mut acc), x| {
-            let program = pointing_at.optimal_transition(x);
-            acc.extend(
-                program
-                    .iter()
-                    .map(|&y| ArrKey::from_dir(y))
-                    .collect::<Vec<_>>(),
-            );
-            acc.push(ArrKey::A);
-            (
-                if let Some(y) = program.last() {
-                    ArrKey::from_dir(*y)
-                } else {
-                    pointing_at
-                },
-                acc,
-            )
-        })
-        .1;
-
-    eprintln!("E {} {}", p.len(), stringify(&p));
-    p.len() * numeric_value(code)
+    (substitutions(&stringify(&q0), &stringify(&r0)), r0)
 }
 
 fn positions_of(xs: &str, x0: char, lim: usize) -> Vec<usize> {
@@ -542,17 +457,16 @@ fn positions_of(xs: &str, x0: char, lim: usize) -> Vec<usize> {
         .collect()
 }
 
-fn gather_substitutions(a: &str, b: &str) -> HashMap<String, String> {
+fn substitutions(a: &str, b: &str) -> HashMap<String, String> {
     if a.is_empty() {
         assert!(b.is_empty());
         HashMap::new()
     } else {
         let i0 = positions_of(a, 'A', 1).first().copied().unwrap();
         let j0 = positions_of(b, 'A', i0 + 1).last().copied().unwrap();
-        eprintln!("i0:{} j0:{}", i0, j0);
         let mut result: HashMap<String, String> =
             HashMap::from([(a[0..i0 + 1].to_string(), b[0..j0 + 1].to_string())]);
-        let sub = gather_substitutions(&a[i0 + 1..], &b[j0 + 1..]);
+        let sub = substitutions(&a[i0 + 1..], &b[j0 + 1..]);
         result.extend(sub);
         result
     }
@@ -565,15 +479,15 @@ fn main() {
         .map(|line| parse_numpad_code(&line.unwrap()))
         .collect();
 
-    let result: usize = numpad_codes
-        .into_iter()
-        .map(|code| {
-            let c = complexity(&code);
-            assert_eq!(experimental_complexity(&code), c);
-            c
-        })
-        .sum();
-    println!("{}", result);
+    let mut subs: HashMap<String, String> = HashMap::new();
+    let mut result1: usize = 0;
+    for code in numpad_codes {
+        let (subsubs, p) = gather_substiturions_return_optimal_program_for_2_arrpads(&code);
+        subs.extend(subsubs);
+        result1 += p.len() * numeric_value(&code);
+    }
+    println!("result1: {}", result1);
+    eprintln!("{} {:?}", subs.len(), subs);
 }
 
 #[cfg(test)]
@@ -583,9 +497,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn gather_substitutions_works() {
+    fn substitutions_function_works() {
         assert_eq!(
-            gather_substitutions(
+            substitutions(
                 "v<<A>>^A<A>AvA<^AA>A<vAAA>^A",
                 "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
             ),
