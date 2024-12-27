@@ -1,3 +1,4 @@
+use core::panic;
 use std::{
     collections::HashMap,
     hash::Hash,
@@ -424,28 +425,70 @@ fn arrpad_programs_for_given_protoprogram(protoprogram: &[ArrKey]) -> Vec<Vec<Ar
     programs
 }
 
+fn token_a_extracts_into_b(a: &str, b: &str) -> bool {
+    assert!(!a.is_empty() && !b.is_empty());
+
+    let buttons = [[' ', '^', 'A'], ['<', 'v', '>']];
+    let mut buf: Vec<char> = vec![];
+    let mut ro: usize = 0;
+    let mut co: usize = 2;
+
+    for x in b.chars() {
+        match x {
+            '^' => ro -= 1,
+            '<' => co -= 1,
+            'v' => ro += 1,
+            '>' => co += 1,
+            'A' => buf.push(buttons[ro][co]),
+            _ => panic!(),
+        }
+    }
+
+    buf.into_iter().collect::<String>() == a
+}
+
+fn a_extracts_into_b(a: &str, b: &str) -> bool {
+    if (a.is_empty() && !b.is_empty()) || (b.is_empty() && !a.is_empty()) {
+        return false;
+    }
+
+    if a.is_empty() && b.is_empty() {
+        return true;
+    }
+
+    let i0 = positions_of(a, 'A', 1).first().copied().unwrap();
+    let j0 = positions_of(b, 'A', i0 + 1).last().copied().unwrap();
+    if !token_a_extracts_into_b(&a[0..i0 + 1], &b[0..j0 + 1]) {
+        false
+    } else {
+        a_extracts_into_b(&a[i0 + 1..], &b[j0 + 1..])
+    }
+}
+
 fn gather_substiturions_return_optimal_program_for_2_arrpads(
     code: &[NumKey],
 ) -> (HashMap<String, String>, Vec<ArrKey>) {
     let ps = arrpad_programs_for_given_code(code);
+
     let qs = ps
         .into_iter()
         .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
         .collect::<Vec<_>>();
-    let q0: Vec<ArrKey> = qs
-        .iter()
-        .min_by_key(|p| (p.len(), stringify(p)))
-        .unwrap()
-        .to_vec();
+    let qs_lo: usize = qs.iter().min_by_key(|p| p.len()).unwrap().len();
+
     let rs = qs
-        .into_iter()
+        .iter()
         .flat_map(|protoprogram| arrpad_programs_for_given_protoprogram(&protoprogram))
         .collect::<Vec<_>>();
-    let r0: Vec<ArrKey> = rs
-        .iter()
-        .min_by_key(|p| (p.len(), stringify(p)))
-        .unwrap()
-        .to_vec();
+    let rs_lo: usize = rs.iter().min_by_key(|p| p.len()).unwrap().len();
+
+    let (q0, r0) = qs
+        .into_iter()
+        .filter(|q| q.len() == qs_lo)
+        .cartesian_product(rs.into_iter().filter(|r| r.len() == rs_lo))
+        .find(|(q, r)| a_extracts_into_b(&stringify(&q), &stringify(&r)))
+        .unwrap();
+
     eprintln!("{} → {}", stringify(&q0), stringify(&r0));
     (substitutions(&stringify(&q0), &stringify(&r0)), r0)
 }
@@ -520,14 +563,21 @@ fn main() {
         .collect();
 
     let mut subs: HashMap<String, String> = [
-        ("<^A", "v<<A>^A>A"),
-        ("v<<A", "v<A<AA>>^A"),
-        //("^>A", "<Av>A^A"),
-        //("v>A", "v<A>A^A"),
+        (">^>A", "vA<^Av>A^A"),
+        ("^<A", "<Av<A>>^A"),
+        // ("<^A", "v<<A>^A>A"),
+        // ("v<<A", "v<A<AA>>^A"),
+        // ("^>A", "<Av>A^A"),
+        // ("v>A", "v<A>A^A"),
     ]
     .into_iter()
     .map(|(a, b)| (a.to_string(), b.to_string()))
     .collect();
+
+    subs.extend(substitutions(
+        "v<<A>>^A<A>AvA<^AA>A<vAAA>^A",
+        "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A",
+    ));
 
     let mut result1: usize = 0;
     let mut ps: Vec<String> = vec![];
@@ -538,9 +588,15 @@ fn main() {
         result1 += p.len() * numeric_value(code);
     }
     println!("result1: {}", result1);
-
     assert_eq!(ps.len(), numpad_codes.len());
-    eprintln!("{:?}", subs);
+    eprintln!("{} {:?}", subs.len(), subs);
+
+    for code_src in ["980A", "179A", "456A", "379A"] {
+        let code = parse_numpad_code(code_src);
+        let (subsubs, _) = gather_substiturions_return_optimal_program_for_2_arrpads(&code);
+        subs.extend(subsubs);
+    }
+    eprintln!("{} {:?}", subs.len(), subs);
 
     let mut result2: usize = 0;
     for (i, p) in ps.into_iter().enumerate() {
@@ -596,5 +652,26 @@ mod tests {
             apress_tokens("<A^A>^^AvvvA"),
             vec!["<A", "^A", ">^^A", "vvvA"]
         )
+    }
+
+    #[test]
+    fn a_extracts_into_b_positive_1() {
+        assert!(a_extracts_into_b(
+            "v<<A>>^A<A>AvA<^AA>A<vAAA>^A",
+            "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
+        ))
+    }
+
+    #[test]
+    fn a_extracts_into_b_positive_2() {
+        assert!(a_extracts_into_b(
+            "<A^A>^^AvvvA",
+            "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
+        ))
+    }
+
+    #[test]
+    fn a_extracts_into_b_negative() {
+        assert!(!a_extracts_into_b("vA", "<A>A"));
     }
 }
