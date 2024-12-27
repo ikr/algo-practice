@@ -446,6 +446,7 @@ fn gather_substiturions_return_optimal_program_for_2_arrpads(
         .min_by_key(|p| (p.len(), stringify(p)))
         .unwrap()
         .to_vec();
+    eprintln!("{} → {}", stringify(&q0), stringify(&r0));
     (substitutions(&stringify(&q0), &stringify(&r0)), r0)
 }
 
@@ -504,6 +505,7 @@ fn evolve(subs: &HashMap<String, String>, fqs: &HashMap<String, usize>) -> HashM
 
 fn end_length(subs: &HashMap<String, String>, p: &str) -> usize {
     let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
+    eprintln!("{} p:{} fqs:{:?}", p.len(), p, fqs);
     for _ in 3..=25 {
         fqs = evolve(subs, &fqs);
     }
