@@ -504,7 +504,7 @@ fn evolve(subs: &HashMap<String, String>, fqs: &HashMap<String, usize>) -> HashM
 
 fn end_length(subs: &HashMap<String, String>, p: &str) -> usize {
     let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
-    for _ in 3..=26 {
+    for _ in 3..=25 {
         fqs = evolve(subs, &fqs);
     }
     fqs.into_values().sum()
@@ -536,7 +536,9 @@ fn main() {
         result1 += p.len() * numeric_value(code);
     }
     println!("result1: {}", result1);
+
     assert_eq!(ps.len(), numpad_codes.len());
+    eprintln!("{:?}", subs);
 
     let mut result2: usize = 0;
     for (i, p) in ps.into_iter().enumerate() {
