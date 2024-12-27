@@ -491,7 +491,6 @@ fn apress_tokens(s: &str) -> Vec<String> {
 fn evolve(subs: &HashMap<String, String>, fqs: &HashMap<String, usize>) -> HashMap<String, usize> {
     let mut new_fqs: HashMap<String, usize> = HashMap::new();
     for (s, f) in fqs {
-        eprintln!("{:?}", fqs);
         eprintln!("subs[{}]", s);
         let t = subs.get(s).unwrap();
         for x in apress_tokens(t) {
@@ -516,7 +515,11 @@ fn main() {
         .map(|line| parse_numpad_code(&line.unwrap()))
         .collect();
 
-    let mut subs: HashMap<String, String> = HashMap::new();
+    let mut subs: HashMap<String, String> = [("<^A", "v<<A>^A>A"), ("v<<A", "v<A<AA>>^A")]
+        .into_iter()
+        .map(|(a, b)| (a.to_string(), b.to_string()))
+        .collect();
+
     let mut result1: usize = 0;
     let mut ps: Vec<String> = vec![];
     for code in numpad_codes.iter() {
