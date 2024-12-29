@@ -122,32 +122,32 @@ fn route(
         .unwrap()
 }
 
-fn numpad_program(src: char, dst: char) -> String {
+fn numpad_program(favor_horz: bool, src: char, dst: char) -> String {
     route(
         crd_in_numpad(' '),
-        true,
+        favor_horz,
         crd_in_numpad(src),
         crd_in_numpad(dst),
     )
 }
 
-fn arrpad_program(src: char, dst: char) -> String {
+fn arrpad_program(favor_horz: bool, src: char, dst: char) -> String {
     route(
         crd_in_arrpad(' '),
-        false,
+        favor_horz,
         crd_in_arrpad(src),
         crd_in_arrpad(dst),
     )
 }
 
-fn arrpad_metaprogram(xs: &str) -> String {
+fn arrpad_metaprogram(favor_horz: bool, xs: &str) -> String {
     std::iter::once('A')
         .chain(xs.chars())
         .collect::<Vec<_>>()
         .windows(2)
         .fold(String::new(), |mut acc, uv| {
             let [u, v] = uv else { panic!() };
-            acc += &arrpad_program(*u, *v);
+            acc += &arrpad_program(favor_horz, *u, *v);
             acc.push('A');
             acc
         })
@@ -195,11 +195,23 @@ fn total_length(fqs: &HashMap<String, usize>) -> usize {
     fqs.iter().map(|(k, v)| k.len() * v).sum()
 }
 
-fn end_length(subs: &HashMap<String, String>, p: &str) -> usize {
+fn end_length(
+    subs_v: &HashMap<String, String>,
+    subs_h: &HashMap<String, String>,
+    p: &str,
+) -> usize {
     let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
     eprintln!("{} p:{} fqs:{:?}", p.len(), p, fqs);
     for t in 1..=2 {
-        fqs = evolve(subs, &fqs);
+        let fqs_v = evolve(subs_v, &fqs);
+        let fqs_h = evolve(subs_h, &fqs);
+
+        if total_length(&fqs_v) <= total_length(&fqs_h) {
+            fqs = fqs_v;
+        } else {
+            fqs = fqs_h;
+        }
+
         eprintln!("t:{} {}", t, total_length(&fqs));
     }
     total_length(&fqs)
@@ -212,15 +224,23 @@ fn main() {
         .map(|line| line.unwrap().to_string())
         .collect();
 
-    let subs: HashMap<String, String> = [
+    let tokens = [
         "A", "^A", "^^>A", "<A", "vvvA", ">>^A", ">A", "^>A", "v<A", "v>A", "v<<A", "^^^A", "vA",
         ">>A", "^^A", "^<<A", "^^<<A", "vvA", ">^^A", ">^A", "<vA", "<^A", "<<^^A", ">>vA", "<<^A",
         ">vA", "<^^^A", ">vvvA", ">vvA", "^<A", "^^^<A", "vv>A",
-    ]
-    .into_iter()
-    .map(|s| (s.to_string(), arrpad_metaprogram(s)))
-    .map(|(a, b)| (a.to_string(), b.to_string()))
-    .collect();
+    ];
+
+    let subs_v: HashMap<String, String> = tokens
+        .iter()
+        .map(|s| (s.to_string(), arrpad_metaprogram(false, s)))
+        .map(|(a, b)| (a.to_string(), b.to_string()))
+        .collect();
+
+    let subs_h: HashMap<String, String> = tokens
+        .into_iter()
+        .map(|s| (s.to_string(), arrpad_metaprogram(true, s)))
+        .map(|(a, b)| (a.to_string(), b.to_string()))
+        .collect();
 
     let mut result: usize = 0;
     for code in numpad_codes.iter() {
@@ -230,11 +250,13 @@ fn main() {
             .windows(2)
             .fold(String::new(), |mut acc, uv| {
                 let [u, v] = uv else { panic!() };
-                acc += &numpad_program(*u, *v);
+                acc += &numpad_program(true, *u, *v);
                 acc.push('A');
                 acc
             });
-        result += end_length(&subs, &p) * code[0..code.len() - 1].parse::<usize>().unwrap();
+
+        result +=
+            end_length(&subs_v, &subs_h, &p) * code[0..code.len() - 1].parse::<usize>().unwrap();
     }
     println!("{}", result);
 }
