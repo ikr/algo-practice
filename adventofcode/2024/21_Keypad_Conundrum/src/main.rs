@@ -100,12 +100,21 @@ fn horz_first_route(src: (usize, usize), dst: (usize, usize)) -> String {
     result
 }
 
-fn route(forbidden: (usize, usize), src: (usize, usize), dst: (usize, usize)) -> String {
+fn route(
+    forbidden: (usize, usize),
+    favor_horz: bool,
+    src: (usize, usize),
+    dst: (usize, usize),
+) -> String {
     assert_ne!(src, forbidden);
     assert_ne!(dst, forbidden);
 
-    [vert_first_route(src, dst), horz_first_route(src, dst)]
-        .into_iter()
+    let mut opts = [vert_first_route(src, dst), horz_first_route(src, dst)];
+    if favor_horz {
+        opts.reverse();
+    }
+
+    opts.into_iter()
         .find(|xs| {
             let crds = route_crds(src, xs);
             !crds.contains(&forbidden)
@@ -114,11 +123,21 @@ fn route(forbidden: (usize, usize), src: (usize, usize), dst: (usize, usize)) ->
 }
 
 fn numpad_program(src: char, dst: char) -> String {
-    route(crd_in_numpad(' '), crd_in_numpad(src), crd_in_numpad(dst))
+    route(
+        crd_in_numpad(' '),
+        true,
+        crd_in_numpad(src),
+        crd_in_numpad(dst),
+    )
 }
 
 fn arrpad_program(src: char, dst: char) -> String {
-    route(crd_in_arrpad(' '), crd_in_arrpad(src), crd_in_arrpad(dst))
+    route(
+        crd_in_arrpad(' '),
+        false,
+        crd_in_arrpad(src),
+        crd_in_arrpad(dst),
+    )
 }
 
 fn arrpad_metaprogram(xs: &str) -> String {
@@ -140,21 +159,6 @@ fn positions_of(xs: &str, x0: char, lim: usize) -> Vec<usize> {
         .filter_map(|(i, x)| if x == x0 { Some(i) } else { None })
         .take(lim)
         .collect()
-}
-
-fn substitutions(a: &str, b: &str) -> HashMap<String, String> {
-    if a.is_empty() {
-        assert!(b.is_empty());
-        HashMap::new()
-    } else {
-        let i0 = positions_of(a, 'A', 1).first().copied().unwrap();
-        let j0 = positions_of(b, 'A', i0 + 1).last().copied().unwrap();
-        let mut result: HashMap<String, String> =
-            HashMap::from([(a[0..i0 + 1].to_string(), b[0..j0 + 1].to_string())]);
-        let sub = substitutions(&a[i0 + 1..], &b[j0 + 1..]);
-        result.extend(sub);
-        result
-    }
 }
 
 fn apress_tokens(s: &str) -> Vec<String> {
@@ -210,7 +214,8 @@ fn main() {
 
     let subs: HashMap<String, String> = [
         "A", "^A", "^^>A", "<A", "vvvA", ">>^A", ">A", "^>A", "v<A", "v>A", "v<<A", "^^^A", "vA",
-        ">>A", "^^A", "^<<A", "^^<<A", "vvA",
+        ">>A", "^^A", "^<<A", "^^<<A", "vvA", ">^^A", ">^A", "<vA", "<^A", "<<^^A", ">>vA", "<<^A",
+        ">vA", "<^^^A", ">vvvA", ">vvA", "^<A",
     ]
     .into_iter()
     .map(|s| (s.to_string(), arrpad_metaprogram(s)))
@@ -236,33 +241,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use super::*;
-
-    #[test]
-    fn substitutions_function_works() {
-        assert_eq!(
-            substitutions(
-                "v<<A>>^A<A>AvA<^AA>A<vAAA>^A",
-                "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
-            ),
-            HashMap::from(
-                [
-                    ("<A", "<v<A>>^A"),
-                    ("<^A", "<v<A>^A>A"),
-                    ("<vA", "<v<A>A>^A"),
-                    (">>^A", "vAA<^A>A"),
-                    (">A", "vA^A"),
-                    (">^A", "vA<^A>A"),
-                    ("A", "A"),
-                    ("v<<A", "<vA<AA>>^A"),
-                    ("vA", "<vA>^A"),
-                ]
-                .map(|(a, b)| (a.to_string(), b.to_string()))
-            )
-        );
-    }
 
     #[test]
     fn apress_tokens_works_0() {
