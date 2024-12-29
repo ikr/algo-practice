@@ -202,7 +202,7 @@ fn end_length(
 ) -> usize {
     let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
     eprintln!("{} p:{} fqs:{:?}", p.len(), p, fqs);
-    for t in 1..=2 {
+    for t in 1..=25 {
         let fqs_v = evolve(subs_v, &fqs);
         let fqs_h = evolve(subs_h, &fqs);
 
@@ -256,7 +256,7 @@ fn main() {
             });
 
         result +=
-            end_length(&subs_v, &subs_h, &p) * code[0..code.len() - 1].parse::<usize>().unwrap();
+            end_length(&subs_h, &subs_h, &p) * code[0..code.len() - 1].parse::<usize>().unwrap();
     }
     println!("{}", result);
 }
