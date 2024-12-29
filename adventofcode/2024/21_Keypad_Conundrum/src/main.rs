@@ -215,7 +215,7 @@ fn main() {
     let subs: HashMap<String, String> = [
         "A", "^A", "^^>A", "<A", "vvvA", ">>^A", ">A", "^>A", "v<A", "v>A", "v<<A", "^^^A", "vA",
         ">>A", "^^A", "^<<A", "^^<<A", "vvA", ">^^A", ">^A", "<vA", "<^A", "<<^^A", ">>vA", "<<^A",
-        ">vA", "<^^^A", ">vvvA", ">vvA", "^<A",
+        ">vA", "<^^^A", ">vvvA", ">vvA", "^<A", "^^^<A", "vv>A",
     ]
     .into_iter()
     .map(|s| (s.to_string(), arrpad_metaprogram(s)))
