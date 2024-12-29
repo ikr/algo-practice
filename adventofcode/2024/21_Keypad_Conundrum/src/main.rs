@@ -134,7 +134,7 @@ fn numpad_program(src: char, dst: char) -> String {
 fn arrpad_program(src: char, dst: char) -> String {
     route(
         crd_in_arrpad(' '),
-        false,
+        true,
         crd_in_arrpad(src),
         crd_in_arrpad(dst),
     )
@@ -212,13 +212,46 @@ fn main() {
         .map(|line| line.unwrap().to_string())
         .collect();
 
+    // let subs: HashMap<String, String> = [
+    //     "A", "^A", "^^>A", "<A", "vvvA", ">>^A", ">A", "^>A", "v<A", "v>A", "v<<A", "^^^A", "vA",
+    //     ">>A", "^^A", "^<<A", "^^<<A", "vvA", ">^^A", ">^A", "<vA", "<^A", "<<^^A", ">>vA", "<<^A",
+    //     ">vA", "<^^^A", ">vvvA", ">vvA", "^<A", "^^^<A", "vv>A",
+    // ]
+    // .into_iter()
+    // .map(|s| (s.to_string(), arrpad_metaprogram(s)))
+    // .map(|(a, b)| (a.to_string(), b.to_string()))
+    // .collect();
+
     let subs: HashMap<String, String> = [
-        "A", "^A", "^^>A", "<A", "vvvA", ">>^A", ">A", "^>A", "v<A", "v>A", "v<<A", "^^^A", "vA",
-        ">>A", "^^A", "^<<A", "^^<<A", "vvA", ">^^A", ">^A", "<vA", "<^A", "<<^^A", ">>vA", "<<^A",
-        ">vA", "<^^^A", ">vvvA", ">vvA", "^<A", "^^^<A", "vv>A",
+        // inA
+        ("A", "A"),
+        ("^A", "<A>A"),
+        ("<A", "v<<A>>^A"),
+        (">^^A", "vA^<AA>A"),
+        ("vvvA", "v<AAA>^A"),
+        (">>^A", "vAA^<A>A"),
+        ("v<<A", "v<A<AA>>^A"),
+        ("vA", "v<A>^A"),
+        ("^<A", "<Av<A>>^A"),
+        (">A", "vA^A"),
+        (">^A", "vA^<A>A"),
+        ("v<A", "v<A<A>>^A"),
+        ("^^^A", "<AAA>A"),
+        (">>A", "vAA^A"),
+        ("^^A", "<AA>A"),
+        ("^<<A", "<Av<AA>>^A"),
+        ("^^<<A", "<AAv<AA>>^A"),
+        ("vvA", "v<AA>^A"),
+        ("<<^^A", "v<<AA>^AA>A"),
+        // in1
+        ("<<^A", "v<<AA>^A>A"),
+        (">>vA", "vAA<A>^A"),
+        ("<^^^A", "v<<A>^AAA>A"),
+        (">vvvA", "vA<AAA>^A"),
+        (">vvA", "vA<AA>^A"),
+        ("<^A", "v<<A>^A>A"),
     ]
     .into_iter()
-    .map(|s| (s.to_string(), arrpad_metaprogram(s)))
     .map(|(a, b)| (a.to_string(), b.to_string()))
     .collect();
 
