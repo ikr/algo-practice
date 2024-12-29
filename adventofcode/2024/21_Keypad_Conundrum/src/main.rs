@@ -195,10 +195,10 @@ fn total_length(fqs: &HashMap<String, usize>) -> usize {
     fqs.iter().map(|(k, v)| k.len() * v).sum()
 }
 
-fn end_length(subs: &HashMap<String, String>, p: &str) -> usize {
+fn end_length(intermediaries_num: usize, subs: &HashMap<String, String>, p: &str) -> usize {
     let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
     eprintln!("{} p:{} fqs:{:?}", p.len(), p, fqs);
-    for t in 1..=2 {
+    for t in 1..=intermediaries_num {
         fqs = evolve(subs, &fqs);
         eprintln!("t:{} {}", t, total_length(&fqs));
     }
@@ -267,7 +267,7 @@ fn main() {
                 acc.push('A');
                 acc
             });
-        result += end_length(&subs, &p) * code[0..code.len() - 1].parse::<usize>().unwrap();
+        result += end_length(2, &subs, &p) * code[0..code.len() - 1].parse::<usize>().unwrap();
     }
     println!("{}", result);
 }
