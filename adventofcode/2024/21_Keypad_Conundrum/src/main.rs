@@ -340,5 +340,14 @@ mod tests {
         assert_eq!(arrpad_metaprograms("<A"), vec!["v<<A>>^A"]);
         assert_eq!(arrpad_metaprograms("A"), vec!["A"]);
         assert_eq!(arrpad_metaprograms("^>A"), vec!["<Av>A^A", "<A>vA^A"]);
+        assert_eq!(
+            arrpad_metaprograms("^>A^>A"),
+            vec![
+                "<Av>A^A<Av>A^A",
+                "<Av>A^A<A>vA^A",
+                "<A>vA^A<Av>A^A",
+                "<A>vA^A<A>vA^A"
+            ]
+        );
     }
 }
