@@ -197,6 +197,22 @@ fn apress_tokens(s: &str) -> Vec<String> {
         .collect()
 }
 
+fn evolve_one(fq0: &Freqs) -> Vec<Freqs> {
+    let mut result: Vec<Freqs> = vec![HashMap::new()];
+    for (s0, f0) in fq0 {
+        for unsplit_variant in arrpad_metaprograms(s0) {
+            for token in apress_tokens(&unsplit_variant) {
+                for fq in result.iter_mut() {
+                    fq.entry(token.clone())
+                        .and_modify(|f| *f += f0)
+                        .or_insert(*f0);
+                }
+            }
+        }
+    }
+    result
+}
+
 fn evolve(fqs: &[Freqs]) -> Vec<Freqs> {
     // let mut new_fqs: HashMap<String, usize> = HashMap::new();
     // for (s, f) in fqs {
@@ -210,7 +226,8 @@ fn evolve(fqs: &[Freqs]) -> Vec<Freqs> {
     // }
     // new_fqs
 
-    todo!()
+    let mut new_fqs: Vec<Freqs> = vec![];
+    new_fqs
 }
 
 fn total_length(fqs: &Freqs) -> usize {
