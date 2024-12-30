@@ -199,51 +199,44 @@ fn apress_tokens(s: &str) -> Vec<String> {
 
 fn evolve_one(fq0: &Freqs) -> Vec<Freqs> {
     let mut result: Vec<Freqs> = vec![HashMap::new()];
+
     for (s0, f0) in fq0 {
+        let mut new_result: Vec<Freqs> = vec![];
+
         for unsplit_variant in arrpad_metaprograms(s0) {
+            let mut fqs = result.clone();
             for token in apress_tokens(&unsplit_variant) {
-                for fq in result.iter_mut() {
+                for fq in fqs.iter_mut() {
                     fq.entry(token.clone())
                         .and_modify(|f| *f += f0)
                         .or_insert(*f0);
                 }
             }
+            new_result.extend(fqs);
         }
+
+        result = new_result;
     }
     result
 }
 
 fn evolve(fqs: &[Freqs]) -> Vec<Freqs> {
-    // let mut new_fqs: HashMap<String, usize> = HashMap::new();
-    // for (s, f) in fqs {
-    //     if !subs.contains_key(s) {
-    //         eprintln!("subs[{}]", s);
-    //     }
-    //     let t = subs.get(s).unwrap();
-    //     for x in apress_tokens(t) {
-    //         new_fqs.entry(x).and_modify(|g| *g += f).or_insert(*f);
-    //     }
-    // }
-    // new_fqs
-
-    let mut new_fqs: Vec<Freqs> = vec![];
-    new_fqs
+    let mut result: Vec<Freqs> = vec![];
+    for fq in fqs {
+        result.extend(evolve_one(fq));
+    }
+    result
 }
 
 fn total_length(fqs: &Freqs) -> usize {
     fqs.iter().map(|(k, v)| k.len() * v).sum()
 }
 
-fn end_length(intermediaries_num: usize, fqs: &[Freqs]) -> usize {
-    // let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
-    // eprintln!("{} p:{} fqs:{:?}", p.len(), p, fqs);
-    // for t in 1..=intermediaries_num {
-    //     fqs = evolve(subs, &fqs);
-    //     eprintln!("t:{} {}", t, total_length(&fqs));
-    // }
-    // total_length(&fqs)
-
-    todo!()
+fn end_length(intermediaries_num: usize, mut fqs: Vec<Freqs>) -> usize {
+    for _ in 1..=intermediaries_num {
+        fqs = evolve(&fqs);
+    }
+    fqs.into_iter().map(|fq| total_length(&fq)).min().unwrap()
 }
 
 fn main() {
@@ -259,7 +252,7 @@ fn main() {
             .chain(code.chars())
             .collect::<Vec<_>>()
             .windows(2)
-            .fold(vec![], |acc, uv| {
+            .fold(vec!["".to_string()], |acc, uv| {
                 let [u, v] = uv else { panic!() };
                 let mut qs: Vec<String> = vec![];
 
@@ -271,13 +264,16 @@ fn main() {
                 }
                 qs
             });
+        eprintln!("{:?}", ps);
 
         let fqs: Vec<Freqs> = ps
             .iter()
             .map(|p| apress_tokens(p).into_iter().counts())
             .collect();
 
-        result += end_length(2, &fqs) * code[0..code.len() - 1].parse::<usize>().unwrap();
+        eprintln!("{:?}", fqs);
+
+        result += end_length(25, fqs) * code[0..code.len() - 1].parse::<usize>().unwrap();
     }
     println!("{}", result);
 }
@@ -347,6 +343,29 @@ mod tests {
                 "<Av>A^A<A>vA^A",
                 "<A>vA^A<Av>A^A",
                 "<A>vA^A<A>vA^A"
+            ]
+        );
+    }
+
+    #[test]
+    fn evolve_one_works() {
+        assert_eq!(
+            evolve_one(&HashMap::from([("A".to_string(), 1)])),
+            vec![HashMap::from([("A".to_string(), 1)])]
+        );
+        assert_eq!(
+            evolve_one(&HashMap::from([("^>A".to_string(), 2)])),
+            vec![
+                HashMap::from([
+                    ("<A".to_string(), 2),
+                    ("v>A".to_string(), 2),
+                    ("^A".to_string(), 2),
+                ]),
+                HashMap::from([
+                    ("<A".to_string(), 2),
+                    (">vA".to_string(), 2),
+                    ("^A".to_string(), 2),
+                ])
             ]
         );
     }
