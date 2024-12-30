@@ -5,6 +5,8 @@ use std::{
 
 use itertools::Itertools;
 
+type Freqs = HashMap<String, usize>;
+
 const NUMPAD: [[char; 3]; 4] = [
     ['7', '8', '9'],
     ['4', '5', '6'],
@@ -122,35 +124,53 @@ fn route(
         .unwrap()
 }
 
-fn numpad_program(src: char, dst: char) -> String {
-    route(
+fn numpad_route_variants(src: char, dst: char) -> Vec<String> {
+    let v = route(
+        crd_in_numpad(' '),
+        false,
+        crd_in_numpad(src),
+        crd_in_numpad(dst),
+    );
+    let h = route(
         crd_in_numpad(' '),
         true,
         crd_in_numpad(src),
         crd_in_numpad(dst),
-    )
+    );
+    [v, h].into_iter().unique().collect()
 }
 
-fn arrpad_program(src: char, dst: char) -> String {
-    route(
+fn arrpad_route_variants(src: char, dst: char) -> Vec<String> {
+    let v = route(
+        crd_in_arrpad(' '),
+        false,
+        crd_in_arrpad(src),
+        crd_in_arrpad(dst),
+    );
+    let h = route(
         crd_in_arrpad(' '),
         true,
         crd_in_arrpad(src),
         crd_in_arrpad(dst),
-    )
+    );
+    [v, h].into_iter().unique().collect()
 }
 
-fn arrpad_metaprogram(xs: &str) -> String {
-    std::iter::once('A')
-        .chain(xs.chars())
-        .collect::<Vec<_>>()
-        .windows(2)
-        .fold(String::new(), |mut acc, uv| {
-            let [u, v] = uv else { panic!() };
-            acc += &arrpad_program(*u, *v);
-            acc.push('A');
-            acc
-        })
+fn arrpad_metaprograms(xs: &str) -> Vec<String> {
+    let mut ps: Vec<String> = vec![String::new()];
+
+    for (u, v) in std::iter::once('A').chain(xs.chars()).tuple_windows() {
+        let mut qs: Vec<String> = vec![];
+        for pref in ps.iter() {
+            for suff in arrpad_route_variants(u, v) {
+                let p = pref.clone() + &suff + "A";
+                qs.push(p)
+            }
+        }
+        ps = qs;
+    }
+
+    ps
 }
 
 fn positions_of(xs: &str, x0: char, lim: usize) -> Vec<usize> {
@@ -177,32 +197,36 @@ fn apress_tokens(s: &str) -> Vec<String> {
         .collect()
 }
 
-fn evolve(subs: &HashMap<String, String>, fqs: &HashMap<String, usize>) -> HashMap<String, usize> {
-    let mut new_fqs: HashMap<String, usize> = HashMap::new();
-    for (s, f) in fqs {
-        if !subs.contains_key(s) {
-            eprintln!("subs[{}]", s);
-        }
-        let t = subs.get(s).unwrap();
-        for x in apress_tokens(t) {
-            new_fqs.entry(x).and_modify(|g| *g += f).or_insert(*f);
-        }
-    }
-    new_fqs
+fn evolve(fqs: &[Freqs]) -> Vec<Freqs> {
+    // let mut new_fqs: HashMap<String, usize> = HashMap::new();
+    // for (s, f) in fqs {
+    //     if !subs.contains_key(s) {
+    //         eprintln!("subs[{}]", s);
+    //     }
+    //     let t = subs.get(s).unwrap();
+    //     for x in apress_tokens(t) {
+    //         new_fqs.entry(x).and_modify(|g| *g += f).or_insert(*f);
+    //     }
+    // }
+    // new_fqs
+
+    todo!()
 }
 
-fn total_length(fqs: &HashMap<String, usize>) -> usize {
+fn total_length(fqs: &Freqs) -> usize {
     fqs.iter().map(|(k, v)| k.len() * v).sum()
 }
 
-fn end_length(intermediaries_num: usize, subs: &HashMap<String, String>, p: &str) -> usize {
-    let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
-    eprintln!("{} p:{} fqs:{:?}", p.len(), p, fqs);
-    for t in 1..=intermediaries_num {
-        fqs = evolve(subs, &fqs);
-        eprintln!("t:{} {}", t, total_length(&fqs));
-    }
-    total_length(&fqs)
+fn end_length(intermediaries_num: usize, fqs: &[Freqs]) -> usize {
+    // let mut fqs: HashMap<String, usize> = apress_tokens(p).into_iter().counts();
+    // eprintln!("{} p:{} fqs:{:?}", p.len(), p, fqs);
+    // for t in 1..=intermediaries_num {
+    //     fqs = evolve(subs, &fqs);
+    //     eprintln!("t:{} {}", t, total_length(&fqs));
+    // }
+    // total_length(&fqs)
+
+    todo!()
 }
 
 fn main() {
@@ -212,29 +236,31 @@ fn main() {
         .map(|line| line.unwrap().to_string())
         .collect();
 
-    let subs: HashMap<String, String> = [
-        "A", "^A", "^^>A", "<A", "vvvA", ">>^A", ">A", "^>A", "v<A", "v>A", "v<<A", "^^^A", "vA",
-        ">>A", "^^A", "^<<A", "^^<<A", "vvA", ">^^A", ">^A", "<vA", "<^A", "<<^^A", ">>vA", "<<^A",
-        ">vA", "<^^^A", ">vvvA", ">vvA", "^<A", "^^^<A", "vv>A",
-    ]
-    .into_iter()
-    .map(|s| (s.to_string(), arrpad_metaprogram(s)))
-    .map(|(a, b)| (a.to_string(), b.to_string()))
-    .collect();
-
     let mut result: usize = 0;
     for code in numpad_codes.iter() {
-        let p: String = std::iter::once('A')
+        let ps: Vec<String> = std::iter::once('A')
             .chain(code.chars())
             .collect::<Vec<_>>()
             .windows(2)
-            .fold(String::new(), |mut acc, uv| {
+            .fold(vec![], |acc, uv| {
                 let [u, v] = uv else { panic!() };
-                acc += &numpad_program(*u, *v);
-                acc.push('A');
-                acc
+                let mut qs: Vec<String> = vec![];
+
+                for pref in acc.iter() {
+                    for suff in numpad_route_variants(*u, *v) {
+                        let p = pref.clone() + &suff + "A";
+                        qs.push(p)
+                    }
+                }
+                qs
             });
-        result += end_length(2, &subs, &p) * code[0..code.len() - 1].parse::<usize>().unwrap();
+
+        let fqs: Vec<Freqs> = ps
+            .iter()
+            .map(|p| apress_tokens(p).into_iter().counts())
+            .collect();
+
+        result += end_length(2, &fqs) * code[0..code.len() - 1].parse::<usize>().unwrap();
     }
     println!("{}", result);
 }
@@ -281,20 +307,21 @@ mod tests {
     }
 
     #[test]
-    fn numpad_program_works() {
-        assert_eq!(numpad_program('1', '0'), ">v");
-        assert_eq!(numpad_program('A', '9'), "^^^");
+    fn numpad_route_variants_works() {
+        assert_eq!(numpad_route_variants('1', '0'), vec![">v"]);
+        assert_eq!(numpad_route_variants('2', '9'), vec!["^^>", ">^^"]);
     }
 
     #[test]
-    fn arrpad_program_works() {
-        assert_eq!(arrpad_program('<', '^'), ">^");
-        assert_eq!(arrpad_program('A', '<'), "v<<");
+    fn arrpad_route_variants_works() {
+        assert_eq!(arrpad_route_variants('<', '^'), vec![">^"]);
+        assert_eq!(arrpad_route_variants('v', 'A'), vec!["^>", ">^"]);
     }
 
     #[test]
     fn arrpad_metaprogram_works() {
-        assert_eq!(arrpad_metaprogram("<A"), "v<<A>>^A");
-        assert_eq!(arrpad_metaprogram("A"), "A");
+        assert_eq!(arrpad_metaprograms("<A"), vec!["v<<A>>^A"]);
+        assert_eq!(arrpad_metaprograms("A"), vec!["A"]);
+        assert_eq!(arrpad_metaprograms("^>A"), vec!["<Av>A^A", "<A>vA^A"]);
     }
 }
