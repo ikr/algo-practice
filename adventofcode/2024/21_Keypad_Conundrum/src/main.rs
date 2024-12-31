@@ -251,7 +251,7 @@ fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
             .into_iter()
             .filter(|fq| {
                 let tl = total_length(&fq);
-                tl == report[0].0 || tl == report[1].0
+                tl == report[0].0 || tl == report[1].0 || tl == report[2].0
             })
             .collect();
         top.shuffle(&mut rng);
@@ -265,7 +265,7 @@ fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
             })
             .collect();
         top.shuffle(&mut rng);
-        top.into_iter().take(10).collect()
+        top.into_iter().take(100).collect()
     } else {
         fqs
     }
