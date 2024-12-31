@@ -4,6 +4,8 @@ use std::{
 };
 
 use itertools::Itertools;
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
 
 type Freqs = HashMap<String, usize>;
 
@@ -232,9 +234,47 @@ fn total_length(fqs: &Freqs) -> usize {
     fqs.iter().map(|(k, v)| k.len() * v).sum()
 }
 
+fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
+    let mut rng = thread_rng();
+    let report = fqs
+        .iter()
+        .map(total_length)
+        .counts()
+        .into_iter()
+        .sorted()
+        .collect::<Vec<_>>();
+
+    eprintln!("{:?}", report);
+
+    if t > 2 {
+        let mut top: Vec<Freqs> = fqs
+            .into_iter()
+            .filter(|fq| {
+                let tl = total_length(&fq);
+                tl == report[0].0 || tl == report[1].0
+            })
+            .collect();
+        top.shuffle(&mut rng);
+        top.into_iter().take(2000).collect()
+    } else if t > 7 {
+        let mut top: Vec<Freqs> = fqs
+            .into_iter()
+            .filter(|fq| {
+                let tl = total_length(&fq);
+                tl == report[0].0
+            })
+            .collect();
+        top.shuffle(&mut rng);
+        top.into_iter().take(10).collect()
+    } else {
+        fqs
+    }
+}
+
 fn end_length(intermediaries_num: usize, mut fqs: Vec<Freqs>) -> usize {
-    for _ in 1..=intermediaries_num {
-        fqs = evolve(&fqs);
+    for t in 1..=intermediaries_num {
+        eprintln!("t:{}", t);
+        fqs = prune(t, evolve(&fqs));
     }
     fqs.into_iter().map(|fq| total_length(&fq)).min().unwrap()
 }
@@ -264,14 +304,11 @@ fn main() {
                 }
                 qs
             });
-        eprintln!("{:?}", ps);
 
         let fqs: Vec<Freqs> = ps
             .iter()
             .map(|p| apress_tokens(p).into_iter().counts())
             .collect();
-
-        eprintln!("{:?}", fqs);
 
         result += end_length(25, fqs) * code[0..code.len() - 1].parse::<usize>().unwrap();
     }
