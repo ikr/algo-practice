@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{BTreeMap, BTreeSet},
     io::{self, BufRead},
 };
 
@@ -7,7 +7,7 @@ use itertools::Itertools;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 
-type Freqs = HashMap<String, usize>;
+type Freq = BTreeMap<String, usize>;
 
 const NUMPAD: [[char; 3]; 4] = [
     ['7', '8', '9'],
@@ -199,14 +199,14 @@ fn apress_tokens(s: &str) -> Vec<String> {
         .collect()
 }
 
-fn evolve_one(fq0: &Freqs) -> Vec<Freqs> {
-    let mut result: Vec<Freqs> = vec![HashMap::new()];
+fn evolve_one(fq0: &Freq) -> BTreeSet<Freq> {
+    let mut result: BTreeSet<Freq> = BTreeSet::from([BTreeMap::new()]);
 
     for (s0, f0) in fq0 {
-        let mut new_result: Vec<Freqs> = vec![];
+        let mut new_result: BTreeSet<Freq> = BTreeSet::new();
 
         for unsplit_variant in arrpad_metaprograms(s0) {
-            let mut fqs = result.clone();
+            let mut fqs: Vec<Freq> = result.iter().cloned().collect();
             for token in apress_tokens(&unsplit_variant) {
                 for fq in fqs.iter_mut() {
                     fq.entry(token.clone())
@@ -215,11 +215,7 @@ fn evolve_one(fq0: &Freqs) -> Vec<Freqs> {
                 }
             }
 
-            for a in fqs {
-                if !new_result.contains(&a) {
-                    new_result.push(a);
-                }
-            }
+            new_result.extend(fqs);
         }
 
         result = new_result;
@@ -227,23 +223,21 @@ fn evolve_one(fq0: &Freqs) -> Vec<Freqs> {
     result
 }
 
-fn evolve(fqs: &[Freqs]) -> Vec<Freqs> {
-    let mut result: Vec<Freqs> = vec![];
+fn evolve(fqs: &BTreeSet<Freq>) -> BTreeSet<Freq> {
+    let mut result: BTreeSet<Freq> = BTreeSet::new();
     for fq in fqs {
         for a in evolve_one(fq) {
-            if !result.contains(&a) {
-                result.push(a);
-            }
+            result.insert(a);
         }
     }
     result
 }
 
-fn total_length(fqs: &Freqs) -> usize {
+fn total_length(fqs: &Freq) -> usize {
     fqs.iter().map(|(k, v)| k.len() * v).sum()
 }
 
-fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
+fn prune(t: usize, fqs: BTreeSet<Freq>) -> BTreeSet<Freq> {
     let mut rng = thread_rng();
     let report = fqs
         .iter()
@@ -256,7 +250,7 @@ fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
     eprintln!("{:?}", report);
 
     if t > 2 {
-        let mut top: Vec<Freqs> = fqs
+        let mut top: Vec<Freq> = fqs
             .into_iter()
             .filter(|fq| {
                 let tl = total_length(fq);
@@ -264,15 +258,15 @@ fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
             })
             .collect();
         top.shuffle(&mut rng);
-        top.into_iter().take(400).collect()
+        top.into_iter().take(10_000).collect()
     } else {
         fqs
     }
 }
 
-fn end_length(intermediaries_num: usize, mut fqs: Vec<Freqs>) -> usize {
+fn end_length(intermediaries_num: usize, mut fqs: BTreeSet<Freq>) -> usize {
     for t in 1..=intermediaries_num {
-        eprintln!("t:{} #fqs:{}", t, fqs.len());
+        eprintln!("t:{}", t);
         fqs = prune(t, evolve(&fqs));
     }
     fqs.into_iter().map(|fq| total_length(&fq)).min().unwrap()
@@ -304,9 +298,15 @@ fn main() {
                 qs
             });
 
-        let fqs: Vec<Freqs> = ps
+        let fqs: BTreeSet<Freq> = ps
             .iter()
-            .map(|p| apress_tokens(p).into_iter().counts())
+            .map(|p| {
+                apress_tokens(p)
+                    .into_iter()
+                    .counts()
+                    .into_iter()
+                    .collect::<BTreeMap<_, _>>()
+            })
             .collect();
 
         result += end_length(25, fqs) * code[0..code.len() - 1].parse::<usize>().unwrap();
@@ -386,23 +386,23 @@ mod tests {
     #[test]
     fn evolve_one_works() {
         assert_eq!(
-            evolve_one(&HashMap::from([("A".to_string(), 1)])),
-            vec![HashMap::from([("A".to_string(), 1)])]
+            evolve_one(&BTreeMap::from([("A".to_string(), 1)])),
+            BTreeSet::from([BTreeMap::from([("A".to_string(), 1)])])
         );
         assert_eq!(
-            evolve_one(&HashMap::from([("^>A".to_string(), 2)])),
-            vec![
-                HashMap::from([
+            evolve_one(&BTreeMap::from([("^>A".to_string(), 2)])),
+            BTreeSet::from([
+                BTreeMap::from([
                     ("<A".to_string(), 2),
                     ("v>A".to_string(), 2),
                     ("^A".to_string(), 2),
                 ]),
-                HashMap::from([
+                BTreeMap::from([
                     ("<A".to_string(), 2),
                     (">vA".to_string(), 2),
                     ("^A".to_string(), 2),
                 ])
-            ]
+            ])
         );
     }
 }
