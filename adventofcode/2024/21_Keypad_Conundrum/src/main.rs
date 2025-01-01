@@ -251,21 +251,11 @@ fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
             .into_iter()
             .filter(|fq| {
                 let tl = total_length(&fq);
-                tl == report[0].0 || tl == report[1].0 //|| tl == report[2].0
+                tl == report[0].0 //|| tl == report[1].0 || tl == report[2].0
             })
             .collect();
         top.shuffle(&mut rng);
-        top.into_iter().take(6000).collect()
-    } else if t > 7 {
-        let mut top: Vec<Freqs> = fqs
-            .into_iter()
-            .filter(|fq| {
-                let tl = total_length(&fq);
-                tl == report[0].0 //|| tl == report[1].0
-            })
-            .collect();
-        top.shuffle(&mut rng);
-        top.into_iter().take(2500).collect()
+        top.into_iter().take(30_000).collect()
     } else {
         fqs
     }
