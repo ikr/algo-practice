@@ -214,7 +214,12 @@ fn evolve_one(fq0: &Freqs) -> Vec<Freqs> {
                         .or_insert(*f0);
                 }
             }
-            new_result.extend(fqs);
+
+            for a in fqs {
+                if !new_result.contains(&a) {
+                    new_result.push(a);
+                }
+            }
         }
 
         result = new_result;
@@ -225,7 +230,11 @@ fn evolve_one(fq0: &Freqs) -> Vec<Freqs> {
 fn evolve(fqs: &[Freqs]) -> Vec<Freqs> {
     let mut result: Vec<Freqs> = vec![];
     for fq in fqs {
-        result.extend(evolve_one(fq));
+        for a in evolve_one(fq) {
+            if !result.contains(&a) {
+                result.push(a);
+            }
+        }
     }
     result
 }
@@ -250,12 +259,12 @@ fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
         let mut top: Vec<Freqs> = fqs
             .into_iter()
             .filter(|fq| {
-                let tl = total_length(&fq);
+                let tl = total_length(fq);
                 tl == report[0].0 //|| tl == report[1].0 || tl == report[2].0
             })
             .collect();
         top.shuffle(&mut rng);
-        top.into_iter().take(30_000).collect()
+        top.into_iter().take(400).collect()
     } else {
         fqs
     }
@@ -263,7 +272,7 @@ fn prune(t: usize, fqs: Vec<Freqs>) -> Vec<Freqs> {
 
 fn end_length(intermediaries_num: usize, mut fqs: Vec<Freqs>) -> usize {
     for t in 1..=intermediaries_num {
-        eprintln!("t:{}", t);
+        eprintln!("t:{} #fqs:{}", t, fqs.len());
         fqs = prune(t, evolve(&fqs));
     }
     fqs.into_iter().map(|fq| total_length(&fq)).min().unwrap()
