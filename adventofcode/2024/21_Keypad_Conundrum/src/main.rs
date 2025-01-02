@@ -1,14 +1,11 @@
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::HashMap,
     io::{self, BufRead},
-    usize,
 };
 
 use itertools::Itertools;
-use rand::prelude::SliceRandom;
-use rand::thread_rng;
 
-type Freq = BTreeMap<String, usize>;
+type Freq = HashMap<String, usize>;
 
 const NUMPAD: [[char; 3]; 4] = [
     ['7', '8', '9'],
@@ -150,39 +147,6 @@ fn numpad_route_variants(src: char, dst: char) -> Vec<String> {
     [v, h].into_iter().unique().collect()
 }
 
-fn arrpad_route_variants(src: char, dst: char) -> Vec<String> {
-    let v = route(
-        crd_in_arrpad(' '),
-        false,
-        crd_in_arrpad(src),
-        crd_in_arrpad(dst),
-    );
-    let h = route(
-        crd_in_arrpad(' '),
-        true,
-        crd_in_arrpad(src),
-        crd_in_arrpad(dst),
-    );
-    [v, h].into_iter().unique().collect()
-}
-
-fn arrpad_metaprograms(xs: &str) -> Vec<String> {
-    let mut ps: Vec<String> = vec![String::new()];
-
-    for (u, v) in std::iter::once('A').chain(xs.chars()).tuple_windows() {
-        let mut qs: Vec<String> = vec![];
-        for pref in ps.iter() {
-            for suff in arrpad_route_variants(u, v) {
-                let p = pref.clone() + &suff + "A";
-                qs.push(p)
-            }
-        }
-        ps = qs;
-    }
-
-    ps
-}
-
 fn positions_of(xs: &str, x0: char, lim: usize) -> Vec<usize> {
     xs.chars()
         .enumerate()
@@ -207,117 +171,12 @@ fn apress_tokens(s: &str) -> Vec<String> {
         .collect()
 }
 
-fn evolve_one(fq0: &Freq) -> BTreeSet<Freq> {
-    let mut result: BTreeSet<Freq> = BTreeSet::from([BTreeMap::new()]);
-
-    for (s0, f0) in fq0 {
-        let mut new_result: BTreeSet<Freq> = BTreeSet::new();
-
-        for unsplit_variant in arrpad_metaprograms(s0) {
-            let mut fqs: Vec<Freq> = result.iter().cloned().collect();
-            for token in apress_tokens(&unsplit_variant) {
-                for fq in fqs.iter_mut() {
-                    fq.entry(token.clone())
-                        .and_modify(|f| *f += f0)
-                        .or_insert(*f0);
-                }
-            }
-
-            new_result.extend(fqs);
-        }
-
-        result = new_result;
-    }
-    result
-}
-
-fn evolve_all(fqs: &BTreeSet<Freq>) -> BTreeSet<Freq> {
-    let mut result: BTreeSet<Freq> = BTreeSet::new();
-    for fq in fqs {
-        for a in evolve_one(fq) {
-            result.insert(a);
-        }
-    }
-    result
-}
-
 fn total_length(fqs: &Freq) -> usize {
     fqs.iter().map(|(k, v)| k.len() * v).sum()
 }
 
-fn prune(t: usize, fqs: BTreeSet<Freq>) -> BTreeSet<Freq> {
-    let mut rng = thread_rng();
-    let report = fqs
-        .iter()
-        .map(total_length)
-        .counts()
-        .into_iter()
-        .sorted()
-        .collect::<Vec<_>>();
-
-    eprintln!("{:?}", report);
-
-    if t > 2 {
-        let mut top: Vec<Freq> = fqs
-            .into_iter()
-            .filter(|fq| {
-                let tl = total_length(fq);
-                tl == report[0].0 //|| tl == report[1].0 || tl == report[2].0
-            })
-            .collect();
-        top.shuffle(&mut rng);
-        top.into_iter().take(17_000).collect()
-    } else {
-        fqs
-    }
-}
-
-fn end_length(intermediaries_num: usize, mut fqs: BTreeSet<Freq>) -> usize {
-    for t in 1..=intermediaries_num {
-        eprintln!("t:{}", t);
-        fqs = prune(t, evolve_all(&fqs));
-    }
-    fqs.into_iter().map(|fq| total_length(&fq)).min().unwrap()
-}
-
-fn brute_force_with_random_sampling(numpad_codes: &[String]) {
-    let mut result: usize = 0;
-    for code in numpad_codes.iter() {
-        let ps: Vec<String> = std::iter::once('A')
-            .chain(code.chars())
-            .collect::<Vec<_>>()
-            .windows(2)
-            .fold(vec!["".to_string()], |acc, uv| {
-                let [u, v] = uv else { panic!() };
-                let mut qs: Vec<String> = vec![];
-
-                for pref in acc.iter() {
-                    for suff in numpad_route_variants(*u, *v) {
-                        let p = pref.clone() + &suff + "A";
-                        qs.push(p)
-                    }
-                }
-                qs
-            });
-
-        let fqs: BTreeSet<Freq> = ps
-            .iter()
-            .map(|p| {
-                apress_tokens(p)
-                    .into_iter()
-                    .counts()
-                    .into_iter()
-                    .collect::<BTreeMap<_, _>>()
-            })
-            .collect();
-
-        result += end_length(25, fqs) * code[0..code.len() - 1].parse::<usize>().unwrap();
-    }
-    println!("{}", result);
-}
-
 fn evolve(branching_bits: u8, fq0: Freq) -> Freq {
-    let mut result: Freq = BTreeMap::new();
+    let mut result: Freq = HashMap::new();
 
     for (s0, f0) in fq0 {
         for (u, v) in std::iter::once('A').chain(s0.chars()).tuple_windows() {
@@ -341,11 +200,7 @@ fn evolve(branching_bits: u8, fq0: Freq) -> Freq {
 }
 
 fn metaprogram_complexity(code: &str, num_layers: u8, p: &str) -> usize {
-    let fq0 = apress_tokens(p)
-        .into_iter()
-        .counts()
-        .into_iter()
-        .collect::<BTreeMap<_, _>>();
+    let fq0 = apress_tokens(p).into_iter().counts();
 
     let mut result = usize::MAX;
     let m = BRANCHING_TRANSITIONS.len() as u8;
@@ -443,50 +298,5 @@ mod tests {
     fn numpad_route_variants_works() {
         assert_eq!(numpad_route_variants('1', '0'), vec![">v"]);
         assert_eq!(numpad_route_variants('2', '9'), vec!["^^>", ">^^"]);
-    }
-
-    #[test]
-    fn arrpad_route_variants_works() {
-        assert_eq!(arrpad_route_variants('<', '^'), vec![">^"]);
-        assert_eq!(arrpad_route_variants('v', 'A'), vec!["^>", ">^"]);
-    }
-
-    #[test]
-    fn arrpad_metaprogram_works() {
-        assert_eq!(arrpad_metaprograms("<A"), vec!["v<<A>>^A"]);
-        assert_eq!(arrpad_metaprograms("A"), vec!["A"]);
-        assert_eq!(arrpad_metaprograms("^>A"), vec!["<Av>A^A", "<A>vA^A"]);
-        assert_eq!(
-            arrpad_metaprograms("^>A^>A"),
-            vec![
-                "<Av>A^A<Av>A^A",
-                "<Av>A^A<A>vA^A",
-                "<A>vA^A<Av>A^A",
-                "<A>vA^A<A>vA^A"
-            ]
-        );
-    }
-
-    #[test]
-    fn evolve_one_works() {
-        assert_eq!(
-            evolve_one(&BTreeMap::from([("A".to_string(), 1)])),
-            BTreeSet::from([BTreeMap::from([("A".to_string(), 1)])])
-        );
-        assert_eq!(
-            evolve_one(&BTreeMap::from([("^>A".to_string(), 2)])),
-            BTreeSet::from([
-                BTreeMap::from([
-                    ("<A".to_string(), 2),
-                    ("v>A".to_string(), 2),
-                    ("^A".to_string(), 2),
-                ]),
-                BTreeMap::from([
-                    ("<A".to_string(), 2),
-                    (">vA".to_string(), 2),
-                    ("^A".to_string(), 2),
-                ])
-            ])
-        );
     }
 }
