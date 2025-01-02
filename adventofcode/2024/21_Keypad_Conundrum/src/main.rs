@@ -1,6 +1,7 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
     io::{self, BufRead},
+    usize,
 };
 
 use itertools::Itertools;
@@ -17,6 +18,13 @@ const NUMPAD: [[char; 3]; 4] = [
 ];
 
 const ARRPAD: [[char; 3]; 2] = [[' ', '^', 'A'], ['<', 'v', '>']];
+
+const BRANCHING_TRANSITIONS: [&str; 6] = ["^>", ">^", "vA", "Av", "<A", "A<"];
+
+fn branching_index(src: char, dst: char) -> Option<usize> {
+    let t: String = [src, dst].into_iter().collect();
+    BRANCHING_TRANSITIONS.iter().position(|&s| s == t)
+}
 
 fn crd_of(grid: &[[char; 3]], c: char) -> (usize, usize) {
     for (i, row) in grid.iter().enumerate() {
@@ -223,7 +231,7 @@ fn evolve_one(fq0: &Freq) -> BTreeSet<Freq> {
     result
 }
 
-fn evolve(fqs: &BTreeSet<Freq>) -> BTreeSet<Freq> {
+fn evolve_all(fqs: &BTreeSet<Freq>) -> BTreeSet<Freq> {
     let mut result: BTreeSet<Freq> = BTreeSet::new();
     for fq in fqs {
         for a in evolve_one(fq) {
@@ -258,7 +266,7 @@ fn prune(t: usize, fqs: BTreeSet<Freq>) -> BTreeSet<Freq> {
             })
             .collect();
         top.shuffle(&mut rng);
-        top.into_iter().take(10_000).collect()
+        top.into_iter().take(17_000).collect()
     } else {
         fqs
     }
@@ -267,18 +275,12 @@ fn prune(t: usize, fqs: BTreeSet<Freq>) -> BTreeSet<Freq> {
 fn end_length(intermediaries_num: usize, mut fqs: BTreeSet<Freq>) -> usize {
     for t in 1..=intermediaries_num {
         eprintln!("t:{}", t);
-        fqs = prune(t, evolve(&fqs));
+        fqs = prune(t, evolve_all(&fqs));
     }
     fqs.into_iter().map(|fq| total_length(&fq)).min().unwrap()
 }
 
-fn main() {
-    let numpad_codes: Vec<String> = io::stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().to_string())
-        .collect();
-
+fn brute_force_with_random_sampling(numpad_codes: &[String]) {
     let mut result: usize = 0;
     for code in numpad_codes.iter() {
         let ps: Vec<String> = std::iter::once('A')
@@ -311,6 +313,88 @@ fn main() {
 
         result += end_length(25, fqs) * code[0..code.len() - 1].parse::<usize>().unwrap();
     }
+    println!("{}", result);
+}
+
+fn evolve(branching_bits: u8, fq0: Freq) -> Freq {
+    let mut result: Freq = BTreeMap::new();
+
+    for (s0, f0) in fq0 {
+        for (u, v) in std::iter::once('A').chain(s0.chars()).tuple_windows() {
+            let favor_horz = if let Some(i) = branching_index(u, v) {
+                (1u8 << i) & branching_bits == 0
+            } else {
+                true
+            };
+
+            let w = route(
+                crd_in_arrpad(' '),
+                favor_horz,
+                crd_in_arrpad(u),
+                crd_in_arrpad(v),
+            ) + "A";
+
+            result.entry(w).and_modify(|f| *f += f0).or_insert(f0);
+        }
+    }
+    result
+}
+
+fn metaprogram_complexity(code: &str, num_layers: u8, p: &str) -> usize {
+    let fq0 = apress_tokens(p)
+        .into_iter()
+        .counts()
+        .into_iter()
+        .collect::<BTreeMap<_, _>>();
+
+    let mut result = usize::MAX;
+    let m = BRANCHING_TRANSITIONS.len() as u8;
+
+    for branching_bits in 0..(1 << m) {
+        let mut fq = fq0.clone();
+        for _ in 0..num_layers {
+            fq = evolve(branching_bits, fq);
+        }
+
+        result = result.min(total_length(&fq));
+    }
+
+    result * code[0..code.len() - 1].parse::<usize>().unwrap()
+}
+
+fn numpad_code_complexity(code: String) -> usize {
+    let numpad_code_programs: Vec<String> = std::iter::once('A')
+        .chain(code.chars())
+        .collect::<Vec<_>>()
+        .windows(2)
+        .fold(vec!["".to_string()], |acc, uv| {
+            let [u, v] = uv else { panic!() };
+            let mut qs: Vec<String> = vec![];
+
+            for pref in acc.iter() {
+                for suff in numpad_route_variants(*u, *v) {
+                    let p = pref.clone() + &suff + "A";
+                    qs.push(p)
+                }
+            }
+            qs
+        });
+
+    numpad_code_programs
+        .into_iter()
+        .map(|p| metaprogram_complexity(&code, 25, &p))
+        .min()
+        .unwrap()
+}
+
+fn main() {
+    let numpad_codes: Vec<String> = io::stdin()
+        .lock()
+        .lines()
+        .map(|line| line.unwrap().to_string())
+        .collect();
+
+    let result: usize = numpad_codes.into_iter().map(numpad_code_complexity).sum();
     println!("{}", result);
 }
 
