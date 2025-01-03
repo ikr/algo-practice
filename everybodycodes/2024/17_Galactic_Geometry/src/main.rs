@@ -60,7 +60,7 @@ fn main() {
         }
     }
 
-    for hi in 1..20 {
+    for hi in 1..200 {
         let cs = connected_components(&star_coordinates, hi);
         if let Some(ps) = cs.first() {
             if cs.len() == 1 {
