@@ -40,7 +40,7 @@ fn optimal_gain(
     gain_op: fn(usize, usize) -> usize,
     wheels: &[Vec<String>],
     steppings: &[usize],
-    pulls: u8,
+    pulls: u16,
     shift: i8,
     ps: Vec<u8>,
 ) -> usize {
@@ -70,12 +70,11 @@ fn optimal_gain(
 
         let shifts: [i8; 3] = [-1, 0, 1];
         let own_gain = coins_for(&current_display);
-        shifts.into_iter().fold(own_gain, |acc, s| {
-            gain_op(
-                acc,
-                optimal_gain(gain_op, wheels, steppings, pulls - 1, s, qs.clone()),
-            )
-        })
+        let subs = shifts
+            .into_iter()
+            .map(|s| own_gain + optimal_gain(gain_op, wheels, steppings, pulls - 1, s, qs.clone()))
+            .collect::<Vec<_>>();
+        subs.iter().fold(subs[0], |acc, x| gain_op(acc, *x))
     }
 }
 
@@ -120,17 +119,36 @@ fn main() {
 
     assert_eq!(wheels.len(), steppings.len());
 
-    let pulls: u8 = 1;
-    let lo = [-1, 0, 1].map(|shift| {
-        optimal_gain(
-            |a, b| a.min(b),
-            &wheels,
-            &steppings,
-            pulls,
-            shift,
-            vec![0; wheels.len()],
-        )
-    });
+    let pulls: u16 = 256;
+    let lo: usize = [-1, 0, 1]
+        .map(|shift| {
+            optimal_gain(
+                |a, b| a.min(b),
+                &wheels,
+                &steppings,
+                pulls,
+                shift,
+                vec![0; wheels.len()],
+            )
+        })
+        .into_iter()
+        .min()
+        .unwrap();
 
-    println!("{:?}", lo);
+    let hi: usize = [-1, 0, 1]
+        .map(|shift| {
+            optimal_gain(
+                |a, b| a.max(b),
+                &wheels,
+                &steppings,
+                pulls,
+                shift,
+                vec![0; wheels.len()],
+            )
+        })
+        .into_iter()
+        .max()
+        .unwrap();
+
+    println!("{} {}", hi, lo);
 }
