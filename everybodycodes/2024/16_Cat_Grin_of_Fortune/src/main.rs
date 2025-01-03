@@ -1,6 +1,7 @@
 use std::io::{self, BufRead};
 
 use itertools::Itertools;
+use memoize::memoize;
 
 fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!grid.is_empty());
@@ -32,6 +33,50 @@ fn coins_for(display: &[String]) -> usize {
 
     let fqs: Vec<usize> = xs.into_iter().counts().values().copied().collect();
     fqs.into_iter().filter(|&f| f >= 3).map(|f| f - 2).sum()
+}
+
+#[memoize(Ignore: wheels, Ignore: steppings)]
+fn optimal_gain(
+    gain_op: fn(usize, usize) -> usize,
+    wheels: &[Vec<String>],
+    steppings: &[usize],
+    pulls: u8,
+    shift: i8,
+    ps: Vec<u8>,
+) -> usize {
+    if pulls == 0 {
+        0
+    } else {
+        let qs: Vec<u8> = wheels
+            .iter()
+            .map(|w| match shift {
+                -1 => w.len() - 1,
+                0 => 0,
+                1 => 1,
+                _ => panic!("Unsupported shift of {}", shift),
+            })
+            .zip(ps.iter())
+            .map(|(shift, p)| shift + *p as usize)
+            .enumerate()
+            .zip(steppings.iter())
+            .map(|((i, p), step)| ((p + step) % wheels[i].len()) as u8)
+            .collect();
+
+        let current_display: Vec<String> = wheels
+            .iter()
+            .zip(qs.iter())
+            .map(|(w, &q)| w[q as usize].clone())
+            .collect();
+
+        let shifts: [i8; 3] = [-1, 0, 1];
+        let own_gain = coins_for(&current_display);
+        shifts.into_iter().fold(own_gain, |acc, s| {
+            gain_op(
+                acc,
+                optimal_gain(gain_op, wheels, steppings, pulls - 1, s, qs.clone()),
+            )
+        })
+    }
 }
 
 fn main() {
@@ -75,44 +120,17 @@ fn main() {
 
     assert_eq!(wheels.len(), steppings.len());
 
-    let k_steps_gain = |shift: i8, k: usize| -> usize {
-        let mut ps: Vec<usize> = wheels
-            .iter()
-            .map(|w| {
-                let m = w.len();
-                match shift {
-                    -1 => m - 1,
-                    0 => 0,
-                    1 => 1,
-                    _ => panic!("Unsupported shift of {}", shift),
-                }
-            })
-            .collect();
+    let pulls: u8 = 1;
+    let lo = [-1, 0, 1].map(|shift| {
+        optimal_gain(
+            |a, b| a.min(b),
+            &wheels,
+            &steppings,
+            pulls,
+            shift,
+            vec![0; wheels.len()],
+        )
+    });
 
-        let mut total_coins: usize = 0;
-
-        let current_display = |ps: &[usize]| -> Vec<String> {
-            wheels
-                .iter()
-                .zip(ps.iter())
-                .map(|(w, p)| w[*p].clone())
-                .collect()
-        };
-
-        for _ in 1..=k {
-            ps = ps
-                .iter()
-                .enumerate()
-                .zip(steppings.iter())
-                .map(|((i, p), step)| (p + step) % wheels[i].len())
-                .collect();
-
-            total_coins += coins_for(&current_display(&ps));
-        }
-        total_coins
-    };
-
-    let mut gains = [-1, 0, 1].map(|shift| k_steps_gain(shift, 2));
-    gains.sort();
-    println!("{:?}", gains);
+    println!("{:?}", lo);
 }
