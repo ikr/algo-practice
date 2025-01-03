@@ -60,13 +60,12 @@ fn main() {
         }
     }
 
-    for hi in 1..200 {
-        let cs = connected_components(&star_coordinates, hi);
-        if let Some(ps) = cs.first() {
-            if cs.len() == 1 {
-                println!("{:?}", min_spanning_tree_total_distance(ps) + ps.len());
-                break;
-            }
-        }
-    }
+    let mut ss: Vec<usize> = connected_components(&star_coordinates, 5)
+        .into_iter()
+        .map(|ps| min_spanning_tree_total_distance(&ps) + ps.len())
+        .collect();
+    ss.sort();
+    let n = ss.len();
+    let result: usize = ss[n - 3..n].iter().product();
+    println!("{}", result);
 }
