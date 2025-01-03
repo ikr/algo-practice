@@ -28,20 +28,20 @@ fn connected_components(ps: &[Crd], max_distance: usize) -> Vec<Vec<Crd>> {
         .collect()
 }
 
-fn constellation_size(ps: &[Crd], max_distance: usize) -> Option<usize> {
-    let cs = connected_components(ps, max_distance);
-    let qs = cs.first()?;
-    if cs.len() == 1 {
-        let total_d: usize = qs
-            .iter()
-            .combinations(2)
-            .map(|pq| pq[0].distance(*pq[1]))
-            .filter(|d| *d <= max_distance)
-            .sum();
-        Some(total_d + ps.len())
-    } else {
-        None
+fn min_spanning_tree_total_distance(ps: &[Crd]) -> usize {
+    let n = ps.len();
+    let mut edges: Vec<(usize, usize)> = (0..n).combinations(2).map(|ij| (ij[0], ij[1])).collect();
+    edges.sort_by_key(|(i, j)| ps[*i].distance(ps[*j]));
+
+    let mut dsu = Dsu::new(n);
+    let mut result = 0;
+    for (i, j) in edges {
+        if dsu.leader(i) != dsu.leader(j) {
+            result += ps[i].distance(ps[j]);
+            dsu.merge(i, j);
+        }
     }
+    result
 }
 
 fn main() {
@@ -60,10 +60,13 @@ fn main() {
         }
     }
 
-    for hi in 1..100 {
-        if let Some(s) = constellation_size(&star_coordinates, hi) {
-            println!("{:?}", s);
-            break;
+    for hi in 1..20 {
+        let cs = connected_components(&star_coordinates, hi);
+        if let Some(ps) = cs.first() {
+            if cs.len() == 1 {
+                println!("{:?}", min_spanning_tree_total_distance(ps) + ps.len());
+                break;
+            }
         }
     }
 }
