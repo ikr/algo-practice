@@ -86,16 +86,14 @@ fn main() {
         rows: lines[2..].to_vec(),
     };
 
-    g.eprintln();
-    eprintln!();
-
-    for i in 1..g.height() - 1 {
-        for j in 1..g.width() - 1 {
-            let k = (i - 1) * (g.width() - 2) + j - 1;
-            g.rotate_at(Crd(i, j), keys[k % keys.len()]);
-
-            g.eprintln();
-            eprintln!();
+    for _ in 0..100 {
+        for i in 1..g.height() - 1 {
+            for j in 1..g.width() - 1 {
+                let k = (i - 1) * (g.width() - 2) + j - 1;
+                g.rotate_at(Crd(i, j), keys[k % keys.len()]);
+            }
         }
     }
+
+    g.eprintln();
 }
