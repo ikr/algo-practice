@@ -21,7 +21,7 @@ impl Dir {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct Crd(usize, usize);
+struct Crd(i16, i16);
 
 impl Crd {
     fn neighborhood(&self) -> Vec<Crd> {
@@ -41,6 +41,23 @@ impl Crd {
     }
 }
 
+impl std::ops::Add<Crd> for Crd {
+    type Output = Crd;
+
+    fn add(self, o: Crd) -> Crd {
+        Crd(self.0 + o.0, self.1 + o.1)
+    }
+}
+
+impl std::ops::Sub<Crd> for Crd {
+    type Output = Crd;
+
+    fn sub(self, o: Crd) -> Crd {
+        Crd(self.0 - o.0, self.1 - o.1)
+    }
+}
+
+#[derive(Clone, Debug)]
 struct Grid<T> {
     rows: Vec<Vec<T>>,
 }
@@ -66,10 +83,13 @@ where
             Dir::R => dst.rotate_left(1),
         }
 
-        let xs: Vec<T> = src.into_iter().map(|Crd(i, j)| self.rows[i][j]).collect();
+        let xs: Vec<T> = src
+            .into_iter()
+            .map(|Crd(i, j)| self.rows[i as usize][j as usize])
+            .collect();
 
         for (x, Crd(i, j)) in xs.into_iter().zip(dst) {
-            self.rows[i][j] = x;
+            self.rows[i as usize][j as usize] = x;
         }
     }
 }
@@ -91,41 +111,72 @@ fn main() {
 
     let keys: Vec<Dir> = lines[0].iter().map(|x| Dir::from(*x)).collect();
 
-    let g = Grid {
+    let mut g = Grid {
         rows: lines[2..].to_vec(),
     };
 
-    let mut crd_rows: Vec<Vec<Crd>> = vec![vec![Crd(0, 0); g.width()]; g.height()];
-    for i in 0..g.height() {
-        for j in 0..g.width() {
-            crd_rows[i][j] = Crd(i, j);
+    let mut crd_rows: Vec<Vec<Crd>> = vec![vec![Crd(i16::MAX, i16::MAX); g.width()]; g.height()];
+    for (i, row) in crd_rows.iter_mut().enumerate() {
+        for (j, cell) in row.iter_mut().enumerate() {
+            *cell = Crd(i as i16, j as i16);
         }
     }
     let mut cg = Grid { rows: crd_rows };
 
     let rotation_points_num = (g.height() - 2) * (g.width() - 2);
     let m = lcm(rotation_points_num, keys.len());
-    let mut k: usize = 0;
-    'outer: loop {
-        for i in 1..cg.height() - 1 {
-            for j in 1..cg.width() - 1 {
-                cg.rotate_at(Crd(i, j), keys[k % keys.len()]);
-                k += 1;
-                if k == m {
-                    break 'outer;
+    {
+        let mut k: usize = 0;
+        'outer: loop {
+            for i in 1..cg.height() - 1 {
+                for j in 1..cg.width() - 1 {
+                    cg.rotate_at(Crd(i as i16, j as i16), keys[k % keys.len()]);
+                    k += 1;
+                    if k == m {
+                        break 'outer;
+                    }
                 }
             }
         }
     }
 
-    // for _ in 0..1_048_576_000 {
-    //     for i in 1..g.height() - 1 {
-    //         for j in 1..g.width() - 1 {
-    //             let k = (i - 1) * (g.width() - 2) + j - 1;
-    //             g.rotate_at(Crd(i, j), keys[k % keys.len()]);
-    //         }
-    //     }
-    // }
+    let mut routes: Vec<Vec<Crd>> = vec![vec![Crd(i16::MAX, i16::MAX); g.width()]; g.height()];
+    for (i, row) in cg.rows.into_iter().enumerate() {
+        for (j, src) in row.into_iter().enumerate() {
+            let dst = Crd(i as i16, j as i16);
+            let delta = dst - src;
+            routes[src.0 as usize][src.1 as usize] = delta;
+        }
+    }
 
-    // g.eprintln();
+    for _ in 0..(ROUNDS / m) {
+        let mut g_new = g.clone();
+
+        for (i, row) in g.rows.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                let src = Crd(i as i16, j as i16);
+                let dst = src + routes[i][j];
+                g_new.rows[dst.0 as usize][dst.1 as usize] = *cell;
+            }
+        }
+
+        g = g_new;
+    }
+
+    {
+        let mut k: usize = 0;
+        'outer: loop {
+            for i in 1..g.height() - 1 {
+                for j in 1..g.width() - 1 {
+                    g.rotate_at(Crd(i as i16, j as i16), keys[k % keys.len()]);
+                    k += 1;
+                    if k == ROUNDS % m {
+                        break 'outer;
+                    }
+                }
+            }
+        }
+    }
+
+    g.eprintln();
 }
