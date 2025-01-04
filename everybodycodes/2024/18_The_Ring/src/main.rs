@@ -8,13 +8,16 @@ const INF: usize = 1_000_000;
 #[derive(Clone, Copy, Debug)]
 struct Crd(usize, usize);
 
-fn source_crd(grid: &[Vec<char>]) -> Crd {
+fn source_crds(grid: &[Vec<char>]) -> Vec<Crd> {
+    let mut result = vec![];
     for (i, row) in grid.iter().enumerate() {
-        if row[0] == '.' {
-            return Crd(i, 0);
+        for j in [0, row.len() - 1] {
+            if row[j] == '.' {
+                result.push(Crd(i, j));
+            }
         }
     }
-    panic!()
+    result
 }
 
 fn palm_crds(grid: &[Vec<char>]) -> Vec<Crd> {
@@ -36,21 +39,21 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let source = source_crd(&grid);
     let h = grid.len();
     let w = grid[0].len();
 
     let mut distance: Vec<Vec<usize>> = vec![vec![INF; w]; h];
-    distance[source.0][source.1] = 0;
-
     let mut q: VecDeque<Crd> = VecDeque::new();
-    q.push_back(source);
+    for Crd(i, j) in source_crds(&grid) {
+        distance[i][j] = 0;
+        q.push_back(Crd(i, j));
+    }
 
     while let Some(u) = q.pop_front() {
         let Crd(ro, co) = u;
         for Crd(i, j) in [
             Crd(ro - 1, co),
-            Crd(ro, co + 1),
+            Crd(ro, (co + 1).min(w - 1)),
             Crd(ro + 1, co),
             Crd(ro, co.saturating_sub(1)),
         ] {
