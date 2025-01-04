@@ -86,7 +86,7 @@ fn main() {
         rows: lines[2..].to_vec(),
     };
 
-    for _ in 0..100 {
+    for _ in 0..1_048_576_000 {
         for i in 1..g.height() - 1 {
             for j in 1..g.width() - 1 {
                 let k = (i - 1) * (g.width() - 2) + j - 1;
