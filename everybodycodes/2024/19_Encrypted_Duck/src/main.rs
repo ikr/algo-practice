@@ -1,7 +1,5 @@
 use std::io::{self, BufRead};
 
-use num_integer::lcm;
-
 const ROUNDS: usize = 1_048_576_000;
 
 #[derive(Clone, Copy, Debug)]
@@ -123,19 +121,12 @@ fn main() {
     }
     let mut cg = Grid { rows: crd_rows };
 
-    let rotation_points_num = (g.height() - 2) * (g.width() - 2);
-    let m = lcm(rotation_points_num, keys.len());
-    {
-        let mut k: usize = 0;
-        'outer: loop {
-            for i in 1..cg.height() - 1 {
-                for j in 1..cg.width() - 1 {
-                    cg.rotate_at(Crd(i as i16, j as i16), keys[k % keys.len()]);
-                    k += 1;
-                    if k == m {
-                        break 'outer;
-                    }
-                }
+    let m = 1000;
+    for _ in 0..m {
+        for i in 1..cg.height() - 1 {
+            for j in 1..cg.width() - 1 {
+                let k = (i - 1) * (g.width() - 2) + j - 1;
+                cg.rotate_at(Crd(i as i16, j as i16), keys[k % keys.len()]);
             }
         }
     }
@@ -163,17 +154,11 @@ fn main() {
         g = g_new;
     }
 
-    {
-        let mut k: usize = 0;
-        'outer: loop {
-            for i in 1..g.height() - 1 {
-                for j in 1..g.width() - 1 {
-                    g.rotate_at(Crd(i as i16, j as i16), keys[k % keys.len()]);
-                    k += 1;
-                    if k == ROUNDS % m {
-                        break 'outer;
-                    }
-                }
+    for _ in 0..(ROUNDS % m) {
+        for i in 1..g.height() - 1 {
+            for j in 1..g.width() - 1 {
+                let k = (i - 1) * (g.width() - 2) + j - 1;
+                g.rotate_at(Crd(i as i16, j as i16), keys[k % keys.len()]);
             }
         }
     }
