@@ -1,6 +1,5 @@
 use std::{
-    collections::{HashSet, VecDeque},
-    i16,
+    collections::HashSet,
     io::{self, BufRead},
 };
 
@@ -58,6 +57,8 @@ struct World {
     ups: HashSet<Crd>,
     downs: HashSet<Crd>,
     start: Crd,
+    grid_height: i16,
+    grid_width: i16,
 }
 
 impl World {
@@ -93,6 +94,8 @@ impl World {
             ups,
             downs,
             start,
+            grid_height: grid.len() as i16,
+            grid_width: grid[0].len() as i16,
         }
     }
 
@@ -110,6 +113,32 @@ impl World {
                 }
             })
             .collect()
+    }
+
+    fn in_bounds(&self, p: Crd) -> bool {
+        let Crd(i, j) = p;
+        0 <= i && i < self.grid_height && 0 <= j && j < self.grid_width
+    }
+
+    fn dfs_max_alt(&self, path: &[State]) -> i16 {
+        let &u = path.last().unwrap();
+        let mut result = u.alt;
+        for v in self.adjacent_states(u) {
+            if v.t <= 100 && self.in_bounds(v.crd) {
+                if let Some(i) = path.iter().rposition(|s| s.crd == v.crd) {
+                    if path[i..].iter().any(|s| self.ups.contains(&s.crd)) {
+                        let mut new_path = path.to_vec();
+                        new_path.push(v);
+                        result = result.max(self.dfs_max_alt(&new_path));
+                    }
+                } else {
+                    let mut new_path = path.to_vec();
+                    new_path.push(v);
+                    result = result.max(self.dfs_max_alt(&new_path));
+                }
+            }
+        }
+        result
     }
 }
 
@@ -162,27 +191,7 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let in_bounds = |p: Crd| -> bool {
-        let h = grid.len() as i16;
-        assert!(!grid.is_empty());
-        let w = grid[0].len() as i16;
-
-        let Crd(i, j) = p;
-        0 <= i && i < h && 0 <= j && j < w
-    };
-
     let world = World::from(&grid);
-    let mut result = State::new(world.start).alt;
-    let mut q: VecDeque<State> = VecDeque::from([State::new(world.start)]);
-
-    while let Some(u) = q.pop_front() {
-        for v in world.adjacent_states(u) {
-            if v.t <= 100 && in_bounds(v.crd) {
-                result = result.max(v.alt);
-                q.push_back(v);
-            }
-        }
-    }
-
+    let result = world.dfs_max_alt(&[State::new(world.start)]);
     println!("{}", result);
 }
