@@ -226,12 +226,17 @@ fn main() {
         .collect();
 
     let world = World::from(&grid);
-    let approach_state = world
+    let approach_states = world
         .up_clusters()
         .into_iter()
         .map(|c| world.first_state_to_reach_an_up_cluster(&c))
-        .min_by_key(|s| s.t)
+        .collect::<Vec<_>>();
+
+    let result = approach_states
+        .into_iter()
+        .map(|s| s.alt + (100 - s.t as i16))
+        .max()
         .unwrap();
-    let result = approach_state.alt + (100 - approach_state.t as i16);
+
     println!("{}", result);
 }
