@@ -1,6 +1,6 @@
 use ac_library::Dsu;
 use std::{
-    collections::HashSet,
+    collections::{HashSet, VecDeque},
     io::{self, BufRead},
 };
 
@@ -94,8 +94,6 @@ impl World {
             }
         }
 
-        eprintln!("{:?}", ups);
-
         Self {
             blocks,
             ups,
@@ -122,11 +120,6 @@ impl World {
             .collect()
     }
 
-    fn in_bounds(&self, p: Crd) -> bool {
-        let Crd(i, j) = p;
-        0 <= i && i < self.grid_height as i16 && 0 <= j && j < self.grid_width as i16
-    }
-
     fn up_clusters(&self) -> Vec<Vec<Crd>> {
         let mut dsu = Dsu::new(self.grid_height * self.grid_width);
         for u in self.ups.iter() {
@@ -135,7 +128,6 @@ impl World {
                 if self.ups.contains(&v) {
                     let Crd(i, j) = u;
                     let Crd(r, c) = v;
-                    eprintln!("merging {:?} and {:?}", u, v);
                     dsu.merge(
                         *i as usize * self.grid_width + *j as usize,
                         r as usize * self.grid_width + c as usize,
@@ -147,7 +139,7 @@ impl World {
         dsu.groups()
             .into_iter()
             .filter_map(|ii| {
-                if ii.len() > 2 {
+                if ii.len() > 3 {
                     Some(
                         ii.iter()
                             .map(|i| {
@@ -160,6 +152,27 @@ impl World {
                 }
             })
             .collect()
+    }
+
+    fn first_state_to_reach_an_up_cluster(&self, cluster: &[Crd]) -> State {
+        let mut visited: HashSet<Crd> = HashSet::from([self.start]);
+        let mut q: VecDeque<State> = VecDeque::from([State::new(self.start)]);
+
+        while let Some(u) = q.pop_front() {
+            for v in self
+                .adjacent_states(u)
+                .into_iter()
+                .filter(|s| !visited.contains(&s.crd))
+                .collect::<Vec<_>>()
+            {
+                if cluster.contains(&v.crd) {
+                    return v;
+                }
+                visited.insert(v.crd);
+                q.push_back(v);
+            }
+        }
+        panic!()
     }
 }
 
@@ -213,5 +226,12 @@ fn main() {
         .collect();
 
     let world = World::from(&grid);
-    eprintln!("{:?}", world.up_clusters());
+    let approach_state = world
+        .up_clusters()
+        .into_iter()
+        .map(|c| world.first_state_to_reach_an_up_cluster(&c))
+        .min_by_key(|s| s.t)
+        .unwrap();
+    let result = approach_state.alt + (100 - approach_state.t as i16);
+    println!("{}", result);
 }
