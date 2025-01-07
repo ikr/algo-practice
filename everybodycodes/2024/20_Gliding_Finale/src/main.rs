@@ -1,3 +1,4 @@
+use ac_library::Dsu;
 use std::{
     collections::HashSet,
     io::{self, BufRead},
@@ -23,6 +24,10 @@ enum Dir {
 }
 
 impl Dir {
+    fn all() -> Vec<Dir> {
+        vec![Dir::N, Dir::E, Dir::S, Dir::W]
+    }
+
     fn delta(&self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -57,8 +62,8 @@ struct World {
     ups: HashSet<Crd>,
     downs: HashSet<Crd>,
     start: Crd,
-    grid_height: i16,
-    grid_width: i16,
+    grid_height: usize,
+    grid_width: usize,
 }
 
 impl World {
@@ -89,13 +94,15 @@ impl World {
             }
         }
 
+        eprintln!("{:?}", ups);
+
         Self {
             blocks,
             ups,
             downs,
             start,
-            grid_height: grid.len() as i16,
-            grid_width: grid[0].len() as i16,
+            grid_height: grid.len(),
+            grid_width: grid[0].len(),
         }
     }
 
@@ -117,28 +124,42 @@ impl World {
 
     fn in_bounds(&self, p: Crd) -> bool {
         let Crd(i, j) = p;
-        0 <= i && i < self.grid_height && 0 <= j && j < self.grid_width
+        0 <= i && i < self.grid_height as i16 && 0 <= j && j < self.grid_width as i16
     }
 
-    fn dfs_max_alt(&self, path: &[State]) -> i16 {
-        let &u = path.last().unwrap();
-        let mut result = u.alt;
-        for v in self.adjacent_states(u) {
-            if v.t <= 100 && self.in_bounds(v.crd) {
-                if let Some(i) = path.iter().rposition(|s| s.crd == v.crd) {
-                    if path[i..].iter().any(|s| self.ups.contains(&s.crd)) {
-                        let mut new_path = path.to_vec();
-                        new_path.push(v);
-                        result = result.max(self.dfs_max_alt(&new_path));
-                    }
-                } else {
-                    let mut new_path = path.to_vec();
-                    new_path.push(v);
-                    result = result.max(self.dfs_max_alt(&new_path));
+    fn up_clusters(&self) -> Vec<Vec<Crd>> {
+        let mut dsu = Dsu::new(self.grid_height * self.grid_width);
+        for u in self.ups.iter() {
+            for dir in Dir::all() {
+                let v = *u + dir.delta();
+                if self.ups.contains(&v) {
+                    let Crd(i, j) = u;
+                    let Crd(r, c) = v;
+                    eprintln!("merging {:?} and {:?}", u, v);
+                    dsu.merge(
+                        *i as usize * self.grid_width + *j as usize,
+                        r as usize * self.grid_width + c as usize,
+                    );
                 }
             }
         }
-        result
+
+        dsu.groups()
+            .into_iter()
+            .filter_map(|ii| {
+                if ii.len() > 2 {
+                    Some(
+                        ii.iter()
+                            .map(|i| {
+                                Crd((i / self.grid_width) as i16, (i % self.grid_width) as i16)
+                            })
+                            .collect::<Vec<_>>(),
+                    )
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 }
 
@@ -192,6 +213,5 @@ fn main() {
         .collect();
 
     let world = World::from(&grid);
-    let result = world.dfs_max_alt(&[State::new(world.start)]);
-    println!("{}", result);
+    eprintln!("{:?}", world.up_clusters());
 }
