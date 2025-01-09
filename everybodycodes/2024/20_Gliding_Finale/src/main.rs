@@ -69,24 +69,6 @@ impl Dir {
         }
     }
 
-    fn turn_left(&self) -> Dir {
-        match self {
-            Dir::N => Dir::W,
-            Dir::E => Dir::N,
-            Dir::S => Dir::E,
-            Dir::W => Dir::S,
-        }
-    }
-
-    fn turn_right(&self) -> Dir {
-        match self {
-            Dir::N => Dir::E,
-            Dir::E => Dir::S,
-            Dir::S => Dir::W,
-            Dir::W => Dir::N,
-        }
-    }
-
     fn opposite(&self) -> Dir {
         match self {
             Dir::N => Dir::S,
@@ -155,22 +137,6 @@ impl World {
         }
     }
 
-    fn adjacent_states(&self, s0: State) -> Vec<State> {
-        s0.prospects()
-            .into_iter()
-            .filter(|(crd, _)| !self.blocks.contains(crd))
-            .map(|(crd, dir)| {
-                if self.ups.contains(&crd) {
-                    s0.tick(crd, dir, 1)
-                } else if self.downs.contains(&crd) {
-                    s0.tick(crd, dir, -2)
-                } else {
-                    s0.tick(crd, dir, -1)
-                }
-            })
-            .collect()
-    }
-
     fn in_bounds(&self, crd: Crd) -> bool {
         let h = self.grid_height as i16;
         let w = self.grid_width as i16;
@@ -228,48 +194,6 @@ impl World {
             })
             .max()
             .unwrap()
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-struct State {
-    crd: Crd,
-    dir: Dir,
-    alt: i16,
-    t: u16,
-}
-
-impl State {
-    fn new(crd: Crd) -> Self {
-        Self {
-            crd,
-            dir: Dir::S,
-            alt: 1000,
-            t: 0,
-        }
-    }
-
-    fn prospects(&self) -> Vec<(Crd, Dir)> {
-        vec![
-            (self.crd + self.dir.delta(), self.dir),
-            (
-                self.crd + self.dir.turn_left().delta(),
-                self.dir.turn_left(),
-            ),
-            (
-                self.crd + self.dir.turn_right().delta(),
-                self.dir.turn_right(),
-            ),
-        ]
-    }
-
-    fn tick(&self, crd: Crd, dir: Dir, alt_delta: i16) -> Self {
-        Self {
-            crd,
-            dir,
-            alt: self.alt + alt_delta,
-            t: self.t + 1,
-        }
     }
 }
 
