@@ -28,7 +28,7 @@ impl Crd {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Dir {
     N,
     E,
@@ -145,6 +145,16 @@ impl World {
         }
     }
 
+    fn alt_delta_at(&self, crd: Crd) -> i16 {
+        if self.ups.contains(&crd) {
+            1
+        } else if self.downs.contains(&crd) {
+            -2
+        } else {
+            -1
+        }
+    }
+
     fn adjacent_states(&self, s0: State) -> Vec<State> {
         s0.prospects()
             .into_iter()
@@ -161,22 +171,48 @@ impl World {
             .collect()
     }
 
-    fn max_possible_altitude(&self) -> u16 {
+    fn in_bounds(&self, crd: Crd) -> bool {
+        let h = self.grid_height as i16;
+        let w = self.grid_width as i16;
+        let Crd(r, c) = crd;
+        0 <= r && r < h && 0 <= c && c < w
+    }
+
+    fn max_possible_altitude(&self) -> i16 {
+        let dp0 = vec![vec![vec![None; 4]; self.grid_width]; self.grid_height];
+
         // dp(i j d) is the max possible altitude at the coordinate (i, j) when facing direction d
         // (0 - North, 1 - East, 2 - South, 3 - West), at the current moment of time.
-        let mut dp: Vec<Vec<Vec<Option<u16>>>> =
-            vec![vec![vec![None; 4]; self.grid_width]; self.grid_height];
+        let mut dp: Vec<Vec<Vec<Option<i16>>>> = dp0.clone();
 
         for d in Dir::all() {
             dp[self.start.ro()][self.start.co()][d.code()] = Some(1000);
         }
 
-        for t in 1..101 {
-            let mut dp_new = dp.clone();
+        for _ in 1..101 {
+            let mut dp_new = dp0.clone();
 
             for (i, row) in dp.iter().enumerate() {
                 for (j, cell) in row.iter().enumerate() {
-                    for (d, dir_cel) in cell.iter().enumerate() {}
+                    for (dir_code, _) in cell.iter().enumerate() {
+                        let dir = Dir::from_code(dir_code);
+                        let v = Crd::from_indices(i, j);
+
+                        for (d, u) in Dir::all()
+                            .into_iter()
+                            .filter(|d| *d != dir.opposite())
+                            .map(|d| (d, v + d.delta()))
+                            .filter(|(_, p)| self.in_bounds(*p) && !self.blocks.contains(p))
+                        {
+                            if let Some(a) = dp[u.ro()][u.co()][d.code()] {
+                                dp_new[i][j][dir_code] = Some(
+                                    dp_new[i][j][dir_code]
+                                        .unwrap_or_default()
+                                        .max(a + self.alt_delta_at(v)),
+                                );
+                            }
+                        }
+                    }
                 }
             }
 
