@@ -22,6 +22,10 @@ impl Crd {
     fn co(&self) -> usize {
         self.1 as usize
     }
+
+    fn from_indices(i: usize, j: usize) -> Crd {
+        Crd(i as i16, j as i16)
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -82,6 +86,15 @@ impl Dir {
             Dir::W => Dir::N,
         }
     }
+
+    fn opposite(&self) -> Dir {
+        match self {
+            Dir::N => Dir::S,
+            Dir::E => Dir::W,
+            Dir::S => Dir::N,
+            Dir::W => Dir::E,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -103,7 +116,7 @@ impl World {
 
         for (i, row) in grid.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
-                let p = Crd(i as i16, j as i16);
+                let p = Crd::from_indices(i, j);
                 match cell {
                     '#' => {
                         blocks.insert(p);
@@ -149,16 +162,36 @@ impl World {
     }
 
     fn max_possible_altitude(&self) -> u16 {
-        // dp(i j d t) is the max possible altitude at the coordinate (i, j) when facing direction d
-        // (0 - North, 1 - East, 2 - South, 3 - West), at the time moment t.
-        let mut dp: Vec<Vec<Vec<Vec<Option<u16>>>>> =
-            vec![vec![vec![vec![None]; 4]; self.grid_width]; self.grid_height];
+        // dp(i j d) is the max possible altitude at the coordinate (i, j) when facing direction d
+        // (0 - North, 1 - East, 2 - South, 3 - West), at the current moment of time.
+        let mut dp: Vec<Vec<Vec<Option<u16>>>> =
+            vec![vec![vec![None; 4]; self.grid_width]; self.grid_height];
 
         for d in Dir::all() {
-            dp[self.start.ro()][self.start.co()][d.code()][0] = Some(1000);
+            dp[self.start.ro()][self.start.co()][d.code()] = Some(1000);
         }
 
-        todo!()
+        for t in 1..101 {
+            let mut dp_new = dp.clone();
+
+            for (i, row) in dp.iter().enumerate() {
+                for (j, cell) in row.iter().enumerate() {
+                    for (d, dir_cel) in cell.iter().enumerate() {}
+                }
+            }
+
+            dp = dp_new;
+        }
+
+        dp.into_iter()
+            .map(|xs| {
+                xs.into_iter()
+                    .map(|ys| ys.into_iter().flatten().fold(0, |acc, y| acc.max(y)))
+                    .max()
+                    .unwrap()
+            })
+            .max()
+            .unwrap()
     }
 }
 
@@ -212,5 +245,6 @@ fn main() {
         .collect();
 
     let world = World::from(&grid);
+    eprintln!("{}x{} grid", world.grid_height, world.grid_width);
     println!("{}", world.max_possible_altitude());
 }
