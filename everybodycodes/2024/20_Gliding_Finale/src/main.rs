@@ -1,6 +1,5 @@
-use ac_library::Dsu;
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::HashSet,
     io::{self, BufRead},
 };
 
@@ -15,6 +14,16 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
+impl Crd {
+    fn ro(&self) -> usize {
+        self.0 as usize
+    }
+
+    fn co(&self) -> usize {
+        self.1 as usize
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 enum Dir {
     N,
@@ -26,6 +35,25 @@ enum Dir {
 impl Dir {
     fn all() -> Vec<Dir> {
         vec![Dir::N, Dir::E, Dir::S, Dir::W]
+    }
+
+    fn code(&self) -> usize {
+        match self {
+            Dir::N => 0,
+            Dir::E => 1,
+            Dir::S => 2,
+            Dir::W => 3,
+        }
+    }
+
+    fn from_code(code: usize) -> Dir {
+        match code {
+            0 => Dir::N,
+            1 => Dir::E,
+            2 => Dir::S,
+            3 => Dir::W,
+            _ => panic!(),
+        }
     }
 
     fn delta(&self) -> Crd {
@@ -120,59 +148,17 @@ impl World {
             .collect()
     }
 
-    fn up_clusters(&self) -> Vec<Vec<Crd>> {
-        let mut dsu = Dsu::new(self.grid_height * self.grid_width);
-        for u in self.ups.iter() {
-            for dir in Dir::all() {
-                let v = *u + dir.delta();
-                if self.ups.contains(&v) {
-                    let Crd(i, j) = u;
-                    let Crd(r, c) = v;
-                    dsu.merge(
-                        *i as usize * self.grid_width + *j as usize,
-                        r as usize * self.grid_width + c as usize,
-                    );
-                }
-            }
+    fn max_possible_altitude(&self) -> u16 {
+        // dp(i j d t) is the max possible altitude at the coordinate (i, j) when facing direction d
+        // (0 - North, 1 - East, 2 - South, 3 - West), at the time moment t.
+        let mut dp: Vec<Vec<Vec<Vec<Option<u16>>>>> =
+            vec![vec![vec![vec![None]; 4]; self.grid_width]; self.grid_height];
+
+        for d in Dir::all() {
+            dp[self.start.ro()][self.start.co()][d.code()][0] = Some(1000);
         }
 
-        dsu.groups()
-            .into_iter()
-            .filter_map(|ii| {
-                if ii.len() > 3 {
-                    Some(
-                        ii.iter()
-                            .map(|i| {
-                                Crd((i / self.grid_width) as i16, (i % self.grid_width) as i16)
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    fn first_state_to_reach_an_up_cluster(&self, cluster: &[Crd]) -> State {
-        let mut visited: HashSet<Crd> = HashSet::from([self.start]);
-        let mut q: VecDeque<State> = VecDeque::from([State::new(self.start)]);
-
-        while let Some(u) = q.pop_front() {
-            for v in self
-                .adjacent_states(u)
-                .into_iter()
-                .filter(|s| !visited.contains(&s.crd))
-                .collect::<Vec<_>>()
-            {
-                if cluster.contains(&v.crd) {
-                    return v;
-                }
-                visited.insert(v.crd);
-                q.push_back(v);
-            }
-        }
-        panic!()
+        todo!()
     }
 }
 
@@ -226,17 +212,5 @@ fn main() {
         .collect();
 
     let world = World::from(&grid);
-    let approach_states = world
-        .up_clusters()
-        .into_iter()
-        .map(|c| world.first_state_to_reach_an_up_cluster(&c))
-        .collect::<Vec<_>>();
-
-    let result = approach_states
-        .into_iter()
-        .map(|s| s.alt + (100 - s.t as i16))
-        .max()
-        .unwrap();
-
-    println!("{}", result);
+    println!("{}", world.max_possible_altitude());
 }
