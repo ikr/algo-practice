@@ -146,18 +146,25 @@ impl World {
         0 <= r && r < h && 0 <= c && c < w
     }
 
-    fn max_possible_altitude(&self) -> i16 {
+    fn arrival_possibilities(
+        &self,
+        src_crd: Crd,
+        src_dirs: &[Dir],
+        dst_crd: Crd,
+    ) -> Vec<(Dir, u16, i16)> {
         let dp0 = vec![vec![vec![None; 4]; self.grid_width]; self.grid_height];
 
         // dp(i j d) is the max possible altitude at the coordinate (i, j) when facing direction d
         // (0 - North, 1 - East, 2 - South, 3 - West), at the current moment of time.
         let mut dp: Vec<Vec<Vec<Option<i16>>>> = dp0.clone();
 
-        for d in Dir::all() {
-            dp[self.waypoints[&'S'].ro()][self.waypoints[&'S'].co()][d.code()] = Some(0);
+        for d in src_dirs {
+            dp[src_crd.ro()][src_crd.co()][d.code()] = Some(0);
         }
 
-        for _ in 1..=T_HORIZON {
+        let mut result = vec![];
+
+        for t in 1..=T_HORIZON {
             let mut dp_new = dp0.clone();
 
             for (i, row) in dp.iter().enumerate() {
@@ -180,6 +187,12 @@ impl World {
                                 );
                             }
                         }
+
+                        if v == dst_crd {
+                            if let Some(a) = dp_new[i][j][dir_code] {
+                                result.push((dir, t, a));
+                            }
+                        }
                     }
                 }
             }
@@ -187,15 +200,7 @@ impl World {
             dp = dp_new;
         }
 
-        dp.into_iter()
-            .map(|xs| {
-                xs.into_iter()
-                    .map(|ys| ys.into_iter().flatten().fold(i16::MIN, |acc, y| acc.max(y)))
-                    .max()
-                    .unwrap()
-            })
-            .max()
-            .unwrap()
+        result
     }
 }
 
@@ -208,5 +213,8 @@ fn main() {
 
     let world = World::from(&grid);
     eprintln!("{}x{} grid", world.grid_height, world.grid_width);
-    println!("{}", world.max_possible_altitude());
+    eprintln!(
+        "{:?}",
+        world.arrival_possibilities(world.waypoints[&'S'], &Dir::all(), world.waypoints[&'A'])
+    );
 }
