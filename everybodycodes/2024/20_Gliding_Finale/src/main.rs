@@ -1,10 +1,11 @@
 use std::{
     collections::{HashMap, HashSet},
     io::{self, BufRead},
-    u16,
 };
 
-const T_HORIZON: u16 = 50;
+use memoize::memoize;
+
+const T_HORIZON: u16 = 200;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
@@ -31,7 +32,7 @@ impl Crd {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 enum Dir {
     N,
     E,
@@ -146,63 +147,6 @@ impl World {
         let Crd(r, c) = crd;
         0 <= r && r < h && 0 <= c && c < w
     }
-
-    fn arrival_possibilities(
-        &self,
-        src_crd: Crd,
-        src_dirs: &[Dir],
-        dst_crd: Crd,
-    ) -> Vec<(Dir, u16, i16)> {
-        let dp0 = vec![vec![vec![None; 4]; self.grid_width]; self.grid_height];
-
-        // dp(i j d) is the max possible altitude at the coordinate (i, j) when facing direction d
-        // (0 - North, 1 - East, 2 - South, 3 - West), at the current moment of time.
-        let mut dp: Vec<Vec<Vec<Option<i16>>>> = dp0.clone();
-
-        for d in src_dirs {
-            dp[src_crd.ro()][src_crd.co()][d.code()] = Some(0);
-        }
-
-        let mut result = vec![];
-
-        for t in 1..=T_HORIZON {
-            let mut dp_new = dp0.clone();
-
-            for (i, row) in dp.iter().enumerate() {
-                for (j, cell) in row.iter().enumerate() {
-                    for (dir_code, _) in cell.iter().enumerate() {
-                        let dir = Dir::from_code(dir_code);
-                        let v = Crd::from_indices(i, j);
-
-                        for (d, u) in Dir::all()
-                            .into_iter()
-                            .filter(|d| *d != dir.opposite())
-                            .map(|d| (d, v + d.delta()))
-                            .filter(|(_, p)| self.in_bounds(*p) && !self.blocks.contains(p))
-                        {
-                            if let Some(a) = dp[u.ro()][u.co()][d.code()] {
-                                dp_new[i][j][dir_code] = Some(
-                                    dp_new[i][j][dir_code]
-                                        .unwrap_or(i16::MIN)
-                                        .max(a + self.alt_delta_at(v)),
-                                );
-                            }
-                        }
-
-                        if v == dst_crd {
-                            if let Some(a) = dp_new[i][j][dir_code] {
-                                result.push((dir, t, a));
-                            }
-                        }
-                    }
-                }
-            }
-
-            dp = dp_new;
-        }
-
-        result
-    }
 }
 
 fn group_by_t_and_alt(tris: Vec<(Dir, u16, i16)>) -> Vec<(Vec<Dir>, u16, i16)> {
@@ -224,6 +168,64 @@ fn group_by_t_and_alt(tris: Vec<(Dir, u16, i16)>) -> Vec<(Vec<Dir>, u16, i16)> {
     result
 }
 
+#[memoize(Ignore: world)]
+fn arrival_possibilities(
+    world: &World,
+    src_crd: Crd,
+    src_dirs: Vec<Dir>,
+    dst_crd: Crd,
+) -> Vec<(Dir, u16, i16)> {
+    let dp0 = vec![vec![vec![None; 4]; world.grid_width]; world.grid_height];
+
+    // dp(i j d) is the max possible altitude at the coordinate (i, j) when facing direction d
+    // (0 - North, 1 - East, 2 - South, 3 - West), at the current moment of time.
+    let mut dp: Vec<Vec<Vec<Option<i16>>>> = dp0.clone();
+
+    for d in src_dirs {
+        dp[src_crd.ro()][src_crd.co()][d.code()] = Some(0);
+    }
+
+    let mut result = vec![];
+
+    for t in 1..=T_HORIZON {
+        let mut dp_new = dp0.clone();
+
+        for (i, row) in dp.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                for (dir_code, _) in cell.iter().enumerate() {
+                    let dir = Dir::from_code(dir_code);
+                    let v = Crd::from_indices(i, j);
+
+                    for (d, u) in Dir::all()
+                        .into_iter()
+                        .filter(|d| *d != dir.opposite())
+                        .map(|d| (d, v + d.delta()))
+                        .filter(|(_, p)| world.in_bounds(*p) && !world.blocks.contains(p))
+                    {
+                        if let Some(a) = dp[u.ro()][u.co()][d.code()] {
+                            dp_new[i][j][dir_code] = Some(
+                                dp_new[i][j][dir_code]
+                                    .unwrap_or(i16::MIN)
+                                    .max(a + world.alt_delta_at(v)),
+                            );
+                        }
+                    }
+
+                    if v == dst_crd {
+                        if let Some(a) = dp_new[i][j][dir_code] {
+                            result.push((dir, t, a));
+                        }
+                    }
+                }
+            }
+        }
+
+        dp = dp_new;
+    }
+
+    result
+}
+
 fn min_time(
     world: &World,
     origin_crd: Crd,
@@ -233,7 +235,12 @@ fn min_time(
     waypoints: &[char],
 ) -> u16 {
     if let Some(dst) = waypoints.first() {
-        let tris = world.arrival_possibilities(origin_crd, origin_dirs, world.waypoints[dst]);
+        let tris = arrival_possibilities(
+            world,
+            origin_crd,
+            origin_dirs.to_vec(),
+            world.waypoints[dst],
+        );
 
         if waypoints.len() == 1 {
             tris.into_iter()
@@ -246,7 +253,7 @@ fn min_time(
 
             for (sub_dirs, sub_t, sub_alt) in group_by_t_and_alt(tris) {
                 result = result.min(min_time(
-                    &world,
+                    world,
                     world.waypoints[dst],
                     &sub_dirs,
                     origin_t + sub_t,
