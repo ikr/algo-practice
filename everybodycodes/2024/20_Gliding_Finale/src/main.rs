@@ -154,7 +154,7 @@ impl World {
         let mut dp: Vec<Vec<Vec<Option<i16>>>> = dp0.clone();
 
         for d in Dir::all() {
-            dp[self.waypoints[&'S'].ro()][self.waypoints[&'S'].co()][d.code()] = Some(1000);
+            dp[self.waypoints[&'S'].ro()][self.waypoints[&'S'].co()][d.code()] = Some(0);
         }
 
         for _ in 1..=T_HORIZON {
@@ -175,7 +175,7 @@ impl World {
                             if let Some(a) = dp[u.ro()][u.co()][d.code()] {
                                 dp_new[i][j][dir_code] = Some(
                                     dp_new[i][j][dir_code]
-                                        .unwrap_or_default()
+                                        .unwrap_or(i16::MIN)
                                         .max(a + self.alt_delta_at(v)),
                                 );
                             }
@@ -190,7 +190,7 @@ impl World {
         dp.into_iter()
             .map(|xs| {
                 xs.into_iter()
-                    .map(|ys| ys.into_iter().flatten().fold(0, |acc, y| acc.max(y)))
+                    .map(|ys| ys.into_iter().flatten().fold(i16::MIN, |acc, y| acc.max(y)))
                     .max()
                     .unwrap()
             })
