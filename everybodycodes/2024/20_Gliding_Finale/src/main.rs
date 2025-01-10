@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     io::{self, BufRead},
 };
 
@@ -84,7 +84,7 @@ struct World {
     blocks: HashSet<Crd>,
     ups: HashSet<Crd>,
     downs: HashSet<Crd>,
-    start: Crd,
+    waypoints: HashMap<char, Crd>,
     grid_height: usize,
     grid_width: usize,
 }
@@ -94,7 +94,7 @@ impl World {
         let mut blocks = HashSet::new();
         let mut ups = HashSet::new();
         let mut downs = HashSet::new();
-        let mut start = Crd(i16::MIN, i16::MIN);
+        let mut waypoints = HashMap::new();
 
         for (i, row) in grid.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
@@ -109,8 +109,8 @@ impl World {
                     '-' => {
                         downs.insert(p);
                     }
-                    'S' => {
-                        start = p;
+                    'A' | 'B' | 'C' | 'S' => {
+                        waypoints.insert(*cell, p);
                     }
                     _ => {}
                 };
@@ -121,7 +121,7 @@ impl World {
             blocks,
             ups,
             downs,
-            start,
+            waypoints,
             grid_height: grid.len(),
             grid_width: grid[0].len(),
         }
@@ -152,7 +152,7 @@ impl World {
         let mut dp: Vec<Vec<Vec<Option<i16>>>> = dp0.clone();
 
         for d in Dir::all() {
-            dp[self.start.ro()][self.start.co()][d.code()] = Some(1000);
+            dp[self.waypoints[&'S'].ro()][self.waypoints[&'S'].co()][d.code()] = Some(1000);
         }
 
         for _ in 1..101 {
