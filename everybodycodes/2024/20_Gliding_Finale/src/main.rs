@@ -1,9 +1,10 @@
 use std::{
     collections::{HashMap, HashSet},
     io::{self, BufRead},
+    u16,
 };
 
-const T_HORIZON: u16 = 100;
+const T_HORIZON: u16 = 150;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
@@ -204,6 +205,25 @@ impl World {
     }
 }
 
+fn group_by_t_and_alt(tris: Vec<(Dir, u16, i16)>) -> Vec<(Vec<Dir>, u16, i16)> {
+    let xs: HashMap<(u16, i16), Vec<Dir>> =
+        tris.into_iter()
+            .fold(HashMap::new(), |mut acc, (dir, t, alt)| {
+                acc.entry((t, alt))
+                    .and_modify(|dirs| dirs.push(dir))
+                    .or_insert(vec![dir]);
+                acc
+            });
+
+    let mut result: Vec<(Vec<Dir>, u16, i16)> = xs
+        .into_iter()
+        .map(|((t, alt), dirs)| (dirs, t, alt))
+        .collect();
+
+    result.sort_by_key(|(_, t, alt)| (*t, -*alt));
+    result
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = io::stdin()
         .lock()
@@ -213,8 +233,22 @@ fn main() {
 
     let world = World::from(&grid);
     eprintln!("{}x{} grid", world.grid_height, world.grid_width);
-    eprintln!(
-        "{:?}",
-        world.arrival_possibilities(world.waypoints[&'S'], &Dir::all(), world.waypoints[&'A'])
-    );
+
+    let mut origin_dirs = Dir::all();
+    let mut origin_t: u16 = 0;
+    let mut origin_alt: i16 = 0;
+    let mut result: u16 = u16::MAX;
+
+    for (src, dst) in ['S', 'A', 'B', 'C', 'S']
+        .windows(2)
+        .map(|ab| (ab[0], ab[1]))
+    {
+        let tris =
+            world.arrival_possibilities(world.waypoints[&src], &Dir::all(), world.waypoints[&dst]);
+
+        eprintln!("{:?}", tris);
+        eprintln!("{:?}", group_by_t_and_alt(tris));
+    }
+
+    println!("{}", result);
 }
