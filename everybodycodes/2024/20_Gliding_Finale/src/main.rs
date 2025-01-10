@@ -3,6 +3,8 @@ use std::{
     io::{self, BufRead},
 };
 
+const T_HORIZON: u16 = 100;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
 
@@ -155,7 +157,7 @@ impl World {
             dp[self.waypoints[&'S'].ro()][self.waypoints[&'S'].co()][d.code()] = Some(1000);
         }
 
-        for _ in 1..101 {
+        for _ in 1..=T_HORIZON {
             let mut dp_new = dp0.clone();
 
             for (i, row) in dp.iter().enumerate() {
