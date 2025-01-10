@@ -4,7 +4,7 @@ use std::{
     u16,
 };
 
-const T_HORIZON: u16 = 150;
+const T_HORIZON: u16 = 50;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i16, i16);
@@ -224,6 +224,44 @@ fn group_by_t_and_alt(tris: Vec<(Dir, u16, i16)>) -> Vec<(Vec<Dir>, u16, i16)> {
     result
 }
 
+fn min_time(
+    world: &World,
+    origin_crd: Crd,
+    origin_dirs: &[Dir],
+    origin_t: u16,
+    origin_alt: i16,
+    waypoints: &[char],
+) -> u16 {
+    if let Some(dst) = waypoints.first() {
+        let tris = world.arrival_possibilities(origin_crd, origin_dirs, world.waypoints[dst]);
+
+        if waypoints.len() == 1 {
+            tris.into_iter()
+                .filter(|(_, _, alt)| origin_alt + alt >= 0)
+                .map(|(_, t, _)| origin_t + t)
+                .min()
+                .unwrap_or(u16::MAX)
+        } else {
+            let mut result = u16::MAX;
+
+            for (sub_dirs, sub_t, sub_alt) in group_by_t_and_alt(tris) {
+                result = result.min(min_time(
+                    &world,
+                    world.waypoints[dst],
+                    &sub_dirs,
+                    origin_t + sub_t,
+                    origin_alt + sub_alt,
+                    &waypoints[1..],
+                ));
+            }
+
+            result
+        }
+    } else {
+        panic!()
+    }
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = io::stdin()
         .lock()
@@ -234,21 +272,14 @@ fn main() {
     let world = World::from(&grid);
     eprintln!("{}x{} grid", world.grid_height, world.grid_width);
 
-    let mut origin_dirs = Dir::all();
-    let mut origin_t: u16 = 0;
-    let mut origin_alt: i16 = 0;
-    let mut result: u16 = u16::MAX;
-
-    for (src, dst) in ['S', 'A', 'B', 'C', 'S']
-        .windows(2)
-        .map(|ab| (ab[0], ab[1]))
-    {
-        let tris =
-            world.arrival_possibilities(world.waypoints[&src], &Dir::all(), world.waypoints[&dst]);
-
-        eprintln!("{:?}", tris);
-        eprintln!("{:?}", group_by_t_and_alt(tris));
-    }
+    let result = min_time(
+        &world,
+        world.waypoints[&'S'],
+        &Dir::all(),
+        0,
+        0,
+        &['A', 'B', 'C', 'S'],
+    );
 
     println!("{}", result);
 }
