@@ -50,16 +50,6 @@ impl Dir {
         }
     }
 
-    fn from_code(code: usize) -> Dir {
-        match code {
-            0 => Dir::N,
-            1 => Dir::E,
-            2 => Dir::S,
-            3 => Dir::W,
-            _ => panic!(),
-        }
-    }
-
     fn delta(&self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -156,9 +146,12 @@ impl WorldTile {
             let mut dp_new = dp.clone();
 
             for (i, row) in dp.iter().enumerate() {
-                for (j, cell) in row.iter().enumerate() {
-                    for (dir_code, _) in cell.iter().enumerate() {
-                        let dir = Dir::from_code(dir_code);
+                for (j, _) in row.iter().enumerate() {
+                    if self.blocks.contains(&Crd::from_indices(i, j)) {
+                        continue;
+                    }
+
+                    for dir in Dir::all() {
                         let v = Crd::from_indices(i, j);
 
                         for (d, u) in Dir::all()
@@ -169,8 +162,8 @@ impl WorldTile {
                         {
                             if let Some(a) = dp[u.ro()][u.co()][d.code()] {
                                 if a + self.alt_delta_at(v) >= 0 {
-                                    dp_new[i][j][dir_code] = Some(
-                                        dp_new[i][j][dir_code]
+                                    dp_new[i][j][dir.code()] = Some(
+                                        dp_new[i][j][dir.code()]
                                             .unwrap_or(i32::MIN)
                                             .max(a + self.alt_delta_at(v)),
                                     );
@@ -214,7 +207,7 @@ fn main() {
 
         for (i, row) in dp.iter().enumerate() {
             for cell in row.iter() {
-                for (_, dir_cell) in cell.iter().enumerate() {
+                for dir_cell in cell.iter() {
                     if dir_cell.is_some() {
                         result = result.max(offset + i);
                     }
