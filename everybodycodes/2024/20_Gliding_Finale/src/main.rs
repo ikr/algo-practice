@@ -118,6 +118,7 @@ impl WorldTile {
     }
 
     fn alt_delta_at(&self, crd: Crd) -> i32 {
+        assert!(!self.blocks.contains(&crd));
         if self.ups.contains(&crd) {
             1
         } else if self.downs.contains(&crd) {
@@ -173,10 +174,8 @@ impl WorldTile {
                     }
                 }
             }
-
             dp = dp_new;
         }
-
         dp
     }
 }
@@ -197,13 +196,18 @@ fn main() {
     let initial_altitude: i32 = 10;
     //let initial_altitude: i32 = 384400;
     let mut start_row: Vec<Vec<Option<i32>>> = vec![vec![None; Dir::all().len()]; world_tile.width];
-    start_row[world_tile.start.co()] = vec![Some(initial_altitude); Dir::all().len()];
-    //start_row[world_tile.start.co()][Dir::S.code()] = Some(initial_altitude);
+    //start_row[world_tile.start.co()] = vec![Some(initial_altitude); Dir::all().len()];
+    start_row[world_tile.start.co()][Dir::S.code()] = Some(initial_altitude);
     let mut offset: usize = 0;
     let mut result: usize = 0;
 
     loop {
         let dp = world_tile.max_flight_altitudes(&start_row);
+
+        for row in dp.iter() {
+            eprintln!("{:?}", row);
+        }
+        eprintln!();
 
         for (i, row) in dp.iter().enumerate() {
             for cell in row.iter() {
