@@ -88,7 +88,7 @@ struct World {
     blocks: HashSet<Crd>,
     ups: HashSet<Crd>,
     downs: HashSet<Crd>,
-    waypoints: HashMap<char, Crd>,
+    start: Crd,
     grid_height: usize,
     grid_width: usize,
 }
@@ -98,7 +98,7 @@ impl World {
         let mut blocks = HashSet::new();
         let mut ups = HashSet::new();
         let mut downs = HashSet::new();
-        let mut waypoints = HashMap::new();
+        let mut start = Crd(-1, -1);
 
         for (i, row) in grid.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
@@ -113,8 +113,8 @@ impl World {
                     '-' => {
                         downs.insert(p);
                     }
-                    'A' | 'B' | 'C' | 'S' => {
-                        waypoints.insert(*cell, p);
+                    'S' => {
+                        start = p;
                     }
                     _ => {}
                 };
@@ -125,7 +125,7 @@ impl World {
             blocks,
             ups,
             downs,
-            waypoints,
+            start,
             grid_height: grid.len(),
             grid_width: grid[0].len(),
         }
@@ -226,67 +226,19 @@ fn arrival_possibilities(
     result
 }
 
-fn min_time(
-    world: &World,
-    origin_crd: Crd,
-    origin_dirs: &[Dir],
-    origin_t: u16,
-    origin_alt: i16,
-    waypoints: &[char],
-) -> u16 {
-    if let Some(dst) = waypoints.first() {
-        let tris = arrival_possibilities(
-            world,
-            origin_crd,
-            origin_dirs.to_vec(),
-            world.waypoints[dst],
-        );
-
-        if waypoints.len() == 1 {
-            tris.into_iter()
-                .filter(|(_, _, alt)| origin_alt + alt >= 0)
-                .map(|(_, t, _)| origin_t + t)
-                .min()
-                .unwrap_or(u16::MAX)
-        } else {
-            let mut result = u16::MAX;
-
-            for (sub_dirs, sub_t, sub_alt) in group_by_t_and_alt(tris) {
-                result = result.min(min_time(
-                    world,
-                    world.waypoints[dst],
-                    &sub_dirs,
-                    origin_t + sub_t,
-                    origin_alt + sub_alt,
-                    &waypoints[1..],
-                ));
-            }
-
-            result
-        }
-    } else {
-        panic!()
-    }
-}
-
 fn main() {
     let grid: Vec<Vec<char>> = io::stdin()
         .lock()
         .lines()
-        .map(|line| line.unwrap().chars().collect())
+        .map(|line| {
+            let s = line.unwrap();
+            s.chars().take(s.len() - 1).skip(1).collect()
+        })
         .collect();
 
     let world = World::from(&grid);
-    eprintln!("{}x{} grid", world.grid_height, world.grid_width);
-
-    let result = min_time(
-        &world,
-        world.waypoints[&'S'],
-        &Dir::all(),
-        0,
-        0,
-        &['A', 'B', 'C', 'S'],
+    eprintln!(
+        "{}x{} grid\n{:?}",
+        world.grid_height, world.grid_width, grid
     );
-
-    println!("{}", result);
 }
