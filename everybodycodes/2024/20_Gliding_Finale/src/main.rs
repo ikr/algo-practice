@@ -141,21 +141,19 @@ impl WorldTile {
         let h = self.height as i32;
         let w = self.width as i32;
         let Crd(r, c) = crd;
-        0 <= r && r < h && 0 <= c && c < w
+        0 <= r && r <= h && 0 <= c && c < w
     }
 
     fn max_flight_altitudes(&self, start_row: &[Vec<Option<i32>>]) -> Vec<Vec<Vec<Option<i32>>>> {
-        let dp0 = vec![vec![vec![None; 4]; self.width]; self.height + 1];
-
         // dp(i j d) is the max possible altitude at the coordinate (i, j) when facing direction d
         // (0 - North, 1 - East, 2 - South, 3 - West), at the current moment of time.
-        let mut dp: Vec<Vec<Vec<Option<i32>>>> = dp0.clone();
+        let mut dp: Vec<Vec<Vec<Option<i32>>>> =
+            vec![vec![vec![None; Dir::all().len()]; self.width]; self.height + 1];
         dp[0] = start_row.to_vec();
+        let t_horizon = self.width;
 
-        let t_horizon = self.width + self.height;
-
-        for _ in 1..=t_horizon {
-            let mut dp_new = dp0.clone();
+        for _ in 0..t_horizon {
+            let mut dp_new = dp.clone();
 
             for (i, row) in dp.iter().enumerate() {
                 for (j, cell) in row.iter().enumerate() {
@@ -203,19 +201,16 @@ fn main() {
     let world_tile = WorldTile::from(&grid);
     assert_eq!(world_tile.start.ro(), 0);
 
-    let initial_altitude: i32 = 100;
+    let initial_altitude: i32 = 10;
     //let initial_altitude: i32 = 384400;
     let mut start_row: Vec<Vec<Option<i32>>> = vec![vec![None; Dir::all().len()]; world_tile.width];
     start_row[world_tile.start.co()] = vec![Some(initial_altitude); Dir::all().len()];
+    //start_row[world_tile.start.co()][Dir::S.code()] = Some(initial_altitude);
     let mut offset: usize = 0;
     let mut result: usize = 0;
 
     loop {
         let dp = world_tile.max_flight_altitudes(&start_row);
-        start_row = dp.last().unwrap().clone();
-        if start_row.iter().all(|xs| xs.iter().all(|x| x.is_none())) {
-            break;
-        }
 
         for (i, row) in dp.iter().enumerate() {
             for cell in row.iter() {
@@ -225,6 +220,11 @@ fn main() {
                     }
                 }
             }
+        }
+
+        start_row = dp.last().unwrap().clone();
+        if start_row.iter().all(|xs| xs.iter().all(|x| x.is_none())) {
+            break;
         }
         offset += world_tile.height;
     }
