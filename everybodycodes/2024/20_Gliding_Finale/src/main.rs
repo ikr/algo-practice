@@ -170,11 +170,13 @@ impl WorldTile {
                             .filter(|(_, p)| self.in_bounds(*p) && !self.blocks.contains(p))
                         {
                             if let Some(a) = dp[u.ro()][u.co()][d.code()] {
-                                dp_new[i][j][dir_code] = Some(
-                                    dp_new[i][j][dir_code]
-                                        .unwrap_or(i32::MIN)
-                                        .max(a + self.alt_delta_at(v)),
-                                );
+                                if a + self.alt_delta_at(v) >= 0 {
+                                    dp_new[i][j][dir_code] = Some(
+                                        dp_new[i][j][dir_code]
+                                            .unwrap_or(i32::MIN)
+                                            .max(a + self.alt_delta_at(v)),
+                                    );
+                                }
                             }
                         }
                     }
@@ -199,11 +201,33 @@ fn main() {
         .collect();
 
     let world_tile = WorldTile::from(&grid);
-    let initial_altitude: i32 = 384400;
-    let mut initial_start_row: Vec<Vec<Option<i32>>> =
-        vec![vec![None; Dir::all().len()]; world_tile.width];
-    initial_start_row[world_tile.start.co()] = vec![Some(initial_altitude); Dir::all().len()];
+    assert_eq!(world_tile.start.ro(), 0);
 
-    let dp = world_tile.max_flight_altitudes(&initial_start_row);
-    eprintln!("{:?}", dp);
+    let initial_altitude: i32 = 100;
+    //let initial_altitude: i32 = 384400;
+    let mut start_row: Vec<Vec<Option<i32>>> = vec![vec![None; Dir::all().len()]; world_tile.width];
+    start_row[world_tile.start.co()] = vec![Some(initial_altitude); Dir::all().len()];
+    let mut offset: usize = 0;
+    let mut result: usize = 0;
+
+    loop {
+        let dp = world_tile.max_flight_altitudes(&start_row);
+        start_row = dp.last().unwrap().clone();
+        if start_row.iter().all(|xs| xs.iter().all(|x| x.is_none())) {
+            break;
+        }
+
+        for (i, row) in dp.iter().enumerate() {
+            for cell in row.iter() {
+                for (_, dir_cell) in cell.iter().enumerate() {
+                    if dir_cell.is_some() {
+                        result = result.max(offset + i);
+                    }
+                }
+            }
+        }
+        offset += world_tile.height;
+    }
+
+    println!("{}", result);
 }
