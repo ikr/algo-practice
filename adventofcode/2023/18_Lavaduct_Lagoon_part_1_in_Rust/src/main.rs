@@ -3,7 +3,7 @@ use std::{
     io::BufRead,
 };
 
-const FLOOD_LIMIT: usize = 100_000;
+const FLOOD_LIMIT: usize = 50_000;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 struct Crd(i32, i32);
