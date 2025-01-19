@@ -40,6 +40,8 @@ fn solve(mut xss: Vec<Vec<u16>>) -> Option<Vec<usize>> {
         result
     };
 
+    assert!(is_sorted(&col(0)));
+
     for j in 1..m {
         if !is_sorted(&col(j)) {
             return None;
