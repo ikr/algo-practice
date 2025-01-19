@@ -18,8 +18,35 @@ impl Scanner {
     }
 }
 
-fn solve(xss: &[Vec<u16>]) -> Option<Vec<usize>> {
-    todo!()
+fn is_sorted(xs: &[u16]) -> bool {
+    xs.windows(2).all(|ab| ab[0] < ab[1])
+}
+
+fn solve(mut xss: Vec<Vec<u16>>) -> Option<Vec<usize>> {
+    for row in xss.iter_mut() {
+        row.sort();
+    }
+
+    let n = xss.len();
+    let m = xss[0].len();
+    let mut ii: Vec<usize> = (0..n).collect();
+    ii.sort_by_key(|i| xss[*i][0]);
+
+    let col = |j: usize| -> Vec<u16> {
+        let mut result = vec![];
+        for &i in ii.iter() {
+            result.push(xss[i][j]);
+        }
+        result
+    };
+
+    for j in 1..m {
+        if !is_sorted(&col(j)) {
+            return None;
+        }
+    }
+
+    Some(ii)
 }
 
 fn main() {
@@ -41,7 +68,7 @@ fn main() {
             }
         }
 
-        if let Some(ii) = solve(&xss) {
+        if let Some(ii) = solve(xss) {
             let result = ii
                 .iter()
                 .map(|i| (i + 1).to_string())
