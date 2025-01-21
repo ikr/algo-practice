@@ -18,33 +18,20 @@ impl Scanner {
     }
 }
 
-fn is_sorted(xs: &[u16]) -> bool {
-    xs.windows(2).all(|ab| ab[0] < ab[1])
-}
-
 fn solve(mut xss: Vec<Vec<u16>>) -> Option<Vec<usize>> {
     for row in xss.iter_mut() {
         row.sort();
     }
 
     let n = xss.len();
-    let m = xss[0].len();
     let mut ii: Vec<usize> = (0..n).collect();
     ii.sort_by_key(|i| xss[*i][0]);
 
-    let col = |j: usize| -> Vec<u16> {
-        let mut result = vec![];
-        for &i in ii.iter() {
-            result.push(xss[i][j]);
-        }
-        result
-    };
-
-    assert!(is_sorted(&col(0)));
-
-    for j in 1..m {
-        if !is_sorted(&col(j)) {
-            return None;
+    for (i, i0) in ii.iter().enumerate() {
+        for (j, cell) in xss[*i0].iter().enumerate() {
+            if *cell as usize != i + j * n {
+                return None;
+            }
         }
     }
 
