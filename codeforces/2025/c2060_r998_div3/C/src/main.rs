@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     io::{self, stdin, BufWriter, Write},
 };
 
@@ -21,23 +21,42 @@ impl Scanner {
     }
 }
 
-fn solve(xs: &[u32], k: u32) -> u32 {
-    let mut stash: HashMap<u32, usize> = HashMap::new();
-    let mut pairs: u32 = 0;
+fn div_ceil(x: i32, y: i32) -> i32 {
+    if x == 0 {
+        0
+    } else {
+        1 + (x - 1) / y
+    }
+}
 
-    for &x in xs {
-        let y = k.saturating_sub(x);
-        if let Some(&f) = stash.get(&y) {
-            if f != 0 {
-                pairs += 1;
-                stash.entry(y).and_modify(|g| *g -= 1);
+fn solve(xs: &[i32], k: i32) -> usize {
+    let fq: BTreeMap<i32, usize> = xs.iter().fold(BTreeMap::new(), |mut acc, x| {
+        acc.entry(*x).and_modify(|f| *f += 1).or_insert(1);
+        acc
+    });
+
+    (0..div_ceil(k, 2)).fold(
+        if k % 2 == 0 {
+            if let Some(f) = fq.get(&(k / 2)) {
+                f / 2
+            } else {
+                0
             }
         } else {
-            stash.entry(x).and_modify(|g| *g += 1).or_insert(1);
-        }
-    }
-
-    pairs
+            0
+        },
+        |acc, p| {
+            acc + if let Some(g) = fq.get(&(k - p)) {
+                if let Some(f) = fq.get(&p) {
+                    *g.min(f)
+                } else {
+                    0
+                }
+            } else {
+                0
+            }
+        },
+    )
 }
 
 fn main() {
@@ -50,9 +69,9 @@ fn main() {
 
     for _ in 1..=cases_num {
         let n: usize = scanner.next();
-        let k: u32 = scanner.next();
+        let k: i32 = scanner.next();
 
-        let mut xs: Vec<u32> = vec![0; n];
+        let mut xs: Vec<i32> = vec![0; n];
         for x in xs.iter_mut() {
             *x = scanner.next();
         }
