@@ -1,12 +1,11 @@
 use std::io::{self, BufRead};
 
 fn is_allowed(s: &str) -> bool {
-    let n = s.chars().count();
-    if n < 4 || n > 12 {
+    let cs: Vec<char> = s.chars().collect();
+    if cs.len() < 4 || cs.len() > 12 {
         return false;
     }
 
-    let cs: Vec<char> = s.chars().collect();
     cs.iter().any(|c| c.is_digit(10))
         && cs.iter().any(|c| c.is_uppercase())
         && cs.iter().any(|c| c.is_lowercase())
