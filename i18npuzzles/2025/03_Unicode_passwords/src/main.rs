@@ -6,7 +6,7 @@ fn is_allowed(s: &str) -> bool {
         return false;
     }
 
-    cs.iter().any(|c| c.is_digit(10))
+    cs.iter().any(|c| c.is_ascii_digit())
         && cs.iter().any(|c| c.is_uppercase())
         && cs.iter().any(|c| c.is_lowercase())
         && cs.iter().any(|c| !c.is_ascii())
@@ -19,6 +19,6 @@ fn main() {
         .map(|line| line.unwrap())
         .collect();
 
-    let result = lines.into_iter().filter(|s| is_allowed(&s)).count();
+    let result = lines.into_iter().filter(|s| is_allowed(s)).count();
     println!("{}", result);
 }
