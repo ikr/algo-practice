@@ -24,8 +24,8 @@ fn main() {
 
     let costs: Vec<u32> = char_lengths
         .into_iter()
-        .zip(byte_lengths.into_iter())
-        .map(|(c, b)| (b <= MAX_SMS_BYTES, c <= MAX_TWEET_CHARS))
+        .zip(byte_lengths.iter())
+        .map(|(c, b)| (*b <= MAX_SMS_BYTES, c <= MAX_TWEET_CHARS))
         .map(|(sms, tweet)| message_cost(sms, tweet))
         .collect();
 
