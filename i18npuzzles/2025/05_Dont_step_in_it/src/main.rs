@@ -1,9 +1,7 @@
-use std::fs::read_to_string;
-
 const POOP: char = '💩';
 
 fn main() {
-    let mut grid: Vec<Vec<char>> = read_to_string("in1")
+    let mut grid: Vec<Vec<char>> = std::fs::read_to_string("in1")
         .unwrap()
         .lines()
         .map(|line| line.chars().collect())
