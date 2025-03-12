@@ -11,6 +11,13 @@ fn squash_first_non_ascii_subsequence(subsequence_length: usize, xs: &[char]) ->
     Some(result)
 }
 
+fn squash_all_non_ascii_subsequences(subsequence_length: usize, mut xs: Vec<char>) -> Vec<char> {
+    while let Some(ys) = squash_first_non_ascii_subsequence(subsequence_length, &xs) {
+        xs = ys
+    }
+    xs
+}
+
 fn main() {
     let lines: Vec<String> = std::fs::read_to_string("inA")
         .unwrap()
@@ -55,5 +62,34 @@ mod tests {
         ] {
             assert_eq!(squash_first_non_ascii_subsequence(4, &arg), res)
         }
+    }
+
+    #[test]
+    fn squash_all_non_ascii_subsequences_works_a() {
+        assert_eq!(
+            squash_all_non_ascii_subsequences(
+                4,
+                "myÃÂ¶nteisemmÃÂ¤ssÃÂ¤sikÃÂ¶hÃÂ¤n"
+                    .chars()
+                    .collect::<Vec<_>>()
+            ),
+            "my_nteisemm_ss_sik_h_n".chars().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn squash_all_non_ascii_subsequences_works_b() {
+        assert_eq!(
+            squash_all_non_ascii_subsequences(2, "dardÃ©es".chars().collect::<Vec<_>>()),
+            "dard_es".chars().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn squash_all_non_ascii_subsequences_works_c() {
+        assert_eq!(
+            squash_all_non_ascii_subsequences(2, "abc".chars().collect::<Vec<_>>()),
+            "abc".chars().collect::<Vec<_>>()
+        );
     }
 }
