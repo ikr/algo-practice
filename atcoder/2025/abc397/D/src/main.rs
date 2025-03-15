@@ -1,41 +1,35 @@
 use proconio::input;
 use std::io::{self, BufWriter, Write};
 
-const MIO: u128 = 1_000_000;
-const N_MAX: usize = 1_000_000 * 1_000_000 * 1_000_000;
+const MIO: i128 = 1_000_000;
 
-fn all_cubes() -> Vec<u128> {
-    (0..=MIO).map(|i| i * i * i).collect()
+fn isqrt(x: i128) -> Option<i128> {
+    let fx = x as f64;
+    let q = fx.sqrt().round();
+    let i = q as i128;
+    if i * i == x { Some(i) } else { None }
 }
 
-fn foo(y: usize) -> usize {
-    3 * y * y + 3 * y + 1
-}
-
-fn all_yys() -> Vec<usize> {
-    let mut result: Vec<usize> = vec![];
-    while foo(result.len()) <= N_MAX {
-        let y = result.len();
-        result.push(foo(y));
-    }
-    result
-}
-
-fn solve(n: u64) -> Option<(u64, u64)> {
-    if n == 1 {
+fn find_y(n: i128, d: i128) -> Option<i128> {
+    let discr: i128 = 9 * d.pow(4) - 12 * d * (d.pow(3) - n);
+    if discr < 0 {
         return None;
     }
-    let qs = all_cubes();
 
-    for (y, y_3) in qs.iter().enumerate().skip(1) {
-        if let Ok(x) = qs.binary_search(&(y_3 + n as u128)) {
-            return Some((x as u64, y as u64));
-        }
+    let dd = isqrt(discr)?;
+    let p = -3 * d * d + dd;
+    if p <= 0 || p % (6 * d) != 0 {
+        return None;
     }
 
-    let yys = all_yys();
-    if let Ok(y) = yys.binary_search(&(n as usize)) {
-        return Some((y as u64 + 1, y as u64));
+    Some(p / 6 * d)
+}
+
+fn solve(n: i128) -> Option<(i128, i128)> {
+    for d in 1..=MIO {
+        if let Some(y) = find_y(n, d) {
+            return Some((y + d, y));
+        }
     }
 
     None
@@ -50,7 +44,7 @@ fn main() {
         n: u64,
     }
 
-    if let Some((x, y)) = solve(n) {
+    if let Some((x, y)) = solve(n as i128) {
         writeln!(writer, "{} {}", x, y).unwrap();
     } else {
         writeln!(writer, "-1").unwrap();
