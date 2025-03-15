@@ -1,8 +1,5 @@
 use proconio::input;
-use std::{
-    collections::HashSet,
-    io::{self, BufWriter, Write},
-};
+use std::io::{self, BufWriter, Write};
 
 const MIO: u64 = 1_000_000;
 
@@ -12,11 +9,9 @@ fn all_cubes() -> Vec<u64> {
 
 fn solve(n: u64) -> Option<(u64, u64)> {
     let qs = all_cubes();
-    let qss: HashSet<u64> = qs.iter().copied().collect();
 
     for (y, y_3) in qs.iter().enumerate().skip(1) {
-        if qss.contains(&(y_3 + n)) {
-            let x = qs.binary_search(&(y_3 + n)).unwrap();
+        if let Ok(x) = qs.binary_search(&(y_3 + n)) {
             return Some((x as u64, y as u64));
         }
     }
