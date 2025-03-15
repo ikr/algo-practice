@@ -1,7 +1,7 @@
 use proconio::input;
 use std::io::{self, BufWriter, Write};
 
-const MIO: u128 = 10_000_000;
+const MIO: u128 = 20_000_000;
 
 fn all_cubes() -> Vec<u128> {
     (0..=MIO).map(|i| i * i * i).collect()
