@@ -1,9 +1,9 @@
 use proconio::input;
 use std::io::{self, BufWriter, Write};
 
-const MIO: u64 = 1_000_000;
+const MIO: u128 = 10_000_000;
 
-fn all_cubes() -> Vec<u64> {
+fn all_cubes() -> Vec<u128> {
     (0..=MIO).map(|i| i * i * i).collect()
 }
 
@@ -11,7 +11,7 @@ fn solve(n: u64) -> Option<(u64, u64)> {
     let qs = all_cubes();
 
     for (y, y_3) in qs.iter().enumerate().skip(1) {
-        if let Ok(x) = qs.binary_search(&(y_3 + n)) {
+        if let Ok(x) = qs.binary_search(&(y_3 + n as u128)) {
             return Some((x as u64, y as u64));
         }
     }
