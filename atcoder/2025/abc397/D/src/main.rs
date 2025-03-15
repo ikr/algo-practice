@@ -2,6 +2,7 @@ use proconio::input;
 use std::io::{self, BufWriter, Write};
 
 const MIO: i128 = 1_000_000;
+const BIO: i128 = MIO * 1000;
 
 fn foo(d: i128, y: i128, n: i128) -> i128 {
     3 * d * y.pow(2) + 3 * d * d * y + d.pow(3) - n
@@ -23,9 +24,9 @@ fn find_y(n: i128, d: i128) -> Option<i128> {
         return Some(1);
     }
 
-    let right_s = sign(foo(d, MIO, n));
+    let right_s = sign(foo(d, BIO, n));
     if right_s == 0 {
-        return Some(MIO);
+        return Some(BIO);
     }
 
     if left_s == right_s {
@@ -33,7 +34,7 @@ fn find_y(n: i128, d: i128) -> Option<i128> {
     }
 
     let mut l = 1;
-    let mut r = MIO;
+    let mut r = BIO;
     while l + 1 < r {
         let mid = l + (r - l) / 2;
         let mid_s = sign(foo(d, mid, n));
