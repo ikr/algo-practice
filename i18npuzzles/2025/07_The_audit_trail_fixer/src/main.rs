@@ -1,6 +1,9 @@
 use std::io::{self, BufRead};
 
-use chrono::NaiveDateTime;
+use chrono::{Duration, Timelike};
+use chrono::{NaiveDateTime, TimeZone};
+use chrono_tz::America::{Halifax, Santiago};
+use chrono_tz::GMT;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 struct SourceDateTime {
@@ -27,14 +30,50 @@ impl SourceDateTime {
     }
 }
 
+fn parse_line(s: &str) -> (SourceDateTime, i64, i64) {
+    let parts: Vec<_> = s.split_whitespace().collect();
+    (
+        SourceDateTime::parse(parts[0]),
+        parts[1].parse().unwrap(),
+        parts[2].parse().unwrap(),
+    )
+}
+
 fn main() {
-    let lines: Vec<String> = io::stdin()
+    let lines: Vec<_> = io::stdin()
         .lock()
         .lines()
-        .map(|line| line.unwrap())
+        .map(|s| parse_line(&s.unwrap()))
         .collect();
 
-    eprintln!("{:?}", lines);
+    let corrected: Vec<_> = lines
+        .into_iter()
+        .map(|(sdt, correct_duration_minutes, wrong_duration_munutes)| {
+            let gmt = GMT.from_local_datetime(&sdt.naive_date_time).unwrap()
+                - Duration::hours(sdt.gmt_offset_hours);
+            let in_halifax = Halifax.from_local_datetime(&sdt.naive_date_time).unwrap();
+            let in_santiago = Santiago.from_local_datetime(&sdt.naive_date_time).unwrap();
+
+            let a = if gmt.timestamp() == in_halifax.timestamp() {
+                in_halifax
+            } else {
+                in_santiago
+            };
+            (a, correct_duration_minutes, wrong_duration_munutes)
+        })
+        .collect();
+
+    let result: usize = corrected
+        .into_iter()
+        .map(|(dt0, correct_duration_minutes, wrong_duration_munutes)| {
+            let dt = dt0 - Duration::minutes(wrong_duration_munutes)
+                + Duration::minutes(correct_duration_minutes);
+            dt.hour() as usize
+        })
+        .enumerate()
+        .map(|(i, h)| (i + 1) * h)
+        .sum();
+    println!("{}", result)
 }
 
 #[cfg(test)]
