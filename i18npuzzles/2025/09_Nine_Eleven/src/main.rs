@@ -19,12 +19,20 @@ fn parse_line(s: &str) -> ([i32; 3], Vec<String>) {
     (parse_date_source(parts[0]), parse_names_list(parts[1]))
 }
 
-fn ifer_ymd_indices(tris: &[[i32; 3]]) -> [usize; 3] {
-    for (y, m, d) in [(0, 1, 2), (2, 0, 1), (2, 1, 0)] {
-        if tris
-            .iter()
-            .all(|tri| NaiveDate::from_ymd_opt(tri[y], tri[m] as u32, tri[d] as u32).is_some())
-        {
+fn infer_ymd_indices(tris: &[[i32; 3]]) -> [usize; 3] {
+    for (y, m, d) in [(0, 1, 2), (0, 2, 1), (2, 0, 1), (2, 1, 0)] {
+        if tris.iter().all(|tri| {
+            NaiveDate::from_ymd_opt(
+                if tri[y] > 20 {
+                    1900 + tri[y]
+                } else {
+                    2000 + tri[y]
+                },
+                tri[m] as u32,
+                tri[d] as u32,
+            )
+            .is_some()
+        }) {
             return [y, m, d];
         }
     }
@@ -52,7 +60,7 @@ fn main() {
 
     let ymd_indices_by_name: BTreeMap<String, [usize; 3]> = date_sources_by_name
         .iter()
-        .map(|(name, tris)| (name.clone(), ifer_ymd_indices(tris)))
+        .map(|(name, tris)| (name.clone(), infer_ymd_indices(tris)))
         .collect();
 
     eprintln!("{:?}", ymd_indices_by_name);
