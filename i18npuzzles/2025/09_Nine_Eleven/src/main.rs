@@ -56,12 +56,32 @@ fn main() {
             acc
         });
 
-    eprintln!("{:?}", date_sources_by_name);
-
     let ymd_indices_by_name: BTreeMap<String, [usize; 3]> = date_sources_by_name
         .iter()
         .map(|(name, tris)| (name.clone(), infer_ymd_indices(tris)))
         .collect();
 
-    eprintln!("{:?}", ymd_indices_by_name);
+    let dates_by_name: BTreeMap<String, Vec<[i32; 3]>> = date_sources_by_name
+        .into_iter()
+        .map(|(name, dss)| {
+            (
+                name.clone(),
+                dss.iter()
+                    .map(|ds| {
+                        let [y, m, d] = ymd_indices_by_name.get(&name).unwrap();
+                        [ds[*y], ds[*m], ds[*d]]
+                    })
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect();
+
+    let result = dates_by_name
+        .into_iter()
+        .filter(|(_, ds)| ds.iter().any(|d| *d == [1, 9, 11]))
+        .map(|(name, _)| name)
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    println!("{}", result);
 }
