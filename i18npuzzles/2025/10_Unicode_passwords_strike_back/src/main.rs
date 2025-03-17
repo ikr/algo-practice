@@ -6,7 +6,7 @@ use std::{
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
-fn parse_pair(s: &String) -> (String, String) {
+fn parse_pair(s: &str) -> (String, String) {
     let parts: Vec<_> = s.split_whitespace().collect();
     (parts[0].to_string(), parts[1].to_string())
 }
@@ -24,7 +24,7 @@ fn decomposable_indices(cs: &[char]) -> Vec<usize> {
 }
 
 fn any_variation_hash_matches(password: &str, target_hash: &str) -> bool {
-    assert!(is_nfc(&password));
+    assert!(is_nfc(password));
     let cs: Vec<char> = password.chars().collect();
     let all_ii = decomposable_indices(&cs);
 
@@ -39,7 +39,7 @@ fn any_variation_hash_matches(password: &str, target_hash: &str) -> bool {
             }
         }
 
-        if verify(&cur.into_iter().collect::<String>(), target_hash).expect("Valid bcrypt hash") {
+        if verify(cur.into_iter().collect::<String>(), target_hash).expect("Valid bcrypt hash") {
             return true;
         }
     }
@@ -57,11 +57,11 @@ fn main() {
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
 
     let hashes_by_username: HashMap<String, String> =
-        lines[..isep].iter().map(parse_pair).collect();
+        lines[..isep].iter().map(|s| parse_pair(s)).collect();
 
     let login_attempts: Vec<(String, String)> = lines[isep + 1..]
         .iter()
-        .map(parse_pair)
+        .map(|s| parse_pair(s))
         .map(|(u, p)| (u, p.nfc().to_string()))
         .collect();
 
@@ -69,7 +69,7 @@ fn main() {
         .into_iter()
         .filter(|(username, password)| {
             if let Some(h) = hashes_by_username.get(username) {
-                any_variation_hash_matches(&password, h)
+                any_variation_hash_matches(password, h)
             } else {
                 false
             }
