@@ -21,10 +21,12 @@ fn main() {
 
     let hashes_by_username: HashMap<String, String> =
         lines[..isep].iter().map(parse_pair).collect();
-    eprintln!("{:?}", hashes_by_username);
 
-    let login_attempts: Vec<(String, String)> = lines[isep + 1..].iter().map(parse_pair).collect();
-    eprintln!("{:?}", login_attempts);
+    let login_attempts: Vec<(String, String)> = lines[isep + 1..]
+        .iter()
+        .map(parse_pair)
+        .map(|(u, p)| (u, p.nfc().to_string()))
+        .collect();
 }
 
 #[cfg(test)]
