@@ -1,0 +1,8 @@
+[package]
+name = "solution"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bcrypt = "0.17.0"
+unicode-normalization = "0.1.24"
