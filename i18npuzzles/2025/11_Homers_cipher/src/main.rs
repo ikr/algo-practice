@@ -39,8 +39,8 @@ fn contains_odysseus(haystack: &str) -> bool {
     NEEDLES.iter().any(|&needle| haystack.contains(needle))
 }
 
-fn any_transcoding_contains_odysseus(haystack: &str) -> bool {
-    (0..AL_HI.len()).any(|shift| contains_odysseus(&transcode(haystack, shift)))
+fn a_shift_for_transcoding_contains_odysseus(haystack: &str) -> Option<usize> {
+    (0..AL_HI.len()).find(|&shift| contains_odysseus(&transcode(haystack, shift)))
 }
 
 fn main() {
@@ -52,9 +52,9 @@ fn main() {
         .map(normalize_sigma)
         .collect();
 
-    let result = lines
+    let result: usize = lines
         .into_iter()
-        .filter(|s| any_transcoding_contains_odysseus(s))
-        .count();
+        .filter_map(|s| a_shift_for_transcoding_contains_odysseus(&s))
+        .sum();
     eprintln!("{}", result);
 }
