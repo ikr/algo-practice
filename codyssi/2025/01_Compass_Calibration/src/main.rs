@@ -19,6 +19,7 @@ fn main() {
 
     let result: i32 = signs
         .into_iter()
+        .rev()
         .zip(change_abses)
         .map(|(sign, x)| sign * x)
         .fold(initial, |acc, x| acc + x);
