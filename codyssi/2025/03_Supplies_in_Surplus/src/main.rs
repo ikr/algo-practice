@@ -12,41 +12,39 @@ fn parse_line(s: &str) -> (i32, i32, i32, i32) {
     (a, b, c, d)
 }
 
-fn intersect(ab: (i32, i32), cd: (i32, i32)) -> bool {
+fn intersection(ab: (i32, i32), cd: (i32, i32)) -> Option<(i32, i32)> {
     let (a, b) = ab;
     let (c, d) = cd;
-    !(b < c || d < a)
-}
-
-fn unite_intersecting(ab: (i32, i32), cd: (i32, i32)) -> (i32, i32) {
-    assert!(intersect(ab, cd));
-    let (a, b) = ab;
-    let (c, d) = cd;
-    let mut xs = [a, b, c, d];
-    xs.sort();
-    let [l, _, _, r] = xs;
-    (l, r)
-}
-
-fn two_union_count(ab: (i32, i32), cd: (i32, i32)) -> i32 {
-    if intersect(ab, cd) {
-        let (l, r) = unite_intersecting(ab, cd);
-        r - l + 1
+    if b < c || d < a {
+        None
     } else {
-        let (a, b) = ab;
-        let (c, d) = cd;
-        b - a + 1 + d - c + 1
+        let mut xs = [a, b, c, d];
+        xs.sort();
+        Some((xs[1], xs[2]))
     }
 }
 
-fn three_union_count(ab: (i32, i32), cd: (i32, i32), ef: (i32, i32)) -> i32 {
-    if intersect(ab, cd) {
-        two_union_count(unite_intersecting(ab, cd), ef)
+fn two_intersection_size(ab: (i32, i32), cd: (i32, i32)) -> i32 {
+    if let Some((x, y)) = intersection(ab, cd) {
+        y - x + 1
     } else {
+        0
     }
 }
 
-fn four_union_count(ab: (i32, i32), cd: (i32, i32), ef: (i32, i32), gh: (i32, i32)) -> i32 {
+fn three_intersection_size(ab: (i32, i32), cd: (i32, i32), ef: (i32, i32)) -> i32 {
+    if let Some((x, y)) = intersection(ab, cd) {
+        two_intersection_size((x, y), ef)
+    } else if let Some((x, y)) = intersection(cd, ef) {
+        two_intersection_size((x, y), ab)
+    } else if let Some((x, y)) = intersection(ab, ef) {
+        two_intersection_size((x, y), cd)
+    } else {
+        0
+    }
+}
+
+fn four_union_size(ab: (i32, i32), cd: (i32, i32), ef: (i32, i32), gh: (i32, i32)) -> i32 {
     todo!()
 }
 
