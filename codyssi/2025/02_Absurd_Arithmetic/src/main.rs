@@ -13,10 +13,14 @@ fn main() {
 
     let [a, b, c] = lines[..3]
         .iter()
-        .map(|s| decode_arg_in_line(&s))
+        .map(|s| decode_arg_in_line(s))
         .collect::<Vec<_>>()
         .try_into()
         .unwrap();
 
-    eprintln!("{} {} {}", a, b, c);
+    let mut xs: Vec<i64> = lines[4..].iter().map(|s| s.parse().unwrap()).collect();
+    xs.sort();
+    let x0 = xs[xs.len() / 2];
+    let result = x0.pow(c as u32) * b + a;
+    println!("{}", result);
 }
