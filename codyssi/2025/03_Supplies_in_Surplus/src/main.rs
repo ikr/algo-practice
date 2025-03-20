@@ -18,16 +18,23 @@ fn intersect(ab: (i32, i32), cd: (i32, i32)) -> bool {
     !(b < c || d < a)
 }
 
-fn union_count(ab: (i32, i32), cd: (i32, i32)) -> i32 {
+fn unite_intersecting(ab: (i32, i32), cd: (i32, i32)) -> (i32, i32) {
+    assert!(intersect(ab, cd));
     let (a, b) = ab;
     let (c, d) = cd;
+    let mut xs = [a, b, c, d];
+    xs.sort();
+    let [l, _, _, r] = xs;
+    (l, r)
+}
 
+fn union_count(ab: (i32, i32), cd: (i32, i32)) -> i32 {
     if intersect(ab, cd) {
-        let mut xs = [a, b, c, d];
-        xs.sort();
-        let [l, _, _, r] = xs;
+        let (l, r) = unite_intersecting(ab, cd);
         r - l + 1
     } else {
+        let (a, b) = ab;
+        let (c, d) = cd;
         b - a + 1 + d - c + 1
     }
 }
