@@ -18,9 +18,8 @@ fn main() {
         .try_into()
         .unwrap();
 
-    let mut xs: Vec<i64> = lines[4..].iter().map(|s| s.parse().unwrap()).collect();
-    xs.sort();
-    let x0 = xs[xs.len() / 2];
+    let xs: Vec<i64> = lines[4..].iter().map(|s| s.parse().unwrap()).collect();
+    let x0: i64 = xs.into_iter().filter(|x| x % 2 == 0).sum();
     let result = x0.pow(c as u32) * b + a;
     println!("{}", result);
 }
