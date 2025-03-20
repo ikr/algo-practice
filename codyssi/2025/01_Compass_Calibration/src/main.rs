@@ -1,5 +1,9 @@
 use std::io::BufRead;
 
+fn join_into_int(ab: &[String]) -> i32 {
+    10 * ab[0].parse::<i32>().unwrap() + ab[1].parse::<i32>().unwrap()
+}
+
 fn main() {
     let lines: Vec<String> = std::io::stdin()
         .lock()
@@ -7,10 +11,10 @@ fn main() {
         .map(|s| s.unwrap())
         .collect();
 
-    let initial: i32 = lines[0].parse().unwrap();
-    let change_abses: Vec<i32> = lines[1..lines.len() - 1]
-        .iter()
-        .map(|s| s.parse().unwrap())
+    let initial: i32 = join_into_int(&lines[..2]);
+    let change_abses: Vec<i32> = lines[2..lines.len() - 1]
+        .chunks(2)
+        .map(join_into_int)
         .collect();
     let signs: Vec<i32> = lines[lines.len() - 1]
         .chars()
