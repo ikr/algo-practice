@@ -13,10 +13,27 @@ fn total_memory_units(s: &str) -> usize {
 }
 
 fn compress(s: &str) -> String {
-    let n = s.len();
-    let m = n / 10;
-    let infix = (n - 2 * m).to_string();
-    s[..m].to_string() + &infix + &s[n - m..]
+    let cs: Vec<char> = s.chars().collect();
+
+    let rle: Vec<(usize, char)> = cs
+        .iter()
+        .skip(1)
+        .fold(vec![(1usize, cs[0])], |mut acc, &c| {
+            let (f, prev_c) = *acc.last().unwrap();
+            if prev_c == c {
+                acc.pop();
+                acc.push((f + 1, c));
+            } else {
+                acc.push((1, c));
+            }
+            acc
+        });
+
+    rle.into_iter().fold(String::new(), |mut acc, (f, c)| {
+        acc += &f.to_string();
+        acc.push(c);
+        acc
+    })
 }
 
 fn main() {
