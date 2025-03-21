@@ -1,51 +1,84 @@
+use itertools::Itertools;
 use std::io::{self, BufRead};
 
-fn parse_range(s: &str) -> (i32, i32) {
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Itvl(i32, i32);
+
+impl Itvl {
+    fn intersection(&self, other: Itvl) -> Option<Itvl> {
+        let Itvl(a, b) = *self;
+        let Itvl(c, d) = other;
+        if b < c || d < a {
+            None
+        } else {
+            let mut xs = [a, b, c, d];
+            xs.sort();
+            Some(Itvl(xs[1], xs[2]))
+        }
+    }
+
+    fn len(&self) -> i32 {
+        self.1 - self.0 + 1
+    }
+}
+
+fn parse_interval(s: &str) -> Itvl {
     let ab: Vec<i32> = s.split('-').map(|s| s.parse().unwrap()).collect();
-    (ab[0], ab[1])
+    Itvl(ab[0], ab[1])
 }
 
-fn parse_line(s: &str) -> (i32, i32, i32, i32) {
-    let ab: Vec<_> = s.split_ascii_whitespace().collect();
-    let (a, b) = parse_range(ab[0]);
-    let (c, d) = parse_range(ab[1]);
-    (a, b, c, d)
+fn parse_line(s: &str) -> [Itvl; 2] {
+    s.split_ascii_whitespace()
+        .map(parse_interval)
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap()
 }
 
-fn intersection(ab: (i32, i32), cd: (i32, i32)) -> Option<(i32, i32)> {
-    let (a, b) = ab;
-    let (c, d) = cd;
-    if b < c || d < a {
-        None
-    } else {
-        let mut xs = [a, b, c, d];
-        xs.sort();
-        Some((xs[1], xs[2]))
-    }
-}
-
-fn two_intersection_size(ab: (i32, i32), cd: (i32, i32)) -> i32 {
-    if let Some((x, y)) = intersection(ab, cd) {
-        y - x + 1
+fn two_intersection_size(itvls: [Itvl; 2]) -> i32 {
+    let [ab, cd] = itvls;
+    if let Some(itvl) = ab.intersection(cd) {
+        itvl.len()
     } else {
         0
     }
 }
 
-fn three_intersection_size(ab: (i32, i32), cd: (i32, i32), ef: (i32, i32)) -> i32 {
-    if let Some((x, y)) = intersection(ab, cd) {
-        two_intersection_size((x, y), ef)
-    } else if let Some((x, y)) = intersection(cd, ef) {
-        two_intersection_size((x, y), ab)
-    } else if let Some((x, y)) = intersection(ab, ef) {
-        two_intersection_size((x, y), cd)
-    } else {
-        0
-    }
+fn without<T: PartialEq + Clone>(xs: &[T], ys: &[T]) -> Vec<T> {
+    xs.iter().filter(|x| !ys.contains(&x)).cloned().collect()
 }
 
-fn four_union_size(ab: (i32, i32), cd: (i32, i32), ef: (i32, i32), gh: (i32, i32)) -> i32 {
-    todo!()
+fn single<T: Clone>(xs: &[T]) -> Option<T> {
+    xs.first().cloned()
+}
+
+fn three_intersection_size(itvls: [Itvl; 3]) -> i32 {
+    for (&ab, &cd) in itvls.iter().tuple_combinations() {
+        if let Some(xy) = ab.intersection(cd) {
+            if let Some(pq) = single(&without(&itvls, &[ab, cd])) {
+                return two_intersection_size([xy, pq]);
+            } else {
+                return xy.len();
+            }
+        }
+    }
+    0
+}
+
+fn four_union_size(itvls: [Itvl; 4]) -> i32 {
+    itvls.iter().map(|itvl| itvl.len()).sum::<i32>()
+        - itvls
+            .iter()
+            .cloned()
+            .combinations(2)
+            .map(|itvls| two_intersection_size(itvls.try_into().unwrap()))
+            .sum::<i32>()
+        + itvls
+            .iter()
+            .cloned()
+            .combinations(3)
+            .map(|itvls| three_intersection_size(itvls.try_into().unwrap()))
+            .sum::<i32>()
 }
 
 fn main() {
@@ -55,9 +88,10 @@ fn main() {
         .map(|s| parse_line(&s.unwrap()))
         .collect();
 
-    let result: i32 = lines
-        .into_iter()
-        .map(|(a, b, c, d)| two_union_count((a, b), (c, d)))
-        .sum();
-    println!("{}", result);
+    let candidates: Vec<i32> = lines
+        .windows(2)
+        .map(|ab| four_union_size([ab[0][0], ab[0][1], ab[1][0], ab[1][1]]))
+        .collect();
+
+    println!("{:?}", candidates);
 }
