@@ -18,7 +18,17 @@ fn main() {
         .map(|line| parse_line(&line.unwrap()))
         .collect();
 
-    let ds: Vec<i32> = xys.into_iter().map(|(x, y)| x.abs() + y.abs()).collect();
-    let result = ds.iter().max().unwrap() - ds.iter().min().unwrap();
+    let closest_to_origin = xys
+        .iter()
+        .min_by_key(|(x, y)| (x.abs() + y.abs(), x, y))
+        .unwrap();
+
+    let (a, b) = *closest_to_origin;
+    let result = xys
+        .iter()
+        .filter(|xy| *xy != closest_to_origin)
+        .map(|(x, y)| x.abs_diff(a) + y.abs_diff(b))
+        .min()
+        .unwrap();
     println!("{}", result);
 }
