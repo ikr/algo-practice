@@ -1,4 +1,7 @@
-use std::io::{self, BufRead};
+use std::{
+    collections::HashSet,
+    io::{self, BufRead},
+};
 
 fn parse_line(s: &str) -> (i32, i32) {
     let parts: Vec<_> = s
@@ -12,23 +15,22 @@ fn parse_line(s: &str) -> (i32, i32) {
 }
 
 fn main() {
-    let xys: Vec<(i32, i32)> = io::stdin()
+    let mut xys: HashSet<(i32, i32)> = io::stdin()
         .lock()
         .lines()
         .map(|line| parse_line(&line.unwrap()))
         .collect();
 
-    let closest_to_origin = xys
-        .iter()
-        .min_by_key(|(x, y)| (x.abs() + y.abs(), x, y))
-        .unwrap();
+    let mut cur = (0, 0);
+    let mut result: i32 = 0;
 
-    let (a, b) = *closest_to_origin;
-    let result = xys
-        .iter()
-        .filter(|xy| *xy != closest_to_origin)
-        .map(|(x, y)| x.abs_diff(a) + y.abs_diff(b))
-        .min()
-        .unwrap();
+    while let Some(nxt) = xys.clone().into_iter().min_by_key(|&(x, y)| {
+        let (a, b) = cur;
+        (x.abs_diff(a) + y.abs_diff(b), x, y)
+    }) {
+        xys.remove(&nxt);
+        result += (cur.0.abs_diff(nxt.0) + cur.1.abs_diff(nxt.1)) as i32;
+        cur = nxt;
+    }
     println!("{}", result);
 }
