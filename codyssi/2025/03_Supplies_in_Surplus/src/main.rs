@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use std::io::{self, BufRead};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 struct Itvl(i32, i32);
 
 impl Itvl {
@@ -11,9 +11,7 @@ impl Itvl {
         if b < c || d < a {
             None
         } else {
-            let mut xs = [a, b, c, d];
-            xs.sort();
-            Some(Itvl(xs[1], xs[2]))
+            Some(Itvl(a.max(c), b.min(d)))
         }
     }
 
@@ -35,16 +33,13 @@ fn parse_line(s: &str) -> [Itvl; 2] {
         .unwrap()
 }
 
-fn two_intersection_size(itvls: [Itvl; 2]) -> i32 {
-    match itvls[0].intersection(itvls[1]) {
+fn intersection_size(itvls: &[Itvl]) -> i32 {
+    match itvls
+        .iter()
+        .skip(1)
+        .try_fold(itvls[0], |acc, &ii| acc.intersection(ii))
+    {
         Some(x) => x.len(),
-        None => 0,
-    }
-}
-
-fn three_intersection_size(itvls: [Itvl; 3]) -> i32 {
-    match itvls[0].intersection(itvls[1]) {
-        Some(x) => two_intersection_size([x, itvls[2]]),
         None => 0,
     }
 }
@@ -55,14 +50,15 @@ fn four_union_size(itvls: [Itvl; 4]) -> i32 {
             .iter()
             .cloned()
             .combinations(2)
-            .map(|itvls| two_intersection_size(itvls.try_into().unwrap()))
+            .map(|iis| intersection_size(&iis))
             .sum::<i32>()
         + itvls
             .iter()
             .cloned()
             .combinations(3)
-            .map(|itvls| three_intersection_size(itvls.try_into().unwrap()))
+            .map(|itvls| intersection_size(&itvls))
             .sum::<i32>()
+        - intersection_size(&itvls)
 }
 
 fn main() {
@@ -77,5 +73,5 @@ fn main() {
         .map(|ab| four_union_size([ab[0][0], ab[0][1], ab[1][0], ab[1][1]]))
         .collect();
 
-    println!("{:?}", candidates);
+    println!("{}", candidates.iter().max().unwrap());
 }
