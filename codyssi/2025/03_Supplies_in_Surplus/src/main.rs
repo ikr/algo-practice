@@ -36,33 +36,17 @@ fn parse_line(s: &str) -> [Itvl; 2] {
 }
 
 fn two_intersection_size(itvls: [Itvl; 2]) -> i32 {
-    let [ab, cd] = itvls;
-    if let Some(itvl) = ab.intersection(cd) {
-        itvl.len()
-    } else {
-        0
+    match itvls[0].intersection(itvls[1]) {
+        Some(x) => x.len(),
+        None => 0,
     }
-}
-
-fn without<T: PartialEq + Clone>(xs: &[T], ys: &[T]) -> Vec<T> {
-    xs.iter().filter(|x| !ys.contains(&x)).cloned().collect()
-}
-
-fn single<T: Clone>(xs: &[T]) -> Option<T> {
-    xs.first().cloned()
 }
 
 fn three_intersection_size(itvls: [Itvl; 3]) -> i32 {
-    for (&ab, &cd) in itvls.iter().tuple_combinations() {
-        if let Some(xy) = ab.intersection(cd) {
-            if let Some(pq) = single(&without(&itvls, &[ab, cd])) {
-                return two_intersection_size([xy, pq]);
-            } else {
-                return xy.len();
-            }
-        }
+    match itvls[0].intersection(itvls[1]) {
+        Some(x) => two_intersection_size([x, itvls[2]]),
+        None => 0,
     }
-    0
 }
 
 fn four_union_size(itvls: [Itvl; 4]) -> i32 {
