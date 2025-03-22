@@ -1,5 +1,8 @@
 use itertools::Itertools;
-use proconio::{input_interactive, marker::Usize1};
+use proconio::{
+    input_interactive,
+    marker::{Isize1, Usize1},
+};
 use std::collections::{HashSet, VecDeque};
 
 fn partitions(tree: &[Vec<usize>]) -> (Vec<usize>, Vec<usize>) {
@@ -77,11 +80,11 @@ fn main() {
 
     loop {
         input_interactive! {
-            i:i32,
-            j:i32,
+            i: Isize1,
+            j: Isize1,
         }
 
-        if i == -1 {
+        if i == -2 {
             return;
         }
 
