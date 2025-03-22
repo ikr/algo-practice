@@ -53,12 +53,13 @@ fn main() {
     }
 
     let g: Vec<Vec<usize>> = xs.iter().fold(vec![vec![]; n], |mut g, &(u, v)| {
+        assert!(u < v);
         g[u].push(v);
         g[v].push(u);
         g
     });
 
-    let initial_edges: HashSet<(usize, usize)> = xs.into_iter().map(canonical).collect();
+    let initial_edges: HashSet<(usize, usize)> = xs.into_iter().collect();
 
     let (a, b) = partitions(&g);
 
@@ -88,7 +89,8 @@ fn main() {
             return;
         }
 
-        non_edges.remove(&canonical((i as usize, j as usize)));
+        assert!(i < j);
+        non_edges.remove(&(i as usize, j as usize));
         let uv: (usize, usize) = *non_edges.iter().next().unwrap();
         non_edges.remove(&uv);
         println!("{} {}", uv.0, uv.1);
