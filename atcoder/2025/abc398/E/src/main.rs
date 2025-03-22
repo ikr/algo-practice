@@ -58,7 +58,7 @@ fn main() {
         g
     });
 
-    let edges: HashSet<(usize, usize)> = xs.into_iter().map(canonical).collect();
+    let initial_edges: HashSet<(usize, usize)> = xs.into_iter().map(canonical).collect();
 
     let (a, b) = partitions(&g);
 
@@ -66,7 +66,7 @@ fn main() {
         .into_iter()
         .cartesian_product(b)
         .map(canonical)
-        .filter(|uv| !edges.contains(uv))
+        .filter(|uv| !initial_edges.contains(uv))
         .collect();
 
     if non_edges.len() % 2 == 0 {
