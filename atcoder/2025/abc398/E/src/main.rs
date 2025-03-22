@@ -62,6 +62,7 @@ fn main() {
     let initial_edges: HashSet<(usize, usize)> = xs.into_iter().collect();
 
     let (a, b) = partitions(&g);
+    assert_eq!(a.len() + b.len(), n);
 
     let mut non_edges: HashSet<(usize, usize)> = a
         .into_iter()
