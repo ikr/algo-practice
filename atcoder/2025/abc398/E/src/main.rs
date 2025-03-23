@@ -75,9 +75,9 @@ fn main() {
         println!("Second");
     } else {
         println!("First");
-        let uv: (usize, usize) = *non_edges.iter().next().unwrap();
+        let uv = *non_edges.iter().next().unwrap();
         non_edges.remove(&uv);
-        println!("{} {}", uv.0, uv.1);
+        println!("{} {}", uv.0 + 1, uv.1 + 1);
     }
 
     loop {
@@ -94,9 +94,9 @@ fn main() {
         non_edges.remove(&(i as usize, j as usize));
 
         assert!(!non_edges.is_empty());
-        let (u, v): (usize, usize) = *non_edges.iter().next().unwrap();
+        let (u, v) = *non_edges.iter().next().unwrap();
         assert!(u < v);
         non_edges.remove(&(u, v));
-        println!("{} {}", u, v);
+        println!("{} {}", u + 1, v + 1);
     }
 }
