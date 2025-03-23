@@ -20,13 +20,28 @@ fn main() {
         .map(|s| s.parse().unwrap())
         .collect();
 
-    let ijs: Vec<_> = lines[i_sep_a + 1..i_sep_b]
+    let mut ijs: Vec<_> = lines[i_sep_a + 1..i_sep_b]
         .iter()
         .map(|s| parse_ipair(s))
         .collect();
+    ijs.push(ijs[0]);
 
-    for (i, j) in ijs {
-        fs.swap(i, j);
+    let ijks: Vec<(usize, usize, usize)> = ijs
+        .windows(2)
+        .map(|x| {
+            let (a, b) = x[0];
+            let (c, _) = x[1];
+            (a, b, c)
+        })
+        .collect();
+
+    for (i, j, k) in ijks {
+        let vi = fs[i];
+        let vj = fs[j];
+        let vk = fs[k];
+        fs[i] = vk;
+        fs[j] = vi;
+        fs[k] = vj;
     }
 
     let i0: usize = lines[i_sep_b + 1].parse::<usize>().unwrap() - 1;
