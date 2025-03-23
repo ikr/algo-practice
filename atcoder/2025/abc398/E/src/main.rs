@@ -3,7 +3,10 @@ use proconio::{
     input_interactive,
     marker::{Isize1, Usize1},
 };
-use std::collections::{HashSet, VecDeque};
+use std::{
+    collections::{HashSet, VecDeque},
+    io::Write,
+};
 
 fn partitions(tree: &[Vec<usize>]) -> (Vec<usize>, Vec<usize>) {
     let n = tree.len();
@@ -79,6 +82,7 @@ fn main() {
         non_edges.remove(&uv);
         println!("{} {}", uv.0 + 1, uv.1 + 1);
     }
+    std::io::stdout().flush().unwrap();
 
     loop {
         input_interactive! {
@@ -100,5 +104,6 @@ fn main() {
         assert!(u < v);
         non_edges.remove(&(u, v));
         println!("{} {}", u + 1, v + 1);
+        std::io::stdout().flush().unwrap();
     }
 }
