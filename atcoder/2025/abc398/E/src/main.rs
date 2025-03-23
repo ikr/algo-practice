@@ -91,7 +91,9 @@ fn main() {
         }
 
         assert!(i < j);
-        non_edges.remove(&(i as usize, j as usize));
+        let ij = (i as usize, j as usize);
+        assert!(non_edges.contains(&ij));
+        non_edges.remove(&ij);
 
         assert!(!non_edges.is_empty());
         let (u, v) = *non_edges.iter().next().unwrap();
