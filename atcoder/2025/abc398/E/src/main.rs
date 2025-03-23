@@ -3,10 +3,7 @@ use proconio::{
     input_interactive,
     marker::{Isize1, Usize1},
 };
-use std::{
-    collections::{HashSet, VecDeque},
-    io::Write,
-};
+use std::collections::{HashSet, VecDeque};
 
 fn partitions(tree: &[Vec<usize>]) -> (Vec<usize>, Vec<usize>) {
     let n = tree.len();
@@ -46,7 +43,6 @@ fn partitions(tree: &[Vec<usize>]) -> (Vec<usize>, Vec<usize>) {
 
 fn canonical(uv: (usize, usize)) -> (usize, usize) {
     let (u, v) = uv;
-    assert_ne!(u, v);
     (u.min(v), u.max(v))
 }
 
@@ -57,7 +53,6 @@ fn main() {
     }
 
     let g: Vec<Vec<usize>> = xs.iter().fold(vec![vec![]; n], |mut g, &(u, v)| {
-        assert!(u < v);
         g[u].push(v);
         g[v].push(u);
         g
@@ -83,7 +78,6 @@ fn main() {
         non_edges.remove(&uv);
         println!("{} {}", uv.0 + 1, uv.1 + 1);
     }
-    std::io::stdout().flush().unwrap();
 
     loop {
         input_interactive! {
@@ -95,16 +89,11 @@ fn main() {
             return;
         }
 
-        assert!(i < j);
         let ij = (i as usize, j as usize);
-        assert!(non_edges.contains(&ij));
         non_edges.remove(&ij);
 
-        assert!(!non_edges.is_empty());
         let (u, v) = *non_edges.iter().next().unwrap();
-        assert!(u < v);
         non_edges.remove(&(u, v));
         println!("{} {}", u + 1, v + 1);
-        std::io::stdout().flush().unwrap();
     }
 }
