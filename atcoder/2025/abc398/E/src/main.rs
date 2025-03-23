@@ -24,6 +24,7 @@ fn partitions(tree: &[Vec<usize>]) -> (Vec<usize>, Vec<usize>) {
                         assert_ne!(own_l, l);
                     } else {
                         label[v] = Some(!own_l);
+                        q.push_back(v);
                     }
                 }
             }
