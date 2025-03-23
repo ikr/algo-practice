@@ -69,6 +69,20 @@ impl Name {
             .collect();
         (ab[0].clone(), ab[1].clone())
     }
+
+    fn canonize_last_name(&self) -> Name {
+        let s = self.last.clone();
+        let i0 = s.chars().position(|c| c.is_uppercase()).unwrap();
+
+        Name {
+            first: self.first.clone(),
+            last: s.chars().skip(i0).collect(),
+        }
+    }
+
+    fn dutch_sort_key(&self) -> (String, String) {
+        self.canonize_last_name().english_sort_key()
+    }
 }
 
 fn parse_line(s: &str) -> (Name, u64) {
@@ -98,9 +112,18 @@ fn main() {
 
     lines.sort_by_key(|(n, _)| n.english_sort_key());
     eprintln!("{:?}", lines);
-    eprintln!("{}", median_number(&lines));
+    let a = median_number(&lines);
+    eprintln!("{}", a);
 
     lines.sort_by_key(|(n, _)| n.swedish_sort_key());
     eprintln!("{:?}", lines);
-    eprintln!("{}", median_number(&lines));
+    let b = median_number(&lines);
+    eprintln!("{}", b);
+
+    lines.sort_by_key(|(n, _)| n.dutch_sort_key());
+    eprintln!("{:?}", lines);
+    let c = median_number(&lines);
+    eprintln!("{}", c);
+
+    println!("{}", a * b * c);
 }
