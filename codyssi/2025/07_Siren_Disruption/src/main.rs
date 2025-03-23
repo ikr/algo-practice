@@ -19,29 +19,32 @@ fn main() {
         .iter()
         .map(|s| s.parse().unwrap())
         .collect();
+    let n = fs.len();
 
-    let mut ijs: Vec<_> = lines[i_sep_a + 1..i_sep_b]
+    let ijs: Vec<_> = lines[i_sep_a + 1..i_sep_b]
         .iter()
         .map(|s| parse_ipair(s))
         .collect();
-    ijs.push(ijs[0]);
 
-    let ijks: Vec<(usize, usize, usize)> = ijs
-        .windows(2)
-        .map(|x| {
-            let (a, b) = x[0];
-            let (c, _) = x[1];
-            (a, b, c)
-        })
-        .collect();
+    for (i0, j0) in ijs {
+        let i = i0.min(j0);
+        let j = i0.max(j0);
+        assert_ne!(i, j);
 
-    for (i, j, k) in ijks {
-        let vi = fs[i];
-        let vj = fs[j];
-        let vk = fs[k];
-        fs[i] = vk;
-        fs[j] = vi;
-        fs[k] = vj;
+        let m = (j - i).min(n - j);
+        let mut a: Vec<u32> = fs[..i].to_vec();
+
+        let b: Vec<u32> = fs[i..i + m].to_vec();
+        let infix: Vec<u32> = fs[i + m..j].to_vec();
+        let c: Vec<u32> = fs[j..j + m].to_vec();
+        let suffix: Vec<u32> = fs[j + m..].to_vec();
+
+        a.extend(c);
+        a.extend(infix);
+        a.extend(b);
+        a.extend(suffix);
+
+        fs = a;
     }
 
     let i0: usize = lines[i_sep_b + 1].parse::<usize>().unwrap() - 1;
