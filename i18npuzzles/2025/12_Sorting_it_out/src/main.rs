@@ -108,22 +108,15 @@ fn main() {
         .lines()
         .map(|line| parse_line(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", lines);
 
     lines.sort_by_key(|(n, _)| n.english_sort_key());
-    eprintln!("{:?}", lines);
     let a = median_number(&lines);
-    eprintln!("{}", a);
 
     lines.sort_by_key(|(n, _)| n.swedish_sort_key());
-    eprintln!("{:?}", lines);
     let b = median_number(&lines);
-    eprintln!("{}", b);
 
     lines.sort_by_key(|(n, _)| n.dutch_sort_key());
-    eprintln!("{:?}", lines);
     let c = median_number(&lines);
-    eprintln!("{}", c);
 
     println!("{}", a * b * c);
 }
