@@ -1,9 +1,5 @@
 use std::io::{self, BufRead};
 
-fn is_alpha_or_dash(c: char) -> bool {
-    c == '-' || c.is_alphabetic()
-}
-
 fn first_reduction_index(s: &str) -> Option<usize> {
     let ps: Vec<(char, char)> = s
         .chars()
@@ -13,7 +9,7 @@ fn first_reduction_index(s: &str) -> Option<usize> {
         .collect();
 
     ps.into_iter().position(|(a, b)| {
-        (is_alpha_or_dash(a) && b.is_ascii_digit()) || (a.is_ascii_digit() && is_alpha_or_dash(b))
+        (a.is_alphabetic() && b.is_ascii_digit()) || (a.is_ascii_digit() && b.is_alphabetic())
     })
 }
 
