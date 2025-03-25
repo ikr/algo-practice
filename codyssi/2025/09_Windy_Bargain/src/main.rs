@@ -23,7 +23,7 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|s| s.unwrap()).collect();
     let isep: usize = lines.iter().position(|s| s.is_empty()).unwrap();
 
-    let initial_holdings: HashMap<String, i32> = lines[..isep]
+    let mut holdings: HashMap<String, i32> = lines[..isep]
         .iter()
         .map(|s| parse_initial_holding(s))
         .collect();
@@ -33,17 +33,26 @@ fn main() {
         .map(|s| parse_movement(s))
         .collect();
 
-    let end_holdings = movements
-        .into_iter()
-        .fold(initial_holdings, |mut acc, (x, y, amount)| {
-            let final_amount = *acc.get(&x).unwrap().min(&amount);
+    let mut debt: Vec<(String, String, i32)> = vec![];
 
-            acc.entry(x).and_modify(|v| *v -= final_amount);
-            acc.entry(y).and_modify(|v| *v += final_amount);
-            acc
-        });
+    for (a, b, x0) in movements {
+        let mut x = x0;
 
-    let mut result: Vec<i32> = end_holdings.into_values().collect();
+        while let Some(i) = debt.iter().position(|(debtor, _, _)| *debtor == b) {
+            if x == 0 {
+                break;
+            }
+
+            let (_, _, owed) = debt[i];
+            let deduction = x.min(owed);
+            x -= deduction;
+            debt[i].2 -= deduction;
+
+            debt = debt.into_iter().filter(|(_, _, x)| *x > 0).collect();
+        }
+    }
+
+    let mut result: Vec<i32> = holdings.into_values().filter(|&x| x > 0).collect();
     result.sort_by_key(|x| -x);
     println!("{}", result[..3].iter().sum::<i32>());
 }
