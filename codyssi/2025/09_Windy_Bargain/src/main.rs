@@ -1,5 +1,8 @@
 use regex::Regex;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashMap,
+    io::{BufRead, stdin},
+};
 
 fn parse_initial_holding(s: &str) -> (String, i32) {
     let ps: Vec<_> = s.split(" HAS ").collect();
@@ -7,7 +10,7 @@ fn parse_initial_holding(s: &str) -> (String, i32) {
 }
 
 fn parse_movement(s: &str) -> (String, String, i32) {
-    let re = Regex::new(r"^FROM (\w+) TO (\w+) AMT (\d+)$").unwrap();
+    let re = Regex::new(r"^FROM ([A-Za-z-]+) TO ([A-Za-z-]+) AMT (\d+)$").unwrap();
     let caps = re.captures(s).unwrap();
     (
         caps[1].to_string(),
@@ -20,7 +23,7 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|s| s.unwrap()).collect();
     let isep: usize = lines.iter().position(|s| s.is_empty()).unwrap();
 
-    let initial_holdings: Vec<_> = lines[..isep]
+    let initial_holdings: HashMap<String, i32> = lines[..isep]
         .iter()
         .map(|s| parse_initial_holding(s))
         .collect();
@@ -30,5 +33,15 @@ fn main() {
         .map(|s| parse_movement(s))
         .collect();
 
-    eprintln!("{:?}\n{:?}", initial_holdings, movements);
+    let end_holdings = movements
+        .into_iter()
+        .fold(initial_holdings, |mut acc, (x, y, amount)| {
+            acc.entry(x).and_modify(|v| *v -= amount);
+            acc.entry(y).and_modify(|v| *v += amount);
+            acc
+        });
+
+    let mut result: Vec<i32> = end_holdings.into_values().collect();
+    result.sort_by_key(|x| -x);
+    println!("{}", result[..3].iter().sum::<i32>());
 }
