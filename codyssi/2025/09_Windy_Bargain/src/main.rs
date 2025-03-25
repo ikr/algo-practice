@@ -36,8 +36,10 @@ fn main() {
     let end_holdings = movements
         .into_iter()
         .fold(initial_holdings, |mut acc, (x, y, amount)| {
-            acc.entry(x).and_modify(|v| *v -= amount);
-            acc.entry(y).and_modify(|v| *v += amount);
+            let final_amount = *acc.get(&x).unwrap().min(&amount);
+
+            acc.entry(x).and_modify(|v| *v -= final_amount);
+            acc.entry(y).and_modify(|v| *v += final_amount);
             acc
         });
 
