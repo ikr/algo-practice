@@ -1,23 +1,5 @@
 use std::io::{self, BufRead};
 
-fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    assert!(!grid.is_empty());
-    let h = grid[0].len();
-    let mut iters: Vec<_> = grid.into_iter().map(|n| n.into_iter()).collect();
-    (0..h)
-        .map(|_| {
-            iters
-                .iter_mut()
-                .map(|n| n.next().unwrap())
-                .collect::<Vec<T>>()
-        })
-        .collect()
-}
-
-fn min_row_sum(rows: &[Vec<u16>]) -> u16 {
-    rows.iter().map(|xs| xs.iter().sum::<u16>()).min().unwrap()
-}
-
 fn main() {
     let grid: Vec<Vec<u16>> = io::stdin()
         .lock()
@@ -29,7 +11,22 @@ fn main() {
                 .collect::<Vec<_>>()
         })
         .collect();
+    let n = grid.len();
+    assert_eq!(grid[0].len(), n);
 
-    let result = min_row_sum(&grid).min(min_row_sum(&transpose(grid)));
+    let mut dp: Vec<Vec<u16>> = vec![vec![u16::MAX; n]; n];
+    dp[0][0] = grid[0][0];
+    for i in 1..n {
+        dp[0][i] = dp[0][i - 1] + grid[0][i];
+        dp[i][0] = dp[i - 1][0] + grid[i][0];
+    }
+
+    for i in 1..n {
+        for j in 1..n {
+            dp[i][j] = dp[i - 1][j].min(dp[i][j - 1]) + grid[i][j];
+        }
+    }
+
+    let result = dp[14][14];
     println!("{}", result);
 }
