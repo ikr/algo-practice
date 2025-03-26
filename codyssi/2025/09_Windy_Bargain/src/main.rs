@@ -1,15 +1,16 @@
+use itertools::Itertools;
 use regex::Regex;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, VecDeque},
     io::{BufRead, stdin},
 };
 
-fn parse_initial_holding(s: &str) -> (String, i32) {
+fn parse_initial_holding(s: &str) -> (String, u32) {
     let ps: Vec<_> = s.split(" HAS ").collect();
     (ps[0].to_string(), ps[1].parse().unwrap())
 }
 
-fn parse_movement(s: &str) -> (String, String, i32) {
+fn parse_movement(s: &str) -> (String, String, u32) {
     let re = Regex::new(r"^FROM ([A-Za-z-]+) TO ([A-Za-z-]+) AMT (\d+)$").unwrap();
     let caps = re.captures(s).unwrap();
     (
@@ -19,11 +20,52 @@ fn parse_movement(s: &str) -> (String, String, i32) {
     )
 }
 
+struct Ledger {
+    ids: HashMap<String, usize>,
+    holdings: Vec<u32>,
+    ious: Vec<VecDeque<(usize, u32)>>,
+}
+
+impl Ledger {
+    fn from(holdings_by_name: HashMap<String, u32>) -> Self {
+        let ids: HashMap<String, usize> = holdings_by_name
+            .keys()
+            .sorted()
+            .cloned()
+            .enumerate()
+            .map(|(i, name)| (name, i))
+            .collect();
+
+        let holdings: Vec<u32> =
+            holdings_by_name
+                .into_iter()
+                .fold(vec![0; ids.len()], |mut acc, (name, amount)| {
+                    acc[*ids.get(&name).unwrap()] = amount;
+                    acc
+                });
+
+        let ious: Vec<VecDeque<(usize, u32)>> = vec![VecDeque::new(); ids.len()];
+        Self {
+            ids,
+            holdings,
+            ious,
+        }
+    }
+
+    fn id(&self, name: &str) -> usize {
+        *self.ids.get(name).unwrap()
+    }
+
+    fn result(&self) -> u32 {
+        self.holdings.iter().filter(|&&x| x != 0).k_largest(3).sum()
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|s| s.unwrap()).collect();
     let isep: usize = lines.iter().position(|s| s.is_empty()).unwrap();
 
-    let mut holdings: HashMap<String, i32> = lines[..isep]
+    let mut holdings: HashMap<String, u32> = lines[..isep]
         .iter()
         .map(|s| parse_initial_holding(s))
         .collect();
@@ -33,26 +75,5 @@ fn main() {
         .map(|s| parse_movement(s))
         .collect();
 
-    let mut debt: Vec<(String, String, i32)> = vec![];
-
-    for (a, b, x0) in movements {
-        let mut x = x0;
-
-        while let Some(i) = debt.iter().position(|(debtor, _, _)| *debtor == b) {
-            if x == 0 {
-                break;
-            }
-
-            let (_, _, owed) = debt[i];
-            let deduction = x.min(owed);
-            x -= deduction;
-            debt[i].2 -= deduction;
-
-            debt = debt.into_iter().filter(|(_, _, x)| *x > 0).collect();
-        }
-    }
-
-    let mut result: Vec<i32> = holdings.into_values().filter(|&x| x > 0).collect();
-    result.sort_by_key(|x| -x);
-    println!("{}", result[..3].iter().sum::<i32>());
+    todo!()
 }
