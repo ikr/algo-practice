@@ -52,6 +52,48 @@ impl Ledger {
         }
     }
 
+    fn transfer(&mut self, src_id: usize, dst_id: usize, amount: u32) {
+        assert_ne!(amount, 0);
+        let cash = self.holdings[src_id].min(amount);
+        self.holdings[src_id] -= cash;
+
+        let owed = amount - cash;
+        if owed != 0 {
+            self.ious[src_id].push_back((dst_id, owed));
+        }
+
+        if cash != 0 {
+            self.receive(dst_id, cash);
+        }
+    }
+
+    fn receive(&mut self, id: usize, mut cash: u32) {
+        let mut inbox: Vec<(usize, u32)> = vec![];
+
+        while let Some((creditor_id, credited)) = self.ious[id].pop_front() {
+            let downpayment: u32 = credited.min(cash);
+            cash -= downpayment;
+            inbox.push((creditor_id, downpayment));
+
+            if downpayment != credited {
+                self.ious[id].push_front((creditor_id, credited - downpayment));
+                break;
+            }
+
+            if cash == 0 {
+                break;
+            }
+        }
+
+        if cash != 0 {
+            self.holdings[id] += cash;
+        }
+
+        for (i, x) in inbox {
+            self.receive(i, x);
+        }
+    }
+
     fn id(&self, name: &str) -> usize {
         *self.ids.get(name).unwrap()
     }
@@ -65,7 +107,7 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|s| s.unwrap()).collect();
     let isep: usize = lines.iter().position(|s| s.is_empty()).unwrap();
 
-    let mut holdings: HashMap<String, u32> = lines[..isep]
+    let holdings: HashMap<String, u32> = lines[..isep]
         .iter()
         .map(|s| parse_initial_holding(s))
         .collect();
@@ -75,5 +117,9 @@ fn main() {
         .map(|s| parse_movement(s))
         .collect();
 
-    todo!()
+    let mut ledger = Ledger::from(holdings);
+    for (src, dst, amount) in movements {
+        ledger.transfer(ledger.id(&src), ledger.id(&dst), amount);
+    }
+    println!("{}", ledger.result())
 }
