@@ -27,6 +27,6 @@ fn main() {
         }
     }
 
-    let result = dp[14][14];
+    let result = dp[n - 1][n - 1];
     println!("{}", result);
 }
