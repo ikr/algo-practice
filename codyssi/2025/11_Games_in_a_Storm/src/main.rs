@@ -5,6 +5,7 @@ fn all_digits() -> Vec<char> {
     result.extend('A'..='Z');
     result.extend('a'..='z');
     result.extend(['!', '@', '#', '$', '%', '^']);
+    result.extend(vec!['?'; 9000]);
     result
 }
 
@@ -50,6 +51,13 @@ fn main() {
         })
         .collect();
 
-    let result: usize = lines.into_iter().map(|(s, b)| decode_value(&s, b)).sum();
-    println!("{}", encode_value(result, 68));
+    let x0: usize = lines.into_iter().map(|(s, b)| decode_value(&s, b)).sum();
+
+    for radix in 2..9000 {
+        let s = encode_value(x0, radix);
+        if s.len() == 4 {
+            println!("{}", radix);
+            break;
+        }
+    }
 }
