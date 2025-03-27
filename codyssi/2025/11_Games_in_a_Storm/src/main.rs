@@ -4,6 +4,7 @@ fn all_digits() -> Vec<char> {
     let mut result: Vec<char> = ('0'..='9').collect();
     result.extend('A'..='Z');
     result.extend('a'..='z');
+    result.extend(['!', '@', '#', '$', '%', '^']);
     result
 }
 
@@ -21,6 +22,23 @@ fn decode_value(s: &str, radix: usize) -> usize {
     result
 }
 
+fn encode_value(mut v: usize, radix: usize) -> String {
+    if v == 0 {
+        return "0".to_string();
+    }
+
+    let alphabet = all_digits();
+    let mut ds: Vec<char> = vec![];
+
+    while v != 0 {
+        ds.push(alphabet[v % radix]);
+        v /= radix;
+    }
+
+    ds.reverse();
+    ds.into_iter().collect()
+}
+
 fn main() {
     let lines: Vec<(String, usize)> = stdin()
         .lock()
@@ -32,10 +50,6 @@ fn main() {
         })
         .collect();
 
-    let result: usize = lines
-        .into_iter()
-        .map(|(s, b)| decode_value(&s, b))
-        .max()
-        .unwrap();
-    println!("{}", result);
+    let result: usize = lines.into_iter().map(|(s, b)| decode_value(&s, b)).sum();
+    println!("{}", encode_value(result, 68));
 }
