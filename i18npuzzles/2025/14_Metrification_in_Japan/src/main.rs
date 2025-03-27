@@ -7,6 +7,10 @@ enum LUnit {
     Jo,
     Cho,
     Ri,
+    Sun,
+    Bu,
+    Rin,
+    Mo,
 }
 
 impl LUnit {
@@ -17,6 +21,10 @@ impl LUnit {
             '丈' => Self::Jo,
             '町' => Self::Cho,
             '里' => Self::Ri,
+            '寸' => Self::Sun,
+            '分' => Self::Bu,
+            '厘' => Self::Rin,
+            '毛' => Self::Mo,
             _ => panic!("Unknown unit-of-length literal `{}`", c),
         }
     }
@@ -26,20 +34,52 @@ impl LUnit {
 struct Length(u64, LUnit);
 
 impl Length {
-    fn parse_num(s: String) -> u64 {
-        todo!()
+    fn numeral_values() -> Vec<(char, u64)> {
+        vec![
+            ('億', 100_000_000),
+            ('万', 10_000),
+            ('千', 1000),
+            ('百', 100),
+            ('十', 10),
+            ('九', 9),
+            ('八', 8),
+            ('七', 7),
+            ('六', 6),
+            ('五', 5),
+            ('四', 4),
+            ('三', 3),
+            ('二', 2),
+            ('一', 1),
+        ]
+    }
+
+    fn decode(cs: &[char]) -> u64 {
+        if cs.is_empty() {
+            return 0;
+        }
+
+        for (numeral, numeral_value) in Self::numeral_values() {
+            if let Some(i0) = cs.iter().position(|&x| x == numeral) {
+                let pre: u64 = if i0 == 0 {
+                    numeral_value
+                } else {
+                    Self::decode(&cs[..i0]) * numeral_value
+                };
+
+                return pre + Self::decode(&cs[i0 + 1..]);
+            }
+        }
+
+        panic!("/o\\")
     }
 
     fn from(s: &str) -> Self {
         let cs: Vec<char> = s.chars().collect();
         let n = cs.len();
-        Self(
-            Self::parse_num(cs[..n - 1].iter().cloned().collect::<String>()),
-            LUnit::from(cs[n - 1]),
-        )
+        Self(Self::decode(&cs[..n - 1]), LUnit::from(cs[n - 1]))
     }
 
-    fn to_shaku(&self) -> u64 {
+    fn to_shaku(self) -> u64 {
         match self.1 {
             LUnit::Shaku => self.0,
             LUnit::Ken => 6 * self.0,
@@ -50,7 +90,7 @@ impl Length {
     }
 }
 
-fn parse_line(s: &str) -> (Length, Length) {
+fn decode_line(s: &str) -> (Length, Length) {
     let ab: Vec<_> = s.split(" × ").map(Length::from).collect();
     assert_eq!(ab.len(), 2);
     (ab[0], ab[1])
@@ -60,7 +100,7 @@ fn main() {
     let lines: Vec<(Length, Length)> = io::stdin()
         .lock()
         .lines()
-        .map(|line| parse_line(&line.unwrap()))
+        .map(|line| decode_line(&line.unwrap()))
         .collect();
 
     let result: u64 = lines
