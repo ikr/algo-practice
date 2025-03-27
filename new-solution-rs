@@ -47,7 +47,7 @@ fn main() {
 }
 """
 elif args.embed:
-    code += """use std::io::{self, stdin, BufWriter, Write};
+    code += """use std::io::{stdout, stdin, BufWriter, Write};
 
 #[derive(Default)]
 struct Scanner {
@@ -72,7 +72,7 @@ fn solve(xs: &[i32]) -> i32 {
 }
 
 fn main() {
-    let stdout = io::stdout();
+    let stdout = stdout();
     let handle = stdout.lock();
     let mut writer = BufWriter::new(handle);
 
@@ -94,7 +94,7 @@ fn main() {
 }
 """
 elif args.atcoder:
-    code += """use std::io::{self, BufWriter, Write};
+    code += """use std::io::{stdout, BufWriter, Write};
 use proconio::input;
 // use proconio::marker::Bytes;
 
@@ -103,7 +103,7 @@ fn solve(xs: &[i32]) -> i32 {
 }
 
 fn main() {
-    let stdout = io::stdout();
+    let stdout = stdout();
     let handle = stdout.lock();
     let mut writer = BufWriter::new(handle);
 
@@ -118,10 +118,10 @@ fn main() {
 }
 """
 else:
-    code += """use std::io::{self, BufRead};
+    code += """use std::io::{stdin, BufRead};
 
 fn main() {
-    let grid: Vec<Vec<char>> = io::stdin()
+    let grid: Vec<Vec<char>> = stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().chars().collect())
