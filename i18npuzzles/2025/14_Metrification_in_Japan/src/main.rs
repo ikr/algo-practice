@@ -1,5 +1,8 @@
 use std::io::{self, BufRead};
 
+use num_rational::Ratio;
+type Frac = Ratio<i128>;
+
 #[derive(Clone, Copy, Debug)]
 enum LUnit {
     Shaku,
@@ -79,13 +82,17 @@ impl Length {
         Self(Self::decode(&cs[..n - 1]), LUnit::from(cs[n - 1]))
     }
 
-    fn to_shaku(self) -> u64 {
+    fn to_shaku(self) -> Frac {
         match self.1 {
-            LUnit::Shaku => self.0,
-            LUnit::Ken => 6 * self.0,
-            LUnit::Jo => 6 * 10 * self.0,
-            LUnit::Cho => 6 * 10 * 360 * self.0,
-            LUnit::Ri => 6 * 10 * 360 * 12960 * self.0,
+            LUnit::Shaku => Frac::from_integer(self.0 as i128),
+            LUnit::Ken => Frac::from_integer(6 * self.0 as i128),
+            LUnit::Jo => Frac::from_integer(6 * 10 * self.0 as i128),
+            LUnit::Cho => Frac::from_integer(6 * 10 * 360 * self.0 as i128),
+            LUnit::Ri => Frac::from_integer(6 * 10 * 360 * 12960 * self.0 as i128),
+            LUnit::Sun => Frac::new(self.0 as i128, 10),
+            LUnit::Bu => Frac::new(self.0 as i128, 100),
+            LUnit::Rin => Frac::new(self.0 as i128, 1000),
+            LUnit::Mo => Frac::new(self.0 as i128, 10_000),
         }
     }
 }
@@ -103,10 +110,10 @@ fn main() {
         .map(|line| decode_line(&line.unwrap()))
         .collect();
 
-    let result: u64 = lines
+    let result: Frac = lines
         .into_iter()
-        .map(|(l1, l2)| l1.to_shaku() * l2.to_shaku() * 33 * 33 / 10 / 10)
-        .sum();
+        .map(|(l1, l2)| l1.to_shaku() * l2.to_shaku() * Frac::new(33 * 33, 100))
+        .fold(Frac::from_integer(0), |acc, x| acc + x);
 
     println!("{}", result);
 }
