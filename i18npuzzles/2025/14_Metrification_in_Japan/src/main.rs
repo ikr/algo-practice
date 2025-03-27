@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 use num_rational::Ratio;
 type Frac = Ratio<i128>;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum LUnit {
     Shaku,
     Ken,
@@ -33,7 +33,7 @@ impl LUnit {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct Length(u64, LUnit);
 
 impl Length {
@@ -86,9 +86,9 @@ impl Length {
         match self.1 {
             LUnit::Shaku => Frac::from_integer(self.0 as i128),
             LUnit::Ken => Frac::from_integer(6 * self.0 as i128),
-            LUnit::Jo => Frac::from_integer(6 * 10 * self.0 as i128),
-            LUnit::Cho => Frac::from_integer(6 * 10 * 360 * self.0 as i128),
-            LUnit::Ri => Frac::from_integer(6 * 10 * 360 * 12960 * self.0 as i128),
+            LUnit::Jo => Frac::from_integer(10 * self.0 as i128),
+            LUnit::Cho => Frac::from_integer(360 * self.0 as i128),
+            LUnit::Ri => Frac::from_integer(12960 * self.0 as i128),
             LUnit::Sun => Frac::new(self.0 as i128, 10),
             LUnit::Bu => Frac::new(self.0 as i128, 100),
             LUnit::Rin => Frac::new(self.0 as i128, 1000),
@@ -112,8 +112,27 @@ fn main() {
 
     let result: Frac = lines
         .into_iter()
-        .map(|(l1, l2)| l1.to_shaku() * l2.to_shaku() * Frac::new(33 * 33, 100))
+        .map(|(l1, l2)| l1.to_shaku() * l2.to_shaku() * Frac::new(100, 33 * 33))
         .fold(Frac::from_integer(0), |acc, x| acc + x);
 
     println!("{}", result);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decode_length_a() {
+        assert_eq!(Length::from("二百四十二町"), Length(242, LUnit::Cho));
+        assert_eq!(Length::from("三百五十一丈"), Length(351, LUnit::Jo));
+    }
+
+    #[test]
+    fn decode_length_b() {
+        assert_eq!(
+            Length::from("九億八千七百六十五万四千三百二十一丈"),
+            Length(987_654_321, LUnit::Jo)
+        );
+    }
 }
