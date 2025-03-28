@@ -78,11 +78,11 @@ impl Instr {
         if ps[0] == "SHIFT" {
             match ps[1] {
                 "ROW" => Instr::ShiftInstr(
-                    ShiftSubj::Row(ps[2].parse().unwrap()),
+                    ShiftSubj::Row(ps[2].parse::<usize>().unwrap() - 1),
                     ps[4].parse().unwrap(),
                 ),
                 "COL" => Instr::ShiftInstr(
-                    ShiftSubj::Col(ps[2].parse().unwrap()),
+                    ShiftSubj::Col(ps[2].parse::<usize>().unwrap() - 1),
                     ps[4].parse().unwrap(),
                 ),
                 _ => panic!("Unknown shift subject `{}`", ps[1]),
@@ -92,8 +92,8 @@ impl Instr {
                 ArithmeticSubj::All
             } else {
                 match ps[2] {
-                    "ROW" => ArithmeticSubj::Row(ps[3].parse().unwrap()),
-                    "COL" => ArithmeticSubj::Col(ps[3].parse().unwrap()),
+                    "ROW" => ArithmeticSubj::Row(ps[3].parse::<usize>().unwrap() - 1),
+                    "COL" => ArithmeticSubj::Col(ps[3].parse::<usize>().unwrap() - 1),
                     _ => panic!("Unknown arithmetic subject `{}`", ps[2]),
                 }
             };
@@ -131,6 +131,50 @@ impl Grid {
         }
         Grid { rows }
     }
+
+    fn arithmetic_on_all(&self, op: ArithmeticOp) -> Grid {
+        let mut rows = self.rows.clone();
+        for row in rows.iter_mut() {
+            for cell in row.iter_mut() {
+                *cell = op.apply(*cell);
+            }
+        }
+        Grid { rows }
+    }
+
+    fn shift_on_row(&self, i: usize, offset: u32) -> Grid {
+        let mut rows = self.rows.clone();
+        rows[i].rotate_right(offset as usize);
+        Grid { rows }
+    }
+
+    fn execute(&self, instr: Instr) -> Grid {
+        match instr {
+            Instr::ShiftInstr(ShiftSubj::Row(i), x) => self.shift_on_row(i, x),
+            Instr::ShiftInstr(ShiftSubj::Col(i), x) => {
+                self.transpose().shift_on_row(i, x).transpose()
+            }
+            Instr::ArithmeticInstr(ArithmeticSubj::All, op) => self.arithmetic_on_all(op),
+            Instr::ArithmeticInstr(ArithmeticSubj::Row(i), op) => self.arithmetic_on_row(i, op),
+            Instr::ArithmeticInstr(ArithmeticSubj::Col(i), op) => {
+                self.transpose().arithmetic_on_row(i, op).transpose()
+            }
+        }
+    }
+
+    fn sum_of_a_row(&self, i: usize) -> u64 {
+        self.rows[i].iter().map(|x| x.val() as u64).sum()
+    }
+
+    fn largest_sum_of_a_row(&self) -> u64 {
+        let n = self.rows.len();
+        (0..n).map(|i| self.sum_of_a_row(i)).max().unwrap()
+    }
+
+    fn answer(&self) -> u64 {
+        self.largest_sum_of_a_row()
+            .max(self.transpose().largest_sum_of_a_row())
+    }
 }
 
 fn main() {
@@ -146,11 +190,15 @@ fn main() {
                 .collect::<Vec<_>>()
         })
         .collect();
-    eprintln!("{:?}", rows);
 
-    let ops: Vec<Instr> = lines[i_sep_a + 1..i_sep_b]
+    let instrs: Vec<Instr> = lines[i_sep_a + 1..i_sep_b]
         .iter()
         .map(|s| Instr::decode(s))
         .collect();
-    eprintln!("{:?}", ops);
+
+    let grid: Grid = instrs
+        .into_iter()
+        .fold(Grid { rows }, |acc, instr| acc.execute(instr));
+
+    println!("{}", grid.answer());
 }
