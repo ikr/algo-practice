@@ -40,18 +40,28 @@ enum ArithmeticSubj {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum ArithmeticOp {
-    Add,
-    Sub,
-    Mul,
+    Add(u32),
+    Sub(u32),
+    Mul(u32),
 }
 
 impl ArithmeticOp {
-    fn decode(s: &str) -> Self {
-        match s {
-            "ADD" => Self::Add,
-            "SUB" => Self::Sub,
-            "MULTIPLY" => Self::Mul,
-            _ => panic!("Unknown arithmetic opcode `{}`", s),
+    fn decode(opcode: &str, arg: &str) -> Self {
+        let x: u32 = arg.parse().unwrap();
+
+        match opcode {
+            "ADD" => Self::Add(x),
+            "SUB" => Self::Sub(x),
+            "MULTIPLY" => Self::Mul(x),
+            _ => panic!("Unknown arithmetic opcode `{}`", opcode),
+        }
+    }
+
+    fn apply(self, arg: Mint) -> Mint {
+        match self {
+            Self::Add(x) => arg + x,
+            Self::Sub(x) => arg - x,
+            Self::Mul(x) => arg * x,
         }
     }
 }
@@ -59,7 +69,7 @@ impl ArithmeticOp {
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Instr {
     ShiftInstr(ShiftSubj, u32),
-    ArithmeticInstr(ArithmeticSubj, ArithmeticOp, u32),
+    ArithmeticInstr(ArithmeticSubj, ArithmeticOp),
 }
 
 impl Instr {
@@ -87,10 +97,39 @@ impl Instr {
                     _ => panic!("Unknown arithmetic subject `{}`", ps[2]),
                 }
             };
-            let op = ArithmeticOp::decode(ps[0]);
-            let x: u32 = ps[1].parse().unwrap();
-            Instr::ArithmeticInstr(subj, op, x)
+            let op = ArithmeticOp::decode(ps[0], ps[1]);
+            Instr::ArithmeticInstr(subj, op)
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct Grid {
+    rows: Vec<Vec<Mint>>,
+}
+
+impl Grid {
+    fn transpose(&self) -> Grid {
+        assert!(!self.rows.is_empty());
+        let h = self.rows[0].len();
+        let mut iters: Vec<_> = self.rows.iter().cloned().map(|n| n.into_iter()).collect();
+        let rows = (0..h)
+            .map(|_| {
+                iters
+                    .iter_mut()
+                    .map(|n| n.next().unwrap())
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+        Grid { rows }
+    }
+
+    fn arithmetic_on_row(&self, i: usize, op: ArithmeticOp) -> Grid {
+        let mut rows = self.rows.clone();
+        for cell in rows[i].iter_mut() {
+            *cell = op.apply(*cell);
+        }
+        Grid { rows }
     }
 }
 
@@ -99,7 +138,7 @@ fn main() {
     let i_sep_a: usize = lines.iter().position(|s| s.is_empty()).unwrap();
     let i_sep_b: usize = lines.iter().rposition(|s| s.is_empty()).unwrap();
 
-    let grid: Vec<Vec<Mint>> = lines[..i_sep_a]
+    let rows: Vec<Vec<Mint>> = lines[..i_sep_a]
         .iter()
         .map(|s| {
             s.split_whitespace()
@@ -107,7 +146,7 @@ fn main() {
                 .collect::<Vec<_>>()
         })
         .collect();
-    eprintln!("{:?}", grid);
+    eprintln!("{:?}", rows);
 
     let ops: Vec<Instr> = lines[i_sep_a + 1..i_sep_b]
         .iter()
