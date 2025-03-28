@@ -118,14 +118,11 @@ fn main() {
 }
 """
 else:
-    code += """use std::io::{stdin, BufRead};
+    code += """use std::io::{BufRead, stdin};
 
 fn main() {
-    let grid: Vec<Vec<char>> = stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().chars().collect())
-        .collect();
+    let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
+    eprintln!("{:?}", lines);
 }
 """
 
@@ -134,7 +131,7 @@ def normalize(name):
     muted = "!#$%^*()'!?:."
     for x in muted:
         ans = ans.replace(x, '')
-    return re.sub(r'[ &,]+', '_', ans)
+    return re.sub(r'[ &,/]+', '_', ans)
 
 os.system('cargo new {0} --name solution'.format(normalize(args.name)))
 path = os.path.join(os.getcwd(), normalize(args.name))
