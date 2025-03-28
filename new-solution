@@ -124,7 +124,7 @@ def normalize(name):
     muted = "!#$%^*()'!?:."
     for x in muted:
         ans = ans.replace(x, '')
-    return re.sub(r'[ &,]+', '_', ans)
+    return re.sub(r'[ &,/]+', '_', ans)
 
 path = os.path.join(os.getcwd(), normalize(args.name))
 os.mkdir(path)
