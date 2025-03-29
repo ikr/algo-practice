@@ -1,5 +1,8 @@
 use ac_library::StaticModInt;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::VecDeque,
+    io::{BufRead, stdin},
+};
 
 macro_rules! modulus {
     ($($name:ident($value:expr, $is_prime:expr)),*) => {
@@ -191,14 +194,30 @@ fn main() {
         })
         .collect();
 
-    let instrs: Vec<Instr> = lines[i_sep_a + 1..i_sep_b]
+    let mut instrs: VecDeque<Instr> = lines[i_sep_a + 1..i_sep_b]
         .iter()
         .map(|s| Instr::decode(s))
         .collect();
 
-    let grid: Grid = instrs
-        .into_iter()
-        .fold(Grid { rows }, |acc, instr| acc.execute(instr));
+    let meta_instrs: Vec<_> = lines[i_sep_b + 1..]
+        .iter()
+        .filter(|&s| s != "TAKE")
+        .collect();
+
+    let mut grid = Grid { rows };
+
+    for mi in meta_instrs {
+        if let Some(instr) = instrs.pop_front() {
+            if mi == "CYCLE" {
+                instrs.push_back(instr);
+            } else {
+                assert_eq!(mi, "ACT");
+                grid = grid.execute(instr);
+            }
+        } else {
+            panic!("Instructions queue is empty, can't {}", mi);
+        }
+    }
 
     println!("{}", grid.answer());
 }
