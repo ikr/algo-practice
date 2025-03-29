@@ -23,16 +23,21 @@ fn daily_intervals(
     (0..365)
         .map(|offset| fisrt_day + chrono::Duration::days(offset))
         .filter(|day| !holidays.contains(day))
-        .map(|day| {
-            let start = tz
+        .filter_map(|day| {
+            let a = tz
                 .from_local_datetime(&day.and_time(local_start_time))
-                .unwrap()
-                .with_timezone(&Utc);
-            let end = tz
-                .from_local_datetime(&day.and_time(local_end_time))
-                .unwrap()
-                .with_timezone(&Utc);
-            (start, end)
+                .unwrap();
+            if a.weekday() == Weekday::Sat || a.weekday() == Weekday::Sun {
+                None
+            } else {
+                let b = tz
+                    .from_local_datetime(&day.and_time(local_end_time))
+                    .unwrap();
+
+                let start = a.with_timezone(&Utc);
+                let end = b.with_timezone(&Utc);
+                Some((start, end))
+            }
         })
         .collect()
 }
