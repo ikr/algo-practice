@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 use chrono_tz::Tz;
 use std::io::{BufRead, stdin};
 
@@ -10,6 +10,21 @@ fn decode_line(s: &str) -> (String, Tz, Vec<NaiveDate>) {
     let ps: Vec<_> = s.split('\t').collect();
     let holidays: Vec<NaiveDate> = ps[2].split(';').map(decode_naive_date).collect();
     (ps[0].to_string(), ps[1].parse().unwrap(), holidays)
+}
+
+fn office_coverage_intervals(
+    tz: Tz,
+    holidays: &[NaiveDate],
+) -> Vec<(DateTime<Utc>, DateTime<Utc>)> {
+    let fisrt_day = NaiveDate::from_ymd_opt(2022, 1, 1).unwrap();
+    (0..365)
+        .map(|offset| fisrt_day + chrono::Duration::days(offset))
+        .filter(|day| !holidays.contains(day))
+        .map(|day| {
+            let start = tz.ymd(day.year(), day.month(), day.day()).and_hms(8, 30, 0);
+            let end = tz.ymd(day.year(), day.month(), day.day()).and_hms(17, 0, 0);
+            (start, end)
+        })
 }
 
 fn main() {
