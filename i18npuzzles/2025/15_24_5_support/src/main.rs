@@ -47,7 +47,7 @@ fn all_work_day_minutes(tz: Tz, holidays: &[NaiveDate]) -> Vec<DateTime<Utc>> {
         holidays.contains(&NaiveDate::from_ymd_opt(dt.year(), dt.month(), dt.day()).unwrap())
     };
 
-    let mut cur = tz
+    let mut cur = Utc
         .from_local_datetime(
             &NaiveDate::from_ymd_opt(2022, 1, 1)
                 .unwrap()
@@ -59,24 +59,14 @@ fn all_work_day_minutes(tz: Tz, holidays: &[NaiveDate]) -> Vec<DateTime<Utc>> {
     let mut result = vec![];
 
     while cur.year() == 2022 {
-        if !(is_holiday(cur) || cur.weekday() == Weekday::Sat || cur.weekday() == Weekday::Sun) {
-            result.push(cur.with_timezone(&Utc));
+        let loc = cur.with_timezone(&tz);
+        if !(is_holiday(loc) || loc.weekday() == Weekday::Sat || loc.weekday() == Weekday::Sun) {
+            result.push(cur);
         }
         cur += Duration::minutes(1);
     }
 
     result
-}
-
-fn intersection_duration<Tz: TimeZone>(
-    ab: (DateTime<Tz>, DateTime<Tz>),
-    cd: (DateTime<Tz>, DateTime<Tz>),
-) -> Option<Duration> {
-    let (a, b) = ab;
-    let (c, d) = cd;
-    let i = std::cmp::max(a, c);
-    let j = std::cmp::min(b, d);
-    if j >= i { Some(j - i) } else { None }
 }
 
 fn main() {
@@ -95,13 +85,18 @@ fn main() {
         .flat_map(|(_, tz, holidays)| daily_intervals(tz, &holidays, local_work_day))
         .collect();
 
-    for (name, tz, holidays) in clients {
-        let ms = all_work_day_minutes(tz, &holidays)
-            .into_iter()
-            .filter(|m| !office_intervals.iter().any(|(a, b)| a <= m && m < b))
-            .count();
-        eprintln!("{} {}: {} minutes", name, tz, ms);
-    }
+    let mss: Vec<usize> = clients
+        .into_iter()
+        .map(|(_, tz, holidays)| {
+            all_work_day_minutes(tz, &holidays)
+                .into_iter()
+                .filter(|m| !office_intervals.iter().any(|(a, b)| a <= m && m < b))
+                .count()
+        })
+        .collect();
+
+    let result: usize = mss.iter().max().unwrap() - mss.iter().min().unwrap();
+    println!("{}", result);
 }
 
 #[cfg(test)]
