@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Duration, NaiveDate, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use std::io::{BufRead, stdin};
 
@@ -12,19 +12,40 @@ fn decode_line(s: &str) -> (String, Tz, Vec<NaiveDate>) {
     (ps[0].to_string(), ps[1].parse().unwrap(), holidays)
 }
 
-fn office_coverage_intervals(
+fn daily_intervals(
     tz: Tz,
     holidays: &[NaiveDate],
+    local_time_interval: (NaiveTime, NaiveTime),
 ) -> Vec<(DateTime<Utc>, DateTime<Utc>)> {
+    let (local_start_time, local_end_time) = local_time_interval;
     let fisrt_day = NaiveDate::from_ymd_opt(2022, 1, 1).unwrap();
+
     (0..365)
         .map(|offset| fisrt_day + chrono::Duration::days(offset))
         .filter(|day| !holidays.contains(day))
         .map(|day| {
-            let start = tz.ymd(day.year(), day.month(), day.day()).and_hms(8, 30, 0);
-            let end = tz.ymd(day.year(), day.month(), day.day()).and_hms(17, 0, 0);
+            let start = tz
+                .from_local_datetime(&day.and_time(local_start_time))
+                .unwrap()
+                .with_timezone(&Utc);
+            let end = tz
+                .from_local_datetime(&day.and_time(local_end_time))
+                .unwrap()
+                .with_timezone(&Utc);
             (start, end)
         })
+        .collect()
+}
+
+fn intersection_duration<Tz: TimeZone>(
+    ab: (DateTime<Tz>, DateTime<Tz>),
+    cd: (DateTime<Tz>, DateTime<Tz>),
+) -> Option<Duration> {
+    let (a, b) = ab;
+    let (c, d) = cd;
+    let i = std::cmp::max(a, c);
+    let j = std::cmp::min(b, d);
+    if j >= i { Some(j - i) } else { None }
 }
 
 fn main() {
