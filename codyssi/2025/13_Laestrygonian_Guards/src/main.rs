@@ -26,7 +26,7 @@ fn max_cycle_length(
         }
 
         if path_so_far.contains(&v) {
-            return None;
+            continue;
         }
 
         p.push(v);
