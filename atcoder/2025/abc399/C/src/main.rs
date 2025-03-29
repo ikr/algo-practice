@@ -1,6 +1,6 @@
 use proconio::input;
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, VecDeque},
     io::{BufWriter, Write, stdout},
 };
 
@@ -20,18 +20,13 @@ fn solve(xs: &[u32]) -> usize {
         });
 
     let mut result: usize = 0;
-    let mut used: HashSet<usize> = HashSet::new();
 
-    for (i0, a0, b0) in xs
+    for (_, a0, b0) in xs
         .windows(2)
         .enumerate()
         .map(|(i, ab)| (i, ab[0], ab[1]))
         .filter(|(_, x, y)| x != y)
     {
-        if i0 != 0 && used.contains(&(i0 - 1)) {
-            continue;
-        }
-
         for (a, b) in [(a0, b0), (b0, a0)] {
             idx.entry((a, b))
                 .and_modify(|ii| {
@@ -41,7 +36,6 @@ fn solve(xs: &[u32]) -> usize {
 
             if let Some(_) = idx.get_mut(&(a, b)).unwrap().pop_front() {
                 result += 1;
-                used.insert(i0);
                 break;
             }
         }
