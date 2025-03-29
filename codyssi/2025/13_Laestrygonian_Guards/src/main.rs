@@ -1,13 +1,13 @@
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{BTreeSet, HashMap},
     io::{BufRead, stdin},
 };
 
 use itertools::Itertools;
 
-const INF: u16 = 30000;
+const INF: u32 = 1_000_000_000;
 
-fn parse_line(s: &str) -> (String, String, u16) {
+fn parse_line(s: &str) -> (String, String, u32) {
     let ab: Vec<_> = s.split(" | ").collect();
     let cd: Vec<_> = ab[0].split(" -> ").collect();
     (cd[0].to_string(), cd[1].to_string(), ab[1].parse().unwrap())
@@ -31,22 +31,24 @@ fn main() {
             });
 
     let n = idx.len();
-    let g: Vec<Vec<usize>> = lines
-        .into_iter()
-        .fold(vec![vec![]; n], |mut acc, (u, v, _)| {
-            acc[idx[&u]].push(idx[&v]);
-            acc
-        });
+    let g: Vec<Vec<(usize, u32)>> =
+        lines
+            .into_iter()
+            .fold(vec![vec![]; n], |mut acc, (u, v, w)| {
+                acc[idx[&u]].push((idx[&v], w));
+                acc
+            });
 
-    let mut dist: Vec<u16> = vec![INF; n];
+    let mut dist: Vec<u32> = vec![INF; n];
     dist[idx["STT"]] = 0;
-    let mut q = VecDeque::from([idx["STT"]]);
+    let mut q: BTreeSet<(u32, usize)> = BTreeSet::from([(0, idx["STT"])]);
 
-    while let Some(u) = q.pop_front() {
-        for &v in g[u].iter() {
-            if dist[v] == INF {
-                dist[v] = dist[u] + 1;
-                q.push_back(v);
+    while let Some((w0, u0)) = q.pop_first() {
+        for &(v, w) in g[u0].iter() {
+            if w0 + w < dist[v] {
+                q.remove(&(dist[v], v));
+                dist[v] = w0 + w;
+                q.insert((dist[v], v));
             }
         }
     }
@@ -56,6 +58,6 @@ fn main() {
         dist.into_iter()
             .filter(|&d| d != INF)
             .k_largest(3)
-            .product::<u16>()
+            .product::<u32>()
     );
 }
