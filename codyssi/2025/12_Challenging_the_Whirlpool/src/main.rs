@@ -206,7 +206,11 @@ fn main() {
 
     let mut grid = Grid { rows };
 
-    for mi in meta_instrs {
+    let n = meta_instrs.len();
+    let mut mip: usize = 0;
+    loop {
+        let mi = meta_instrs[mip];
+
         if let Some(instr) = instrs.pop_front() {
             if mi == "CYCLE" {
                 instrs.push_back(instr);
@@ -215,8 +219,11 @@ fn main() {
                 grid = grid.execute(instr);
             }
         } else {
-            panic!("Instructions queue is empty, can't {}", mi);
+            break;
         }
+
+        mip += 1;
+        mip %= n;
     }
 
     println!("{}", grid.answer());
