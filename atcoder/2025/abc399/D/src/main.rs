@@ -21,7 +21,7 @@ fn solve(xs: &[u32]) -> usize {
 
     let mut result: usize = 0;
 
-    for (_, a0, b0) in xs
+    for (i0, a0, b0) in xs
         .windows(2)
         .enumerate()
         .map(|(i, ab)| (i, ab[0], ab[1]))
@@ -34,9 +34,11 @@ fn solve(xs: &[u32]) -> usize {
                 })
                 .or_default();
 
-            if let Some(_) = idx.get_mut(&(a, b)).unwrap().pop_front() {
-                result += 1;
-                break;
+            if let Some(i) = idx.get_mut(&(a, b)).unwrap().pop_front() {
+                if i.abs_diff(i0) != 1 {
+                    result += 1;
+                    break;
+                }
             }
         }
     }
