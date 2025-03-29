@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, NaiveDate, NaiveTime, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, NaiveDate, NaiveTime, TimeZone, Utc, Weekday};
 use chrono_tz::Tz;
 use std::io::{BufRead, stdin};
 
@@ -37,6 +37,30 @@ fn daily_intervals(
         .collect()
 }
 
+fn all_work_day_minutes(tz: Tz, holidays: &[NaiveDate]) -> Vec<DateTime<Utc>> {
+    let is_holiday = |dt: DateTime<Tz>| holidays.contains(&dt.date_naive());
+
+    let mut cur = tz
+        .from_local_datetime(
+            &NaiveDate::from_ymd_opt(2022, 1, 1)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
+                .unwrap(),
+        )
+        .unwrap();
+
+    let mut result = vec![];
+
+    while cur.year() == 2022 {
+        if !(is_holiday(cur) || cur.weekday() == Weekday::Sat || cur.weekday() == Weekday::Sun) {
+            result.push(cur.with_timezone(&Utc));
+        }
+        cur += Duration::minutes(1);
+    }
+
+    result
+}
+
 fn intersection_duration<Tz: TimeZone>(
     ab: (DateTime<Tz>, DateTime<Tz>),
     cd: (DateTime<Tz>, DateTime<Tz>),
@@ -59,22 +83,18 @@ fn main() {
         NaiveTime::from_hms_opt(17, 00, 0).unwrap(),
     );
 
-    let local_day = (
-        NaiveTime::from_hms_opt(0, 00, 0).unwrap(),
-        NaiveTime::from_hms_milli_opt(23, 59, 59, 999).unwrap(),
-    );
-
     let office_intervals: Vec<(DateTime<Utc>, DateTime<Utc>)> = offices
         .into_iter()
         .flat_map(|(_, tz, holidays)| daily_intervals(tz, &holidays, local_work_day))
         .collect();
 
-    // let client_intervals: Vec<(DateTime<Utc>, DateTime<Utc>)> = clients
-    //     .into_iter()
-    //     .flat_map(|(_, tz, holidays)| daily_intervals(tz, &holidays, local_day))
-    //     .collect();
-
-    eprintln!("{}", office_intervals.len());
+    for (name, tz, holidays) in clients {
+        let ms = all_work_day_minutes(tz, &holidays)
+            .into_iter()
+            .filter(|m| !office_intervals.iter().any(|(a, b)| a <= m && m < b))
+            .count();
+        eprintln!("{} {}: {} minutes", name, tz, ms);
+    }
 }
 
 #[cfg(test)]
