@@ -51,12 +51,30 @@ fn intersection_duration<Tz: TimeZone>(
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep: usize = lines.iter().position(|s| s.is_empty()).unwrap();
-
     let offices: Vec<_> = lines[..isep].iter().map(|s| decode_line(s)).collect();
-    eprintln!("{:?}", offices);
-
     let clients: Vec<_> = lines[isep + 1..].iter().map(|s| decode_line(s)).collect();
-    eprintln!("{:?}", clients);
+
+    let local_work_day = (
+        NaiveTime::from_hms_opt(8, 30, 0).unwrap(),
+        NaiveTime::from_hms_opt(17, 00, 0).unwrap(),
+    );
+
+    let local_day = (
+        NaiveTime::from_hms_opt(0, 00, 0).unwrap(),
+        NaiveTime::from_hms_milli_opt(23, 59, 59, 999).unwrap(),
+    );
+
+    let office_intervals: Vec<(DateTime<Utc>, DateTime<Utc>)> = offices
+        .into_iter()
+        .flat_map(|(_, tz, holidays)| daily_intervals(tz, &holidays, local_work_day))
+        .collect();
+
+    // let client_intervals: Vec<(DateTime<Utc>, DateTime<Utc>)> = clients
+    //     .into_iter()
+    //     .flat_map(|(_, tz, holidays)| daily_intervals(tz, &holidays, local_day))
+    //     .collect();
+
+    eprintln!("{}", office_intervals.len());
 }
 
 #[cfg(test)]
