@@ -43,7 +43,9 @@ fn daily_intervals(
 }
 
 fn all_work_day_minutes(tz: Tz, holidays: &[NaiveDate]) -> Vec<DateTime<Utc>> {
-    let is_holiday = |dt: DateTime<Tz>| holidays.contains(&dt.date_naive());
+    let is_holiday = |dt: DateTime<Tz>| {
+        holidays.contains(&NaiveDate::from_ymd_opt(dt.year(), dt.month(), dt.day()).unwrap())
+    };
 
     let mut cur = tz
         .from_local_datetime(
