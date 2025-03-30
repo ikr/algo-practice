@@ -32,10 +32,13 @@ impl Item {
 }
 
 fn main() {
-    let items: Vec<Item> = stdin()
+    let mut items: Vec<Item> = stdin()
         .lock()
         .lines()
         .map(|line| Item::parse(&line.unwrap()))
         .collect();
-    eprintln!("{:?}", items);
+
+    items.sort_by_key(|item| (-item.quality, -item.cost));
+    let result: i32 = items.iter().take(5).map(|item| item.unique_materials).sum();
+    println!("{}", result);
 }
