@@ -2,7 +2,7 @@ use regex::Regex;
 use std::io::{BufRead, stdin};
 
 const MAX_COST: usize = 30;
-const MAX_UNIQUE_MATERIALS: usize = 150;
+const MAX_UNIQUE_MATERIALS: usize = 300;
 
 #[derive(Debug)]
 struct Item {
@@ -61,10 +61,9 @@ fn main() {
     for i in 0..n {
         for j in 0..=MAX_COST {
             for k in 0..=MAX_UNIQUE_MATERIALS {
-                if dp[i][j][k] == max_quality && k < least_unique_materials {
-                    max_quality = dp[i][j][k];
-                    least_unique_materials = k;
-                } else if dp[i][j][k] > max_quality {
+                if dp[i][j][k] > max_quality
+                    || (dp[i][j][k] == max_quality && k < least_unique_materials)
+                {
                     max_quality = dp[i][j][k];
                     least_unique_materials = k;
                 }
