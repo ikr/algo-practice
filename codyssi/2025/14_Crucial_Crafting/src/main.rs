@@ -1,8 +1,8 @@
 use regex::Regex;
 use std::io::{BufRead, stdin};
 
-const MAX_COST: usize = 30;
-const MAX_UNIQUE_MATERIALS: usize = 300;
+const MAX_COST: usize = 300;
+const MAX_UNIQUE_MATERIALS: usize = 5000;
 
 #[derive(Debug)]
 struct Item {
