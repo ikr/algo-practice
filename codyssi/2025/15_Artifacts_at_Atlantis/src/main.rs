@@ -15,6 +15,11 @@ fn main() {
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
     let artifacts: Vec<_> = lines[0..isep].iter().map(|s| parse_line(s)).collect();
 
+    let codes_by_id: BTreeMap<u32, String> = artifacts
+        .iter()
+        .map(|(code, id)| (*id, code.clone()))
+        .collect();
+
     let mut tree = vec![0u32; 2 << 19];
     for (_, id) in artifacts {
         let mut i: usize = 1;
@@ -22,7 +27,9 @@ fn main() {
             if tree[i] == 0 {
                 tree[i] = id;
                 break;
-            } else if id < tree[i] {
+            }
+
+            if id < tree[i] {
                 i *= 2;
             } else {
                 i = i * 2 + 1;
@@ -30,17 +37,28 @@ fn main() {
         }
     }
 
-    let sums_by_layer: BTreeMap<u32, u32> = tree
-        .iter()
-        .enumerate()
-        .filter(|(_, x)| **x != 0u32)
-        .fold(BTreeMap::new(), |mut acc, (i, id)| {
-            let level = usize::BITS - i.leading_zeros();
-            acc.entry(level).and_modify(|s| *s += id).or_insert(*id);
-            acc
-        });
+    let mut result: String = String::new();
 
-    let largest = *sums_by_layer.values().max().unwrap();
-    let result = largest as usize * sums_by_layer.len();
+    {
+        let v: u32 = 500000;
+        let mut i: usize = 1;
+        loop {
+            if tree[i] == 0 {
+                break;
+            } else {
+                if !result.is_empty() {
+                    result.push('-');
+                }
+                result.push_str(&codes_by_id[&tree[i]]);
+            }
+
+            if v < tree[i] {
+                i *= 2;
+            } else {
+                i = i * 2 + 1;
+            }
+        }
+    }
+
     println!("{}", result);
 }
