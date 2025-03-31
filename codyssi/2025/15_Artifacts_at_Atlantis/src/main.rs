@@ -13,7 +13,7 @@ fn parse_line(s: &str) -> (String, u32) {
 fn main() {
     let lines: Vec<_> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
-    let artifacts: Vec<_> = lines[0..isep].iter().map(|s| parse_line(s)).collect();
+    let artifacts: Vec<_> = lines[..isep].iter().map(|s| parse_line(s)).collect();
 
     let codes_by_id: BTreeMap<u32, String> = artifacts
         .iter()
@@ -37,28 +37,21 @@ fn main() {
         }
     }
 
-    let mut result: String = String::new();
+    let suff: Vec<_> = lines[isep + 1..].iter().map(|s| parse_line(s)).collect();
+    assert_eq!(suff.len(), 2);
+    let a: u32 = suff[0].1;
+    let b: u32 = suff[1].1;
 
-    {
-        let v: u32 = 500000;
-        let mut i: usize = 1;
-        loop {
-            if tree[i] == 0 {
-                break;
-            } else {
-                if !result.is_empty() {
-                    result.push('-');
-                }
-                result.push_str(&codes_by_id[&tree[i]]);
-            }
-
-            if v < tree[i] {
-                i *= 2;
-            } else {
-                i = i * 2 + 1;
-            }
+    let mut ia = tree.iter().position(|id| *id == a).unwrap();
+    let mut ib = tree.iter().position(|id| *id == b).unwrap();
+    while ia != ib {
+        if ia < ib {
+            ib /= 2;
+        } else {
+            ia /= 2;
         }
     }
 
+    let result = codes_by_id.get(&tree[ia]).unwrap();
     println!("{}", result);
 }
