@@ -30,17 +30,17 @@ fn main() {
         }
     }
 
-    let sums_by_layer: BTreeMap<usize, u32> = tree
+    let sums_by_layer: BTreeMap<u32, u32> = tree
         .iter()
         .enumerate()
         .filter(|(_, x)| **x != 0u32)
         .fold(BTreeMap::new(), |mut acc, (i, id)| {
-            let level: usize = (64 - i.leading_zeros()) as usize;
+            let level = usize::BITS - i.leading_zeros();
             acc.entry(level).and_modify(|s| *s += id).or_insert(*id);
             acc
         });
 
-    let largest: usize = *sums_by_layer.values().max().unwrap() as usize;
-    let result = largest * sums_by_layer.len();
+    let largest = *sums_by_layer.values().max().unwrap();
+    let result = largest as usize * sums_by_layer.len();
     println!("{}", result);
 }
