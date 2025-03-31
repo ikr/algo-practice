@@ -51,13 +51,60 @@ struct Glyph {
 }
 
 fn cp_437() -> HashMap<u8, Glyph> {
-    let box_chars_range: Vec<char> = vec![
-        '┤', '╡', '╢', '╖', '╕', '╣', '║', '╗', '╝', '╜', '╛', '┐', '└', '┴', '┬', '├', '─', '┼',
-        '╞', '╟', '╚', '╔', '╩', '╦', '╠', '═', '╬', '╧', '╨', '╤', '╥', '╙', '╘', '╒', '╓', '╫',
-        '╪', '┘', '┌',
+    let box_glyph_sources_range: Vec<(char, &[Dir])> = vec![
+        ('┤', &[Dir::N, Dir::S, Dir::W]),
+        ('╡', &[Dir::N, Dir::S, Dir::W]),
+        ('╢', &[Dir::N, Dir::S, Dir::W]),
+        ('╖', &[Dir::S, Dir::W]),
+        ('╕', &[Dir::S, Dir::W]),
+        ('╣', &[Dir::N, Dir::S, Dir::W]),
+        ('║', &[Dir::N, Dir::S]),
+        ('╗', &[Dir::S, Dir::W]),
+        ('╝', &[Dir::N, Dir::W]),
+        ('╜', &[Dir::N, Dir::W]),
+        ('╛', &[Dir::N, Dir::W]),
+        ('┐', &[Dir::S, Dir::W]),
+        ('└', &[Dir::N, Dir::E]),
+        ('┴', &[Dir::N, Dir::E, Dir::W]),
+        ('┬', &[Dir::E, Dir::S, Dir::W]),
+        ('├', &[Dir::N, Dir::E, Dir::S]),
+        ('─', &[Dir::E, Dir::W]),
+        ('┼', &[Dir::N, Dir::E, Dir::S, Dir::W]),
+        ('╞', &[Dir::N, Dir::E, Dir::S]),
+        ('╟', &[Dir::N, Dir::E, Dir::S]),
+        ('╚', &[Dir::N, Dir::E]),
+        ('╔', &[Dir::E, Dir::S]),
+        ('╩', &[Dir::N, Dir::E, Dir::W]),
+        ('╦', &[Dir::E, Dir::S, Dir::W]),
+        ('╠', &[Dir::N, Dir::E, Dir::S]),
+        ('═', &[Dir::E, Dir::W]),
+        ('╬', &[Dir::N, Dir::E, Dir::S, Dir::W]),
+        ('╧', &[Dir::N, Dir::E, Dir::W]),
+        ('╨', &[Dir::N, Dir::E, Dir::W]),
+        ('╤', &[Dir::E, Dir::S, Dir::W]),
+        ('╥', &[Dir::E, Dir::S, Dir::W]),
+        ('╙', &[Dir::N, Dir::E]),
+        ('╘', &[Dir::N, Dir::E]),
+        ('╒', &[Dir::E, Dir::S]),
+        ('╓', &[Dir::E, Dir::S]),
+        ('╫', &[Dir::N, Dir::E, Dir::S, Dir::W]),
+        ('╪', &[Dir::N, Dir::E, Dir::S, Dir::W]),
+        ('┘', &[Dir::N, Dir::W]),
+        ('┌', &[Dir::E, Dir::S]),
     ];
     let origin: u8 = 180;
-    todo!()
+    box_glyph_sources_range
+        .into_iter()
+        .enumerate()
+        .map(|(i, (unicode, dirs))| {
+            let connectivity = Connectivity::new(dirs);
+            let glyph = Glyph {
+                unicode,
+                connectivity,
+            };
+            (origin + i as u8, glyph)
+        })
+        .collect()
 }
 
 fn main() {
