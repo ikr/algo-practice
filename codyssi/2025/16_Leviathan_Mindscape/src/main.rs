@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    fmt::Debug,
+    io::{BufRead, stdin},
+};
 
 #[derive(Clone, Copy, Debug)]
 enum Subj {
@@ -56,6 +59,24 @@ impl Rotation {
             _ => panic!("Invalid rotation source `{}`", c),
         }
     }
+
+    fn source_face_indices(self) -> [usize; 6] {
+        match self {
+            Self::U => [3, 0, 2, 5, 4, 1],
+            Self::R => [4, 1, 0, 3, 5, 2],
+            Self::D => [1, 5, 2, 0, 4, 3],
+            Self::L => [2, 1, 5, 3, 0, 4],
+        }
+    }
+
+    fn apply<T: Clone + Debug>(self, xs: [T; 6]) -> [T; 6] {
+        self.source_face_indices()
+            .into_iter()
+            .map(|i| xs[i].clone())
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap()
+    }
 }
 
 fn main() {
@@ -67,4 +88,53 @@ fn main() {
 
     let roations: Vec<Rotation> = lines[isep + 1].chars().map(Rotation::decode).collect();
     eprintln!("{:?}", roations);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn four_times_up() {
+        let xs = [0, 1, 2, 3, 4, 5];
+        assert_ne!(Rotation::U.apply(xs), xs);
+
+        assert_eq!(
+            Rotation::U.apply(Rotation::U.apply(Rotation::U.apply(Rotation::U.apply(xs)))),
+            xs
+        );
+    }
+
+    #[test]
+    fn four_times_right() {
+        let xs = [0, 1, 2, 3, 4, 5];
+        assert_ne!(Rotation::R.apply(xs), xs);
+
+        assert_eq!(
+            Rotation::R.apply(Rotation::R.apply(Rotation::R.apply(Rotation::R.apply(xs)))),
+            xs
+        );
+    }
+
+    #[test]
+    fn four_times_down() {
+        let xs = [0, 1, 2, 3, 4, 5];
+        assert_ne!(Rotation::D.apply(xs), xs);
+
+        assert_eq!(
+            Rotation::D.apply(Rotation::D.apply(Rotation::D.apply(Rotation::D.apply(xs)))),
+            xs
+        );
+    }
+
+    #[test]
+    fn four_times_left() {
+        let xs = [0, 1, 2, 3, 4, 5];
+        assert_ne!(Rotation::L.apply(xs), xs);
+
+        assert_eq!(
+            Rotation::L.apply(Rotation::L.apply(Rotation::L.apply(Rotation::L.apply(xs)))),
+            xs
+        );
+    }
 }
