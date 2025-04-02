@@ -43,6 +43,58 @@ impl Mutation {
     }
 }
 
+#[derive(Clone, Debug)]
+struct Face {
+    rows: Vec<Vec<usize>>,
+}
+
+impl Face {
+    fn new(n: usize) -> Self {
+        Self {
+            rows: vec![vec![1; n]; n],
+        }
+    }
+
+    fn size(&self) -> usize {
+        self.rows.len()
+    }
+
+    fn transpose(&self) -> Self {
+        let n = self.size();
+        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
+        for (i, row) in self.rows.iter().enumerate() {
+            for (j, &cell) in row.iter().enumerate() {
+                rows[j][i] = cell;
+            }
+        }
+        Self { rows }
+    }
+
+    fn dominant_row_sum(&self) -> usize {
+        self.rows
+            .iter()
+            .map(|row| row.iter().sum::<usize>())
+            .max()
+            .unwrap()
+    }
+
+    fn dominant_sum(&self) -> usize {
+        self.dominant_row_sum()
+            .max(self.transpose().dominant_row_sum())
+    }
+
+    fn rotate_clockwise(&self) -> Self {
+        let n = self.size();
+        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
+        for (i, row) in self.rows.iter().enumerate() {
+            for (j, &cell) in row.iter().enumerate() {
+                rows[j][n - 1 - i] = cell;
+            }
+        }
+        Self { rows }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 enum Rotation {
     U,
