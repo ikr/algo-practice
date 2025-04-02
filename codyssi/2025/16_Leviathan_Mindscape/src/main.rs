@@ -43,6 +43,13 @@ impl Mutation {
     }
 }
 
+enum FaceRotation {
+    None,
+    Clockwise,
+    Counterclockwise,
+    UpsideDown,
+}
+
 #[derive(Clone, Debug)]
 struct Face {
     rows: Vec<Vec<usize>>,
@@ -93,6 +100,28 @@ impl Face {
         }
         Self { rows }
     }
+
+    fn rotate_counterclockwise(&self) -> Self {
+        let n = self.size();
+        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
+        for (i, row) in self.rows.iter().enumerate() {
+            for (j, &cell) in row.iter().enumerate() {
+                rows[n - 1 - j][i] = cell;
+            }
+        }
+        Self { rows }
+    }
+
+    fn rotate_upside_down(&self) -> Self {
+        let n = self.size();
+        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
+        for (i, row) in self.rows.iter().enumerate() {
+            for (j, &cell) in row.iter().enumerate() {
+                rows[n - 1 - i][j] = cell;
+            }
+        }
+        Self { rows }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -115,9 +144,16 @@ impl Rotation {
         }
     }
 
-    fn source_face_indices(self) -> [usize; 6] {
+    fn source_faces(self) -> [(usize, FaceRotation); 6] {
         match self {
-            Self::U => [3, 0, 2, 5, 4, 1],
+            Self::U => [
+                (3, FaceRotation::None),
+                (0, FaceRotation::UpsideDown),
+                (2, FaceRotation::Clockwise),
+                5,
+                4,
+                1,
+            ],
             Self::R => [4, 1, 0, 3, 5, 2],
             Self::D => [1, 5, 2, 0, 4, 3],
             Self::L => [2, 1, 5, 3, 0, 4],
