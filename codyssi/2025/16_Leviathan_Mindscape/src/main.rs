@@ -1,6 +1,8 @@
+use itertools::Itertools;
 use std::{
     fmt::Debug,
     io::{BufRead, stdin},
+    iter::once,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -29,14 +31,14 @@ impl Subj {
 #[derive(Clone, Copy, Debug)]
 struct Mutation {
     subj: Subj,
-    to_add: u8,
+    to_add: usize,
 }
 
 impl Mutation {
     fn decode(s: &str) -> Self {
         let ab: Vec<_> = s.split(" - VALUE ").collect();
         let subj = Subj::decode(ab[0]);
-        let to_add: u8 = ab[1].parse().unwrap();
+        let to_add: usize = ab[1].parse().unwrap();
         Self { subj, to_add }
     }
 }
@@ -47,6 +49,7 @@ enum Rotation {
     R,
     D,
     L,
+    Noop,
 }
 
 impl Rotation {
@@ -66,6 +69,7 @@ impl Rotation {
             Self::R => [4, 1, 0, 3, 5, 2],
             Self::D => [1, 5, 2, 0, 4, 3],
             Self::L => [2, 1, 5, 3, 0, 4],
+            Self::Noop => (0..6).collect::<Vec<_>>().try_into().unwrap(),
         }
     }
 
@@ -83,9 +87,29 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
     let mutations: Vec<Mutation> = lines[..isep].iter().map(|s| Mutation::decode(s)).collect();
-    let roations: Vec<Rotation> = lines[isep + 1].chars().map(Rotation::decode).collect();
-    let n: usize = 3;
-    let mut absorptions = [1usize; 6];
+    let rotations: Vec<Rotation> = lines[isep + 1]
+        .chars()
+        .map(Rotation::decode)
+        .chain(once(Rotation::Noop))
+        .collect();
+    assert_eq!(mutations.len(), rotations.len());
+
+    let n: usize = 80;
+    let absorptions: [usize; 6] =
+        mutations
+            .into_iter()
+            .zip(rotations)
+            .fold([0usize; 6], |mut acc, (m, r)| {
+                let diff = match m.subj {
+                    Subj::Face => n * n * m.to_add,
+                    Subj::Row(_) | Subj::Col(_) => n * m.to_add,
+                };
+
+                acc[0] += diff;
+                r.apply(acc)
+            });
+    let result: usize = absorptions.into_iter().k_largest(2).product();
+    println!("{}", result);
 }
 
 #[cfg(test)]
