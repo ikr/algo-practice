@@ -82,12 +82,10 @@ impl Rotation {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
-
     let mutations: Vec<Mutation> = lines[..isep].iter().map(|s| Mutation::decode(s)).collect();
-    eprintln!("{:?}", mutations);
-
     let roations: Vec<Rotation> = lines[isep + 1].chars().map(Rotation::decode).collect();
-    eprintln!("{:?}", roations);
+    let n: usize = 3;
+    let mut absorptions = [1usize; 6];
 }
 
 #[cfg(test)]
