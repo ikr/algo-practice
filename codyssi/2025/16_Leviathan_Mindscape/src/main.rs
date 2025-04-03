@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::{
     fmt::Debug,
     io::{BufRead, stdin},
@@ -18,10 +17,10 @@ impl Subj {
             Self::Face
         } else {
             let ab: Vec<_> = s.split_whitespace().collect();
-            let i: usize = ab[1].parse().unwrap();
+            let x: usize = ab[1].parse().unwrap();
             match ab[0] {
-                "ROW" => Self::Row(i),
-                "COL" => Self::Col(i),
+                "ROW" => Self::Row(x - 1),
+                "COL" => Self::Col(x - 1),
                 _ => panic!("Invalid Subj source `{}`", s),
             }
         }
@@ -43,6 +42,7 @@ impl Mutation {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 enum FaceRotation {
     None,
     Clockwise,
@@ -50,7 +50,7 @@ enum FaceRotation {
     UpsideDown,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 struct Face {
     rows: Vec<Vec<usize>>,
 }
@@ -179,24 +179,56 @@ impl Rotation {
                 (3, FaceRotation::None),
                 (0, FaceRotation::UpsideDown),
                 (2, FaceRotation::Clockwise),
-                5,
-                4,
-                1,
+                (5, FaceRotation::None),
+                (4, FaceRotation::Counterclockwise),
+                (1, FaceRotation::UpsideDown),
             ],
-            Self::R => [4, 1, 0, 3, 5, 2],
-            Self::D => [1, 5, 2, 0, 4, 3],
-            Self::L => [2, 1, 5, 3, 0, 4],
-            Self::Noop => (0..6).collect::<Vec<_>>().try_into().unwrap(),
+            Self::R => [
+                (4, FaceRotation::Clockwise),
+                (1, FaceRotation::Counterclockwise),
+                (0, FaceRotation::Clockwise),
+                (3, FaceRotation::Clockwise),
+                (5, FaceRotation::Clockwise),
+                (2, FaceRotation::Clockwise),
+            ],
+            Self::D => [
+                (1, FaceRotation::UpsideDown),
+                (5, FaceRotation::UpsideDown),
+                (2, FaceRotation::Counterclockwise),
+                (0, FaceRotation::None),
+                (4, FaceRotation::Clockwise),
+                (3, FaceRotation::None),
+            ],
+            Self::L => [
+                (2, FaceRotation::Counterclockwise),
+                (1, FaceRotation::Clockwise),
+                (5, FaceRotation::Counterclockwise),
+                (3, FaceRotation::Counterclockwise),
+                (0, FaceRotation::Counterclockwise),
+                (4, FaceRotation::Counterclockwise),
+            ],
+            Self::Noop => (0..6)
+                .map(|i| (i, FaceRotation::None))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
         }
     }
 
-    fn apply<T: Clone + Debug>(self, xs: [T; 6]) -> [T; 6] {
-        self.source_face_indices()
+    fn apply(self, xs: &[Face]) -> Vec<Face> {
+        assert_eq!(xs.len(), 6);
+        self.source_faces()
             .into_iter()
-            .map(|i| xs[i].clone())
+            .map(|(i, fr)| {
+                let ys = xs[i].clone();
+                match fr {
+                    FaceRotation::None => ys,
+                    FaceRotation::Clockwise => ys.rotate_clockwise(),
+                    FaceRotation::Counterclockwise => ys.rotate_counterclockwise(),
+                    FaceRotation::UpsideDown => ys.rotate_upside_down(),
+                }
+            })
             .collect::<Vec<_>>()
-            .try_into()
-            .unwrap()
     }
 }
 
@@ -212,20 +244,18 @@ fn main() {
     assert_eq!(mutations.len(), rotations.len());
 
     let n: usize = 80;
-    let absorptions: [usize; 6] =
+    let faces: Vec<Face> =
         mutations
             .into_iter()
             .zip(rotations)
-            .fold([0usize; 6], |mut acc, (m, r)| {
-                let diff = match m.subj {
-                    Subj::Face => n * n * m.to_add,
-                    Subj::Row(_) | Subj::Col(_) => n * m.to_add,
-                };
-
-                acc[0] += diff;
-                r.apply(acc)
+            .fold(vec![Face::new(n); 6], |mut acc, (m, r)| {
+                acc[0] = acc[0].apply(m);
+                r.apply(&acc)
             });
-    let result: usize = absorptions.into_iter().k_largest(2).product();
+    let result: u128 = faces
+        .into_iter()
+        .map(|f| f.dominant_sum() as u128)
+        .product();
     println!("{}", result);
 }
 
@@ -233,46 +263,56 @@ fn main() {
 mod tests {
     use super::*;
 
+    fn iota_face(n: usize) -> Face {
+        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
+        for (i, row) in rows.iter_mut().enumerate() {
+            for (j, cell) in row.iter_mut().enumerate() {
+                *cell = i * n + j;
+            }
+        }
+        Face { rows }
+    }
+
     #[test]
     fn four_times_up() {
-        let xs = [0, 1, 2, 3, 4, 5];
-        assert_ne!(Rotation::U.apply(xs), xs);
+        let xs = vec![iota_face(4); 6];
+        assert_ne!(Rotation::U.apply(&xs), xs);
 
         assert_eq!(
-            Rotation::U.apply(Rotation::U.apply(Rotation::U.apply(Rotation::U.apply(xs)))),
+            Rotation::U.apply(&Rotation::U.apply(&Rotation::U.apply(&Rotation::U.apply(&xs)))),
             xs
         );
     }
 
     #[test]
     fn four_times_right() {
-        let xs = [0, 1, 2, 3, 4, 5];
-        assert_ne!(Rotation::R.apply(xs), xs);
+        let xs = vec![iota_face(4); 6];
+        assert_ne!(Rotation::R.apply(&xs), xs);
 
         assert_eq!(
-            Rotation::R.apply(Rotation::R.apply(Rotation::R.apply(Rotation::R.apply(xs)))),
+            Rotation::R.apply(&Rotation::R.apply(&Rotation::R.apply(&Rotation::R.apply(&xs)))),
             xs
         );
     }
 
     #[test]
     fn four_times_down() {
-        let xs = [0, 1, 2, 3, 4, 5];
-        assert_ne!(Rotation::D.apply(xs), xs);
+        let xs = vec![iota_face(4); 6];
+        assert_ne!(Rotation::D.apply(&xs), xs);
 
         assert_eq!(
-            Rotation::D.apply(Rotation::D.apply(Rotation::D.apply(Rotation::D.apply(xs)))),
+            Rotation::D.apply(&Rotation::D.apply(&Rotation::D.apply(&Rotation::D.apply(&xs)))),
             xs
         );
     }
 
     #[test]
     fn four_times_left() {
-        let xs = [0, 1, 2, 3, 4, 5];
-        assert_ne!(Rotation::L.apply(xs), xs);
+        let xs = vec![iota_face(4); 6];
+        assert_ne!(Rotation::L.apply(&xs), xs);
 
         assert_eq!(
-            Rotation::L.apply(Rotation::L.apply(Rotation::L.apply(Rotation::L.apply(xs)))),
+            Rotation::L.apply(&Rotation::L.apply(&Rotation::L.apply(&Rotation::L.apply(&xs)))),
             xs
         );
     }
