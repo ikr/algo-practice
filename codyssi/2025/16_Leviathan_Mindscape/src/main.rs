@@ -113,14 +113,15 @@ impl Face {
     }
 
     fn rotate_upside_down(&self) -> Self {
-        let n = self.size();
-        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
-        for (i, row) in self.rows.iter().enumerate() {
-            for (j, &cell) in row.iter().enumerate() {
-                rows[n - 1 - i][j] = cell;
-            }
-        }
-        Self { rows }
+        self.rotate_clockwise().rotate_clockwise()
+        // let n = self.size();
+        // let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
+        // for (i, row) in self.rows.iter().enumerate() {
+        //     for (j, &cell) in row.iter().enumerate() {
+        //         rows[n - 1 - i][j] = cell;
+        //     }
+        // }
+        // Self { rows }
     }
 
     fn apply(&self, mutation: Mutation) -> Self {
@@ -331,5 +332,44 @@ mod tests {
         let a = Rotation::U.apply(&Rotation::U.apply(&xs));
         let b = Rotation::D.apply(&Rotation::D.apply(&xs));
         assert_eq!(a, b);
+    }
+
+    #[test]
+    fn face_double_transpose_is_identival() {
+        let f = iota_face(4);
+        assert_eq!(f.transpose().transpose(), f);
+    }
+
+    #[test]
+    fn face_ccw_cancels_cw() {
+        let f = iota_face(4);
+        assert_eq!(f.rotate_clockwise().rotate_counterclockwise(), f);
+    }
+
+    #[test]
+    fn face_2cw_2ccw() {
+        let f = iota_face(4);
+        assert_eq!(
+            f.rotate_clockwise().rotate_clockwise(),
+            f.rotate_counterclockwise().rotate_counterclockwise()
+        );
+    }
+
+    #[test]
+    fn face_ud_is_twice_cw() {
+        let f = iota_face(4);
+        assert_eq!(
+            f.rotate_upside_down(),
+            f.rotate_clockwise().rotate_clockwise()
+        );
+    }
+
+    #[test]
+    fn face_ud_is_twice_ccw() {
+        let f = iota_face(4);
+        assert_eq!(
+            f.rotate_upside_down(),
+            f.rotate_counterclockwise().rotate_counterclockwise()
+        );
     }
 }
