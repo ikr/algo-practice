@@ -274,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn four_times_up() {
+    fn four_times_rotation_up() {
         let xs = vec![iota_face(4); 6];
         assert_ne!(Rotation::U.apply(&xs), xs);
 
@@ -285,7 +285,7 @@ mod tests {
     }
 
     #[test]
-    fn four_times_right() {
+    fn four_times_rotation_right() {
         let xs = vec![iota_face(4); 6];
         assert_ne!(Rotation::R.apply(&xs), xs);
 
@@ -296,7 +296,7 @@ mod tests {
     }
 
     #[test]
-    fn four_times_down() {
+    fn four_times_rotation_down() {
         let xs = vec![iota_face(4); 6];
         assert_ne!(Rotation::D.apply(&xs), xs);
 
@@ -307,7 +307,7 @@ mod tests {
     }
 
     #[test]
-    fn four_times_left() {
+    fn four_times_rotation_left() {
         let xs = vec![iota_face(4); 6];
         assert_ne!(Rotation::L.apply(&xs), xs);
 
@@ -315,5 +315,21 @@ mod tests {
             Rotation::L.apply(&Rotation::L.apply(&Rotation::L.apply(&Rotation::L.apply(&xs)))),
             xs
         );
+    }
+
+    #[test]
+    fn ll_rr_rotation_equivalence() {
+        let xs = vec![iota_face(5); 6];
+        let a = Rotation::L.apply(&Rotation::L.apply(&xs));
+        let b = Rotation::R.apply(&Rotation::R.apply(&xs));
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn uu_dd_rotation_equivalence() {
+        let xs = vec![iota_face(5); 6];
+        let a = Rotation::U.apply(&Rotation::U.apply(&xs));
+        let b = Rotation::D.apply(&Rotation::D.apply(&xs));
+        assert_eq!(a, b);
     }
 }
