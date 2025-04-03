@@ -122,6 +122,35 @@ impl Face {
         }
         Self { rows }
     }
+
+    fn apply(&self, mutation: Mutation) -> Self {
+        match mutation.subj {
+            Subj::Face => {
+                let rows: Vec<Vec<usize>> = self
+                    .rows
+                    .iter()
+                    .map(|row| row.iter().map(|&x| (x + mutation.to_add) % 100).collect())
+                    .collect();
+                Self { rows }
+            }
+            Subj::Row(i) => {
+                let mut rows = self.rows.clone();
+                for cell in rows[i].iter_mut() {
+                    *cell += mutation.to_add;
+                    *cell %= 100;
+                }
+                Self { rows }
+            }
+            Subj::Col(j) => {
+                let mut rows = self.rows.clone();
+                for row in rows.iter_mut() {
+                    row[j] += mutation.to_add;
+                    row[j] %= 100;
+                }
+                Self { rows }
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
