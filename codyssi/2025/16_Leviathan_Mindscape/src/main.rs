@@ -47,7 +47,6 @@ enum FaceRotation {
     None,
     Clockwise,
     Counterclockwise,
-    UpsideDown,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -107,17 +106,6 @@ impl Face {
         self.revert_rows().transpose()
     }
 
-    fn rotate_upside_down(&self) -> Self {
-        let n = self.size();
-        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
-        for (i, row) in self.rows.iter().enumerate() {
-            for (j, &cell) in row.iter().enumerate() {
-                rows[n - 1 - i][j] = cell;
-            }
-        }
-        Self { rows }
-    }
-
     fn apply(&self, mutation: Mutation) -> Self {
         match mutation.subj {
             Subj::Face => {
@@ -172,35 +160,35 @@ impl Rotation {
         match self {
             Self::U => [
                 (3, FaceRotation::None),
-                (0, FaceRotation::UpsideDown),
+                (0, FaceRotation::None),
                 (2, FaceRotation::Clockwise),
                 (5, FaceRotation::None),
                 (4, FaceRotation::Counterclockwise),
-                (1, FaceRotation::UpsideDown),
+                (1, FaceRotation::None),
             ],
             Self::R => [
-                (4, FaceRotation::Clockwise),
+                (4, FaceRotation::None),
                 (1, FaceRotation::Counterclockwise),
-                (0, FaceRotation::Clockwise),
+                (0, FaceRotation::None),
                 (3, FaceRotation::Clockwise),
-                (5, FaceRotation::Clockwise),
-                (2, FaceRotation::Clockwise),
+                (5, FaceRotation::None),
+                (2, FaceRotation::None),
             ],
             Self::D => [
-                (1, FaceRotation::UpsideDown),
-                (5, FaceRotation::UpsideDown),
+                (1, FaceRotation::None),
+                (5, FaceRotation::None),
                 (2, FaceRotation::Counterclockwise),
                 (0, FaceRotation::None),
                 (4, FaceRotation::Clockwise),
                 (3, FaceRotation::None),
             ],
             Self::L => [
-                (2, FaceRotation::Counterclockwise),
+                (2, FaceRotation::None),
                 (1, FaceRotation::Clockwise),
-                (5, FaceRotation::Counterclockwise),
+                (5, FaceRotation::None),
                 (3, FaceRotation::Counterclockwise),
-                (0, FaceRotation::Counterclockwise),
-                (4, FaceRotation::Counterclockwise),
+                (0, FaceRotation::None),
+                (4, FaceRotation::None),
             ],
             Self::Noop => (0..6)
                 .map(|i| (i, FaceRotation::None))
@@ -220,7 +208,6 @@ impl Rotation {
                     FaceRotation::None => ys,
                     FaceRotation::Clockwise => ys.rotate_clockwise(),
                     FaceRotation::Counterclockwise => ys.rotate_counterclockwise(),
-                    FaceRotation::UpsideDown => ys.rotate_upside_down(),
                 }
             })
             .collect::<Vec<_>>()
