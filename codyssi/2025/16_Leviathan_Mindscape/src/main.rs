@@ -67,10 +67,10 @@ impl Face {
 
     fn transpose(&self) -> Self {
         let n = self.size();
-        let mut rows: Vec<Vec<usize>> = vec![vec![0; n]; n];
-        for (i, row) in self.rows.iter().enumerate() {
-            for (j, &cell) in row.iter().enumerate() {
-                rows[j][i] = cell;
+        let mut rows: Vec<Vec<usize>> = self.rows.clone();
+        for i in 0..n {
+            for j in i + 1..n {
+                (rows[i][j], rows[j][i]) = (rows[j][i], rows[i][j]);
             }
         }
         Self { rows }
@@ -333,6 +333,30 @@ mod tests {
         assert_eq!(
             f.rotate_clockwise().rotate_clockwise(),
             f.rotate_counterclockwise().rotate_counterclockwise()
+        );
+    }
+
+    #[test]
+    fn face_4cw_is_id() {
+        let f = iota_face(5);
+        assert_eq!(
+            f.rotate_clockwise()
+                .rotate_clockwise()
+                .rotate_clockwise()
+                .rotate_clockwise(),
+            f
+        );
+    }
+
+    #[test]
+    fn face_4ccw_is_id() {
+        let f = iota_face(5);
+        assert_eq!(
+            f.rotate_counterclockwise()
+                .rotate_counterclockwise()
+                .rotate_counterclockwise()
+                .rotate_counterclockwise(),
+            f
         );
     }
 }
