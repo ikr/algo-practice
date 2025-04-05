@@ -4,6 +4,11 @@ use std::{
     iter::once,
 };
 
+fn not_mod_100(x: usize) -> usize {
+    let result = x % 100;
+    if result == 0 { 100 } else { result }
+}
+
 #[derive(Clone, Copy, Debug)]
 enum Subj {
     Face,
@@ -112,7 +117,11 @@ impl Face {
                 let rows: Vec<Vec<usize>> = self
                     .rows
                     .iter()
-                    .map(|row| row.iter().map(|&x| (x + mutation.to_add) % 100).collect())
+                    .map(|row| {
+                        row.iter()
+                            .map(|&x| not_mod_100(x + mutation.to_add))
+                            .collect()
+                    })
                     .collect();
                 Self { rows }
             }
@@ -120,7 +129,7 @@ impl Face {
                 let mut rows = self.rows.clone();
                 for cell in rows[i].iter_mut() {
                     *cell += mutation.to_add;
-                    *cell %= 100;
+                    *cell = not_mod_100(*cell);
                 }
                 Self { rows }
             }
@@ -128,7 +137,7 @@ impl Face {
                 let mut rows = self.rows.clone();
                 for row in rows.iter_mut() {
                     row[j] += mutation.to_add;
-                    row[j] %= 100;
+                    row[j] = not_mod_100(row[j]);
                 }
                 Self { rows }
             }
@@ -234,6 +243,7 @@ fn main() {
                 acc[0] = acc[0].apply(m);
                 r.apply(&acc)
             });
+
     let result: u128 = faces
         .into_iter()
         .map(|f| f.dominant_sum() as u128)
