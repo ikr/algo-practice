@@ -326,7 +326,7 @@ mod tests {
     }
 
     #[test]
-    fn face_double_transpose_is_identival() {
+    fn face_double_transpose_is_identical() {
         let f = iota_face(4);
         assert_eq!(f.transpose().transpose(), f);
     }
@@ -368,5 +368,23 @@ mod tests {
                 .rotate_counterclockwise(),
             f
         );
+    }
+
+    #[test]
+    fn transposition_changing_all_outside_of_main_diagonal() {
+        let fa = iota_face(9);
+        let fb = fa.transpose();
+
+        let a = fa.rows;
+        let b = fb.rows;
+
+        for i in 0..6 {
+            assert_eq!(a[i][i], b[i][i]);
+            for j in 0..6 {
+                if i != j {
+                    assert_ne!(a[i][j], b[i][j]);
+                }
+            }
+        }
     }
 }
