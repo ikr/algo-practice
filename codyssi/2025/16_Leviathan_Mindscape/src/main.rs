@@ -238,6 +238,91 @@ impl Rotation {
     }
 }
 
+fn row_mutation_plane_effect(
+    n: usize,
+    iface: usize,
+    face_rotation: FaceRotation,
+    i: usize,
+) -> Vec<(usize, Subj)> {
+    let ii = n - 1 - i;
+    match (iface, face_rotation) {
+        (0, FaceRotation::None) => vec![(2, Subj::Col(ii)), (4, Subj::Col(i)), (5, Subj::Row(ii))],
+        (0, FaceRotation::Clockwise) => {
+            vec![(1, Subj::Col(ii)), (3, Subj::Col(i)), (5, Subj::Col(i))]
+        }
+        (0, FaceRotation::Counterclockwise) => vec![],
+        (0, FaceRotation::UpsideDown) => vec![],
+
+        (1, FaceRotation::None) => vec![],
+        (1, FaceRotation::Clockwise) => vec![],
+        (1, FaceRotation::Counterclockwise) => vec![],
+        (1, FaceRotation::UpsideDown) => vec![],
+
+        (2, FaceRotation::None) => vec![],
+        (2, FaceRotation::Clockwise) => vec![],
+        (2, FaceRotation::Counterclockwise) => vec![],
+        (2, FaceRotation::UpsideDown) => vec![],
+
+        (3, FaceRotation::None) => vec![],
+        (3, FaceRotation::Clockwise) => vec![],
+        (3, FaceRotation::Counterclockwise) => vec![],
+        (3, FaceRotation::UpsideDown) => vec![],
+
+        (4, FaceRotation::None) => vec![],
+        (4, FaceRotation::Clockwise) => vec![],
+        (4, FaceRotation::Counterclockwise) => vec![],
+        (4, FaceRotation::UpsideDown) => vec![],
+
+        (5, FaceRotation::None) => vec![],
+        (5, FaceRotation::Clockwise) => vec![],
+        (5, FaceRotation::Counterclockwise) => vec![],
+        (5, FaceRotation::UpsideDown) => vec![],
+
+        _ => panic!("Unexpected iface {} and {:?}", iface, face_rotation),
+    }
+}
+
+fn col_mutation_plane_effect(
+    n: usize,
+    iface: usize,
+    face_rotation: FaceRotation,
+    irow: usize,
+) -> Vec<(usize, Mutation)> {
+    match (iface, face_rotation) {
+        (0, FaceRotation::None) => vec![],
+        (0, FaceRotation::Clockwise) => vec![],
+        (0, FaceRotation::Counterclockwise) => vec![],
+        (0, FaceRotation::UpsideDown) => vec![],
+
+        (1, FaceRotation::None) => vec![],
+        (1, FaceRotation::Clockwise) => vec![],
+        (1, FaceRotation::Counterclockwise) => vec![],
+        (1, FaceRotation::UpsideDown) => vec![],
+
+        (2, FaceRotation::None) => vec![],
+        (2, FaceRotation::Clockwise) => vec![],
+        (2, FaceRotation::Counterclockwise) => vec![],
+        (2, FaceRotation::UpsideDown) => vec![],
+
+        (3, FaceRotation::None) => vec![],
+        (3, FaceRotation::Clockwise) => vec![],
+        (3, FaceRotation::Counterclockwise) => vec![],
+        (3, FaceRotation::UpsideDown) => vec![],
+
+        (4, FaceRotation::None) => vec![],
+        (4, FaceRotation::Clockwise) => vec![],
+        (4, FaceRotation::Counterclockwise) => vec![],
+        (4, FaceRotation::UpsideDown) => vec![],
+
+        (5, FaceRotation::None) => vec![],
+        (5, FaceRotation::Clockwise) => vec![],
+        (5, FaceRotation::Counterclockwise) => vec![],
+        (5, FaceRotation::UpsideDown) => vec![],
+
+        _ => panic!("Unexpected iface {} and {:?}", iface, face_rotation),
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
