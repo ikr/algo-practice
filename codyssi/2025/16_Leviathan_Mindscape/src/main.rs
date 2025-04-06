@@ -177,7 +177,16 @@ impl Orientation {
     fn front_face_and_its_rotation(self) -> (usize, FaceRotation) {
         let Self(x, y, z) = self;
         match (x, y, z) {
+            (-2, 1, 3) => (0, FaceRotation::Counterclockwise),
+            (-2, 3, -1) => (3, FaceRotation::Counterclockwise),
+            (-3, 1, -2) => (2, FaceRotation::UpsideDown),
             (1, 2, 3) => (0, FaceRotation::None),
+            (1, 3, -2) => (2, FaceRotation::Counterclockwise),
+            (2, -1, 3) => (0, FaceRotation::Clockwise),
+            (2, 1, -3) => (5, FaceRotation::Clockwise),
+            (2, 3, 1) => (1, FaceRotation::Counterclockwise),
+            (3, -1, -2) => (2, FaceRotation::None),
+            (3, 2, -1) => (3, FaceRotation::None),
             _ => panic!("Unexpected {:?}", self),
         }
     }
@@ -226,7 +235,7 @@ fn main() {
         .collect();
     assert_eq!(mutations.len(), rotations.len());
 
-    let n: usize = 3;
+    let n: usize = 80;
     let mut faces = vec![Face::new(n); 6];
     let mut o = Orientation::new();
 
