@@ -177,15 +177,23 @@ impl Orientation {
     fn front_face_and_its_rotation(self) -> (usize, FaceRotation) {
         let Self(x, y, z) = self;
         match (x, y, z) {
+            (-1, -2, 3) => (0, FaceRotation::UpsideDown),
+            (-1, -3, -2) => (2, FaceRotation::Clockwise),
             (-2, 1, 3) => (0, FaceRotation::Counterclockwise),
             (-2, 3, -1) => (3, FaceRotation::Counterclockwise),
+            (-3, -1, 2) => (4, FaceRotation::UpsideDown),
+            (-3, -2, -1) => (3, FaceRotation::UpsideDown),
             (-3, 1, -2) => (2, FaceRotation::UpsideDown),
+            (1, -3, 2) => (4, FaceRotation::Clockwise),
+            (1, -2, -3) => (5, FaceRotation::UpsideDown),
             (1, 2, 3) => (0, FaceRotation::None),
             (1, 3, -2) => (2, FaceRotation::Counterclockwise),
             (2, -1, 3) => (0, FaceRotation::Clockwise),
+            (2, -3, -1) => (3, FaceRotation::Clockwise),
             (2, 1, -3) => (5, FaceRotation::Clockwise),
             (2, 3, 1) => (1, FaceRotation::Counterclockwise),
             (3, -1, -2) => (2, FaceRotation::None),
+            (3, -2, 1) => (1, FaceRotation::None),
             (3, 2, -1) => (3, FaceRotation::None),
             _ => panic!("Unexpected {:?}", self),
         }
