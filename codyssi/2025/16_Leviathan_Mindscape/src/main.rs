@@ -52,6 +52,18 @@ enum FaceRotation {
     None,
     Clockwise,
     Counterclockwise,
+    UpsideDown,
+}
+
+impl FaceRotation {
+    fn inverse(self) -> Self {
+        match self {
+            Self::None => Self::None,
+            Self::Clockwise => Self::Counterclockwise,
+            Self::Counterclockwise => Self::Clockwise,
+            Self::UpsideDown => Self::UpsideDown,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -111,7 +123,16 @@ impl Face {
         self.revert_rows().transpose()
     }
 
-    fn apply(&self, mutation: Mutation) -> Self {
+    fn apply_rotation(&self, rotation: FaceRotation) -> Self {
+        match rotation {
+            FaceRotation::None => self.clone(),
+            FaceRotation::Clockwise => self.rotate_clockwise(),
+            FaceRotation::Counterclockwise => self.rotate_counterclockwise(),
+            FaceRotation::UpsideDown => self.rotate_clockwise().rotate_clockwise(),
+        }
+    }
+
+    fn apply_mutation(&self, mutation: Mutation) -> Self {
         match mutation.subj {
             Subj::Face => {
                 let rows: Vec<Vec<usize>> = self
@@ -145,13 +166,30 @@ impl Face {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Orientation(i8, i8, i8);
+
+impl Orientation {
+    fn new() -> Self {
+        Self(1, 2, 3)
+    }
+
+    fn front_face_and_its_rotation(self) -> (usize, FaceRotation) {
+        let Self(x, y, z) = self;
+        match (x, y, z) {
+            (1, 2, 3) => (0, FaceRotation::None),
+            _ => panic!("Unexpected {:?}", self),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 enum Rotation {
     U,
     R,
     D,
     L,
-    Noop,
+    None,
 }
 
 impl Rotation {
@@ -165,61 +203,15 @@ impl Rotation {
         }
     }
 
-    fn source_faces(self) -> [(usize, FaceRotation); 6] {
+    fn apply(self, o: Orientation) -> Orientation {
+        let Orientation(x, y, z) = o;
         match self {
-            Self::U => [
-                (3, FaceRotation::None),
-                (0, FaceRotation::None),
-                (2, FaceRotation::Clockwise),
-                (5, FaceRotation::None),
-                (4, FaceRotation::Counterclockwise),
-                (1, FaceRotation::None),
-            ],
-            Self::R => [
-                (4, FaceRotation::None),
-                (1, FaceRotation::Counterclockwise),
-                (0, FaceRotation::None),
-                (3, FaceRotation::Clockwise),
-                (5, FaceRotation::None),
-                (2, FaceRotation::None),
-            ],
-            Self::D => [
-                (1, FaceRotation::None),
-                (5, FaceRotation::None),
-                (2, FaceRotation::Counterclockwise),
-                (0, FaceRotation::None),
-                (4, FaceRotation::Clockwise),
-                (3, FaceRotation::None),
-            ],
-            Self::L => [
-                (2, FaceRotation::None),
-                (1, FaceRotation::Clockwise),
-                (5, FaceRotation::None),
-                (3, FaceRotation::Counterclockwise),
-                (0, FaceRotation::None),
-                (4, FaceRotation::None),
-            ],
-            Self::Noop => (0..6)
-                .map(|i| (i, FaceRotation::None))
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
+            Rotation::U => Orientation(z, y, -x),
+            Rotation::R => Orientation(x, -z, y),
+            Rotation::D => Orientation(-z, y, x),
+            Rotation::L => Orientation(x, z, -y),
+            Rotation::None => o,
         }
-    }
-
-    fn apply(self, xs: &[Face]) -> Vec<Face> {
-        assert_eq!(xs.len(), 6);
-        self.source_faces()
-            .into_iter()
-            .map(|(i, fr)| {
-                let ys = xs[i].clone();
-                match fr {
-                    FaceRotation::None => ys,
-                    FaceRotation::Clockwise => ys.rotate_clockwise(),
-                    FaceRotation::Counterclockwise => ys.rotate_counterclockwise(),
-                }
-            })
-            .collect::<Vec<_>>()
     }
 }
 
@@ -230,19 +222,24 @@ fn main() {
     let rotations: Vec<Rotation> = lines[isep + 1]
         .chars()
         .map(Rotation::decode)
-        .chain(once(Rotation::Noop))
+        .chain(once(Rotation::None))
         .collect();
     assert_eq!(mutations.len(), rotations.len());
 
-    let n: usize = 80;
-    let faces: Vec<Face> =
-        mutations
-            .into_iter()
-            .zip(rotations)
-            .fold(vec![Face::new(n); 6], |mut acc, (m, r)| {
-                acc[0] = acc[0].apply(m);
-                r.apply(&acc)
-            });
+    let n: usize = 3;
+    let mut faces = vec![Face::new(n); 6];
+    let mut o = Orientation::new();
+
+    for (m, r) in mutations.into_iter().zip(rotations) {
+        let (iface, face_rotation) = o.front_face_and_its_rotation();
+
+        faces[iface] = faces[iface]
+            .apply_rotation(face_rotation)
+            .apply_mutation(m)
+            .apply_rotation(face_rotation.inverse());
+
+        o = r.apply(o);
+    }
 
     let result: u128 = faces
         .into_iter()
@@ -266,62 +263,39 @@ mod tests {
     }
 
     #[test]
-    fn four_times_rotation_up() {
-        let xs = vec![iota_face(4); 6];
-        assert_ne!(Rotation::U.apply(&xs), xs);
-
-        assert_eq!(
-            Rotation::U.apply(&Rotation::U.apply(&Rotation::U.apply(&Rotation::U.apply(&xs)))),
-            xs
-        );
+    fn four_rotations_are_identical() {
+        let o = Orientation::new();
+        for r in [Rotation::U, Rotation::R, Rotation::D, Rotation::L] {
+            assert_ne!(r.apply(o), o);
+            assert_eq!(r.apply(r.apply(r.apply(r.apply(o)))), o);
+        }
     }
 
     #[test]
-    fn four_times_rotation_right() {
-        let xs = vec![iota_face(4); 6];
-        assert_ne!(Rotation::R.apply(&xs), xs);
-
-        assert_eq!(
-            Rotation::R.apply(&Rotation::R.apply(&Rotation::R.apply(&Rotation::R.apply(&xs)))),
-            xs
-        );
+    fn lr_rotation_is_id() {
+        let o = Orientation::new();
+        assert_eq!(Rotation::R.apply(Rotation::L.apply(o)), o);
     }
 
     #[test]
-    fn four_times_rotation_down() {
-        let xs = vec![iota_face(4); 6];
-        assert_ne!(Rotation::D.apply(&xs), xs);
-
-        assert_eq!(
-            Rotation::D.apply(&Rotation::D.apply(&Rotation::D.apply(&Rotation::D.apply(&xs)))),
-            xs
-        );
-    }
-
-    #[test]
-    fn four_times_rotation_left() {
-        let xs = vec![iota_face(4); 6];
-        assert_ne!(Rotation::L.apply(&xs), xs);
-
-        assert_eq!(
-            Rotation::L.apply(&Rotation::L.apply(&Rotation::L.apply(&Rotation::L.apply(&xs)))),
-            xs
-        );
+    fn ud_rotation_is_id() {
+        let o = Orientation::new();
+        assert_eq!(Rotation::U.apply(Rotation::D.apply(o)), o);
     }
 
     #[test]
     fn ll_rr_rotation_equivalence() {
-        let xs = vec![iota_face(5); 6];
-        let a = Rotation::L.apply(&Rotation::L.apply(&xs));
-        let b = Rotation::R.apply(&Rotation::R.apply(&xs));
+        let o = Orientation::new();
+        let a = Rotation::L.apply(Rotation::L.apply(o));
+        let b = Rotation::R.apply(Rotation::R.apply(o));
         assert_eq!(a, b);
     }
 
     #[test]
     fn uu_dd_rotation_equivalence() {
-        let xs = vec![iota_face(5); 6];
-        let a = Rotation::U.apply(&Rotation::U.apply(&xs));
-        let b = Rotation::D.apply(&Rotation::D.apply(&xs));
+        let o = Orientation::new();
+        let a = Rotation::U.apply(Rotation::U.apply(o));
+        let b = Rotation::D.apply(Rotation::D.apply(o));
         assert_eq!(a, b);
     }
 
