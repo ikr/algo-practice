@@ -45,6 +45,12 @@ impl Mutation {
         let to_add: usize = ab[1].parse().unwrap();
         Self { subj, to_add }
     }
+
+    fn none() -> Self {
+        let subj = Subj::Face;
+        let to_add = 0;
+        Self { subj, to_add }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -238,88 +244,23 @@ impl Rotation {
     }
 }
 
-fn row_mutation_plane_effect(
-    n: usize,
-    iface: usize,
-    face_rotation: FaceRotation,
-    i: usize,
-) -> Vec<(usize, Subj)> {
-    let ii = n - 1 - i;
-    match (iface, face_rotation) {
-        (0, FaceRotation::None) => vec![(2, Subj::Col(ii)), (4, Subj::Col(i)), (5, Subj::Row(ii))],
-        (0, FaceRotation::Clockwise) => {
-            vec![(1, Subj::Col(ii)), (3, Subj::Col(i)), (5, Subj::Col(i))]
-        }
-        (0, FaceRotation::Counterclockwise) => vec![],
-        (0, FaceRotation::UpsideDown) => vec![],
-
-        (1, FaceRotation::None) => vec![],
-        (1, FaceRotation::Clockwise) => vec![],
-        (1, FaceRotation::Counterclockwise) => vec![],
-        (1, FaceRotation::UpsideDown) => vec![],
-
-        (2, FaceRotation::None) => vec![],
-        (2, FaceRotation::Clockwise) => vec![],
-        (2, FaceRotation::Counterclockwise) => vec![],
-        (2, FaceRotation::UpsideDown) => vec![],
-
-        (3, FaceRotation::None) => vec![],
-        (3, FaceRotation::Clockwise) => vec![],
-        (3, FaceRotation::Counterclockwise) => vec![],
-        (3, FaceRotation::UpsideDown) => vec![],
-
-        (4, FaceRotation::None) => vec![],
-        (4, FaceRotation::Clockwise) => vec![],
-        (4, FaceRotation::Counterclockwise) => vec![],
-        (4, FaceRotation::UpsideDown) => vec![],
-
-        (5, FaceRotation::None) => vec![],
-        (5, FaceRotation::Clockwise) => vec![],
-        (5, FaceRotation::Counterclockwise) => vec![],
-        (5, FaceRotation::UpsideDown) => vec![],
-
-        _ => panic!("Unexpected iface {} and {:?}", iface, face_rotation),
-    }
-}
-
-fn col_mutation_plane_effect(
-    n: usize,
-    iface: usize,
-    face_rotation: FaceRotation,
-    irow: usize,
-) -> Vec<(usize, Mutation)> {
-    match (iface, face_rotation) {
-        (0, FaceRotation::None) => vec![],
-        (0, FaceRotation::Clockwise) => vec![],
-        (0, FaceRotation::Counterclockwise) => vec![],
-        (0, FaceRotation::UpsideDown) => vec![],
-
-        (1, FaceRotation::None) => vec![],
-        (1, FaceRotation::Clockwise) => vec![],
-        (1, FaceRotation::Counterclockwise) => vec![],
-        (1, FaceRotation::UpsideDown) => vec![],
-
-        (2, FaceRotation::None) => vec![],
-        (2, FaceRotation::Clockwise) => vec![],
-        (2, FaceRotation::Counterclockwise) => vec![],
-        (2, FaceRotation::UpsideDown) => vec![],
-
-        (3, FaceRotation::None) => vec![],
-        (3, FaceRotation::Clockwise) => vec![],
-        (3, FaceRotation::Counterclockwise) => vec![],
-        (3, FaceRotation::UpsideDown) => vec![],
-
-        (4, FaceRotation::None) => vec![],
-        (4, FaceRotation::Clockwise) => vec![],
-        (4, FaceRotation::Counterclockwise) => vec![],
-        (4, FaceRotation::UpsideDown) => vec![],
-
-        (5, FaceRotation::None) => vec![],
-        (5, FaceRotation::Clockwise) => vec![],
-        (5, FaceRotation::Counterclockwise) => vec![],
-        (5, FaceRotation::UpsideDown) => vec![],
-
-        _ => panic!("Unexpected iface {} and {:?}", iface, face_rotation),
+fn provide_plane_effect(m: Mutation, r: Rotation) -> Vec<(Mutation, Rotation)> {
+    match m.subj {
+        Subj::Row(_) => vec![
+            (m, Rotation::L),
+            (m, Rotation::L),
+            (m, Rotation::L),
+            (m, Rotation::L),
+            (Mutation::none(), r),
+        ],
+        Subj::Col(_) => vec![
+            (m, Rotation::U),
+            (m, Rotation::U),
+            (m, Rotation::U),
+            (m, Rotation::U),
+            (Mutation::none(), r),
+        ],
+        Subj::Face => vec![(m, r)],
     }
 }
 
@@ -338,7 +279,11 @@ fn main() {
     let mut faces = vec![Face::new(n); 6];
     let mut o = Orientation::new();
 
-    for (m, r) in mutations.into_iter().zip(rotations) {
+    for (m, r) in mutations
+        .into_iter()
+        .zip(rotations)
+        .flat_map(|(m, r)| provide_plane_effect(m, r))
+    {
         let (iface, face_rotation) = o.front_face_and_its_rotation();
 
         faces[iface] = faces[iface]
