@@ -1,6 +1,7 @@
-use std::io::{BufRead, stdin};
-
-const B: usize = 200;
+use std::{
+    collections::HashSet,
+    io::{BufRead, stdin},
+};
 
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
@@ -51,10 +52,44 @@ impl StaircaseBranch {
     }
 }
 
+fn valid_moves_recur(
+    g: &[Vec<usize>],
+    current_path: &[usize],
+    remaining_magnitude: usize,
+) -> HashSet<usize> {
+    let u: usize = *current_path.last().unwrap();
+    if remaining_magnitude == 0 {
+        HashSet::from([u])
+    } else {
+        let mut result = HashSet::new();
+        let mut p = current_path.to_vec();
+        for &v in g[u].iter() {
+            if !current_path.contains(&v) {
+                p.push(v);
+                result.extend(valid_moves_recur(g, &p, remaining_magnitude - 1));
+                p.pop();
+            }
+        }
+        result
+    }
+}
+
+fn valid_moves(g: &[Vec<usize>], magnitudes: &[usize], u: usize) -> Vec<usize> {
+    magnitudes
+        .iter()
+        .fold(HashSet::new(), |mut acc, &m| {
+            acc.extend(valid_moves_recur(g, &[u], m));
+            acc
+        })
+        .into_iter()
+        .collect()
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let n = parse_main_staircase_end(&lines[0]) + 1;
     let m = lines.len() - 2;
+    let base = n.max(m);
 
     let branches: Vec<StaircaseBranch> = lines[1..m]
         .iter()
@@ -73,4 +108,24 @@ fn main() {
         "{} steps, {} staircases\nbranches: {:?}\nmagnitudes: {:?}",
         n, m, branches, magnitudes
     );
+
+    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * base + step };
+    let mut g: Vec<Vec<usize>> = vec![vec![]; base * base];
+
+    for i in 1..n {
+        g[vid(0, i - 1)].push(vid(0, i));
+    }
+
+    for b in branches {
+        let (i, j) = b.steps_range;
+        g[vid(b.source_id, i)].push(vid(b.id, i));
+
+        for k in i..j {
+            g[vid(b.id, k)].push(vid(b.id, k + 1));
+        }
+
+        g[vid(b.id, j)].push(vid(b.destination_id, j));
+    }
+
+    eprintln!("{:?}", valid_moves(&g, &magnitudes, 0));
 }
