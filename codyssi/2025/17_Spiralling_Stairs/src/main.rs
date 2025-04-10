@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::HashSet,
     io::{BufRead, stdin},
 };
 
@@ -75,14 +75,16 @@ fn valid_moves_recur(
 }
 
 fn valid_moves(g: &[Vec<usize>], magnitudes: &[usize], u: usize) -> Vec<usize> {
-    magnitudes
+    let result = magnitudes
         .iter()
         .fold(HashSet::new(), |mut acc, &m| {
             acc.extend(valid_moves_recur(g, &[u], m));
             acc
         })
         .into_iter()
-        .collect()
+        .collect();
+
+    result
 }
 
 fn main() {
@@ -123,14 +125,27 @@ fn main() {
     }
 
     let mut dp: Vec<u128> = vec![0; base * base];
-    dp[0] = 1;
-    let mut q: VecDeque<usize> = VecDeque::from([0]);
-    while let Some(u) = q.pop_front() {
-        eprintln!("dp: {:?} u: {}", dp, u);
-        for v in valid_moves(&g, &magnitudes, u) {
-            dp[v] += dp[u];
-            q.push_back(v);
+    dp[vid(0, 0)] = 1;
+
+    let mut dq: Vec<u128> = vec![0; base * base];
+
+    loop {
+        for (u, &x) in dp.iter().enumerate() {
+            if x != 0 {
+                for v in valid_moves(&g, &magnitudes, u) {
+                    dq[v] += x;
+                }
+            }
         }
+
+        eprintln!("{:?}\n{:?}\n\n", dp, dq);
+
+        if dq == dp {
+            break;
+        }
+
+        dp = dq;
+        dq = vec![0; base * base];
     }
 
     println!("{}", dp[vid(0, n - 1)]);
