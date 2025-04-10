@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
 };
 
@@ -87,6 +87,35 @@ fn valid_moves(g: &[Vec<usize>], magnitudes: &[usize], u: usize) -> Vec<usize> {
     result
 }
 
+fn toposort(g: &[Vec<usize>]) -> Vec<usize> {
+    let n = g.len();
+    let mut indeg: Vec<usize> = vec![0; n];
+
+    for vs in g.iter() {
+        for &v in vs.iter() {
+            indeg[v] += 1;
+        }
+    }
+
+    let mut q: VecDeque<usize> = indeg
+        .iter()
+        .enumerate()
+        .filter_map(|(u, &x)| if x == 0 { Some(u) } else { None })
+        .collect();
+
+    let mut result: Vec<usize> = vec![];
+    while let Some(u) = q.pop_front() {
+        result.push(u);
+        for &v in g[u].iter() {
+            indeg[v] -= 1;
+            if indeg[v] == 0 {
+                q.push_back(v);
+            }
+        }
+    }
+    result
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let n = parse_main_staircase_end(&lines[0]) + 1;
@@ -124,28 +153,16 @@ fn main() {
         g[vid(b.id, j)].push(vid(b.destination_id, j));
     }
 
+    let us = toposort(&g);
+    let i0 = us.iter().position(|&u| u == vid(0, 0)).unwrap();
+
     let mut dp: Vec<u128> = vec![0; base * base];
-    dp[vid(0, 0)] = 1;
+    dp[i0] = 1;
 
-    let mut dq: Vec<u128> = vec![0; base * base];
-
-    loop {
-        for (u, &x) in dp.iter().enumerate() {
-            if x != 0 {
-                for v in valid_moves(&g, &magnitudes, u) {
-                    dq[v] += x;
-                }
-            }
+    for u in us {
+        for v in valid_moves(&g, &magnitudes, u) {
+            dp[v] += dp[u];
         }
-
-        eprintln!("{:?}\n{:?}\n\n", dp, dq);
-
-        if dq == dp {
-            break;
-        }
-
-        dp = dq;
-        dq = vec![0; base * base];
     }
 
     println!("{}", dp[vid(0, n - 1)]);
