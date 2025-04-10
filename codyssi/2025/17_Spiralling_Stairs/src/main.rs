@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
 };
 
@@ -104,11 +104,6 @@ fn main() {
         .map(|x| x.parse().unwrap())
         .collect();
 
-    eprintln!(
-        "{} steps, {} staircases\nbranches: {:?}\nmagnitudes: {:?}",
-        n, m, branches, magnitudes
-    );
-
     let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * base + step };
     let mut g: Vec<Vec<usize>> = vec![vec![]; base * base];
 
@@ -127,5 +122,16 @@ fn main() {
         g[vid(b.id, j)].push(vid(b.destination_id, j));
     }
 
-    eprintln!("{:?}", valid_moves(&g, &magnitudes, 0));
+    let mut dp: Vec<u128> = vec![0; base * base];
+    dp[0] = 1;
+    let mut q: VecDeque<usize> = VecDeque::from([0]);
+    while let Some(u) = q.pop_front() {
+        eprintln!("dp: {:?} u: {}", dp, u);
+        for v in valid_moves(&g, &magnitudes, u) {
+            dp[v] += dp[u];
+            q.push_back(v);
+        }
+    }
+
+    println!("{}", dp[vid(0, n - 1)]);
 }
