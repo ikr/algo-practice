@@ -195,5 +195,5 @@ fn main() {
     }
 
     let (hi, path) = paths_count_and_max_path(n, &g, &magnitudes);
-    eprintln!("{} {}", hi, path_code(&path));
+    eprintln!("{} {} ({})", hi, path_code(&path), path.len());
 }
