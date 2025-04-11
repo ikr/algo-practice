@@ -3,6 +3,8 @@ use std::{
     io::{BufRead, stdin},
 };
 
+const BASE: usize = 150;
+
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
     assert_eq!(ps.len(), 3);
@@ -116,11 +118,50 @@ fn toposort(g: &[Vec<usize>]) -> Vec<usize> {
     result
 }
 
+fn vertex_code(vid: usize) -> String {
+    let staricase_id = vid / BASE + 1;
+    let step_id = vid % BASE;
+    "S".to_string() + &staricase_id.to_string() + "_" + &step_id.to_string()
+}
+
+fn path_code(path: &[usize]) -> String {
+    path.iter()
+        .map(|&vid| vertex_code(vid))
+        .collect::<Vec<_>>()
+        .join("-")
+}
+
+fn paths_count_and_max_path(
+    n: usize,
+    g: &[Vec<usize>],
+    magnitudes: &[usize],
+) -> (u128, Vec<usize>) {
+    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
+    let us = toposort(g);
+    let i0 = us.iter().position(|&u| u == vid(0, 0)).unwrap();
+
+    let mut dp: Vec<u128> = vec![0; BASE * BASE];
+    dp[i0] = 1;
+    let mut dq: Vec<Vec<usize>> = vec![vec![]; BASE * BASE];
+    dq[i0] = vec![vid(0, 0)];
+
+    for u in us {
+        for v in valid_moves(g, magnitudes, u) {
+            dp[v] += dp[u];
+
+            let mut sub: Vec<usize> = dq[u].clone();
+            sub.push(v);
+            dq[v] = dq[v].clone().max(sub);
+        }
+    }
+
+    (dp[vid(0, n - 1)], dq[vid(0, n - 1)].clone())
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let n = parse_main_staircase_end(&lines[0]) + 1;
     let m = lines.len() - 2;
-    let base = n.max(m);
 
     let branches: Vec<StaircaseBranch> = lines[1..m]
         .iter()
@@ -135,8 +176,8 @@ fn main() {
         .map(|x| x.parse().unwrap())
         .collect();
 
-    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * base + step };
-    let mut g: Vec<Vec<usize>> = vec![vec![]; base * base];
+    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
+    let mut g: Vec<Vec<usize>> = vec![vec![]; BASE * BASE];
 
     for i in 1..n {
         g[vid(0, i - 1)].push(vid(0, i));
@@ -153,17 +194,6 @@ fn main() {
         g[vid(b.id, j)].push(vid(b.destination_id, j));
     }
 
-    let us = toposort(&g);
-    let i0 = us.iter().position(|&u| u == vid(0, 0)).unwrap();
-
-    let mut dp: Vec<u128> = vec![0; base * base];
-    dp[i0] = 1;
-
-    for u in us {
-        for v in valid_moves(&g, &magnitudes, u) {
-            dp[v] += dp[u];
-        }
-    }
-
-    println!("{}", dp[vid(0, n - 1)]);
+    let (hi, path) = paths_count_and_max_path(n, &g, &magnitudes);
+    eprintln!("{} {}", hi, path_code(&path));
 }
