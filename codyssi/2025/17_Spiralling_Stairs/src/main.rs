@@ -3,7 +3,10 @@ use std::{
     io::{BufRead, stdin},
 };
 
+type Bui = num_bigint::BigUint;
+
 const BASE: usize = 150;
+const CAP_LIM: usize = 24;
 
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
@@ -158,6 +161,52 @@ fn paths_count_and_max_path(
     (dp[vid(0, n - 1)], dq[vid(0, n - 1)].clone())
 }
 
+struct Cap {
+    hi: Vec<usize>,
+}
+
+impl Cap {
+    fn decode(mut n: Bui) -> Cap {
+        if n == Bui::ZERO {
+            Cap {
+                hi: vec![0; CAP_LIM],
+            }
+        } else {
+            let bb = (BASE * BASE) as u32;
+            let mut hi: Vec<usize> = vec![];
+
+            while n != Bui::ZERO {
+                hi.push((n.clone() % bb).try_into().unwrap());
+                n /= bb;
+            }
+
+            hi.reverse();
+            Cap { hi }
+        }
+    }
+}
+
+fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
+    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
+    let mut g: Vec<Vec<usize>> = vec![vec![]; BASE * BASE];
+
+    for i in 1..n {
+        g[vid(0, i - 1)].push(vid(0, i));
+    }
+
+    for b in branches {
+        let (i, j) = b.steps_range;
+        g[vid(b.source_id, i)].push(vid(b.id, i));
+
+        for k in i..j {
+            g[vid(b.id, k)].push(vid(b.id, k + 1));
+        }
+
+        g[vid(b.id, j)].push(vid(b.destination_id, j));
+    }
+    g
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let n = parse_main_staircase_end(&lines[0]) + 1;
@@ -176,24 +225,7 @@ fn main() {
         .map(|x| x.parse().unwrap())
         .collect();
 
-    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
-    let mut g: Vec<Vec<usize>> = vec![vec![]; BASE * BASE];
-
-    for i in 1..n {
-        g[vid(0, i - 1)].push(vid(0, i));
-    }
-
-    for b in branches {
-        let (i, j) = b.steps_range;
-        g[vid(b.source_id, i)].push(vid(b.id, i));
-
-        for k in i..j {
-            g[vid(b.id, k)].push(vid(b.id, k + 1));
-        }
-
-        g[vid(b.id, j)].push(vid(b.destination_id, j));
-    }
-
+    let g = staircases_graph(n, &branches);
     let (hi, path) = paths_count_and_max_path(n, &g, &magnitudes);
     eprintln!("{} {} ({})", hi, path_code(&path), path.len());
 }
