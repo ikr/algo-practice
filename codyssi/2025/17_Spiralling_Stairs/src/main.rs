@@ -7,6 +7,7 @@ type Bui = num_bigint::BigUint;
 
 const BASE: usize = 150;
 const CAP_LIM: usize = 100;
+const TARGET_RANK: u128 = 100000000000000000000000000000;
 
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
@@ -138,6 +139,7 @@ fn paths_count_and_max_path(
     n: usize,
     g: &[Vec<usize>],
     magnitudes: &[usize],
+    cap: &Cap,
 ) -> (u128, Vec<usize>) {
     let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
     let us = toposort(g);
@@ -150,11 +152,14 @@ fn paths_count_and_max_path(
 
     for u in us {
         for v in valid_moves(g, magnitudes, u) {
-            dp[v] += dp[u];
+            let k = dq[u].len();
+            if v <= cap.hi[k] {
+                dp[v] += dp[u];
 
-            let mut sub: Vec<usize> = dq[u].clone();
-            sub.push(v);
-            dq[v] = dq[v].clone().max(sub);
+                let mut sub: Vec<usize> = dq[u].clone();
+                sub.push(v);
+                dq[v] = dq[v].clone().max(sub);
+            }
         }
     }
 
@@ -190,6 +195,18 @@ impl Cap {
         Cap {
             hi: vec![BASE * BASE - 1; CAP_LIM],
         }
+    }
+
+    fn encode(&self) -> Bui {
+        let mut result: Bui = Bui::ZERO;
+        let mut mul: Bui = Bui::from(1u8);
+
+        for &d in self.hi.iter().rev() {
+            result += Bui::from(d) * mul.clone();
+            mul *= BASE * BASE;
+        }
+
+        result
     }
 }
 
@@ -233,6 +250,14 @@ fn main() {
         .collect();
 
     let g = staircases_graph(n, &branches);
-    let (hi, path) = paths_count_and_max_path(n, &g, &magnitudes);
-    eprintln!("{} {} ({})", hi, path_code(&path), path.len());
+    let mut lo = Cap::most_restricting();
+    assert!(paths_count_and_max_path(n, &g, &magnitudes, &lo).0 < TARGET_RANK);
+
+    let mut hi = Cap::least_restricting();
+    let top = paths_count_and_max_path(n, &g, &magnitudes, &hi);
+    if top.0 <= TARGET_RANK {
+        println!("{}", path_code(&top.1));
+    } else {
+        todo!()
+    }
 }
