@@ -231,6 +231,54 @@ fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
     g
 }
 
+fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
+    let mut lo = Cap::most_restricting();
+    assert!(paths_count_and_max_path(n, &g, &magnitudes, &lo).0 < TARGET_RANK);
+
+    let mut hi = Cap::least_restricting();
+    let top = paths_count_and_max_path(n, &g, &magnitudes, &hi);
+
+    if top.0 <= TARGET_RANK {
+        top.1
+    } else {
+        while hi.encode() - lo.encode() > Bui::from(2u8) {
+            assert!(lo.encode() < hi.encode());
+            let d = (hi.encode() - lo.encode()) / Bui::from(3u8);
+            let a = lo.encode() + d.clone();
+            let b = hi.encode() - d.clone();
+
+            let (ra, _) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(a.clone()));
+            let (rb, _) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(b.clone()));
+            assert!(ra <= rb);
+
+            if TARGET_RANK <= ra {
+                eprintln!("One; ra:{} rb:{}", ra, rb);
+                hi = Cap::decode(a);
+            } else if TARGET_RANK <= rb {
+                eprintln!("Two");
+                assert!(ra < TARGET_RANK);
+                lo = Cap::decode(a);
+                hi = Cap::decode(b);
+            } else {
+                eprintln!("Three");
+                assert!(rb < TARGET_RANK);
+                lo = Cap::decode(b);
+            }
+
+            eprintln!("lo:{} hi:{}", lo.encode(), hi.encode());
+        }
+
+        for cc in [lo.encode(), lo.encode() + Bui::from(1u8), hi.encode()] {
+            let (rank, path) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(cc));
+            if rank == TARGET_RANK {
+                return path;
+            }
+        }
+
+        panic!("Not found")
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let n = parse_main_staircase_end(&lines[0]) + 1;
@@ -250,14 +298,5 @@ fn main() {
         .collect();
 
     let g = staircases_graph(n, &branches);
-    let mut lo = Cap::most_restricting();
-    assert!(paths_count_and_max_path(n, &g, &magnitudes, &lo).0 < TARGET_RANK);
-
-    let mut hi = Cap::least_restricting();
-    let top = paths_count_and_max_path(n, &g, &magnitudes, &hi);
-    if top.0 <= TARGET_RANK {
-        println!("{}", path_code(&top.1));
-    } else {
-        todo!()
-    }
+    println!("{}", path_code(&target_rank_path(n, &g, &magnitudes)));
 }
