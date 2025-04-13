@@ -236,6 +236,7 @@ fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usi
     assert!(paths_count_and_max_path(n, &g, &magnitudes, &lo).0 < TARGET_RANK);
 
     let mut hi = Cap::least_restricting();
+    assert!(lo.encode() < hi.encode());
     let top = paths_count_and_max_path(n, &g, &magnitudes, &hi);
 
     if top.0 <= TARGET_RANK {
@@ -246,21 +247,20 @@ fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usi
             let d = (hi.encode() - lo.encode()) / Bui::from(3u8);
             let a = lo.encode() + d.clone();
             let b = hi.encode() - d.clone();
+            assert!(a <= b);
 
             let (ra, _) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(a.clone()));
             let (rb, _) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(b.clone()));
+            eprintln!("ra:{} rb:{}", ra, rb);
             assert!(ra <= rb);
 
             if TARGET_RANK <= ra {
-                eprintln!("One; ra:{} rb:{}", ra, rb);
                 hi = Cap::decode(a);
             } else if TARGET_RANK <= rb {
-                eprintln!("Two");
                 assert!(ra < TARGET_RANK);
                 lo = Cap::decode(a);
                 hi = Cap::decode(b);
             } else {
-                eprintln!("Three");
                 assert!(rb < TARGET_RANK);
                 lo = Cap::decode(b);
             }
