@@ -6,7 +6,7 @@ use std::{
 type Bui = num_bigint::BigUint;
 
 const BASE: usize = 150;
-const CAP_LIM: usize = 24;
+const CAP_LIM: usize = 100;
 
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
@@ -167,21 +167,28 @@ struct Cap {
 
 impl Cap {
     fn decode(mut n: Bui) -> Cap {
-        if n == Bui::ZERO {
-            Cap {
-                hi: vec![0; CAP_LIM],
-            }
-        } else {
-            let bb = (BASE * BASE) as u32;
-            let mut hi: Vec<usize> = vec![];
+        let bb = (BASE * BASE) as u32;
+        let mut hi: Vec<usize> = vec![];
 
-            while n != Bui::ZERO {
-                hi.push((n.clone() % bb).try_into().unwrap());
-                n /= bb;
-            }
+        while n != Bui::ZERO {
+            hi.push((n.clone() % bb).try_into().unwrap());
+            n /= bb;
+        }
 
-            hi.reverse();
-            Cap { hi }
+        hi.extend(vec![0; CAP_LIM - hi.len()]);
+        hi.reverse();
+        Cap { hi }
+    }
+
+    fn most_restricting() -> Cap {
+        Cap {
+            hi: vec![BASE - 1; CAP_LIM],
+        }
+    }
+
+    fn least_restricting() -> Cap {
+        Cap {
+            hi: vec![BASE * BASE - 1; CAP_LIM],
         }
     }
 }
