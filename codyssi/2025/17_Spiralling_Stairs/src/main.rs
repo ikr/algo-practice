@@ -3,10 +3,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-type Bui = num_bigint::BigUint;
-
 const BASE: usize = 150;
-const CAP_LIM: usize = 100;
 const TARGET_RANK: u128 = 100000000000000000000000000000;
 
 fn parse_main_staircase_end(s: &str) -> usize {
@@ -139,7 +136,6 @@ fn paths_count_and_max_path(
     n: usize,
     g: &[Vec<usize>],
     magnitudes: &[usize],
-    cap: &Cap,
 ) -> (u128, Vec<usize>) {
     let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
     let us = toposort(g);
@@ -152,62 +148,15 @@ fn paths_count_and_max_path(
 
     for u in us {
         for v in valid_moves(g, magnitudes, u) {
-            let k = dq[u].len();
-            if v <= cap.hi[k] {
-                dp[v] += dp[u];
+            dp[v] += dp[u];
 
-                let mut sub: Vec<usize> = dq[u].clone();
-                sub.push(v);
-                dq[v] = dq[v].clone().max(sub);
-            }
+            let mut sub: Vec<usize> = dq[u].clone();
+            sub.push(v);
+            dq[v] = dq[v].clone().max(sub);
         }
     }
 
     (dp[vid(0, n - 1)], dq[vid(0, n - 1)].clone())
-}
-
-struct Cap {
-    hi: Vec<usize>,
-}
-
-impl Cap {
-    fn decode(mut n: Bui) -> Cap {
-        let bb = (BASE * BASE) as u32;
-        let mut hi: Vec<usize> = vec![];
-
-        while n != Bui::ZERO {
-            hi.push((n.clone() % bb).try_into().unwrap());
-            n /= bb;
-        }
-
-        hi.extend(vec![0; CAP_LIM - hi.len()]);
-        hi.reverse();
-        Cap { hi }
-    }
-
-    fn most_restricting() -> Cap {
-        Cap {
-            hi: vec![BASE - 1; CAP_LIM],
-        }
-    }
-
-    fn least_restricting() -> Cap {
-        Cap {
-            hi: vec![BASE * BASE - 1; CAP_LIM],
-        }
-    }
-
-    fn encode(&self) -> Bui {
-        let mut result: Bui = Bui::ZERO;
-        let mut mul: Bui = Bui::from(1u8);
-
-        for &d in self.hi.iter().rev() {
-            result += Bui::from(d) * mul.clone();
-            mul *= BASE * BASE;
-        }
-
-        result
-    }
 }
 
 fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
@@ -232,50 +181,12 @@ fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
 }
 
 fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
-    let mut lo = Cap::most_restricting();
-    assert!(paths_count_and_max_path(n, &g, &magnitudes, &lo).0 < TARGET_RANK);
-
-    let mut hi = Cap::least_restricting();
-    assert!(lo.encode() < hi.encode());
-    let top = paths_count_and_max_path(n, &g, &magnitudes, &hi);
+    let top = paths_count_and_max_path(n, g, magnitudes);
 
     if top.0 <= TARGET_RANK {
         top.1
     } else {
-        while hi.encode() - lo.encode() > Bui::from(2u8) {
-            assert!(lo.encode() < hi.encode());
-            let d = (hi.encode() - lo.encode()) / Bui::from(3u8);
-            let a = lo.encode() + d.clone();
-            let b = hi.encode() - d.clone();
-            assert!(a <= b);
-
-            let (ra, _) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(a.clone()));
-            let (rb, _) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(b.clone()));
-            eprintln!("ra:{} rb:{}", ra, rb);
-            assert!(ra <= rb);
-
-            if TARGET_RANK <= ra {
-                hi = Cap::decode(a);
-            } else if TARGET_RANK <= rb {
-                assert!(ra < TARGET_RANK);
-                lo = Cap::decode(a);
-                hi = Cap::decode(b);
-            } else {
-                assert!(rb < TARGET_RANK);
-                lo = Cap::decode(b);
-            }
-
-            eprintln!("lo:{} hi:{}", lo.encode(), hi.encode());
-        }
-
-        for cc in [lo.encode(), lo.encode() + Bui::from(1u8), hi.encode()] {
-            let (rank, path) = paths_count_and_max_path(n, &g, &magnitudes, &Cap::decode(cc));
-            if rank == TARGET_RANK {
-                return path;
-            }
-        }
-
-        panic!("Not found")
+        todo!("Not found")
     }
 }
 
