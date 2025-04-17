@@ -5,7 +5,7 @@ use std::{
 
 const BASE: usize = 150;
 //const TARGET_RANK: u128 = 100000000000000000000000000000;
-const TARGET_RANK: u128 = 2;
+const TARGET_RANK: u128 = 16;
 
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
@@ -137,15 +137,14 @@ fn vid(staircase_id: usize, step: usize) -> usize {
     staircase_id * BASE + step
 }
 
-fn path_counts(g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<u128> {
-    let us = toposort(g);
-    let i0 = us.iter().position(|&u| u == vid(0, 0)).unwrap();
+fn path_counts(n: usize, gg: &[Vec<usize>], magnitudes: &[usize]) -> Vec<u128> {
+    let us = toposort(gg);
 
     let mut dp: Vec<u128> = vec![0; BASE * BASE];
-    dp[i0] = 1;
+    dp[vid(0, n - 1)] = 1;
 
     for u in us {
-        for v in valid_moves(g, magnitudes, u) {
+        for v in valid_moves(gg, magnitudes, u) {
             dp[v] += dp[u];
         }
     }
@@ -169,6 +168,9 @@ fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
 
         g[vid(b.id, j)].push(vid(b.destination_id, j));
     }
+    for adj in g.iter_mut() {
+        adj.sort();
+    }
     g
 }
 
@@ -186,18 +188,17 @@ fn inverse_graph(g: &[Vec<usize>]) -> Vec<Vec<usize>> {
 }
 
 fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
-    let dp = path_counts(g, magnitudes);
+    let dp = path_counts(n, &inverse_graph(g), magnitudes);
     let ua = vid(0, 0);
     let uz = vid(0, n - 1);
 
-    let gg = inverse_graph(g);
     let mut rank = TARGET_RANK;
-    let mut result = vec![uz];
+    let mut result = vec![ua];
 
-    while *result.last().unwrap() != ua {
+    while *result.last().unwrap() != uz {
         let u = *result.last().unwrap();
-        for (iv, &v) in gg[u].iter().enumerate() {
-            let is_last = iv == gg[u].len() - 1;
+        for (iv, &v) in g[u].iter().enumerate() {
+            let is_last = iv == g[u].len() - 1;
 
             if dp[v] < rank {
                 rank -= dp[v];
@@ -211,8 +212,6 @@ fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usi
         }
     }
 
-    assert_eq!(rank, 1);
-    result.reverse();
     result
 }
 
