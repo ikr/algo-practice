@@ -132,12 +132,15 @@ fn path_code(path: &[usize]) -> String {
         .join("-")
 }
 
+fn vid(staircase_id: usize, step: usize) -> usize {
+    staircase_id * BASE + step
+}
+
 fn paths_count_and_max_path(
     n: usize,
     g: &[Vec<usize>],
     magnitudes: &[usize],
 ) -> (u128, Vec<usize>) {
-    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
     let us = toposort(g);
     let i0 = us.iter().position(|&u| u == vid(0, 0)).unwrap();
 
@@ -160,7 +163,6 @@ fn paths_count_and_max_path(
 }
 
 fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
-    let vid = |staircase_id: usize, step: usize| -> usize { staircase_id * BASE + step };
     let mut g: Vec<Vec<usize>> = vec![vec![]; BASE * BASE];
 
     for i in 1..n {
