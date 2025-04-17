@@ -1,7 +1,6 @@
 use std::{
     collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
-    ops::AddAssign,
 };
 
 const BASE: usize = 150;
@@ -138,28 +137,19 @@ fn vid(staircase_id: usize, step: usize) -> usize {
     staircase_id * BASE + step
 }
 
-fn paths_counts_and_max_paths(
-    g: &[Vec<usize>],
-    magnitudes: &[usize],
-) -> (Vec<u128>, Vec<Vec<usize>>) {
+fn path_counts(g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<u128> {
     let us = toposort(g);
     let i0 = us.iter().position(|&u| u == vid(0, 0)).unwrap();
 
     let mut dp: Vec<u128> = vec![0; BASE * BASE];
     dp[i0] = 1;
-    let mut dq: Vec<Vec<usize>> = vec![vec![]; BASE * BASE];
-    dq[i0] = vec![vid(0, 0)];
 
     for u in us {
         for v in valid_moves(g, magnitudes, u) {
             dp[v] += dp[u];
-
-            let mut sub: Vec<usize> = dq[u].clone();
-            sub.push(v);
-            dq[v] = dq[v].clone().max(sub);
         }
     }
-    (dp, dq)
+    dp
 }
 
 fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
@@ -189,57 +179,41 @@ fn inverse_graph(g: &[Vec<usize>]) -> Vec<Vec<usize>> {
             gg[v].push(u);
         }
     }
-
     for adj in gg.iter_mut() {
         adj.sort();
     }
     gg
 }
 
-fn first_cumsum_covering_index<T: AddAssign + Copy + Default + PartialOrd>(
-    x0: T,
-    xs: &[T],
-) -> Option<usize> {
-    xs.iter()
-        .scan(T::default(), |acc, &x| {
-            *acc += x;
-            Some(*acc)
-        })
-        .position(|s| s >= x0)
-}
-
 fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
-    let (dp, dq) = paths_counts_and_max_paths(g, magnitudes);
+    let dp = path_counts(g, magnitudes);
+    let ua = vid(0, 0);
     let uz = vid(0, n - 1);
 
-    if dp[uz] <= TARGET_RANK {
-        dq[uz].clone()
-    } else {
-        let gg = inverse_graph(g);
-        let mut suff: Vec<usize> = vec![uz];
-        let mut u = uz;
+    let gg = inverse_graph(g);
+    let mut rank = TARGET_RANK;
+    let mut result = vec![uz];
 
-        loop {
-            let xs: Vec<u128> = gg[u].iter().map(|&v| dp[v]).collect();
-            if let Some(i) = first_cumsum_covering_index(TARGET_RANK, &xs) {
-                suff.push(gg[u][i]);
-                u = gg[u][i];
+    while *result.last().unwrap() != ua {
+        let u = *result.last().unwrap();
+        for (iv, &v) in gg[u].iter().enumerate() {
+            let is_last = iv == gg[u].len() - 1;
+
+            if dp[v] < rank {
+                rank -= dp[v];
+                if is_last {
+                    result.push(v);
+                }
             } else {
+                result.push(v);
                 break;
             }
         }
-
-        assert_eq!(*dq[u].last().unwrap(), u);
-
-        suff.pop();
-        suff.reverse();
-        let mut result = dq[u].clone();
-
-        eprintln!("{:?} ++ {:?}", dq[u], suff);
-
-        result.extend(suff);
-        result
     }
+
+    assert_eq!(rank, 1);
+    result.reverse();
+    result
 }
 
 fn main() {
@@ -262,19 +236,4 @@ fn main() {
 
     let g = staircases_graph(n, &branches);
     println!("{}", path_code(&target_rank_path(n, &g, &magnitudes)));
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_first_cumsum_covering_index() {
-        let test_cases: Vec<(u128, &[u128], usize)> =
-            vec![(1, &[1, 2], 0), (4, &[2, 3, 10], 1), (6, &[1, 2, 3], 2)];
-
-        for (s0, xs, expected) in test_cases {
-            assert_eq!(first_cumsum_covering_index(s0, xs), expected);
-        }
-    }
 }
