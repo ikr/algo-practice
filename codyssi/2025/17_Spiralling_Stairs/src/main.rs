@@ -1,6 +1,7 @@
 use std::{
     collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
+    ops::AddAssign,
 };
 
 const BASE: usize = 150;
@@ -194,6 +195,19 @@ fn inverse_graph(g: &[Vec<usize>]) -> Vec<Vec<usize>> {
     gg
 }
 
+fn first_cumsum_covering_index<T: AddAssign + Copy + Default + PartialOrd>(
+    x0: T,
+    xs: &[T],
+) -> usize {
+    xs.iter()
+        .scan(T::default(), |acc, &x| {
+            *acc += x;
+            Some(*acc)
+        })
+        .position(|s| s >= x0)
+        .unwrap()
+}
+
 fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
     let (dp, dq) = paths_counts_and_max_paths(g, magnitudes);
     let uz = vid(0, n - 1);
@@ -201,7 +215,12 @@ fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usi
     if dp[uz] <= TARGET_RANK {
         dq[uz].clone()
     } else {
-        todo!("Not found")
+        let gg = inverse_graph(g);
+        let mut suff: Vec<usize> = vec![uz];
+        let mut u = uz;
+        let mut r = dp[uz];
+
+        todo!()
     }
 }
 
@@ -225,4 +244,19 @@ fn main() {
 
     let g = staircases_graph(n, &branches);
     println!("{}", path_code(&target_rank_path(n, &g, &magnitudes)));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_first_cumsum_covering_index() {
+        let test_cases: Vec<(u128, &[u128], usize)> =
+            vec![(1, &[1, 2], 0), (4, &[2, 3, 10], 1), (6, &[1, 2, 3], 2)];
+
+        for (s0, xs, expected) in test_cases {
+            assert_eq!(first_cumsum_covering_index(s0, xs), expected);
+        }
+    }
 }
