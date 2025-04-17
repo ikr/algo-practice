@@ -5,7 +5,8 @@ use std::{
 };
 
 const BASE: usize = 150;
-const TARGET_RANK: u128 = 100000000000000000000000000000;
+//const TARGET_RANK: u128 = 100000000000000000000000000000;
+const TARGET_RANK: u128 = 2;
 
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
@@ -198,14 +199,13 @@ fn inverse_graph(g: &[Vec<usize>]) -> Vec<Vec<usize>> {
 fn first_cumsum_covering_index<T: AddAssign + Copy + Default + PartialOrd>(
     x0: T,
     xs: &[T],
-) -> usize {
+) -> Option<usize> {
     xs.iter()
         .scan(T::default(), |acc, &x| {
             *acc += x;
             Some(*acc)
         })
         .position(|s| s >= x0)
-        .unwrap()
 }
 
 fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
@@ -218,9 +218,27 @@ fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usi
         let gg = inverse_graph(g);
         let mut suff: Vec<usize> = vec![uz];
         let mut u = uz;
-        let mut r = dp[uz];
 
-        todo!()
+        loop {
+            let xs: Vec<u128> = gg[u].iter().map(|&v| dp[v]).collect();
+            if let Some(i) = first_cumsum_covering_index(TARGET_RANK, &xs) {
+                suff.push(gg[u][i]);
+                u = gg[u][i];
+            } else {
+                break;
+            }
+        }
+
+        assert_eq!(*dq[u].last().unwrap(), u);
+
+        suff.pop();
+        suff.reverse();
+        let mut result = dq[u].clone();
+
+        eprintln!("{:?} ++ {:?}", dq[u], suff);
+
+        result.extend(suff);
+        result
     }
 }
 
