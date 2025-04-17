@@ -136,11 +136,10 @@ fn vid(staircase_id: usize, step: usize) -> usize {
     staircase_id * BASE + step
 }
 
-fn paths_count_and_max_path(
-    n: usize,
+fn paths_counts_and_max_paths(
     g: &[Vec<usize>],
     magnitudes: &[usize],
-) -> (u128, Vec<usize>) {
+) -> (Vec<u128>, Vec<Vec<usize>>) {
     let us = toposort(g);
     let i0 = us.iter().position(|&u| u == vid(0, 0)).unwrap();
 
@@ -158,8 +157,7 @@ fn paths_count_and_max_path(
             dq[v] = dq[v].clone().max(sub);
         }
     }
-
-    (dp[vid(0, n - 1)], dq[vid(0, n - 1)].clone())
+    (dp, dq)
 }
 
 fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
@@ -197,10 +195,11 @@ fn inverse_graph(g: &[Vec<usize>]) -> Vec<Vec<usize>> {
 }
 
 fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
-    let top = paths_count_and_max_path(n, g, magnitudes);
+    let (dp, dq) = paths_counts_and_max_paths(g, magnitudes);
+    let uz = vid(0, n - 1);
 
-    if top.0 <= TARGET_RANK {
-        top.1
+    if dp[uz] <= TARGET_RANK {
+        dq[uz].clone()
     } else {
         todo!("Not found")
     }
