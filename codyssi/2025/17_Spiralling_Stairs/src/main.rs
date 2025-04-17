@@ -180,6 +180,20 @@ fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
     g
 }
 
+fn inverse_graph(g: &[Vec<usize>]) -> Vec<Vec<usize>> {
+    let mut gg: Vec<Vec<usize>> = vec![vec![]; BASE * BASE];
+    for (u, adj) in g.iter().enumerate() {
+        for &v in adj.iter() {
+            gg[v].push(u);
+        }
+    }
+
+    for adj in gg.iter_mut() {
+        adj.sort();
+    }
+    gg
+}
+
 fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usize> {
     let top = paths_count_and_max_path(n, g, magnitudes);
 
