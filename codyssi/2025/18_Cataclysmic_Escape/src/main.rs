@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::HashSet,
     io::{BufRead, stdin},
 };
 
@@ -14,7 +14,6 @@ const MZ: i32 = 60;
 // const MZ: i32 = 5;
 const MA: i32 = 3;
 const TLIM: usize = 5000;
-const MAX_WAIT: usize = 4;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Crd(i32, i32, i32, i32);
@@ -22,10 +21,6 @@ struct Crd(i32, i32, i32, i32);
 impl Crd {
     fn from(xs: &[i32]) -> Crd {
         Crd(xs[0], xs[1], xs[2], xs[3])
-    }
-
-    fn zero() -> Crd {
-        Crd(0, 0, 0, 1)
     }
 
     fn to_vec(self) -> Vec<i32> {
@@ -134,40 +129,42 @@ impl Debris {
 }
 
 fn time_to_safety(debris_points_by_time: &[HashSet<Crd>]) -> usize {
-    let ua: (usize, Crd) = (0, Crd::zero());
-    let pz = Crd(MX - 1, MY - 1, MZ - 1, 1);
-    let mut visited: HashSet<Crd> = HashSet::from([Crd::zero()]);
-    let mut covered: HashSet<(usize, Crd)> = HashSet::from([ua]);
-    let mut queue: VecDeque<(usize, Crd)> = VecDeque::from([ua]);
+    let mx = MX as usize;
+    let my = MY as usize;
+    let mz = MZ as usize;
 
-    while let Some((t, p)) = queue.pop_front() {
-        assert!(visited.contains(&p));
-        if p != Crd::zero() && debris_points_by_time[t].contains(&p) {
-            continue;
-        }
-        if p == pz {
-            return t;
-        }
+    let mut dp: Vec<Vec<Vec<bool>>> = vec![vec![vec![false; mz]; my]; mx];
+    dp[0][0][0] = true;
 
-        for pp in p.adjacent() {
-            if !visited.contains(&pp) {
-                visited.insert(pp);
-                covered.insert((t + 1, pp));
-                queue.push_back((t + 1, pp));
+    for (t, debris) in debris_points_by_time.iter().enumerate().skip(1) {
+        let mut dq = vec![vec![vec![false; mz]; my]; mx];
+
+        for x in 0..mx {
+            for y in 0..my {
+                for z in 0..mz {
+                    if !dp[x][y][z] {
+                        continue;
+                    }
+
+                    let u = Crd(x as i32, y as i32, z as i32, 1);
+
+                    if (x, y, z) == (0, 0, 0) || !debris.contains(&u) {
+                        dq[x][y][z] = true;
+                    }
+
+                    for v in u.adjacent() {
+                        let Crd(vx, vy, vz, _) = v;
+                        if (vx, vy, vz) == (0, 0, 0) || !debris.contains(&v) {
+                            dq[vx as usize][vy as usize][vz as usize] = true;
+                        }
+                    }
+                }
             }
         }
 
-        let wait_states_num = (1..=MAX_WAIT)
-            .filter_map(|dt| {
-                let v = (t.saturating_sub(dt), p);
-                if covered.contains(&v) { Some(v) } else { None }
-            })
-            .unique()
-            .count();
-
-        if wait_states_num < MAX_WAIT {
-            covered.insert((t + 1, p));
-            queue.push_back((t + 1, p));
+        dp = dq;
+        if dp[mx - 1][my - 1][mz - 1] {
+            return t;
         }
     }
 
