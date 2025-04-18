@@ -3,9 +3,10 @@ use std::{
     io::{BufRead, stdin},
 };
 
+use itertools::Itertools;
+
 const BASE: usize = 150;
-//const TARGET_RANK: u128 = 100000000000000000000000000000;
-const TARGET_RANK: u128 = 16;
+const TARGET_RANK: u128 = 100000000000000000000000000000;
 
 fn parse_main_staircase_end(s: &str) -> usize {
     let ps: Vec<_> = s.split(" : ").collect();
@@ -192,19 +193,14 @@ fn target_rank_path(n: usize, g: &[Vec<usize>], magnitudes: &[usize]) -> Vec<usi
     let ua = vid(0, 0);
     let uz = vid(0, n - 1);
 
-    let mut rank = TARGET_RANK;
+    let mut offset = 0u128;
     let mut result = vec![ua];
 
     while *result.last().unwrap() != uz {
         let u = *result.last().unwrap();
-        for (iv, &v) in g[u].iter().enumerate() {
-            let is_last = iv == g[u].len() - 1;
-
-            if dp[v] < rank {
-                rank -= dp[v];
-                if is_last {
-                    result.push(v);
-                }
+        for v in valid_moves(g, magnitudes, u).into_iter().sorted() {
+            if offset + dp[v] < TARGET_RANK {
+                offset += dp[v];
             } else {
                 result.push(v);
                 break;
