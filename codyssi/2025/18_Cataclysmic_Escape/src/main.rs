@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashSet,
+    io::{BufRead, stdin},
+};
 
 use itertools::Itertools;
 use regex::Regex;
@@ -10,8 +13,9 @@ const MX: i32 = 3;
 const MY: i32 = 3;
 const MZ: i32 = 5;
 const MA: i32 = 3;
+const TLIM: usize = 5000;
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Crd(i32, i32, i32, i32);
 
 impl Crd {
@@ -140,5 +144,14 @@ fn main() {
         .collect();
 
     let all_debris: Vec<Debris> = particle_regions.into_iter().flatten().collect();
-    eprintln!("{}", all_debris.len());
+
+    let debris_points_by_time: Vec<HashSet<Crd>> = (0..TLIM)
+        .scan(all_debris, |state, _| {
+            for d in state.iter_mut() {
+                *d = d.tick();
+            }
+            Some(state.clone())
+        })
+        .map(|ds| ds.iter().map(|d| d.p).collect())
+        .collect();
 }
