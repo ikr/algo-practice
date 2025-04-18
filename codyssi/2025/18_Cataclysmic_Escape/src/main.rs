@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
 };
 
@@ -14,6 +14,7 @@ const MY: i32 = 3;
 const MZ: i32 = 5;
 const MA: i32 = 3;
 const TLIM: usize = 5000;
+const MAX_WAIT: usize = 4;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Crd(i32, i32, i32, i32);
@@ -21,6 +22,10 @@ struct Crd(i32, i32, i32, i32);
 impl Crd {
     fn from(xs: &[i32]) -> Crd {
         Crd(xs[0], xs[1], xs[2], xs[3])
+    }
+
+    fn zero() -> Crd {
+        Crd(0, 0, 0, 0)
     }
 
     fn to_vec(self) -> Vec<i32> {
@@ -34,6 +39,24 @@ impl Crd {
             (self.2 % MZ + MZ) % MZ,
             (self.3 % MA + MA) % MA,
         )
+    }
+
+    fn adjacent(self) -> Vec<Crd> {
+        let Crd(x, y, z, _) = self;
+
+        let rules = [
+            (x > 0, Crd(-1, 0, 0, 0)),
+            (x < MX - 1, Crd(1, 0, 0, 0)),
+            (y > 0, Crd(0, -1, 0, 0)),
+            (y < MY - 1, Crd(0, 1, 0, 0)),
+            (z > 0, Crd(0, 0, -1, 0)),
+            (z < MZ - 1, Crd(0, 0, 1, 0)),
+        ];
+
+        rules
+            .into_iter()
+            .filter_map(|(yes, delta)| if yes { Some(self + delta) } else { None })
+            .collect()
     }
 }
 
@@ -110,6 +133,48 @@ impl Debris {
     }
 }
 
+fn time_to_safety(debris_points_by_time: &[HashSet<Crd>]) -> usize {
+    let ua: (usize, Crd) = (0, Crd::zero());
+    let pz = Crd(MX - 1, MY - 1, MZ - 1, 0);
+    let mut visited: HashSet<Crd> = HashSet::from([Crd::zero()]);
+    let mut covered: HashSet<(usize, Crd)> = HashSet::from([ua]);
+    let mut q: VecDeque<(usize, Crd)> = VecDeque::from([ua]);
+
+    while let Some((t, p)) = q.pop_front() {
+        assert!(visited.contains(&p));
+        if p != Crd::zero() && debris_points_by_time[t].contains(&p) {
+            continue;
+        }
+        if p == pz {
+            return t;
+        }
+
+        for pp in p.adjacent() {
+            if !visited.contains(&pp) {
+                visited.insert(pp);
+                covered.insert((t + 1, pp));
+                q.push_back((t + 1, pp));
+            }
+        }
+
+        let wait_states_num = (1..=MAX_WAIT)
+            .filter_map(|dt| {
+                let v = (t.saturating_sub(dt), p);
+                if covered.contains(&v) { Some(v) } else { None }
+            })
+            .unique()
+            .count();
+
+        if wait_states_num < MAX_WAIT {
+            covered.insert((t + 1, p));
+            q.push_back((t + 1, p));
+        }
+        eprintln!("{:?}", q);
+    }
+
+    panic!("Not found")
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let rules: Vec<Rule> = lines.into_iter().map(|s| Rule::parse(&s)).collect();
@@ -154,4 +219,6 @@ fn main() {
         })
         .map(|ds| ds.iter().map(|d| d.p).collect())
         .collect();
+
+    println!("{}", time_to_safety(&debris_points_by_time));
 }
