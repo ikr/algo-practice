@@ -3,7 +3,15 @@ use std::io::{BufRead, stdin};
 use itertools::Itertools;
 use regex::Regex;
 
-#[derive(Clone, Copy, Debug)]
+// const MX: i32 = 10;
+// const MY: i32 = 15;
+// const MZ: i32 = 60;
+const MX: i32 = 3;
+const MY: i32 = 3;
+const MZ: i32 = 5;
+const MA: i32 = 3;
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct Crd(i32, i32, i32, i32);
 
 impl Crd {
@@ -13,6 +21,15 @@ impl Crd {
 
     fn to_vec(self) -> Vec<i32> {
         vec![self.0, self.1, self.2, self.3]
+    }
+
+    fn modulize(self) -> Crd {
+        Crd(
+            (self.0 % MX + MX) % MX,
+            (self.1 % MY + MY) % MY,
+            (self.2 % MZ + MZ) % MZ,
+            (self.3 % MA + MA) % MA,
+        )
     }
 }
 
@@ -74,31 +91,54 @@ impl Rule {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Debris {
+    p: Crd,
+    v: Crd,
+}
+
+impl Debris {
+    fn tick(self) -> Self {
+        Self {
+            p: (self.p + self.v).modulize(),
+            v: self.v,
+        }
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let rules: Vec<Rule> = lines.into_iter().map(|s| Rule::parse(&s)).collect();
 
     let space = [
-        (0..10).collect::<Vec<i32>>(),
-        (0..15).collect::<Vec<i32>>(),
-        (0..60).collect::<Vec<i32>>(),
+        (0..MX).collect::<Vec<i32>>(),
+        (0..MY).collect::<Vec<i32>>(),
+        (0..MZ).collect::<Vec<i32>>(),
         (-1..=1).collect::<Vec<i32>>(),
     ];
 
-    let region_counts: Vec<usize> = rules
+    let particle_regions: Vec<Vec<Debris>> = rules
         .into_iter()
         .map(|rule| {
             space
                 .iter()
                 .multi_cartesian_product()
-                .filter(|xs| {
+                .filter_map(|xs| {
                     let ys: Vec<i32> = xs.iter().map(|x| **x).collect();
                     let p: Crd = Crd::from(&ys);
-                    rule.pred.eval(p)
+                    if rule.pred.eval(p) {
+                        Some(Debris {
+                            p: p + Crd(0, 0, 0, 1),
+                            v: rule.velocity,
+                        })
+                    } else {
+                        None
+                    }
                 })
-                .count()
+                .collect()
         })
         .collect();
 
-    println!("{}", region_counts.into_iter().sum::<usize>());
+    let all_debris: Vec<Debris> = particle_regions.into_iter().flatten().collect();
+    eprintln!("{}", all_debris.len());
 }
