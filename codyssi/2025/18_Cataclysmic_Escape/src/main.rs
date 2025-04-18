@@ -1,5 +1,6 @@
 use std::io::{BufRead, stdin};
 
+use itertools::Itertools;
 use regex::Regex;
 
 #[derive(Clone, Copy, Debug)]
@@ -8,6 +9,10 @@ struct Crd(i32, i32, i32, i32);
 impl Crd {
     fn from(xs: &[i32]) -> Crd {
         Crd(xs[0], xs[1], xs[2], xs[3])
+    }
+
+    fn to_vec(self) -> Vec<i32> {
+        vec![self.0, self.1, self.2, self.3]
     }
 }
 
@@ -34,6 +39,13 @@ struct Pred {
     r: i32,
 }
 
+impl Pred {
+    fn eval(self, crd: Crd) -> bool {
+        let s: i32 = (self.coeffs * crd).to_vec().into_iter().sum();
+        ((s % self.q) + self.q) % self.q == self.r
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 struct Rule {
     pred: Pred,
@@ -43,8 +55,6 @@ struct Rule {
 impl Rule {
     fn parse(s: &str) -> Rule {
         let re = Regex::new(r"^RULE \d: (\d+)x\+(\d+)y\+(\d+)z\+(\d+)a DIVIDE (\d+) HAS REMAINDER (\d+) \| DEBRIS VELOCITY \((-1|0|1), (-1|0|1), (-1|0|1), (-1|0|1)\)$").unwrap();
-
-        eprintln!("{:?}", re.captures(s).unwrap());
 
         let nums: Vec<i32> = re
             .captures(s)
@@ -66,7 +76,29 @@ impl Rule {
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    eprintln!("{:?}", lines);
     let rules: Vec<Rule> = lines.into_iter().map(|s| Rule::parse(&s)).collect();
-    eprintln!("{:?}", rules);
+
+    let space = [
+        (0..10).collect::<Vec<i32>>(),
+        (0..15).collect::<Vec<i32>>(),
+        (0..60).collect::<Vec<i32>>(),
+        (-1..=1).collect::<Vec<i32>>(),
+    ];
+
+    let region_counts: Vec<usize> = rules
+        .into_iter()
+        .map(|rule| {
+            space
+                .iter()
+                .multi_cartesian_product()
+                .filter(|xs| {
+                    let ys: Vec<i32> = xs.iter().map(|x| **x).collect();
+                    let p: Crd = Crd::from(&ys);
+                    rule.pred.eval(p)
+                })
+                .count()
+        })
+        .collect();
+
+    println!("{}", region_counts.into_iter().sum::<usize>());
 }
