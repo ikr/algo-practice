@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::HashMap,
     io::{BufRead, stdin},
 };
 
@@ -13,7 +13,8 @@ const MZ: i32 = 60;
 // const MY: i32 = 3;
 // const MZ: i32 = 5;
 const MA: i32 = 3;
-const TLIM: usize = 5000;
+const TLIM: usize = 500;
+const HLIM: usize = 4;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Crd(i32, i32, i32, i32);
@@ -128,34 +129,46 @@ impl Debris {
     }
 }
 
-fn time_to_safety(debris_points_by_time: &[HashSet<Crd>]) -> usize {
+fn time_to_safety(debris_points_by_time: &[HashMap<Crd, usize>]) -> usize {
     let mx = MX as usize;
     let my = MY as usize;
     let mz = MZ as usize;
 
-    let mut dp: Vec<Vec<Vec<bool>>> = vec![vec![vec![false; mz]; my]; mx];
-    dp[0][0][0] = true;
+    let proto = vec![vec![vec![vec![false; 4]; mz]; my]; mx];
+    let mut dp: Vec<Vec<Vec<Vec<bool>>>> = proto.clone();
+    dp[0][0][0][0] = true;
 
     for (t, debris) in debris_points_by_time.iter().enumerate().skip(1) {
-        let mut dq = vec![vec![vec![false; mz]; my]; mx];
+        let mut dq = proto.clone();
 
         for x in 0..mx {
             for y in 0..my {
                 for z in 0..mz {
-                    if !dp[x][y][z] {
-                        continue;
-                    }
+                    for hits in 0..HLIM {
+                        if !dp[x][y][z][hits] {
+                            continue;
+                        }
 
-                    let u = Crd(x as i32, y as i32, z as i32, 1);
+                        let u = Crd(x as i32, y as i32, z as i32, 1);
+                        {
+                            let hnew: usize = *debris.get(&u).unwrap_or(&0);
 
-                    if (x, y, z) == (0, 0, 0) || !debris.contains(&u) {
-                        dq[x][y][z] = true;
-                    }
+                            if (x, y, z) == (0, 0, 0) {
+                                dq[x][y][z][hits] = true;
+                            } else if hits + hnew < HLIM {
+                                dq[x][y][z][hits + hnew] = true;
+                            }
+                        }
 
-                    for v in u.adjacent() {
-                        let Crd(vx, vy, vz, _) = v;
-                        if (vx, vy, vz) == (0, 0, 0) || !debris.contains(&v) {
-                            dq[vx as usize][vy as usize][vz as usize] = true;
+                        for v in u.adjacent() {
+                            let Crd(vx, vy, vz, _) = v;
+                            let hnew: usize = *debris.get(&v).unwrap_or(&0);
+
+                            if (vx, vy, vz) == (0, 0, 0) {
+                                dq[vx as usize][vy as usize][vz as usize][hits] = true;
+                            } else if hits + hnew < HLIM {
+                                dq[vx as usize][vy as usize][vz as usize][hits + hnew] = true;
+                            }
                         }
                     }
                 }
@@ -163,7 +176,7 @@ fn time_to_safety(debris_points_by_time: &[HashSet<Crd>]) -> usize {
         }
 
         dp = dq;
-        if dp[mx - 1][my - 1][mz - 1] {
+        if dp[mx - 1][my - 1][mz - 1].iter().any(|x| *x) {
             return t;
         }
     }
@@ -206,14 +219,14 @@ fn main() {
 
     let all_debris: Vec<Debris> = particle_regions.into_iter().flatten().collect();
 
-    let debris_points_by_time: Vec<HashSet<Crd>> = (0..TLIM)
+    let debris_points_by_time: Vec<HashMap<Crd, usize>> = (0..TLIM)
         .scan(all_debris, |state, _| {
             for d in state.iter_mut() {
                 *d = d.tick();
             }
             Some(state.clone())
         })
-        .map(|ds| ds.iter().map(|d| d.p).collect())
+        .map(|ds| ds.iter().map(|d| d.p).counts())
         .collect();
 
     println!("{}", time_to_safety(&debris_points_by_time) + 1);
