@@ -6,12 +6,12 @@ use std::{
 use itertools::Itertools;
 use regex::Regex;
 
-// const MX: i32 = 10;
-// const MY: i32 = 15;
-// const MZ: i32 = 60;
-const MX: i32 = 3;
-const MY: i32 = 3;
-const MZ: i32 = 5;
+const MX: i32 = 10;
+const MY: i32 = 15;
+const MZ: i32 = 60;
+// const MX: i32 = 3;
+// const MY: i32 = 3;
+// const MZ: i32 = 5;
 const MA: i32 = 3;
 const TLIM: usize = 5000;
 const MAX_WAIT: usize = 4;
@@ -25,7 +25,7 @@ impl Crd {
     }
 
     fn zero() -> Crd {
-        Crd(0, 0, 0, 0)
+        Crd(0, 0, 0, 1)
     }
 
     fn to_vec(self) -> Vec<i32> {
@@ -135,12 +135,12 @@ impl Debris {
 
 fn time_to_safety(debris_points_by_time: &[HashSet<Crd>]) -> usize {
     let ua: (usize, Crd) = (0, Crd::zero());
-    let pz = Crd(MX - 1, MY - 1, MZ - 1, 0);
+    let pz = Crd(MX - 1, MY - 1, MZ - 1, 1);
     let mut visited: HashSet<Crd> = HashSet::from([Crd::zero()]);
     let mut covered: HashSet<(usize, Crd)> = HashSet::from([ua]);
-    let mut q: VecDeque<(usize, Crd)> = VecDeque::from([ua]);
+    let mut queue: VecDeque<(usize, Crd)> = VecDeque::from([ua]);
 
-    while let Some((t, p)) = q.pop_front() {
+    while let Some((t, p)) = queue.pop_front() {
         assert!(visited.contains(&p));
         if p != Crd::zero() && debris_points_by_time[t].contains(&p) {
             continue;
@@ -153,7 +153,7 @@ fn time_to_safety(debris_points_by_time: &[HashSet<Crd>]) -> usize {
             if !visited.contains(&pp) {
                 visited.insert(pp);
                 covered.insert((t + 1, pp));
-                q.push_back((t + 1, pp));
+                queue.push_back((t + 1, pp));
             }
         }
 
@@ -167,9 +167,8 @@ fn time_to_safety(debris_points_by_time: &[HashSet<Crd>]) -> usize {
 
         if wait_states_num < MAX_WAIT {
             covered.insert((t + 1, p));
-            q.push_back((t + 1, p));
+            queue.push_back((t + 1, p));
         }
-        eprintln!("{:?}", q);
     }
 
     panic!("Not found")
@@ -220,5 +219,5 @@ fn main() {
         .map(|ds| ds.iter().map(|d| d.p).collect())
         .collect();
 
-    println!("{}", time_to_safety(&debris_points_by_time));
+    println!("{}", time_to_safety(&debris_points_by_time) + 1);
 }
