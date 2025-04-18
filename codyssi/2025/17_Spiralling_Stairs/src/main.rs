@@ -169,9 +169,6 @@ fn staircases_graph(n: usize, branches: &[StaircaseBranch]) -> Vec<Vec<usize>> {
 
         g[vid(b.id, j)].push(vid(b.destination_id, j));
     }
-    for adj in g.iter_mut() {
-        adj.sort();
-    }
     g
 }
 
@@ -181,9 +178,6 @@ fn inverse_graph(g: &[Vec<usize>]) -> Vec<Vec<usize>> {
         for &v in adj.iter() {
             gg[v].push(u);
         }
-    }
-    for adj in gg.iter_mut() {
-        adj.sort();
     }
     gg
 }
