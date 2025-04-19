@@ -12,7 +12,7 @@ enum Dir {
 }
 
 impl Dir {
-    fn bit(&self) -> u8 {
+    fn bit(self) -> u8 {
         match self {
             Dir::N => 1,
             Dir::E => 2,
@@ -23,6 +23,15 @@ impl Dir {
 
     fn all() -> Vec<Dir> {
         vec![Dir::N, Dir::E, Dir::S, Dir::W]
+    }
+
+    fn rotate(self) -> Dir {
+        match self {
+            Dir::N => Dir::E,
+            Dir::E => Dir::S,
+            Dir::S => Dir::W,
+            Dir::W => Dir::N,
+        }
     }
 }
 
@@ -35,12 +44,22 @@ impl Connectivity {
         Self(bits)
     }
 
-    fn dirs(&self) -> Vec<Dir> {
+    fn dirs(self) -> Vec<Dir> {
         Dir::all()
             .iter()
             .filter(|dir| self.0 & dir.bit() != 0)
             .copied()
             .collect()
+    }
+
+    fn rotate(self) -> Self {
+        Self::new(
+            &self
+                .dirs()
+                .into_iter()
+                .map(|d| d.rotate())
+                .collect::<Vec<_>>(),
+        )
     }
 }
 
