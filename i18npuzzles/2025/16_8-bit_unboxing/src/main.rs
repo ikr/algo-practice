@@ -74,6 +74,31 @@ impl Connectivity {
     fn is_empty(self) -> bool {
         self.0 == 0
     }
+
+    fn as_char(self) -> char {
+        match self.0 {
+            0 => ' ',
+            3 => '└',
+            5 => '│',
+            6 => '┌',
+            7 => '├',
+            9 => '┘',
+            10 => '─',
+            11 => '┴',
+            12 => '┐',
+            13 => '┤',
+            14 => '┬',
+            15 => '┼',
+            _ => panic!("Connectivity {} is impossible", self.0),
+        }
+    }
+}
+
+fn display_grid(grid: &[Vec<Connectivity>]) {
+    for row in grid.iter() {
+        let s: String = row.iter().map(|conn| conn.as_char()).collect();
+        eprintln!("{}", s);
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -230,13 +255,16 @@ fn min_rotations(mut grid: Vec<Vec<Connectivity>>) -> usize {
     let mut visited: Vec<Vec<bool>> = vec![vec![false; w]; h];
     visited[i0][j0] = true;
     assert!(connected_to_all_visited(&grid, &visited, i0, j0));
+    display_grid(&grid);
 
     let mut queue: VecDeque<(usize, usize)> = VecDeque::from([(i0, j0)]);
     while let Some((ui, uj)) = queue.pop_front() {
+        eprintln!("ui:{} uj:{}", ui, uj);
         while !connected_to_all_visited(&grid, &visited, ui, uj) {
             grid[ui][uj] = grid[ui][uj].rotate();
             result += 1;
         }
+        display_grid(&grid);
         for (vi, vj, _) in adjacent(&grid, ui, uj) {
             if !visited[vi][vj] {
                 visited[vi][vj] = true;
