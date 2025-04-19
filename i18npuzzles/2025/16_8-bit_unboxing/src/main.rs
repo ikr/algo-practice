@@ -187,44 +187,61 @@ fn first_non_empty(grid: &[Vec<Connectivity>]) -> (usize, usize) {
     panic!("Not found")
 }
 
+fn adjacent(grid: &[Vec<Connectivity>], i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+    let h = grid.len();
+    let w = grid[0].len();
+    let mut result = vec![];
+    if i != 0 {
+        result.push((i - 1, j, Dir::N));
+    }
+    if i < h - 1 {
+        result.push((i + 1, j, Dir::S));
+    }
+    if j != 0 {
+        result.push((i, j - 1, Dir::W));
+    }
+    if j < w - 1 {
+        result.push((i, j + 1, Dir::E));
+    }
+    result
+        .into_iter()
+        .filter(|(r, c, _)| !grid[*r][*c].is_empty())
+        .collect()
+}
+
+fn connected_to_all_visited(
+    grid: &[Vec<Connectivity>],
+    visited: &[Vec<bool>],
+    i: usize,
+    j: usize,
+) -> bool {
+    adjacent(grid, i, j)
+        .into_iter()
+        .filter(|(r, c, _)| visited[*r][*c])
+        .all(|(ai, aj, dir)| grid[ai][aj].dirs().contains(&dir.opposite()))
+}
+
 fn min_rotations(mut grid: Vec<Vec<Connectivity>>) -> usize {
     let (i0, j0) = first_non_empty(&grid);
     let h = grid.len();
     let w = grid[0].len();
 
-    let adjacent = |i: usize, j: usize| -> Vec<(usize, usize, Dir)> {
-        let mut result = vec![];
-        if i != 0 {
-            result.push((i - 1, j, Dir::N));
-        }
-        if i < h - 1 {
-            result.push((i + 1, j, Dir::S));
-        }
-        if j != 0 {
-            result.push((i, j - 1, Dir::W));
-        }
-        if j < w - 1 {
-            result.push((i, j + 1, Dir::E));
-        }
-        result
-    };
-
     let mut result = 0;
     let mut visited: Vec<Vec<bool>> = vec![vec![false; w]; h];
     visited[i0][j0] = true;
-
-    let connected_to_all_visited = |i: usize, j: usize| -> bool {
-        adjacent(i, j)
-            .into_iter()
-            .filter(|(r, c, _)| visited[*r][*c])
-            .all(|(ai, aj, dir)| grid[ai][aj].dirs().contains(&dir.opposite()))
-    };
-    assert!(connected_to_all_visited(i0, j0));
+    assert!(connected_to_all_visited(&grid, &visited, i0, j0));
 
     let mut queue: VecDeque<(usize, usize)> = VecDeque::from([(i0, j0)]);
     while let Some((ui, uj)) = queue.pop_front() {
-        while !connected_to_all_visited(ui, uj) {
+        while !connected_to_all_visited(&grid, &visited, ui, uj) {
             grid[ui][uj] = grid[ui][uj].rotate();
+            result += 1;
+        }
+        for (vi, vj, _) in adjacent(&grid, ui, uj) {
+            if !visited[vi][vj] {
+                visited[vi][vj] = true;
+                queue.push_back((vi, vj));
+            }
         }
     }
     result
