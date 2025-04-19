@@ -1,9 +1,9 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, VecDeque},
     io::{Read, stdin},
 };
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Dir {
     N,
     E,
@@ -33,6 +33,15 @@ impl Dir {
             Dir::W => Dir::N,
         }
     }
+
+    fn opposite(self) -> Dir {
+        match self {
+            Dir::N => Dir::S,
+            Dir::E => Dir::W,
+            Dir::S => Dir::N,
+            Dir::W => Dir::E,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -60,6 +69,10 @@ impl Connectivity {
                 .map(|d| d.rotate())
                 .collect::<Vec<_>>(),
         )
+    }
+
+    fn is_empty(self) -> bool {
+        self.0 == 0
     }
 }
 
@@ -148,7 +161,7 @@ fn read_input_bytes() -> Vec<Vec<u8>> {
 }
 
 fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
-    if proto_lines[0].chars().next().unwrap() == ' ' {
+    if proto_lines[0].starts_with(' ') {
         let n = proto_lines.len();
         let m = proto_lines[0].chars().count();
         proto_lines[3..n - 4]
@@ -161,6 +174,60 @@ fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
     } else {
         proto_lines
     }
+}
+
+fn first_non_empty(grid: &[Vec<Connectivity>]) -> (usize, usize) {
+    for (i, row) in grid.iter().enumerate() {
+        for (j, cell) in row.iter().enumerate() {
+            if !cell.is_empty() {
+                return (i, j);
+            }
+        }
+    }
+    panic!("Not found")
+}
+
+fn min_rotations(mut grid: Vec<Vec<Connectivity>>) -> usize {
+    let (i0, j0) = first_non_empty(&grid);
+    let h = grid.len();
+    let w = grid[0].len();
+
+    let adjacent = |i: usize, j: usize| -> Vec<(usize, usize, Dir)> {
+        let mut result = vec![];
+        if i != 0 {
+            result.push((i - 1, j, Dir::N));
+        }
+        if i < h - 1 {
+            result.push((i + 1, j, Dir::S));
+        }
+        if j != 0 {
+            result.push((i, j - 1, Dir::W));
+        }
+        if j < w - 1 {
+            result.push((i, j + 1, Dir::E));
+        }
+        result
+    };
+
+    let mut result = 0;
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; w]; h];
+    visited[i0][j0] = true;
+
+    let connected_to_all_visited = |i: usize, j: usize| -> bool {
+        adjacent(i, j)
+            .into_iter()
+            .filter(|(r, c, _)| visited[*r][*c])
+            .all(|(ai, aj, dir)| grid[ai][aj].dirs().contains(&dir.opposite()))
+    };
+    assert!(connected_to_all_visited(i0, j0));
+
+    let mut queue: VecDeque<(usize, usize)> = VecDeque::from([(i0, j0)]);
+    while let Some((ui, uj)) = queue.pop_front() {
+        while !connected_to_all_visited(ui, uj) {
+            grid[ui][uj] = grid[ui][uj].rotate();
+        }
+    }
+    result
 }
 
 fn main() {
@@ -179,13 +246,27 @@ fn main() {
     };
 
     let proto_lines: Vec<String> = bytes.into_iter().map(|xs| translate_row(&xs)).collect();
-    for line in proto_lines.iter() {
-        eprintln!("{}", line);
-    }
-    eprintln!("---------------");
-
     let lines = remove_decorative_frame(proto_lines);
-    for line in lines {
-        eprintln!("{}", line);
-    }
+
+    let connectivity_by_char: HashMap<char, Connectivity> = glyphs_by_byte
+        .into_values()
+        .map(|g| (g.unicode, g.connectivity))
+        .collect();
+
+    let grid: Vec<Vec<Connectivity>> = lines
+        .into_iter()
+        .map(|line| {
+            line.chars()
+                .map(|c| {
+                    if let Some(conn) = connectivity_by_char.get(&c) {
+                        *conn
+                    } else {
+                        Connectivity::new(&[])
+                    }
+                })
+                .collect()
+        })
+        .collect();
+
+    println!("{}", min_rotations(grid));
 }
