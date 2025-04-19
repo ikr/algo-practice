@@ -22,21 +22,15 @@ fn equi_class(n: isize, ab: (isize, isize)) -> isize {
     let (a, b) = ab;
     if mod_distance_to_zero(n, a) <= mod_distance_to_zero(n, b) {
         let d = mod_diff_to_zero(n, a);
-        assert!(b - d > 0 && b - d < n);
-        b - d
+        (b - d + n) % n
     } else {
         let d = mod_diff_to_zero(n, b);
-        assert!(a - d > 0 && a - d < n);
-        a - d
+        (a - d + n) % n
     }
 }
 
 fn solve(n: isize, ab: &[(isize, isize)]) -> usize {
-    if n % 2 != 0 {
-        return num_pairs(ab.len());
-    }
-
-    let fq = ab.iter().map(|ab| equi_class(n, *ab)).counts();
+    let fq = ab.iter().map(|x| equi_class(n, *x)).counts();
     let mut result = num_pairs(ab.len());
     for (_, f) in fq {
         result -= num_pairs(f);
