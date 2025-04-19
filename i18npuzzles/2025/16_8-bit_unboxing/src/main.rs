@@ -128,6 +128,22 @@ fn read_input_bytes() -> Vec<Vec<u8>> {
     lines
 }
 
+fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
+    if proto_lines[0].chars().next().unwrap() == ' ' {
+        let n = proto_lines.len();
+        let m = proto_lines[0].chars().count();
+        proto_lines[3..n - 4]
+            .iter()
+            .map(|line| {
+                let cs: Vec<char> = line.chars().collect();
+                cs[6..m - 8].iter().collect()
+            })
+            .collect()
+    } else {
+        proto_lines
+    }
+}
+
 fn main() {
     let bytes = read_input_bytes();
     let glyphs_by_byte = cp_437();
@@ -143,7 +159,13 @@ fn main() {
             .collect()
     };
 
-    let lines: Vec<String> = bytes.into_iter().map(|xs| translate_row(&xs)).collect();
+    let proto_lines: Vec<String> = bytes.into_iter().map(|xs| translate_row(&xs)).collect();
+    for line in proto_lines.iter() {
+        eprintln!("{}", line);
+    }
+    eprintln!("---------------");
+
+    let lines = remove_decorative_frame(proto_lines);
     for line in lines {
         eprintln!("{}", line);
     }
