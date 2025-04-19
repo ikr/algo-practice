@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{BufRead, stdin},
+    io::{Read, stdin},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -52,6 +52,7 @@ struct Glyph {
 
 fn cp_437() -> HashMap<u8, Glyph> {
     let box_glyph_sources_range: Vec<(char, &[Dir])> = vec![
+        ('│', &[Dir::N, Dir::S]),
         ('┤', &[Dir::N, Dir::S, Dir::W]),
         ('╡', &[Dir::N, Dir::S, Dir::W]),
         ('╢', &[Dir::N, Dir::S, Dir::W]),
@@ -92,7 +93,7 @@ fn cp_437() -> HashMap<u8, Glyph> {
         ('┘', &[Dir::N, Dir::W]),
         ('┌', &[Dir::E, Dir::S]),
     ];
-    let origin: u8 = 180;
+    let origin: u8 = 179;
     box_glyph_sources_range
         .into_iter()
         .enumerate()
@@ -107,7 +108,43 @@ fn cp_437() -> HashMap<u8, Glyph> {
         .collect()
 }
 
+fn read_input_bytes() -> Vec<Vec<u8>> {
+    let reader = stdin().lock().bytes();
+    let mut lines = vec![];
+    let mut current_line = vec![];
+
+    for maybe_byte in reader {
+        let byte = maybe_byte.unwrap();
+        if byte == b'\n' {
+            lines.push(current_line);
+            current_line = Vec::new();
+        } else {
+            current_line.push(byte);
+        }
+    }
+    if !current_line.is_empty() {
+        lines.push(current_line);
+    }
+    lines
+}
+
 fn main() {
-    let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    eprintln!("{:?}", lines);
+    let bytes = read_input_bytes();
+    let glyphs_by_byte = cp_437();
+    let translate_row = |xs: &[u8]| -> String {
+        xs.iter()
+            .map(|x| {
+                if let Some(g) = glyphs_by_byte.get(x) {
+                    g.unicode
+                } else {
+                    ' '
+                }
+            })
+            .collect()
+    };
+
+    let lines: Vec<String> = bytes.into_iter().map(|xs| translate_row(&xs)).collect();
+    for line in lines {
+        eprintln!("{}", line);
+    }
 }
