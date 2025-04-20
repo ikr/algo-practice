@@ -182,15 +182,18 @@ fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
     if proto_lines[0].starts_with(' ') {
         let n = proto_lines.len();
         let m = proto_lines[0].chars().count();
-        proto_lines[3..n - 4]
+        proto_lines[4..n - 5]
             .iter()
             .map(|line| {
                 let cs: Vec<char> = line.chars().collect();
-                cs[6..m - 8].iter().collect()
+                cs[7..m - 8].iter().collect()
             })
             .collect()
     } else {
         proto_lines
+            .into_iter()
+            .map(|line| line.strip_suffix(' ').unwrap().to_string())
+            .collect()
     }
 }
 
@@ -203,6 +206,8 @@ impl Model {
     fn new(grid: Vec<Vec<Connectivity>>) -> Self {
         let h = grid.len();
         let w = grid[0].len();
+        assert_ne!(grid[0][0].0, 0);
+        assert_ne!(grid[h - 1][w - 1].0, 0);
         let visited: Vec<Vec<bool>> = vec![vec![false; w]; h];
         Self { grid, visited }
     }
@@ -212,17 +217,6 @@ impl Model {
             let s: String = row.iter().map(|conn| conn.as_char()).collect();
             eprintln!("{}", s);
         }
-    }
-
-    fn first_non_empty(&self) -> (usize, usize) {
-        for (i, row) in self.grid.iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {
-                if !cell.is_empty() {
-                    return (i, j);
-                }
-            }
-        }
-        panic!("Not found")
     }
 
     fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
@@ -293,4 +287,5 @@ fn main() {
     let mut model = Model::new(grid);
     model.display_grid();
     println!("{}", model.build_pipeline_return_min_rotations());
+    model.display_grid();
 }
