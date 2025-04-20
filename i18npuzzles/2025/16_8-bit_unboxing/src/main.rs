@@ -71,10 +71,6 @@ impl Connectivity {
         )
     }
 
-    fn is_empty(self) -> bool {
-        self.0 == 0
-    }
-
     fn as_char(self) -> char {
         match self.0 {
             0 => ' ',
@@ -219,44 +215,54 @@ impl Model {
         }
     }
 
-    fn is_fully_plugged(&self, i: usize, j: usize) -> bool {
+    fn loose_ends(&self, i: usize, j: usize) -> Vec<Dir> {
         let h = self.grid.len();
         let w = self.grid[0].len();
 
-        self.grid[i][j].dirs().into_iter().all(|dir| match dir {
-            Dir::N => {
-                if i == 0 {
-                    j == 0
-                } else {
-                    todo!()
+        self.grid[i][j]
+            .dirs()
+            .into_iter()
+            .filter(|dir| match dir {
+                Dir::N => {
+                    if i == 0 {
+                        j != 0
+                    } else {
+                        dir.bit() & self.grid[i - 1][j].0 == 0
+                    }
                 }
-            }
-            Dir::E => {
-                if j == w - 1 {
-                    false
-                } else {
-                    todo!()
+                Dir::E => {
+                    if j == w - 1 {
+                        true
+                    } else {
+                        dir.bit() & self.grid[i][j + 1].0 == 0
+                    }
                 }
-            }
-            Dir::S => {
-                if i == h - 1 {
-                    j == w - 1
-                } else {
-                    todo!()
+                Dir::S => {
+                    if i == h - 1 {
+                        j != w - 1
+                    } else {
+                        dir.bit() & self.grid[i + 1][j].0 == 0
+                    }
                 }
-            }
-            Dir::W => {
-                if j == 0 {
-                    false
-                } else {
-                    todo!()
+                Dir::W => {
+                    if j == 0 {
+                        true
+                    } else {
+                        dir.bit() & self.grid[i][j - 1].0 == 0
+                    }
                 }
-            }
-        })
+            })
+            .collect()
+    }
+
+    fn explore(&mut self, i: usize, j: usize) -> Option<usize> {
+        todo!()
     }
 
     fn build_pipeline_return_min_rotations(&mut self) -> usize {
-        todo!()
+        self.frozen[0][0] = true;
+        assert!(self.loose_ends(0, 0).is_empty());
+        self.explore(0, 0).unwrap()
     }
 }
 
