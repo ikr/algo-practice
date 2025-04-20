@@ -274,7 +274,6 @@ impl Model {
     }
 
     fn explore(&mut self, i: usize, j: usize) -> Option<usize> {
-        eprintln!("i:{} j:{}", i, j);
         self.frozen[i][j] = true;
 
         if self.is_wired(i, j) {
@@ -291,7 +290,6 @@ impl Model {
                 .sum();
             Some(s)
         } else {
-            eprintln!("({} {}) isn't wired", i, j);
             todo!()
         }
     }
