@@ -215,53 +215,90 @@ impl Model {
         }
     }
 
-    fn loose_ends(&self, i: usize, j: usize) -> Vec<Dir> {
+    fn is_wired(&self, i: usize, j: usize) -> bool {
         let h = self.grid.len();
         let w = self.grid[0].len();
 
-        self.grid[i][j]
-            .dirs()
+        self.grid[i][j].dirs().into_iter().all(|dir| match dir {
+            Dir::N => {
+                if i == 0 {
+                    j == 0
+                } else {
+                    self.grid[i - 1][j].dirs().contains(&dir.opposite())
+                }
+            }
+            Dir::E => {
+                if j == w - 1 {
+                    false
+                } else {
+                    self.grid[i][j + 1].dirs().contains(&dir.opposite())
+                }
+            }
+            Dir::S => {
+                if i == h - 1 {
+                    j == w - 1
+                } else {
+                    self.grid[i + 1][j].dirs().contains(&dir.opposite())
+                }
+            }
+            Dir::W => {
+                if j == 0 {
+                    false
+                } else {
+                    self.grid[i][j - 1].dirs().contains(&dir.opposite())
+                }
+            }
+        })
+    }
+
+    fn outbound(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+        let mut result = vec![];
+        if i != 0 {
+            result.push((i - 1, j, Dir::N));
+        }
+        if i < h - 1 {
+            result.push((i + 1, j, Dir::S));
+        }
+        if j != 0 {
+            result.push((i, j - 1, Dir::W));
+        }
+        if j < w - 1 {
+            result.push((i, j + 1, Dir::E));
+        }
+        result
             .into_iter()
-            .filter(|dir| match dir {
-                Dir::N => {
-                    if i == 0 {
-                        j != 0
-                    } else {
-                        dir.bit() & self.grid[i - 1][j].0 == 0
-                    }
-                }
-                Dir::E => {
-                    if j == w - 1 {
-                        true
-                    } else {
-                        dir.bit() & self.grid[i][j + 1].0 == 0
-                    }
-                }
-                Dir::S => {
-                    if i == h - 1 {
-                        j != w - 1
-                    } else {
-                        dir.bit() & self.grid[i + 1][j].0 == 0
-                    }
-                }
-                Dir::W => {
-                    if j == 0 {
-                        true
-                    } else {
-                        dir.bit() & self.grid[i][j - 1].0 == 0
-                    }
-                }
-            })
+            .filter(|(_, _, dir)| self.grid[i][j].0 & dir.bit() != 0)
             .collect()
     }
 
     fn explore(&mut self, i: usize, j: usize) -> Option<usize> {
-        todo!()
+        eprintln!("i:{} j:{}", i, j);
+        self.frozen[i][j] = true;
+
+        if self.is_wired(i, j) {
+            let s: usize = self
+                .outbound(i, j)
+                .into_iter()
+                .filter_map(|(oi, oj, _)| {
+                    if self.frozen[oi][oj] {
+                        None
+                    } else {
+                        Some(self.explore(oi, oj).unwrap())
+                    }
+                })
+                .sum();
+            Some(s)
+        } else {
+            eprintln!("({} {}) isn't wired", i, j);
+            todo!()
+        }
     }
 
     fn build_pipeline_return_min_rotations(&mut self) -> usize {
-        self.frozen[0][0] = true;
-        assert!(self.loose_ends(0, 0).is_empty());
+        assert!(self.is_wired(0, 0));
+        eprintln!("{:?}", self.grid[0]);
         self.explore(0, 0).unwrap()
     }
 }
