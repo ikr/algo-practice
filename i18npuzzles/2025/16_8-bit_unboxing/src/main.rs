@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::HashMap,
     io::{Read, stdin},
 };
 
@@ -91,13 +91,6 @@ impl Connectivity {
             15 => '┼',
             _ => panic!("Connectivity {} is impossible", self.0),
         }
-    }
-}
-
-fn display_grid(grid: &[Vec<Connectivity>]) {
-    for row in grid.iter() {
-        let s: String = row.iter().map(|conn| conn.as_char()).collect();
-        eprintln!("{}", s);
     }
 }
 
@@ -201,78 +194,62 @@ fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
     }
 }
 
-fn first_non_empty(grid: &[Vec<Connectivity>]) -> (usize, usize) {
-    for (i, row) in grid.iter().enumerate() {
-        for (j, cell) in row.iter().enumerate() {
-            if !cell.is_empty() {
-                return (i, j);
+struct Model {
+    grid: Vec<Vec<Connectivity>>,
+    visited: Vec<Vec<bool>>,
+}
+
+impl Model {
+    fn new(grid: Vec<Vec<Connectivity>>) -> Self {
+        let h = grid.len();
+        let w = grid[0].len();
+        let visited: Vec<Vec<bool>> = vec![vec![false; w]; h];
+        Self { grid, visited }
+    }
+
+    fn display_grid(&self) {
+        for row in self.grid.iter() {
+            let s: String = row.iter().map(|conn| conn.as_char()).collect();
+            eprintln!("{}", s);
+        }
+    }
+
+    fn first_non_empty(&self) -> (usize, usize) {
+        for (i, row) in self.grid.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                if !cell.is_empty() {
+                    return (i, j);
+                }
             }
         }
+        panic!("Not found")
     }
-    panic!("Not found")
-}
 
-fn adjacent(grid: &[Vec<Connectivity>], i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
-    let h = grid.len();
-    let w = grid[0].len();
-    let mut result = vec![];
-    if i != 0 {
-        result.push((i - 1, j, Dir::N));
-    }
-    if i < h - 1 {
-        result.push((i + 1, j, Dir::S));
-    }
-    if j != 0 {
-        result.push((i, j - 1, Dir::W));
-    }
-    if j < w - 1 {
-        result.push((i, j + 1, Dir::E));
-    }
-    result
-        .into_iter()
-        .filter(|(r, c, _)| !grid[*r][*c].is_empty())
-        .collect()
-}
-
-fn connected_to_all_visited(
-    grid: &[Vec<Connectivity>],
-    visited: &[Vec<bool>],
-    i: usize,
-    j: usize,
-) -> bool {
-    adjacent(grid, i, j)
-        .into_iter()
-        .filter(|(r, c, _)| visited[*r][*c])
-        .all(|(ai, aj, dir)| grid[ai][aj].dirs().contains(&dir.opposite()))
-}
-
-fn min_rotations(mut grid: Vec<Vec<Connectivity>>) -> usize {
-    let (i0, j0) = first_non_empty(&grid);
-    let h = grid.len();
-    let w = grid[0].len();
-
-    let mut result = 0;
-    let mut visited: Vec<Vec<bool>> = vec![vec![false; w]; h];
-    visited[i0][j0] = true;
-    assert!(connected_to_all_visited(&grid, &visited, i0, j0));
-    display_grid(&grid);
-
-    let mut queue: VecDeque<(usize, usize)> = VecDeque::from([(i0, j0)]);
-    while let Some((ui, uj)) = queue.pop_front() {
-        eprintln!("ui:{} uj:{}", ui, uj);
-        while !connected_to_all_visited(&grid, &visited, ui, uj) {
-            grid[ui][uj] = grid[ui][uj].rotate();
-            result += 1;
+    fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+        let mut result = vec![];
+        if i != 0 {
+            result.push((i - 1, j, Dir::N));
         }
-        display_grid(&grid);
-        for (vi, vj, _) in adjacent(&grid, ui, uj) {
-            if !visited[vi][vj] {
-                visited[vi][vj] = true;
-                queue.push_back((vi, vj));
-            }
+        if i < h - 1 {
+            result.push((i + 1, j, Dir::S));
         }
+        if j != 0 {
+            result.push((i, j - 1, Dir::W));
+        }
+        if j < w - 1 {
+            result.push((i, j + 1, Dir::E));
+        }
+        result
+            .into_iter()
+            .filter(|(_, _, dir)| self.grid[i][j].0 & dir.bit() != 0)
+            .collect()
     }
-    result
+
+    fn build_pipeline_return_min_rotations(&mut self) -> usize {
+        todo!()
+    }
 }
 
 fn main() {
@@ -313,5 +290,7 @@ fn main() {
         })
         .collect();
 
-    println!("{}", min_rotations(grid));
+    let mut model = Model::new(grid);
+    model.display_grid();
+    println!("{}", model.build_pipeline_return_min_rotations());
 }
