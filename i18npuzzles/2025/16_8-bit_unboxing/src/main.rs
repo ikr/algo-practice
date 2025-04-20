@@ -199,7 +199,7 @@ fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
 
 struct Model {
     grid: Vec<Vec<Connectivity>>,
-    visited: Vec<Vec<bool>>,
+    frozen: Vec<Vec<bool>>,
 }
 
 impl Model {
@@ -208,8 +208,8 @@ impl Model {
         let w = grid[0].len();
         assert_ne!(grid[0][0].0, 0);
         assert_ne!(grid[h - 1][w - 1].0, 0);
-        let visited: Vec<Vec<bool>> = vec![vec![false; w]; h];
-        Self { grid, visited }
+        let frozen: Vec<Vec<bool>> = vec![vec![false; w]; h];
+        Self { grid, frozen }
     }
 
     fn display_grid(&self) {
@@ -219,26 +219,40 @@ impl Model {
         }
     }
 
-    fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+    fn is_fully_plugged(&self, i: usize, j: usize) -> bool {
         let h = self.grid.len();
         let w = self.grid[0].len();
-        let mut result = vec![];
-        if i != 0 {
-            result.push((i - 1, j, Dir::N));
-        }
-        if i < h - 1 {
-            result.push((i + 1, j, Dir::S));
-        }
-        if j != 0 {
-            result.push((i, j - 1, Dir::W));
-        }
-        if j < w - 1 {
-            result.push((i, j + 1, Dir::E));
-        }
-        result
-            .into_iter()
-            .filter(|(_, _, dir)| self.grid[i][j].0 & dir.bit() != 0)
-            .collect()
+
+        self.grid[i][j].dirs().into_iter().all(|dir| match dir {
+            Dir::N => {
+                if i == 0 {
+                    j == 0
+                } else {
+                    todo!()
+                }
+            }
+            Dir::E => {
+                if j == w - 1 {
+                    false
+                } else {
+                    todo!()
+                }
+            }
+            Dir::S => {
+                if i == h - 1 {
+                    j == w - 1
+                } else {
+                    todo!()
+                }
+            }
+            Dir::W => {
+                if j == 0 {
+                    false
+                } else {
+                    todo!()
+                }
+            }
+        })
     }
 
     fn build_pipeline_return_min_rotations(&mut self) -> usize {
