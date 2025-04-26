@@ -248,13 +248,6 @@ impl Model {
         result
     }
 
-    fn frozen_neighs(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
-        self.adjacent(i, j)
-            .into_iter()
-            .filter(|(ai, aj, _)| self.frozen[*ai][*aj])
-            .collect()
-    }
-
     fn is_direction_wired(&self, i: usize, j: usize, dir: Dir) -> bool {
         if !self.grid[i][j].dirs().contains(&dir) {
             return false;
@@ -296,6 +289,7 @@ impl Model {
     }
 
     fn explore(&mut self, i: usize, j: usize, from_dir: Dir) -> Option<usize> {
+        eprintln!("{:?}", (i, j, from_dir));
         if self.grid[i][j].is_empty() {
             return None;
         }
@@ -303,31 +297,35 @@ impl Model {
 
         let adj = self.adjacent(i, j);
         let adj_dirs: Vec<Dir> = adj.iter().map(|(_, _, d)| *d).collect();
-        let fro = self.frozen_neighs(i, j);
-        let fro_dirs: Vec<Dir> = fro.iter().map(|(_, _, d)| *d).collect();
 
         let original_connectivity = self.grid[i][j];
         let max_own_rotations = original_connectivity.rotations_count();
         let mut own_rotations: usize = 0;
 
         loop {
-            let all_frozen_are_wired: bool = fro
-                .iter()
-                .all(|(_, _, d)| self.is_direction_wired(i, j, *d));
+            let source_is_wired: bool = self.is_direction_wired(i, j, from_dir);
 
             let outbound: Vec<Dir> = self.grid[i][j]
                 .dirs()
                 .into_iter()
-                .filter(|d| *d != from_dir && !fro_dirs.contains(d))
+                .filter(|d| *d != from_dir)
                 .collect();
 
             let all_outbound_are_explorable: bool = outbound.iter().all(|d| adj_dirs.contains(d));
 
-            if all_frozen_are_wired && all_outbound_are_explorable {
+            if source_is_wired && all_outbound_are_explorable {
                 let subs: Vec<_> = adj
                     .iter()
                     .filter(|(_, _, d)| outbound.contains(d))
-                    .map(|(si, sj, dir)| self.explore(*si, *sj, dir.opposite()))
+                    .map(|(si, sj, dir)| {
+                        if self.frozen[*si][*sj] && !self.is_direction_wired(i, j, *dir) {
+                            None
+                        } else if !self.frozen[*si][*sj] {
+                            self.explore(*si, *sj, dir.opposite())
+                        } else {
+                            Some(0)
+                        }
+                    })
                     .collect();
 
                 let fulfilled_subs: Vec<usize> = subs.iter().filter_map(|&x| x).collect();
