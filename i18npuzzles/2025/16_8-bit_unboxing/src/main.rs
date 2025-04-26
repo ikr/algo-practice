@@ -289,7 +289,7 @@ impl Model {
     }
 
     fn explore(&mut self, i: usize, j: usize, from_dir: Dir) -> Option<usize> {
-        eprintln!("{:?}", (i, j, from_dir));
+        //eprintln!("{:?}", (i, j, from_dir));
         if self.grid[i][j].is_empty() {
             return None;
         }
@@ -337,7 +337,7 @@ impl Model {
 
             if own_rotations < max_own_rotations {
                 self.grid[i][j] = self.grid[i][j].rotate();
-                self.display_grid();
+                //self.display_grid();
                 own_rotations += 1;
             } else {
                 self.frozen[i][j] = false;
