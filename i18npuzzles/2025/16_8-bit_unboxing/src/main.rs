@@ -88,6 +88,15 @@ impl Connectivity {
             _ => panic!("Connectivity {} is impossible", self.0),
         }
     }
+
+    fn turns_count(self) -> usize {
+        match self.0 {
+            0 | 15 => 0,
+            5 | 10 => 1,
+            3 | 6 | 7 | 9 | 11 | 12 | 13 | 14 => 3,
+            _ => panic!("Connectivity {} is impossible", self.0),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -251,7 +260,7 @@ impl Model {
         })
     }
 
-    fn outbound(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+    fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
         let h = self.grid.len();
         let w = self.grid[0].len();
         let mut result = vec![];
@@ -268,9 +277,24 @@ impl Model {
             result.push((i, j + 1, Dir::E));
         }
         result
+    }
+
+    fn outbound(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+        self.adjacent(i, j)
             .into_iter()
             .filter(|(_, _, dir)| self.grid[i][j].0 & dir.bit() != 0)
             .collect()
+    }
+
+    fn frozen_neighs(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+        self.adjacent(i, j)
+            .into_iter()
+            .filter(|(ai, aj, _)| self.frozen[*ai][*aj])
+            .collect()
+    }
+
+    fn is_direction_wired(&self, i: usize, j: usize, dir: Dir) -> bool {
+        todo!()
     }
 
     fn explore(&mut self, i: usize, j: usize) -> Option<usize> {
@@ -295,8 +319,11 @@ impl Model {
     }
 
     fn build_pipeline_return_min_rotations(&mut self) -> usize {
-        assert!(self.is_wired(0, 0));
-        eprintln!("{:?}", self.grid[0]);
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+        self.frozen[0][0] = true;
+        self.frozen[h - 1][w - 1] = true;
+
         self.explore(0, 0).unwrap()
     }
 }
