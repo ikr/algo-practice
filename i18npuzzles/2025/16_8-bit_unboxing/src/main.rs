@@ -75,6 +75,10 @@ impl Connectivity {
         )
     }
 
+    fn rotate_times(self, k: usize) -> Self {
+        (0..k).fold(self, |acc, _| acc.rotate())
+    }
+
     fn as_char(self) -> char {
         match self.0 {
             0 => ' ',
@@ -348,10 +352,92 @@ impl Model {
     }
 
     fn build_pipeline_return_min_rotations(&mut self) -> usize {
+        let manual: Vec<(usize, usize, usize)> = vec![
+            (1, 0, 1),
+            (1, 1, 2),
+            (1, 2, 1),
+            (1, 3, 1),
+            (1, 4, 1),
+            (1, 5, 1),
+            (2, 0, 1),
+            (2, 2, 2),
+            (2, 3, 3),
+            (2, 6, 3),
+            (3, 0, 3),
+            (3, 1, 1),
+            (3, 3, 1),
+            (4, 0, 1),
+            (4, 1, 1),
+            (5, 0, 3),
+            (5, 1, 3),
+            (5, 5, 1),
+            (5, 6, 1),
+            (7, 0, 1),
+            (8, 0, 2),
+            (8, 1, 1),
+            (8, 2, 1),
+            (9, 0, 3),
+            (9, 1, 3),
+            (10, 1, 1),
+            (10, 9, 3),
+            (10, 10, 1),
+            (11, 0, 1),
+            (11, 1, 1),
+            (11, 2, 2),
+            (11, 3, 1),
+            (11, 4, 1),
+            (11, 6, 1),
+            (11, 8, 1),
+            (11, 10, 3),
+            (12, 0, 3),
+            (12, 10, 3),
+            (12, 58, 1),
+            (13, 1, 1),
+            (13, 10, 1),
+            (13, 12, 1),
+            (13, 13, 1),
+            (13, 14, 1),
+            (13, 57, 1),
+            (13, 60, 1),
+            (13, 64, 2),
+            (13, 62, 3),
+            (13, 63, 1),
+            (14, 10, 1),
+            (14, 11, 3),
+            (14, 12, 1),
+            (14, 13, 1),
+            (14, 14, 1),
+            (14, 15, 3),
+            (14, 20, 1),
+            (14, 24, 2),
+            (14, 44, 1),
+            (14, 49, 1),
+            (14, 51, 1),
+            (14, 52, 1),
+            (14, 53, 1),
+            (14, 55, 3),
+            (14, 56, 3),
+            (14, 60, 3),
+            (14, 61, 1),
+            (14, 64, 2),
+            (14, 65, 1),
+        ];
+        for &(i, j, k) in manual.iter() {
+            assert!(!self.grid[i][j].is_empty());
+            self.grid[i][j] = self.grid[i][j].rotate_times(k);
+        }
+        let manual_rotations_count: usize = manual.iter().map(|(_, _, k)| k).sum();
+        eprintln!("After {} manual rotations:", manual_rotations_count);
+        self.display_grid();
+
         let h = self.grid.len();
         let w = self.grid[0].len();
-        self.frozen[h - 1][w - 1] = true;
-        self.explore(0, 0, Dir::N).unwrap()
+        // self.frozen[h - 1][w - 1] = true;
+        //let r = self.explore(0, 0, Dir::N);
+        self.frozen[0][0] = true;
+        let r = self.explore(h - 1, w - 1, Dir::S);
+        eprintln!("{:?}", r);
+        r.unwrap_or(0)
     }
 }
 
