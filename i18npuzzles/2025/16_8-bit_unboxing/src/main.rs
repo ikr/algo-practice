@@ -294,22 +294,46 @@ impl Model {
         let fro = self.frozen_neighs(i, j);
         let fro_dirs: Vec<Dir> = fro.iter().map(|(_, _, d)| *d).collect();
 
+        let original_connectivity = self.grid[i][j];
         let max_own_rotations = self.grid[i][j].rotations_count();
         let mut own_rotations: usize = 0;
 
-        let all_frozen_are_wired: bool = fro
-            .iter()
-            .all(|(_, _, d)| self.is_direction_wired(i, j, *d));
+        loop {
+            let all_frozen_are_wired: bool = fro
+                .iter()
+                .all(|(_, _, d)| self.is_direction_wired(i, j, *d));
 
-        let outbound: Vec<Dir> = self.grid[i][j]
-            .dirs()
-            .into_iter()
-            .filter(|d| *d != from_dir && !fro_dirs.contains(d))
-            .collect();
+            let outbound: Vec<Dir> = self.grid[i][j]
+                .dirs()
+                .into_iter()
+                .filter(|d| *d != from_dir && !fro_dirs.contains(d))
+                .collect();
 
-        let all_outbound_are_explorable: bool = outbound.iter().all(|d| adj_dirs.contains(d));
+            let all_outbound_are_explorable: bool = outbound.iter().all(|d| adj_dirs.contains(d));
 
-        todo!()
+            if all_frozen_are_wired && all_outbound_are_explorable {
+                let subs: Vec<_> = adj
+                    .iter()
+                    .filter(|(_, _, d)| outbound.contains(d))
+                    .map(|(si, sj, dir)| self.explore(*si, *sj, dir.opposite()))
+                    .collect();
+
+                let fulfilled_subs: Vec<usize> = subs.iter().filter_map(|&x| x).collect();
+                if fulfilled_subs.len() == subs.len() {
+                    let result: usize = fulfilled_subs.into_iter().sum::<usize>() + own_rotations;
+                    return Some(result);
+                }
+            }
+
+            if own_rotations < max_own_rotations {
+                self.grid[i][j] = self.grid[i][j].rotate();
+                own_rotations += 1;
+            } else {
+                self.frozen[i][j] = false;
+                self.grid[i][j] = original_connectivity;
+                return None;
+            }
+        }
     }
 
     fn build_pipeline_return_min_rotations(&mut self) -> usize {
