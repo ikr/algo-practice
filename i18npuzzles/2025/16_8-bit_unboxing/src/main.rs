@@ -89,7 +89,7 @@ impl Connectivity {
         }
     }
 
-    fn turns_count(self) -> usize {
+    fn rotations_count(self) -> usize {
         match self.0 {
             0 | 15 => 0,
             5 | 10 => 1,
@@ -224,11 +224,37 @@ impl Model {
         }
     }
 
-    fn is_wired(&self, i: usize, j: usize) -> bool {
+    fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+        let mut result = vec![];
+        if i != 0 {
+            result.push((i - 1, j, Dir::N));
+        }
+        if i < h - 1 {
+            result.push((i + 1, j, Dir::S));
+        }
+        if j != 0 {
+            result.push((i, j - 1, Dir::W));
+        }
+        if j < w - 1 {
+            result.push((i, j + 1, Dir::E));
+        }
+        result
+    }
+
+    fn frozen_neighs(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
+        self.adjacent(i, j)
+            .into_iter()
+            .filter(|(ai, aj, _)| self.frozen[*ai][*aj])
+            .collect()
+    }
+
+    fn is_direction_wired(&self, i: usize, j: usize, dir: Dir) -> bool {
         let h = self.grid.len();
         let w = self.grid[0].len();
 
-        self.grid[i][j].dirs().into_iter().all(|dir| match dir {
+        match dir {
             Dir::N => {
                 if i == 0 {
                     j == 0
@@ -257,74 +283,40 @@ impl Model {
                     self.grid[i][j - 1].dirs().contains(&dir.opposite())
                 }
             }
-        })
-    }
-
-    fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
-        let h = self.grid.len();
-        let w = self.grid[0].len();
-        let mut result = vec![];
-        if i != 0 {
-            result.push((i - 1, j, Dir::N));
         }
-        if i < h - 1 {
-            result.push((i + 1, j, Dir::S));
-        }
-        if j != 0 {
-            result.push((i, j - 1, Dir::W));
-        }
-        if j < w - 1 {
-            result.push((i, j + 1, Dir::E));
-        }
-        result
     }
 
-    fn outbound(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
-        self.adjacent(i, j)
-            .into_iter()
-            .filter(|(_, _, dir)| self.grid[i][j].0 & dir.bit() != 0)
-            .collect()
-    }
-
-    fn frozen_neighs(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
-        self.adjacent(i, j)
-            .into_iter()
-            .filter(|(ai, aj, _)| self.frozen[*ai][*aj])
-            .collect()
-    }
-
-    fn is_direction_wired(&self, i: usize, j: usize, dir: Dir) -> bool {
-        todo!()
-    }
-
-    fn explore(&mut self, i: usize, j: usize) -> Option<usize> {
+    fn explore(&mut self, i: usize, j: usize, from_dir: Dir) -> Option<usize> {
         self.frozen[i][j] = true;
 
-        if self.is_wired(i, j) {
-            let s: usize = self
-                .outbound(i, j)
-                .into_iter()
-                .filter_map(|(oi, oj, _)| {
-                    if self.frozen[oi][oj] {
-                        None
-                    } else {
-                        Some(self.explore(oi, oj).unwrap())
-                    }
-                })
-                .sum();
-            Some(s)
-        } else {
-            todo!()
-        }
+        let adj = self.adjacent(i, j);
+        let adj_dirs: Vec<Dir> = adj.iter().map(|(_, _, d)| *d).collect();
+        let fro = self.frozen_neighs(i, j);
+        let fro_dirs: Vec<Dir> = fro.iter().map(|(_, _, d)| *d).collect();
+
+        let max_own_rotations = self.grid[i][j].rotations_count();
+        let mut own_rotations: usize = 0;
+
+        let all_frozen_are_wired: bool = fro
+            .iter()
+            .all(|(_, _, d)| self.is_direction_wired(i, j, *d));
+
+        let outbound: Vec<Dir> = self.grid[i][j]
+            .dirs()
+            .into_iter()
+            .filter(|d| *d != from_dir && !fro_dirs.contains(d))
+            .collect();
+
+        let all_outbound_are_explorable: bool = outbound.iter().all(|d| adj_dirs.contains(d));
+
+        todo!()
     }
 
     fn build_pipeline_return_min_rotations(&mut self) -> usize {
         let h = self.grid.len();
         let w = self.grid[0].len();
-        self.frozen[0][0] = true;
         self.frozen[h - 1][w - 1] = true;
-
-        self.explore(0, 0).unwrap()
+        self.explore(0, 0, Dir::N).unwrap()
     }
 }
 
