@@ -53,6 +53,10 @@ impl Connectivity {
         Self(bits)
     }
 
+    fn is_empty(self) -> bool {
+        self.0 == 0
+    }
+
     fn dirs(self) -> Vec<Dir> {
         Dir::all()
             .iter()
@@ -222,6 +226,7 @@ impl Model {
             let s: String = row.iter().map(|conn| conn.as_char()).collect();
             eprintln!("{}", s);
         }
+        println!();
     }
 
     fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
@@ -251,6 +256,10 @@ impl Model {
     }
 
     fn is_direction_wired(&self, i: usize, j: usize, dir: Dir) -> bool {
+        if !self.grid[i][j].dirs().contains(&dir) {
+            return false;
+        }
+
         let h = self.grid.len();
         let w = self.grid[0].len();
 
@@ -287,6 +296,9 @@ impl Model {
     }
 
     fn explore(&mut self, i: usize, j: usize, from_dir: Dir) -> Option<usize> {
+        if self.grid[i][j].is_empty() {
+            return None;
+        }
         self.frozen[i][j] = true;
 
         let adj = self.adjacent(i, j);
@@ -295,7 +307,7 @@ impl Model {
         let fro_dirs: Vec<Dir> = fro.iter().map(|(_, _, d)| *d).collect();
 
         let original_connectivity = self.grid[i][j];
-        let max_own_rotations = self.grid[i][j].rotations_count();
+        let max_own_rotations = original_connectivity.rotations_count();
         let mut own_rotations: usize = 0;
 
         loop {
@@ -327,6 +339,7 @@ impl Model {
 
             if own_rotations < max_own_rotations {
                 self.grid[i][j] = self.grid[i][j].rotate();
+                self.display_grid();
                 own_rotations += 1;
             } else {
                 self.frozen[i][j] = false;
@@ -386,4 +399,15 @@ fn main() {
     model.display_grid();
     println!("{}", model.build_pipeline_return_min_rotations());
     model.display_grid();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // ┐ to the N of ─ is wired
+
+    #[test]
+    fn test_connectivity_bits() {
+        assert_eq!(Connectivity(12).dirs(), vec![Dir::S, Dir::W]);
+    }
 }
