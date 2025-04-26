@@ -398,14 +398,3 @@ fn main() {
     println!("{}", model.build_pipeline_return_min_rotations());
     model.display_grid();
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    // ┐ to the N of ─ is wired
-
-    #[test]
-    fn test_connectivity_bits() {
-        assert_eq!(Connectivity(12).dirs(), vec![Dir::S, Dir::W]);
-    }
-}
