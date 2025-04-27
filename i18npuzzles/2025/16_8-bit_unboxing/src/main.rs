@@ -79,7 +79,7 @@ impl Connectivity {
         (0..k).fold(self, |acc, _| acc.rotate())
     }
 
-    fn as_char(self) -> char {
+    fn symbol(self) -> char {
         match self.0 {
             0 => ' ',
             3 => '└',
@@ -93,6 +93,24 @@ impl Connectivity {
             13 => '┤',
             14 => '┬',
             15 => '┼',
+            _ => panic!("Connectivity {} is impossible", self.0),
+        }
+    }
+
+    fn alt_symbol(self) -> char {
+        match self.0 {
+            0 => ' ',
+            3 => '╚',
+            5 => '║',
+            6 => '╔',
+            7 => '╠',
+            9 => '╝',
+            10 => '═',
+            11 => '╩',
+            12 => '╗',
+            13 => '╣',
+            14 => '╦',
+            15 => '╬',
             _ => panic!("Connectivity {} is impossible", self.0),
         }
     }
@@ -226,8 +244,18 @@ impl Model {
     }
 
     fn display_grid(&self) {
-        for row in self.grid.iter() {
-            let s: String = row.iter().map(|conn| conn.as_char()).collect();
+        for (i, row) in self.grid.iter().enumerate() {
+            let s: String = row
+                .iter()
+                .enumerate()
+                .map(|(j, conn)| {
+                    if self.frozen[i][j] {
+                        conn.alt_symbol()
+                    } else {
+                        conn.symbol()
+                    }
+                })
+                .collect();
             eprintln!("{}", s);
         }
         println!();
@@ -403,7 +431,7 @@ impl Model {
             ('┬', 8, 3),
         ];
         for (c, e, k) in rules {
-            if self.grid[i][j].as_char() == c && e == econn.0 {
+            if self.grid[i][j].symbol() == c && e == econn.0 {
                 self.grid[i][j] = self.grid[i][j].rotate_times(k);
                 result += k;
             }
@@ -419,7 +447,7 @@ impl Model {
 
         for i in 0..h {
             for j in 0..w {
-                if !(i == 0 && j == 0) && !(i == h - 1 && j == w - 1) {
+                if !(i == 0 && j == 0 || i == h - 1 && j == w - 1) {
                     result += self.apply_necessary_rotations(i, j);
                 }
             }
@@ -431,7 +459,7 @@ impl Model {
     }
 
     fn apply_manual_rotations(&mut self) -> usize {
-        let manual: Vec<(usize, usize, usize)> = vec![];
+        let manual: Vec<(usize, usize, usize)> = vec![(2, 0, 1), (1, 1, 2), (9, 0, 3), (9, 1, 3)];
         for &(i, j, k) in manual.iter() {
             assert!(!self.grid[i][j].is_empty());
             self.grid[i][j] = self.grid[i][j].rotate_times(k);
@@ -448,10 +476,10 @@ impl Model {
 
         let h = self.grid.len();
         let w = self.grid[0].len();
-        // self.frozen[h - 1][w - 1] = true;
-        //let r = self.explore(0, 0, Dir::N);
-        self.frozen[0][0] = true;
-        let r = self.explore(h - 1, w - 1, Dir::S);
+        self.frozen[h - 1][w - 1] = true;
+        let r = self.explore(0, 0, Dir::N);
+        //self.frozen[0][0] = true;
+        //let r = self.explore(h - 1, w - 1, Dir::S);
         eprintln!("{:?}", r);
         r.unwrap_or(0)
     }
