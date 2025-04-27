@@ -293,7 +293,6 @@ impl Model {
     }
 
     fn explore(&mut self, i: usize, j: usize, from_dir: Dir) -> Option<usize> {
-        //eprintln!("{:?}", (i, j, from_dir));
         if self.grid[i][j].is_empty() {
             return None;
         }
@@ -341,7 +340,6 @@ impl Model {
 
             if own_rotations < max_own_rotations {
                 self.grid[i][j] = self.grid[i][j].rotate();
-                //self.display_grid();
                 own_rotations += 1;
             } else {
                 self.frozen[i][j] = false;
@@ -351,118 +349,89 @@ impl Model {
         }
     }
 
-    fn build_pipeline_return_min_rotations(&mut self) -> usize {
-        let manual: Vec<(usize, usize, usize)> = vec![
-            (1, 0, 1),
-            (1, 1, 2),
-            (1, 2, 1),
-            (1, 3, 1),
-            (1, 4, 1),
-            (1, 5, 1),
-            (1, 44, 3),
-            (1, 52, 1),
-            (1, 53, 1),
-            (1, 54, 1),
-            (1, 55, 2),
-            (1, 56, 1),
-            (2, 0, 1),
-            (2, 2, 2),
-            (2, 3, 3),
-            (2, 6, 3),
-            (2, 10, 2),
-            (2, 11, 1),
-            (2, 12, 1),
-            (2, 14, 1),
-            (2, 15, 2),
-            (2, 53, 3),
-            (2, 54, 1),
-            (2, 55, 2),
-            (2, 56, 1),
-            (3, 0, 3),
-            (3, 1, 1),
-            (3, 3, 1),
-            (3, 48, 1),
-            (3, 49, 3),
-            (3, 56, 2),
-            (3, 57, 1),
-            (4, 0, 1),
-            (4, 1, 1),
-            (4, 56, 1),
-            (4, 57, 1),
-            (5, 0, 3),
-            (5, 1, 3),
-            (5, 5, 1),
-            (5, 6, 1),
-            (5, 56, 1),
-            (5, 57, 1),
-            (6, 35, 1),
-            (6, 57, 1),
-            (7, 0, 1),
-            (7, 35, 1),
-            (8, 0, 2),
-            (8, 1, 1),
-            (8, 2, 1),
-            (8, 57, 1),
-            (8, 65, 1),
-            (9, 0, 3),
-            (9, 1, 3),
-            (9, 53, 1),
-            (9, 54, 1),
-            (9, 55, 3),
-            (10, 1, 1),
-            (10, 9, 3),
-            (10, 10, 1),
-            (10, 56, 1),
-            (10, 57, 3),
-            (11, 0, 1),
-            (11, 1, 1),
-            (11, 2, 2),
-            (11, 3, 1),
-            (11, 4, 1),
-            (11, 6, 1),
-            (11, 8, 1),
-            (11, 10, 3),
-            (11, 53, 1),
-            (11, 54, 1),
-            (12, 0, 3),
-            (12, 10, 3),
-            (12, 57, 2),
-            (12, 58, 1),
-            (12, 60, 3),
-            (12, 63, 1),
-            (13, 1, 1),
-            (13, 10, 1),
-            (13, 12, 1),
-            (13, 13, 1),
-            (13, 14, 1),
-            (13, 57, 1),
-            (13, 60, 1),
-            (13, 64, 2),
-            (13, 62, 3),
-            (13, 63, 1),
-            (14, 10, 1),
-            (14, 11, 3),
-            (14, 12, 1),
-            (14, 13, 1),
-            (14, 14, 1),
-            (14, 15, 3),
-            (14, 16, 2),
-            (14, 20, 1),
-            (14, 24, 2),
-            (14, 41, 3),
-            (14, 42, 2),
-            (14, 44, 1),
-            (14, 49, 1),
-            (14, 51, 1),
-            (14, 52, 1),
-            (14, 53, 1),
-            (14, 55, 3),
-            (14, 56, 3),
-            (14, 60, 3),
-            (14, 61, 1),
-            (14, 64, 2),
-            (14, 65, 1),
+    fn apply_necessary_rotations(&mut self, i: usize, j: usize) -> usize {
+        let adj = self.adjacent(i, j);
+
+        let empty_dirs: Vec<Dir> = Dir::all()
+            .into_iter()
+            .filter_map(|d| {
+                if let Some((ai, aj, ad)) = adj.iter().find(|(_, _, ad)| *ad == d) {
+                    if self.grid[*ai][*aj].is_empty() {
+                        Some(*ad)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(d)
+                }
+            })
+            .collect();
+
+        let econn = Connectivity::new(&empty_dirs);
+        let mut result = 0;
+
+        let rules: Vec<(char, u8, usize)> = vec![
+            ('└', 9, 1),
+            ('└', 3, 2),
+            ('└', 6, 3),
+            ('│', 5, 1),
+            ('│', 1, 1),
+            ('│', 4, 1),
+            ('┌', 3, 1),
+            ('┌', 6, 2),
+            ('┌', 12, 3),
+            ('├', 1, 1),
+            ('├', 2, 2),
+            ('├', 4, 3),
+            ('┘', 9, 2),
+            ('┘', 3, 3),
+            ('┘', 12, 1),
+            ('─', 10, 1),
+            ('─', 8, 1),
+            ('─', 2, 1),
+            ('┴', 1, 2),
+            ('┴', 2, 3),
+            ('┴', 8, 1),
+            ('┐', 9, 3),
+            ('┐', 6, 1),
+            ('┐', 12, 2),
+            ('┤', 1, 3),
+            ('┤', 4, 1),
+            ('┤', 8, 2),
+            ('┬', 2, 1),
+            ('┬', 4, 2),
+            ('┬', 8, 3),
         ];
+        for (c, e, k) in rules {
+            if self.grid[i][j].as_char() == c && e == econn.0 {
+                self.grid[i][j] = self.grid[i][j].rotate_times(k);
+                result += k;
+            }
+        }
+
+        result
+    }
+
+    fn apply_all_necessary_rotations(&mut self) -> usize {
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+        let mut result = 0;
+
+        for i in 0..h {
+            for j in 0..w {
+                if !(i == 0 && j == 0) && !(i == h - 1 && j == w - 1) {
+                    result += self.apply_necessary_rotations(i, j);
+                }
+            }
+        }
+
+        eprintln!("After {} necessary rotations:", result);
+        self.display_grid();
+        result
+    }
+
+    fn apply_manual_rotations(&mut self) -> usize {
+        let manual: Vec<(usize, usize, usize)> = vec![];
         for &(i, j, k) in manual.iter() {
             assert!(!self.grid[i][j].is_empty());
             self.grid[i][j] = self.grid[i][j].rotate_times(k);
@@ -470,6 +439,12 @@ impl Model {
         let manual_rotations_count: usize = manual.iter().map(|(_, _, k)| k).sum();
         eprintln!("After {} manual rotations:", manual_rotations_count);
         self.display_grid();
+        manual_rotations_count
+    }
+
+    fn build_pipeline_return_min_rotations(&mut self) -> usize {
+        self.apply_all_necessary_rotations();
+        self.apply_manual_rotations();
 
         let h = self.grid.len();
         let w = self.grid[0].len();
