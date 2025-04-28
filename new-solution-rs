@@ -47,7 +47,7 @@ fn main() {
 }
 """
 elif args.embed:
-    code += """use std::io::{stdout, stdin, BufWriter, Write};
+    code += """use std::io::{BufWriter, Write, stdin, stdout};
 
 #[derive(Default)]
 struct Scanner {
@@ -65,10 +65,18 @@ impl Scanner {
             self.buffer = input.split_whitespace().rev().map(String::from).collect();
         }
     }
+
+    fn next_n<T: std::str::FromStr>(&mut self, n: usize) -> Vec<T> {
+        let mut result: Vec<T> = Vec::with_capacity(n);
+        for _ in 0..n {
+            result.push(self.next());
+        }
+        result
+    }
 }
 
-fn solve(xs: &[i32]) -> i32 {
-    xs.iter().sum::<i32>()
+fn solve(xs: Vec<i64>) -> i64 {
+    xs.into_iter().sum()
 }
 
 fn main() {
@@ -81,12 +89,9 @@ fn main() {
 
     for _ in 1..=cases_num {
         let n: usize = scanner.next();
-        let mut xs: Vec<i32> = vec![0; n];
-        for x in xs.iter_mut() {
-            *x = scanner.next();
-        }
+        let xs: Vec<i64> = scanner.next_n(n);
 
-        let result = solve(&xs);
+        let result = solve(xs);
         writeln!(writer, "{}", result).unwrap();
     }
 
