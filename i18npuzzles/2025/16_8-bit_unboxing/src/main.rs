@@ -97,24 +97,6 @@ impl Connectivity {
         }
     }
 
-    fn alt_symbol(self) -> char {
-        match self.0 {
-            0 => ' ',
-            3 => '╚',
-            5 => '║',
-            6 => '╔',
-            7 => '╠',
-            9 => '╝',
-            10 => '═',
-            11 => '╩',
-            12 => '╗',
-            13 => '╣',
-            14 => '╦',
-            15 => '╬',
-            _ => panic!("Connectivity {} is impossible", self.0),
-        }
-    }
-
     fn rotations_count(self) -> usize {
         match self.0 {
             0 | 15 => 0,
@@ -230,7 +212,6 @@ fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
 
 struct Model {
     grid: Vec<Vec<Connectivity>>,
-    frozen: Vec<Vec<bool>>,
 }
 
 impl Model {
@@ -239,23 +220,12 @@ impl Model {
         let w = grid[0].len();
         assert_ne!(grid[0][0].0, 0);
         assert_ne!(grid[h - 1][w - 1].0, 0);
-        let frozen: Vec<Vec<bool>> = vec![vec![false; w]; h];
-        Self { grid, frozen }
+        Self { grid }
     }
 
     fn display_grid(&self) {
-        for (i, row) in self.grid.iter().enumerate() {
-            let s: String = row
-                .iter()
-                .enumerate()
-                .map(|(j, conn)| {
-                    if self.frozen[i][j] {
-                        conn.alt_symbol()
-                    } else {
-                        conn.symbol()
-                    }
-                })
-                .collect();
+        for row in self.grid.iter() {
+            let s: String = row.iter().map(|conn| conn.symbol()).collect();
             eprintln!("{}", s);
         }
         println!();
@@ -319,200 +289,6 @@ impl Model {
             }
         }
     }
-
-    fn apply_apriori_rotations(&mut self, i: usize, j: usize) -> usize {
-        let adj = self.adjacent(i, j);
-
-        let empty_dirs: Vec<Dir> = Dir::all()
-            .into_iter()
-            .filter_map(|d| {
-                if let Some((ai, aj, ad)) = adj.iter().find(|(_, _, ad)| *ad == d) {
-                    if self.grid[*ai][*aj].is_empty() {
-                        Some(*ad)
-                    } else {
-                        None
-                    }
-                } else {
-                    Some(d)
-                }
-            })
-            .collect();
-
-        let econn = Connectivity::new(&empty_dirs);
-        let mut result = 0;
-
-        let rules: Vec<(char, u8, usize)> = vec![
-            ('└', 9, 1),
-            ('└', 3, 2),
-            ('└', 6, 3),
-            ('│', 5, 1),
-            ('│', 1, 1),
-            ('│', 4, 1),
-            ('┌', 3, 1),
-            ('┌', 6, 2),
-            ('┌', 12, 3),
-            ('├', 1, 1),
-            ('├', 2, 2),
-            ('├', 4, 3),
-            ('┘', 9, 2),
-            ('┘', 3, 3),
-            ('┘', 12, 1),
-            ('─', 10, 1),
-            ('─', 8, 1),
-            ('─', 2, 1),
-            ('┴', 1, 2),
-            ('┴', 2, 3),
-            ('┴', 8, 1),
-            ('┐', 9, 3),
-            ('┐', 6, 1),
-            ('┐', 12, 2),
-            ('┤', 1, 3),
-            ('┤', 4, 1),
-            ('┤', 8, 2),
-            ('┬', 2, 1),
-            ('┬', 4, 2),
-            ('┬', 8, 3),
-        ];
-        for (c, e, k) in rules {
-            if self.grid[i][j].symbol() == c && e == econn.0 {
-                self.grid[i][j] = self.grid[i][j].rotate_times(k);
-                self.frozen[i][j] = true;
-                result += k;
-            }
-        }
-
-        result
-    }
-
-    fn apply_all_apriori_rotations(&mut self) -> usize {
-        let h = self.grid.len();
-        let w = self.grid[0].len();
-        let mut result = 0;
-
-        for i in 0..h {
-            for j in 0..w {
-                if !(i == 0 && j == 0 || i == h - 1 && j == w - 1) {
-                    result += self.apply_apriori_rotations(i, j);
-                }
-            }
-        }
-
-        result
-    }
-
-    fn derive_rotations_by_frozen_neighs(&mut self, i: usize, j: usize) -> Option<usize> {
-        if self.frozen[i][j] {
-            return None;
-        }
-
-        let original: Connectivity = self.grid[i][j];
-        for k in 0..=original.rotations_count() {
-            self.grid[i][j] = self.grid[i][j].rotate_times(0);
-            if self.grid[i][j]
-                .dirs()
-                .into_iter()
-                .all(|d| self.is_direction_wired(i, j, d))
-            {
-                self.frozen[i][j] = true;
-                return Some(k);
-            }
-        }
-        self.grid[i][j] = original;
-        None
-    }
-
-    fn derive_all_rotations_by_frozen_neighs(&mut self) -> Option<usize> {
-        let h = self.grid.len();
-        let w = self.grid[0].len();
-        let mut result = 0;
-        let mut at_least_one_new = false;
-
-        for i in 0..h {
-            for j in 0..w {
-                if let Some(k) = self.derive_rotations_by_frozen_neighs(i, j) {
-                    result += k;
-                    at_least_one_new = true;
-                }
-            }
-        }
-        if at_least_one_new { Some(result) } else { None }
-    }
-
-    fn explore(&mut self, i: usize, j: usize, from_dir: Dir) -> Option<usize> {
-        if self.grid[i][j].is_empty() {
-            return None;
-        }
-        self.frozen[i][j] = true;
-
-        let adj = self.adjacent(i, j);
-        let adj_dirs: Vec<Dir> = adj.iter().map(|(_, _, d)| *d).collect();
-
-        let original_connectivity = self.grid[i][j];
-        let max_own_rotations = original_connectivity.rotations_count();
-        let mut own_rotations: usize = 0;
-
-        loop {
-            let source_is_wired: bool = self.is_direction_wired(i, j, from_dir);
-
-            let outbound: Vec<Dir> = self.grid[i][j]
-                .dirs()
-                .into_iter()
-                .filter(|d| *d != from_dir)
-                .collect();
-
-            let all_outbound_are_explorable: bool = outbound.iter().all(|d| adj_dirs.contains(d));
-
-            if source_is_wired && all_outbound_are_explorable {
-                let subs: Vec<_> = adj
-                    .iter()
-                    .filter(|(_, _, d)| outbound.contains(d))
-                    .map(|(si, sj, dir)| {
-                        if self.frozen[*si][*sj] && !self.is_direction_wired(i, j, *dir) {
-                            None
-                        } else if !self.frozen[*si][*sj] {
-                            self.explore(*si, *sj, dir.opposite())
-                        } else {
-                            Some(0)
-                        }
-                    })
-                    .collect();
-
-                let fulfilled_subs: Vec<usize> = subs.iter().filter_map(|&x| x).collect();
-                if fulfilled_subs.len() == subs.len() {
-                    let result: usize = fulfilled_subs.into_iter().sum::<usize>() + own_rotations;
-                    return Some(result);
-                }
-            }
-
-            if own_rotations < max_own_rotations {
-                self.grid[i][j] = self.grid[i][j].rotate();
-                own_rotations += 1;
-            } else {
-                self.frozen[i][j] = false;
-                self.grid[i][j] = original_connectivity;
-                return None;
-            }
-        }
-    }
-
-    fn build_pipeline_return_min_rotations(&mut self) -> usize {
-        let mut result = self.apply_all_apriori_rotations();
-        eprintln!("After {} apriori rotations:", result);
-        self.display_grid();
-
-        let h = self.grid.len();
-        let w = self.grid[0].len();
-        self.frozen[h - 1][w - 1] = true;
-        self.frozen[0][0] = true;
-
-        while let Some(k) = self.derive_all_rotations_by_frozen_neighs() {
-            result += k;
-            eprintln!("After {} more derived rotations:", k);
-            self.display_grid();
-        }
-
-        result
-    }
 }
 
 fn main() {
@@ -553,8 +329,6 @@ fn main() {
         })
         .collect();
 
-    let mut model = Model::new(grid);
-    model.display_grid();
-    println!("{}", model.build_pipeline_return_min_rotations());
+    let model = Model::new(grid);
     model.display_grid();
 }
