@@ -6,9 +6,9 @@ use std::{
 use itertools::Itertools;
 use rand::{random_range, seq::SliceRandom};
 
-const POPULATION_SIZE: usize = 100;
+const POPULATION_SIZE: usize = 500;
 const GENERATIONS_COUNT: usize = 10;
-const ALIENS_COUNT: usize = 10;
+const ALIENS_COUNT: usize = 20;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Dir {
@@ -100,6 +100,24 @@ impl Connectivity {
             13 => '┤',
             14 => '┬',
             15 => '┼',
+            _ => panic!("Connectivity {} is impossible", self.0),
+        }
+    }
+
+    fn alt_symbol(self) -> char {
+        match self.0 {
+            0 => ' ',
+            3 => '╚',
+            5 => '║',
+            6 => '╔',
+            7 => '╠',
+            9 => '╝',
+            10 => '═',
+            11 => '╩',
+            12 => '╗',
+            13 => '╣',
+            14 => '╦',
+            15 => '╬',
             _ => panic!("Connectivity {} is impossible", self.0),
         }
     }
@@ -232,49 +250,190 @@ impl Chromosome {
 
 struct Model {
     grid: Vec<Vec<Connectivity>>,
+    frozen: Vec<Vec<bool>>,
 }
 
 impl Model {
+    fn new(grid: Vec<Vec<Connectivity>>) -> Self {
+        let h = grid.len();
+        let w = grid[0].len();
+        assert_ne!(grid[0][0].0, 0);
+        assert_ne!(grid[h - 1][w - 1].0, 0);
+
+        let mut frozen: Vec<Vec<bool>> = vec![vec![false; w]; h];
+        frozen[0][0] = true;
+        frozen[h - 1][w - 1] = true;
+
+        Self { grid, frozen }
+    }
+
     fn display_grid(&self) {
-        for row in self.grid.iter() {
-            let s: String = row.iter().map(|conn| conn.symbol()).collect();
+        for (i, row) in self.grid.iter().enumerate() {
+            let s: String = row
+                .iter()
+                .enumerate()
+                .map(|(j, conn)| {
+                    if self.frozen[i][j] {
+                        conn.alt_symbol()
+                    } else {
+                        conn.symbol()
+                    }
+                })
+                .collect();
             eprintln!("{}", s);
         }
         println!();
     }
 
-    fn new_chromosome(&self) -> Chromosome {
+    fn apply_apriori_rotations(&mut self, i: usize, j: usize) -> usize {
+        let adj = self.adjacent(i, j);
+
+        let empty_dirs: Vec<Dir> = Dir::all()
+            .into_iter()
+            .filter_map(|d| {
+                if let Some((ai, aj, ad)) = adj.iter().find(|(_, _, ad)| *ad == d) {
+                    if self.grid[*ai][*aj].is_empty() {
+                        Some(*ad)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(d)
+                }
+            })
+            .collect();
+
+        let econn = Connectivity::new(&empty_dirs);
+        let mut result: usize = 0;
+
+        let rules: Vec<(char, u8, u8)> = vec![
+            ('└', 9, 1),
+            ('└', 3, 2),
+            ('└', 6, 3),
+            ('│', 5, 1),
+            ('│', 1, 1),
+            ('│', 4, 1),
+            ('┌', 3, 1),
+            ('┌', 6, 2),
+            ('┌', 12, 3),
+            ('├', 1, 1),
+            ('├', 2, 2),
+            ('├', 4, 3),
+            ('┘', 9, 2),
+            ('┘', 3, 3),
+            ('┘', 12, 1),
+            ('─', 10, 1),
+            ('─', 8, 1),
+            ('─', 2, 1),
+            ('┴', 1, 2),
+            ('┴', 2, 3),
+            ('┴', 8, 1),
+            ('┐', 9, 3),
+            ('┐', 6, 1),
+            ('┐', 12, 2),
+            ('┤', 1, 3),
+            ('┤', 4, 1),
+            ('┤', 8, 2),
+            ('┬', 2, 1),
+            ('┬', 4, 2),
+            ('┬', 8, 3),
+        ];
+        for (c, e, k) in rules {
+            if self.grid[i][j].symbol() == c && e == econn.0 {
+                self.grid[i][j] = self.grid[i][j].rotate_times(k);
+                self.frozen[i][j] = true;
+                result += k as usize;
+            }
+        }
+
+        result
+    }
+
+    fn apply_all_apriori_rotations(&mut self) -> usize {
         let h = self.grid.len();
         let w = self.grid[0].len();
-        let mut xs: Vec<u8> = Vec::with_capacity(h * w);
+        let mut result = 0;
 
-        for (i, row) in self.grid.iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {
-                if !(i == 0 && j == 0) && !(i == h - 1 && j == w - 1) {
-                    let n = cell.rotations_count();
-                    let x: u8 = if n == 0 { 0 } else { random_range(0..n) };
-                    xs.push(x);
-                } else {
-                    xs.push(0);
+        for i in 0..h {
+            for j in 0..w {
+                if !(i == 0 && j == 0 || i == h - 1 && j == w - 1) {
+                    result += self.apply_apriori_rotations(i, j);
                 }
             }
         }
 
+        result
+    }
+
+    fn derive_rotations_by_frozen_neighs(&mut self, i: usize, j: usize) -> Option<usize> {
+        if self.frozen[i][j] {
+            return None;
+        }
+
+        let original: Connectivity = self.grid[i][j];
+        for k in 0..=original.rotations_count() {
+            self.grid[i][j] = self.grid[i][j].rotate_times(k);
+            if self.grid[i][j]
+                .dirs()
+                .into_iter()
+                .all(|d| self.is_direction_wired(i, j, d))
+            {
+                self.frozen[i][j] = true;
+                return Some(k as usize);
+            }
+        }
+        self.grid[i][j] = original;
+        None
+    }
+
+    fn derive_all_rotations_by_frozen_neighs(&mut self) -> Option<usize> {
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+        let mut result = 0;
+        let mut at_least_one_new = false;
+
+        for i in 0..h {
+            for j in 0..w {
+                if let Some(k) = self.derive_rotations_by_frozen_neighs(i, j) {
+                    result += k;
+                    at_least_one_new = true;
+                }
+            }
+        }
+        if at_least_one_new { Some(result) } else { None }
+    }
+
+    fn new_chromosome(&self) -> Chromosome {
+        let mut xs: Vec<u8> = vec![];
+        for (i, row) in self.grid.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                if !self.frozen[i][j] && cell.rotations_count() != 0 {
+                    let x: u8 = random_range(0..cell.rotations_count());
+                    xs.push(x);
+                }
+            }
+        }
         Chromosome(xs)
     }
 
     fn apply_chromosome(&self, chr: &Chromosome) -> Model {
-        let w = self.grid[0].len();
         let mut grid = self.grid.clone();
+        let mut chr_i: usize = 0;
 
         for (i, row) in grid.iter_mut().enumerate() {
             for (j, cell) in row.iter_mut().enumerate() {
-                let k: u8 = chr.0[i * w + j];
-                *cell = cell.rotate_times(k);
+                if !self.frozen[i][j] && cell.rotations_count() != 0 {
+                    let k: u8 = chr.0[chr_i];
+                    *cell = cell.rotate_times(k);
+                    chr_i += 1;
+                }
             }
         }
 
-        Model { grid }
+        Model {
+            grid,
+            frozen: self.frozen.clone(),
+        }
     }
 
     fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
@@ -397,13 +556,22 @@ fn main() {
         })
         .collect();
 
-    let model = Model { grid };
+    let mut model = Model::new(grid);
+    model.display_grid();
+
+    let r0 = model.apply_all_apriori_rotations();
+    eprintln!("After {} apriori rotations:", r0);
+    model.display_grid();
+
+    let r1 = model.derive_all_rotations_by_frozen_neighs().unwrap();
+    eprintln!("After {} more derived rotations:", r1);
     model.display_grid();
 
     let mut population: Vec<Chromosome> = Vec::with_capacity(POPULATION_SIZE);
     for _ in 0..POPULATION_SIZE {
         population.push(model.new_chromosome());
     }
+    eprintln!("Chromosome size: {}", population[0].0.len());
 
     let mut rng = rand::rng();
 
