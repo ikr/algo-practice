@@ -3,6 +3,13 @@ use std::{
     io::{Read, stdin},
 };
 
+use itertools::Itertools;
+use rand::{random_range, seq::SliceRandom};
+
+const POPULATION_SIZE: usize = 100;
+const GENERATIONS_COUNT: usize = 10;
+const ALIENS_COUNT: usize = 10;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Dir {
     N,
@@ -75,7 +82,7 @@ impl Connectivity {
         )
     }
 
-    fn rotate_times(self, k: usize) -> Self {
+    fn rotate_times(self, k: u8) -> Self {
         (0..k).fold(self, |acc, _| acc.rotate())
     }
 
@@ -97,7 +104,7 @@ impl Connectivity {
         }
     }
 
-    fn rotations_count(self) -> usize {
+    fn rotations_count(self) -> u8 {
         match self.0 {
             0 | 15 => 0,
             5 | 10 => 1,
@@ -210,25 +217,64 @@ fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
     }
 }
 
+#[derive(Clone)]
+struct Chromosome(Vec<u8>);
+
+impl Chromosome {
+    fn crossover(&self, other: &Chromosome) -> Chromosome {
+        let m = random_range(1..self.0.len());
+        let mut xs = self.0[0..m].to_vec();
+        xs.extend(&other.0[m..]);
+        assert_eq!(xs.len(), self.0.len());
+        Chromosome(xs)
+    }
+}
+
 struct Model {
     grid: Vec<Vec<Connectivity>>,
 }
 
 impl Model {
-    fn new(grid: Vec<Vec<Connectivity>>) -> Self {
-        let h = grid.len();
-        let w = grid[0].len();
-        assert_ne!(grid[0][0].0, 0);
-        assert_ne!(grid[h - 1][w - 1].0, 0);
-        Self { grid }
-    }
-
     fn display_grid(&self) {
         for row in self.grid.iter() {
             let s: String = row.iter().map(|conn| conn.symbol()).collect();
             eprintln!("{}", s);
         }
         println!();
+    }
+
+    fn new_chromosome(&self) -> Chromosome {
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+        let mut xs: Vec<u8> = Vec::with_capacity(h * w);
+
+        for (i, row) in self.grid.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                if !(i == 0 && j == 0) && !(i == h - 1 && j == w - 1) {
+                    let n = cell.rotations_count();
+                    let x: u8 = if n == 0 { 0 } else { random_range(0..n) };
+                    xs.push(x);
+                } else {
+                    xs.push(0);
+                }
+            }
+        }
+
+        Chromosome(xs)
+    }
+
+    fn apply_chromosome(&self, chr: &Chromosome) -> Model {
+        let w = self.grid[0].len();
+        let mut grid = self.grid.clone();
+
+        for (i, row) in grid.iter_mut().enumerate() {
+            for (j, cell) in row.iter_mut().enumerate() {
+                let k: u8 = chr.0[i * w + j];
+                *cell = cell.rotate_times(k);
+            }
+        }
+
+        Model { grid }
     }
 
     fn adjacent(&self, i: usize, j: usize) -> Vec<(usize, usize, Dir)> {
@@ -289,6 +335,28 @@ impl Model {
             }
         }
     }
+
+    fn loose_count(&self) -> usize {
+        let mut result = 0;
+        for (i, row) in self.grid.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                if !cell
+                    .dirs()
+                    .into_iter()
+                    .all(|d| self.is_direction_wired(i, j, d))
+                {
+                    result += 1;
+                }
+            }
+        }
+        result
+    }
+
+    fn fitness_rank_with(&self, chr: &Chromosome) -> (usize, usize) {
+        let total_rotations: usize = chr.0.iter().map(|&x| x as usize).sum();
+        let child = self.apply_chromosome(chr);
+        (child.loose_count(), total_rotations)
+    }
 }
 
 fn main() {
@@ -329,6 +397,35 @@ fn main() {
         })
         .collect();
 
-    let model = Model::new(grid);
+    let model = Model { grid };
     model.display_grid();
+
+    let mut population: Vec<Chromosome> = Vec::with_capacity(POPULATION_SIZE);
+    for _ in 0..POPULATION_SIZE {
+        population.push(model.new_chromosome());
+    }
+
+    let mut rng = rand::rng();
+
+    for _ in 0..GENERATIONS_COUNT {
+        let mut next_population: Vec<Chromosome> =
+            Vec::with_capacity(POPULATION_SIZE * (POPULATION_SIZE - 1) / 2);
+
+        for (a, b) in population.iter().tuple_combinations() {
+            next_population.push(a.crossover(b));
+        }
+
+        next_population.select_nth_unstable_by_key(POPULATION_SIZE - ALIENS_COUNT, |chr| {
+            model.fitness_rank_with(chr)
+        });
+        population = next_population[..POPULATION_SIZE - ALIENS_COUNT].to_vec();
+        for _ in 0..ALIENS_COUNT {
+            population.push(model.new_chromosome());
+        }
+        population.shuffle(&mut rng);
+    }
+
+    let result = model.apply_chromosome(&population[0]);
+    result.display_grid();
+    eprintln!("{:?}", result.fitness_rank_with(&population[0]));
 }
