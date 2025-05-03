@@ -6,9 +6,9 @@ use std::{
 use itertools::Itertools;
 use rand::random_range;
 
-const POPULATION_SIZE: usize = 300;
-const GENERATIONS_COUNT: usize = 20;
-const ALIENS_COUNT: usize = 20;
+const POPULATION_SIZE: usize = 1000;
+const GENERATIONS_COUNT: usize = 80;
+const ALIENS_COUNT: usize = 40;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Dir {
@@ -581,7 +581,7 @@ impl Model {
         for (i, row) in self.grid.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
                 if !self.frozen[i][j] && cell.rotations_count() != 0 {
-                    let x: u8 = random_range(0..cell.rotations_count());
+                    let x: u8 = random_range(0..=cell.rotations_count());
                     xs.push(x);
                 }
             }
@@ -778,7 +778,7 @@ fn main() {
     let chr0 = &population[0];
     let end_model = model.apply_chromosome(&coords, chr0);
     end_model.display_grid();
-    eprintln!("{:?}", end_model.fitness_rank_with(&coords, chr0));
+    eprintln!("{:?}", model.fitness_rank_with(&coords, chr0));
 
     let result = r0 + r1 + r2 + chr0.0.iter().map(|&k| k as usize).sum::<usize>();
     println!("{}", result);
