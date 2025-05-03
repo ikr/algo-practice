@@ -419,6 +419,31 @@ impl Model {
         if at_least_one_new { Some(result) } else { None }
     }
 
+    fn apply_manual_rotations(&mut self) -> usize {
+        let manual: Vec<(usize, usize, u8)> = vec![
+            (1, 2, 1),
+            (2, 2, 2),
+            (2, 3, 3),
+            (2, 4, 2),
+            (2, 5, 0),
+            (3, 4, 0),
+            (3, 5, 2),
+            (7, 64, 2),
+            (8, 64, 1),
+            (9, 63, 2),
+            (9, 64, 0),
+            (9, 65, 2),
+            (11, 1, 1),
+            (12, 1, 0),
+        ];
+        for &(i, j, k) in manual.iter() {
+            assert!(!self.grid[i][j].is_empty());
+            self.grid[i][j] = self.grid[i][j].rotate_times(k);
+            self.frozen[i][j] = true;
+        }
+        manual.iter().map(|(_, _, k)| *k as usize).sum()
+    }
+
     fn chromosome_coordinates(&self) -> Vec<(usize, usize)> {
         let mut result: Vec<(usize, usize)> = vec![];
         for (i, row) in self.grid.iter().enumerate() {
@@ -597,8 +622,11 @@ fn main() {
     while let Some(k) = model.derive_all_rotations_by_frozen_neighs() {
         r1 += k;
     }
-
     eprintln!("After {} more derived rotations:", r1);
+    model.display_grid();
+
+    let r2 = model.apply_manual_rotations();
+    eprintln!("After {} manual rotations:", r2);
     model.display_grid();
 
     let coords = model.chromosome_coordinates();
@@ -632,6 +660,6 @@ fn main() {
     end_model.display_grid();
     eprintln!("{:?}", end_model.fitness_rank_with(&coords, chr0));
 
-    let result = r0 + r1 + chr0.0.iter().map(|&k| k as usize).sum::<usize>();
+    let result = r0 + r1 + r2 + chr0.0.iter().map(|&k| k as usize).sum::<usize>();
     println!("{}", result);
 }
