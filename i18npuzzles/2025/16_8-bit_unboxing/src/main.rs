@@ -769,7 +769,7 @@ fn main() {
     }
     eprintln!("Chromosome size: {}", population[0].0.len());
 
-    for _ in 0..GENERATIONS_COUNT {
+    for g in 0..GENERATIONS_COUNT {
         let mut next_population: Vec<Chromosome> =
             Vec::with_capacity(POPULATION_SIZE * (POPULATION_SIZE - 1) / 2);
 
@@ -780,6 +780,12 @@ fn main() {
         next_population.select_nth_unstable_by_key(POPULATION_SIZE - ALIENS_COUNT, |chr| {
             model.fitness_rank_with(&coords, chr)
         });
+
+        if model.fitness_rank_with(&coords, &population[0]).0 == 0 {
+            eprintln!("Done at generation #{}", g);
+            break;
+        }
+
         population = next_population[..POPULATION_SIZE - ALIENS_COUNT].to_vec();
         for _ in 0..ALIENS_COUNT {
             population.push(model.new_chromosome());
