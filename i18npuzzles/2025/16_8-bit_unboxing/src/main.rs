@@ -391,7 +391,7 @@ impl Model {
             if self.grid[i][j]
                 .dirs()
                 .into_iter()
-                .all(|d| self.is_direction_wired(i, j, d))
+                .all(|d| self.is_direction_wired(i, j, d) && self.is_direction_frozen(i, j, d))
             {
                 self.frozen[i][j] = true;
                 return Some(k as usize);
@@ -502,6 +502,18 @@ impl Model {
         }
     }
 
+    fn is_direction_frozen(&self, i: usize, j: usize, dir: Dir) -> bool {
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+
+        match dir {
+            Dir::N => i == 0 || self.frozen[i - 1][j],
+            Dir::E => j == w - 1 || self.frozen[i][j + 1],
+            Dir::S => i == h - 1 || self.frozen[i + 1][j],
+            Dir::W => j == 0 || self.frozen[i][j - 1],
+        }
+    }
+
     fn apply_chromosome(&self, coords: &[(usize, usize)], chr: &Chromosome) -> Model {
         let mut grid = self.grid.clone();
 
@@ -580,9 +592,13 @@ fn main() {
     eprintln!("After {} apriori rotations:", r0);
     model.display_grid();
 
-    // let r1 = model.derive_all_rotations_by_frozen_neighs().unwrap();
-    // eprintln!("After {} more derived rotations:", r1);
-    // model.display_grid();
+    let mut r1: usize = 0;
+    while let Some(k) = model.derive_all_rotations_by_frozen_neighs() {
+        r1 += k;
+    }
+
+    eprintln!("After {} more derived rotations:", r1);
+    model.display_grid();
 
     let coords = model.chromosome_coordinates();
     let mut population: Vec<Chromosome> = Vec::with_capacity(POPULATION_SIZE);
