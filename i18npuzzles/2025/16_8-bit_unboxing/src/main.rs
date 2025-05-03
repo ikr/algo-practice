@@ -4,11 +4,11 @@ use std::{
 };
 
 use itertools::Itertools;
-use rand::{random_range, seq::SliceRandom};
+use rand::random_range;
 
-const POPULATION_SIZE: usize = 100;
-const GENERATIONS_COUNT: usize = 10;
-const ALIENS_COUNT: usize = 10;
+const POPULATION_SIZE: usize = 1000;
+const GENERATIONS_COUNT: usize = 100;
+const ALIENS_COUNT: usize = 50;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Dir {
@@ -388,10 +388,11 @@ impl Model {
         let original: Connectivity = self.grid[i][j];
         for k in 0..=original.rotations_count() {
             self.grid[i][j] = self.grid[i][j].rotate_times(k);
+
             if self.grid[i][j]
                 .dirs()
-                .into_iter()
-                .all(|d| self.is_direction_wired(i, j, d) && self.is_direction_frozen(i, j, d))
+                .iter()
+                .all(|&d| self.is_direction_wired(i, j, d) && self.is_direction_frozen(i, j, d))
             {
                 self.frozen[i][j] = true;
                 return Some(k as usize);
@@ -607,8 +608,6 @@ fn main() {
     }
     eprintln!("Chromosome size: {}", population[0].0.len());
 
-    let mut rng = rand::rng();
-
     for _ in 0..GENERATIONS_COUNT {
         let mut next_population: Vec<Chromosome> =
             Vec::with_capacity(POPULATION_SIZE * (POPULATION_SIZE - 1) / 2);
@@ -624,11 +623,15 @@ fn main() {
         for _ in 0..ALIENS_COUNT {
             population.push(model.new_chromosome());
         }
-        population.shuffle(&mut rng);
+        eprint!(".")
     }
+    eprintln!();
 
     let chr0 = &population[0];
-    let result = model.apply_chromosome(&coords, chr0);
-    result.display_grid();
-    eprintln!("{:?}", result.fitness_rank_with(&coords, chr0));
+    let end_model = model.apply_chromosome(&coords, chr0);
+    end_model.display_grid();
+    eprintln!("{:?}", end_model.fitness_rank_with(&coords, chr0));
+
+    let result = r0 + r1 + chr0.0.iter().map(|&k| k as usize).sum::<usize>();
+    println!("{}", result);
 }
