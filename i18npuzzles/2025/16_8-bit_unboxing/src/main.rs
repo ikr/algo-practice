@@ -6,8 +6,8 @@ use std::{
 use itertools::Itertools;
 use rand::random_range;
 
-const POPULATION_SIZE: usize = 500;
-const GENERATIONS_COUNT: usize = 40;
+const POPULATION_SIZE: usize = 600;
+const GENERATIONS_COUNT: usize = 50;
 const ALIENS_COUNT: usize = 20;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -451,6 +451,8 @@ impl Model {
             (3, 12, 1),
             (3, 13, 3),
             (3, 18, 0),
+            (3, 19, 1),
+            (3, 20, 2),
             (3, 22, 2),
             (3, 28, 0),
             (3, 41, 2),
@@ -462,6 +464,10 @@ impl Model {
             (3, 54, 1),
             (3, 55, 0),
             (3, 56, 2),
+            (4, 17, 2),
+            (4, 18, 1),
+            (4, 19, 1),
+            (4, 20, 0),
             (4, 22, 1),
             (4, 28, 1),
             (4, 40, 2),
@@ -480,6 +486,12 @@ impl Model {
             (4, 56, 1),
             (5, 2, 1),
             (5, 3, 0),
+            (5, 17, 0),
+            (5, 18, 1),
+            (5, 19, 0),
+            (5, 20, 1),
+            (5, 21, 0),
+            (5, 22, 0),
             (5, 28, 0),
             (5, 34, 3),
             (5, 33, 1),
