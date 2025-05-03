@@ -6,9 +6,9 @@ use std::{
 use itertools::Itertools;
 use rand::{random_range, seq::SliceRandom};
 
-const POPULATION_SIZE: usize = 200;
-const GENERATIONS_COUNT: usize = 100;
-const ALIENS_COUNT: usize = 20;
+const POPULATION_SIZE: usize = 100;
+const GENERATIONS_COUNT: usize = 10;
+const ALIENS_COUNT: usize = 10;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Dir {
@@ -611,7 +611,8 @@ fn main() {
         population.shuffle(&mut rng);
     }
 
-    let result = model.apply_chromosome(&coords, &population[0]);
+    let chr0 = &population[0];
+    let result = model.apply_chromosome(&coords, chr0);
     result.display_grid();
-    eprintln!("{:?}", result.fitness_rank_with(&coords, &population[0]));
+    eprintln!("{:?}", result.fitness_rank_with(&coords, chr0));
 }
