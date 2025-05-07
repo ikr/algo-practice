@@ -334,7 +334,7 @@ impl Model {
             ('┼', 0, 0),
         ];
         for (c, e, k) in rules {
-            if self.grid[i][j].symbol() == c && e == econn.0 {
+            if self.grid[i][j].symbol() == c && e == econn.0 && !self.frozen[i][j] {
                 self.grid[i][j] = self.grid[i][j].rotate_times(k);
                 self.frozen[i][j] = true;
                 result += k as usize;
@@ -373,6 +373,7 @@ impl Model {
                 .dirs()
                 .iter()
                 .all(|&d| self.is_direction_wired(i, j, d) && self.is_direction_frozen(i, j, d))
+                && !self.frozen[i][j]
             {
                 self.frozen[i][j] = true;
                 return Some(k as usize);
@@ -762,7 +763,17 @@ impl Model {
             (14, 64, 2),
         ];
         for &(i, j, k) in manual.iter() {
+            if self.frozen[i][j] {
+                continue;
+            }
+
             assert!(!self.grid[i][j].is_empty());
+            let conn: Connectivity = self.grid[i][j];
+            if k > 1 {
+                assert!(![5, 10].contains(&conn.0));
+            }
+            assert_ne!(15, conn.0);
+
             self.grid[i][j] = self.grid[i][j].rotate_times(k);
             self.frozen[i][j] = true;
         }
