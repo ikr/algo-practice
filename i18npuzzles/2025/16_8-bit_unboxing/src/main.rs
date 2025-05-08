@@ -287,7 +287,6 @@ impl Model {
             .collect();
 
         let econn = Connectivity::new(&empty_dirs);
-        let mut result: usize = 0;
 
         let rules: Vec<(char, u8, u8)> = vec![
             ('└', 9, 1),
@@ -336,6 +335,7 @@ impl Model {
             ('┬', 1, 0),
             ('┼', 0, 0),
         ];
+
         for (c, e, k) in rules {
             let conn = connectivity_from_symbol(c);
             let BiConnectivity(a, b) = self.grid[i][j];
@@ -343,11 +343,11 @@ impl Model {
             if a.0 | b.0 == conn.0 && e == econn.0 && !self.frozen[i][j] {
                 self.grid[i][j] = self.grid[i][j].rotate_times(k);
                 self.frozen[i][j] = true;
-                result += k as usize;
+                return k as usize;
             }
         }
 
-        result
+        0
     }
 
     fn apply_all_apriori_rotations(&mut self) -> usize {
@@ -367,7 +367,7 @@ impl Model {
     }
 
     fn derive_rotations_by_frozen_neighs(&mut self, i: usize, j: usize) -> Option<usize> {
-        if self.frozen[i][j] {
+        if self.frozen[i][j] || self.grid[i][j].is_empty() {
             return None;
         }
 
@@ -394,18 +394,16 @@ impl Model {
     fn derive_all_rotations_by_frozen_neighs(&mut self) -> Option<usize> {
         let h = self.grid.len();
         let w = self.grid[0].len();
-        let mut result = 0;
-        let mut at_least_one_new = false;
 
         for i in 0..h {
             for j in 0..w {
                 if let Some(k) = self.derive_rotations_by_frozen_neighs(i, j) {
-                    result += k;
-                    at_least_one_new = true;
+                    return Some(k);
                 }
             }
         }
-        if at_least_one_new { Some(result) } else { None }
+
+        None
     }
 
     fn apply_manual_rotations(&mut self) -> usize {
