@@ -78,111 +78,84 @@ impl Connectivity {
     fn rotate_times(self, k: u8) -> Self {
         (0..k).fold(self, |acc, _| acc.rotate())
     }
+}
 
-    fn symbol(self) -> char {
-        match self.0 {
-            0 => ' ',
-            3 => '└',
-            5 => '│',
-            6 => '┌',
-            7 => '├',
-            9 => '┘',
-            10 => '─',
-            11 => '┴',
-            12 => '┐',
-            13 => '┤',
-            14 => '┬',
-            15 => '┼',
-            _ => panic!("Connectivity {} is impossible", self.0),
-        }
-    }
+#[derive(Clone, Copy, Debug)]
+struct BiConnectivity(Connectivity, Connectivity);
 
-    fn alt_symbol(self) -> char {
-        match self.0 {
-            0 => ' ',
-            3 => '╚',
-            5 => '║',
-            6 => '╔',
-            7 => '╠',
-            9 => '╝',
-            10 => '═',
-            11 => '╩',
-            12 => '╗',
-            13 => '╣',
-            14 => '╦',
-            15 => '╬',
-            _ => panic!("Connectivity {} is impossible", self.0),
-        }
-    }
-
+impl BiConnectivity {
     fn rotations_count(self) -> u8 {
-        match self.0 {
-            0 | 15 => 0,
-            5 | 10 => 1,
-            3 | 6 | 7 | 9 | 11 | 12 | 13 | 14 => 3,
-            _ => panic!("Connectivity {} is impossible", self.0),
-        }
+        todo!()
+    }
+
+    fn rotate_times(self, k: u8) -> Self {
+        Self(self.0.rotate_times(k), self.1.rotate_times(k))
     }
 }
 
 #[derive(Clone, Copy, Debug)]
 struct Glyph {
     unicode: char,
-    connectivity: Connectivity,
+    biconnectivity: BiConnectivity,
+}
+
+fn box_glyph_sources_range() -> Vec<(char, Vec<Dir>, Vec<Dir>)> {
+    vec![
+        ('│', vec![Dir::N, Dir::S], vec![]),
+        ('┤', vec![Dir::N, Dir::S, Dir::W], vec![]),
+        ('╡', vec![Dir::N, Dir::S], vec![Dir::W]),
+        ('╢', vec![Dir::W], vec![Dir::N, Dir::S]),
+        ('╖', vec![Dir::W], vec![Dir::S]),
+        ('╕', vec![Dir::S], vec![Dir::W]),
+        ('╣', vec![], vec![Dir::N, Dir::S, Dir::W]),
+        ('║', vec![], vec![Dir::N, Dir::S]),
+        ('╗', vec![], vec![Dir::S, Dir::W]),
+        ('╝', vec![], vec![Dir::N, Dir::W]),
+        ('╜', vec![Dir::W], vec![Dir::N]),
+        ('╛', vec![Dir::N], vec![Dir::W]),
+        ('┐', vec![Dir::S, Dir::W], vec![]),
+        ('└', vec![Dir::N, Dir::E], vec![]),
+        ('┴', vec![Dir::N, Dir::E, Dir::W], vec![]),
+        ('┬', vec![Dir::E, Dir::S, Dir::W], vec![]),
+        ('├', vec![Dir::N, Dir::E, Dir::S], vec![]),
+        ('─', vec![Dir::E, Dir::W], vec![]),
+        ('┼', vec![Dir::N, Dir::E, Dir::S, Dir::W], vec![]),
+        ('╞', vec![Dir::N, Dir::S], vec![Dir::E]),
+        ('╟', vec![Dir::E], vec![Dir::N, Dir::S]),
+        ('╚', vec![], vec![Dir::N, Dir::E]),
+        ('╔', vec![], vec![Dir::E, Dir::S]),
+        ('╩', vec![], vec![Dir::N, Dir::E, Dir::W]),
+        ('╦', vec![], vec![Dir::E, Dir::S, Dir::W]),
+        ('╠', vec![], vec![Dir::N, Dir::E, Dir::S]),
+        ('═', vec![], vec![Dir::E, Dir::W]),
+        ('╬', vec![], vec![Dir::N, Dir::E, Dir::S, Dir::W]),
+        ('╧', vec![Dir::N], vec![Dir::E, Dir::W]),
+        ('╨', vec![Dir::E, Dir::W], vec![Dir::N]),
+        ('╤', vec![Dir::S], vec![Dir::E, Dir::W]),
+        ('╥', vec![Dir::E, Dir::W], vec![Dir::S]),
+        ('╙', vec![Dir::E], vec![Dir::N]),
+        ('╘', vec![Dir::N], vec![Dir::E]),
+        ('╒', vec![Dir::S], vec![Dir::E]),
+        ('╓', vec![Dir::E], vec![Dir::S]),
+        ('╫', vec![Dir::E, Dir::W], vec![Dir::N, Dir::S]),
+        ('╪', vec![Dir::N, Dir::S], vec![Dir::E, Dir::W]),
+        ('┘', vec![Dir::N, Dir::W], vec![]),
+        ('┌', vec![Dir::E, Dir::S], vec![]),
+    ]
 }
 
 fn cp_437() -> HashMap<u8, Glyph> {
-    let box_glyph_sources_range: Vec<(char, &[Dir])> = vec![
-        ('│', &[Dir::N, Dir::S]),
-        ('┤', &[Dir::N, Dir::S, Dir::W]),
-        ('╡', &[Dir::N, Dir::S, Dir::W]),
-        ('╢', &[Dir::N, Dir::S, Dir::W]),
-        ('╖', &[Dir::S, Dir::W]),
-        ('╕', &[Dir::S, Dir::W]),
-        ('╣', &[Dir::N, Dir::S, Dir::W]),
-        ('║', &[Dir::N, Dir::S]),
-        ('╗', &[Dir::S, Dir::W]),
-        ('╝', &[Dir::N, Dir::W]),
-        ('╜', &[Dir::N, Dir::W]),
-        ('╛', &[Dir::N, Dir::W]),
-        ('┐', &[Dir::S, Dir::W]),
-        ('└', &[Dir::N, Dir::E]),
-        ('┴', &[Dir::N, Dir::E, Dir::W]),
-        ('┬', &[Dir::E, Dir::S, Dir::W]),
-        ('├', &[Dir::N, Dir::E, Dir::S]),
-        ('─', &[Dir::E, Dir::W]),
-        ('┼', &[Dir::N, Dir::E, Dir::S, Dir::W]),
-        ('╞', &[Dir::N, Dir::E, Dir::S]),
-        ('╟', &[Dir::N, Dir::E, Dir::S]),
-        ('╚', &[Dir::N, Dir::E]),
-        ('╔', &[Dir::E, Dir::S]),
-        ('╩', &[Dir::N, Dir::E, Dir::W]),
-        ('╦', &[Dir::E, Dir::S, Dir::W]),
-        ('╠', &[Dir::N, Dir::E, Dir::S]),
-        ('═', &[Dir::E, Dir::W]),
-        ('╬', &[Dir::N, Dir::E, Dir::S, Dir::W]),
-        ('╧', &[Dir::N, Dir::E, Dir::W]),
-        ('╨', &[Dir::N, Dir::E, Dir::W]),
-        ('╤', &[Dir::E, Dir::S, Dir::W]),
-        ('╥', &[Dir::E, Dir::S, Dir::W]),
-        ('╙', &[Dir::N, Dir::E]),
-        ('╘', &[Dir::N, Dir::E]),
-        ('╒', &[Dir::E, Dir::S]),
-        ('╓', &[Dir::E, Dir::S]),
-        ('╫', &[Dir::N, Dir::E, Dir::S, Dir::W]),
-        ('╪', &[Dir::N, Dir::E, Dir::S, Dir::W]),
-        ('┘', &[Dir::N, Dir::W]),
-        ('┌', &[Dir::E, Dir::S]),
-    ];
     let origin: u8 = 179;
-    box_glyph_sources_range
+    box_glyph_sources_range()
         .into_iter()
         .enumerate()
-        .map(|(i, (unicode, dirs))| {
-            let connectivity = Connectivity::new(dirs);
+        .map(|(i, (unicode, dirs1, dirs2))| {
+            let connectivity1 = Connectivity::new(&dirs1);
+            let connectivity2 = Connectivity::new(&dirs2);
+            let biconnectivity = BiConnectivity(connectivity1, connectivity2);
             let glyph = Glyph {
                 unicode,
-                connectivity,
+                biconnectivity,
             };
             (origin + i as u8, glyph)
         })
