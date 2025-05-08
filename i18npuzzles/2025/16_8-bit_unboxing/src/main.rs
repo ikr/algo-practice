@@ -84,8 +84,16 @@ impl Connectivity {
 struct BiConnectivity(Connectivity, Connectivity);
 
 impl BiConnectivity {
+    fn is_empty(self) -> bool {
+        self.0.is_empty() && self.1.is_empty()
+    }
+
     fn rotations_count(self) -> u8 {
-        todo!()
+        match (self.0.0, self.1.0) {
+            (0, 0) | (0, 15) | (15, 0) => 0,
+            (0, 5) | (5, 0) | (0, 10) | (10, 0) => 1,
+            _ => 3,
+        }
     }
 
     fn rotate_times(self, k: u8) -> Self {
@@ -142,6 +150,18 @@ fn box_glyph_sources_range() -> Vec<(char, Vec<Dir>, Vec<Dir>)> {
         ('┘', vec![Dir::N, Dir::W], vec![]),
         ('┌', vec![Dir::E, Dir::S], vec![]),
     ]
+}
+
+fn symbol(biconnectivity: BiConnectivity) -> char {
+    box_glyph_sources_range()
+        .iter()
+        .find(|(_, dirs1, dirs2)| {
+            let bits1 = Connectivity::new(dirs1).0;
+            let bits2 = Connectivity::new(dirs2).0;
+            biconnectivity.0.0 == bits1 && biconnectivity.1.0 == bits2
+        })
+        .unwrap()
+        .0
 }
 
 fn cp_437() -> HashMap<u8, Glyph> {
@@ -202,16 +222,16 @@ fn remove_decorative_frame(proto_lines: Vec<String>) -> Vec<String> {
 }
 
 struct Model {
-    grid: Vec<Vec<Connectivity>>,
+    grid: Vec<Vec<BiConnectivity>>,
     frozen: Vec<Vec<bool>>,
 }
 
 impl Model {
-    fn new(grid: Vec<Vec<Connectivity>>) -> Self {
+    fn new(grid: Vec<Vec<BiConnectivity>>) -> Self {
         let h = grid.len();
         let w = grid[0].len();
-        assert_ne!(grid[0][0].0, 0);
-        assert_ne!(grid[h - 1][w - 1].0, 0);
+        assert!(!grid[0][0].is_empty());
+        assert!(!grid[h - 1][w - 1].is_empty());
 
         let mut frozen: Vec<Vec<bool>> = vec![vec![false; w]; h];
         frozen[0][0] = true;
@@ -221,18 +241,8 @@ impl Model {
     }
 
     fn display_grid(&self) {
-        for (i, row) in self.grid.iter().enumerate() {
-            let s: String = row
-                .iter()
-                .enumerate()
-                .map(|(j, conn)| {
-                    if self.frozen[i][j] {
-                        conn.alt_symbol()
-                    } else {
-                        conn.symbol()
-                    }
-                })
-                .collect();
+        for row in self.grid.iter() {
+            let s: String = row.iter().map(|biconn| symbol(*biconn)).collect();
             eprintln!("{}", s);
         }
         println!();
