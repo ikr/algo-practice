@@ -153,15 +153,35 @@ fn box_glyph_sources_range() -> Vec<(char, Vec<Dir>, Vec<Dir>)> {
 }
 
 fn symbol(biconnectivity: BiConnectivity) -> char {
-    box_glyph_sources_range()
+    if biconnectivity.is_empty() {
+        ' '
+    } else {
+        box_glyph_sources_range()
+            .iter()
+            .find(|(_, dirs1, dirs2)| {
+                let bits1 = Connectivity::new(dirs1).0;
+                let bits2 = Connectivity::new(dirs2).0;
+                biconnectivity.0.0 == bits1 && biconnectivity.1.0 == bits2
+            })
+            .unwrap_or_else(|| {
+                panic!(
+                    "No symbol for {:?} {:?}",
+                    biconnectivity.0.dirs(),
+                    biconnectivity.1.dirs()
+                );
+            })
+            .0
+    }
+}
+
+fn connectivity_from_symbol(sy: char) -> Connectivity {
+    let dirs = &box_glyph_sources_range()
         .iter()
-        .find(|(_, dirs1, dirs2)| {
-            let bits1 = Connectivity::new(dirs1).0;
-            let bits2 = Connectivity::new(dirs2).0;
-            biconnectivity.0.0 == bits1 && biconnectivity.1.0 == bits2
-        })
+        .find(|(c, _, _)| sy == *c)
         .unwrap()
-        .0
+        .1
+        .clone();
+    Connectivity::new(dirs)
 }
 
 fn cp_437() -> HashMap<u8, Glyph> {
@@ -317,7 +337,10 @@ impl Model {
             ('┼', 0, 0),
         ];
         for (c, e, k) in rules {
-            if self.grid[i][j].symbol() == c && e == econn.0 && !self.frozen[i][j] {
+            let conn = connectivity_from_symbol(c);
+            let BiConnectivity(a, b) = self.grid[i][j];
+
+            if a.0 | b.0 == conn.0 && e == econn.0 && !self.frozen[i][j] {
                 self.grid[i][j] = self.grid[i][j].rotate_times(k);
                 self.frozen[i][j] = true;
                 result += k as usize;
@@ -348,13 +371,15 @@ impl Model {
             return None;
         }
 
-        let original: Connectivity = self.grid[i][j];
+        let original: BiConnectivity = self.grid[i][j];
         for k in 0..=original.rotations_count() {
             self.grid[i][j] = self.grid[i][j].rotate_times(k);
 
             if self.grid[i][j]
+                .0
                 .dirs()
                 .iter()
+                .chain(self.grid[i][j].1.dirs().iter())
                 .all(|&d| self.is_direction_wired(i, j, d) && self.is_direction_frozen(i, j, d))
                 && !self.frozen[i][j]
             {
@@ -751,12 +776,6 @@ impl Model {
             }
 
             assert!(!self.grid[i][j].is_empty());
-            let conn: Connectivity = self.grid[i][j];
-            if k > 1 {
-                assert!(![5, 10].contains(&conn.0));
-            }
-            assert_ne!(15, conn.0);
-
             self.grid[i][j] = self.grid[i][j].rotate_times(k);
             self.frozen[i][j] = true;
         }
@@ -783,9 +802,16 @@ impl Model {
     }
 
     fn is_direction_wired(&self, i: usize, j: usize, dir: Dir) -> bool {
-        if !self.grid[i][j].dirs().contains(&dir) {
+        if !self.grid[i][j].0.dirs().contains(&dir) && !self.grid[i][j].1.dirs().contains(&dir) {
             return false;
         }
+
+        let select_component: fn(BiConnectivity) -> Connectivity =
+            if self.grid[i][j].0.dirs().contains(&dir) {
+                |biconn| biconn.0
+            } else {
+                |biconn| biconn.1
+            };
 
         let h = self.grid.len();
         let w = self.grid[0].len();
@@ -795,28 +821,36 @@ impl Model {
                 if i == 0 {
                     j == 0
                 } else {
-                    self.grid[i - 1][j].dirs().contains(&dir.opposite())
+                    select_component(self.grid[i - 1][j])
+                        .dirs()
+                        .contains(&dir.opposite())
                 }
             }
             Dir::E => {
                 if j == w - 1 {
                     false
                 } else {
-                    self.grid[i][j + 1].dirs().contains(&dir.opposite())
+                    select_component(self.grid[i][j + 1])
+                        .dirs()
+                        .contains(&dir.opposite())
                 }
             }
             Dir::S => {
                 if i == h - 1 {
                     j == w - 1
                 } else {
-                    self.grid[i + 1][j].dirs().contains(&dir.opposite())
+                    select_component(self.grid[i + 1][j])
+                        .dirs()
+                        .contains(&dir.opposite())
                 }
             }
             Dir::W => {
                 if j == 0 {
                     false
                 } else {
-                    self.grid[i][j - 1].dirs().contains(&dir.opposite())
+                    select_component(self.grid[i][j - 1])
+                        .dirs()
+                        .contains(&dir.opposite())
                 }
             }
         }
@@ -853,20 +887,20 @@ fn main() {
     let proto_lines: Vec<String> = bytes.into_iter().map(|xs| translate_row(&xs)).collect();
     let lines = remove_decorative_frame(proto_lines);
 
-    let connectivity_by_char: HashMap<char, Connectivity> = glyphs_by_byte
+    let biconnectivity_by_char: HashMap<char, BiConnectivity> = glyphs_by_byte
         .into_values()
-        .map(|g| (g.unicode, g.connectivity))
+        .map(|g| (g.unicode, g.biconnectivity))
         .collect();
 
-    let grid: Vec<Vec<Connectivity>> = lines
+    let grid: Vec<Vec<BiConnectivity>> = lines
         .into_iter()
         .map(|line| {
             line.chars()
                 .map(|c| {
-                    if let Some(conn) = connectivity_by_char.get(&c) {
-                        *conn
+                    if let Some(biconn) = biconnectivity_by_char.get(&c) {
+                        *biconn
                     } else {
-                        Connectivity::new(&[])
+                        BiConnectivity(Connectivity(0), Connectivity(0))
                     }
                 })
                 .collect()
