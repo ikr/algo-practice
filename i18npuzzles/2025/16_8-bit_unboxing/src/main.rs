@@ -269,6 +269,7 @@ impl Model {
     }
 
     fn apply_apriori_rotations(&mut self, i: usize, j: usize) -> usize {
+        assert!(!self.frozen[i][j]);
         let adj = self.adjacent(i, j);
 
         let empty_dirs: Vec<Dir> = Dir::all()
@@ -340,7 +341,7 @@ impl Model {
             let conn = connectivity_from_symbol(c);
             let BiConnectivity(a, b) = self.grid[i][j];
 
-            if a.0 | b.0 == conn.0 && e == econn.0 && !self.frozen[i][j] {
+            if a.0 | b.0 == conn.0 && e == econn.0 {
                 self.grid[i][j] = self.grid[i][j].rotate_times(k);
                 self.frozen[i][j] = true;
                 return k as usize;
@@ -357,7 +358,7 @@ impl Model {
 
         for i in 0..h {
             for j in 0..w {
-                if !(i == 0 && j == 0 || i == h - 1 && j == w - 1) {
+                if !(self.grid[i][j].is_empty() || i == 0 && j == 0 || i == h - 1 && j == w - 1) {
                     result += self.apply_apriori_rotations(i, j);
                 }
             }
@@ -381,7 +382,6 @@ impl Model {
                 .iter()
                 .chain(self.grid[i][j].1.dirs().iter())
                 .all(|&d| self.is_direction_wired(i, j, d) && self.is_direction_frozen(i, j, d))
-                && !self.frozen[i][j]
             {
                 self.frozen[i][j] = true;
                 return Some(k as usize);
@@ -769,10 +769,7 @@ impl Model {
             (14, 64, 2),
         ];
         for &(i, j, k) in manual.iter() {
-            if self.frozen[i][j] {
-                continue;
-            }
-
+            assert!(!self.frozen[i][j], "Already frozen at {:?}", (i, j));
             assert!(!self.grid[i][j].is_empty());
             self.grid[i][j] = self.grid[i][j].rotate_times(k);
             self.frozen[i][j] = true;
@@ -883,6 +880,10 @@ fn main() {
     };
 
     let proto_lines: Vec<String> = bytes.into_iter().map(|xs| translate_row(&xs)).collect();
+    for row in proto_lines.iter() {
+        eprintln!("{}", row);
+    }
+    eprintln!();
     let lines = remove_decorative_frame(proto_lines);
 
     let biconnectivity_by_char: HashMap<char, BiConnectivity> = glyphs_by_byte
