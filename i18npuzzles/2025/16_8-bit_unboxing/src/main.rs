@@ -44,7 +44,7 @@ impl Dir {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct Connectivity(u8);
 
 impl Connectivity {
@@ -80,7 +80,7 @@ impl Connectivity {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct BiConnectivity(Connectivity, Connectivity);
 
 impl BiConnectivity {
@@ -906,6 +906,8 @@ fn main() {
         })
         .collect();
 
+    let model0 = Model::new(grid.clone());
+
     let mut model = Model::new(grid);
     model.display_grid();
 
@@ -926,4 +928,22 @@ fn main() {
 
     let result = r0 + r1 + r2;
     println!("{}", result);
+
+    let mut alt_result: usize = 0;
+    let h = model0.grid.len();
+    let w = model0.grid[0].len();
+
+    for i in 0..h {
+        for j in 0..w {
+            let m = model0.grid[i][j].rotations_count();
+            for k in 0..=m {
+                if model0.grid[i][j].rotate_times(k) == model.grid[i][j] {
+                    alt_result += k as usize;
+                    break;
+                }
+            }
+        }
+    }
+
+    println!("{}", alt_result);
 }
