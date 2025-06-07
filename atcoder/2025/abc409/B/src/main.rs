@@ -4,12 +4,12 @@ use std::io::{BufWriter, Write, stdout};
 fn solve(mut xs: Vec<usize>) -> usize {
     xs.sort();
     let n = xs.len();
-    let mut result = 0;
+    let mut result = if xs[0] <= n { xs[0] } else { 0 };
 
-    for (i, &x) in xs.iter().enumerate() {
-        let tail_len = n - i;
-        if (i == 0 || xs[i - 1] != xs[i]) && tail_len >= x {
-            result = result.max(x);
+    for (i, xx) in xs.windows(2).enumerate() {
+        let tail_len = n - i - 1;
+        if xx[0] != xx[1] && tail_len >= xx[1] {
+            result = result.max(xx[1]);
         }
     }
 
