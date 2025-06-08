@@ -1,25 +1,37 @@
 use std::io::{BufRead, stdin};
 
+fn offset_and_period(xs: &[u64]) -> (usize, usize) {
+    let m = xs.len();
+    for i0 in 0..m / 2 {
+        let maybe_p = xs
+            .iter()
+            .enumerate()
+            .skip(i0)
+            .position(|(i, r)| i != i0 && *r == xs[i0]);
+        if let Some(p) = maybe_p {
+            return (i0, p);
+        }
+    }
+    panic!()
+}
+
 fn eni(n: u64, exp: u64, m: u64) -> u64 {
     let rems: Vec<u64> = (0..m)
-        .into_iter()
         .scan(1u64, |score, _| {
-            *score = *score * n;
-            *score = *score % m;
+            *score *= n;
+            *score %= m;
             Some(*score)
         })
         .collect();
 
-    eprintln!("n:{} exp:{} m:{} rems:{:?}", n, exp, m, rems);
+    let e = exp as usize;
+    let (i0, p) = offset_and_period(&rems);
+    let q = (e - i0) / p;
+    let i = (e - i0) % p;
 
-    let p = rems
-        .iter()
-        .enumerate()
-        .position(|(i, r)| i != 0 && *r == rems[0])
-        .unwrap();
-    let q = (exp as usize) / p;
-    let i = (exp as usize) % p;
-    rems[0..p].iter().sum::<u64>() * (q as u64) + rems[0..i].iter().sum::<u64>()
+    rems[0..i0].iter().sum::<u64>()
+        + rems[i0..i0 + p].iter().sum::<u64>() * (q as u64)
+        + rems[i0..i0 + i].iter().sum::<u64>()
 }
 
 struct Args {
@@ -73,5 +85,6 @@ mod tests {
     fn test_eni() {
         assert_eq!(eni(2, 7, 5), 19);
         assert_eq!(eni(3, 8, 16), 48);
+        assert_eq!(eni(8, 6000, 160), 479880);
     }
 }
