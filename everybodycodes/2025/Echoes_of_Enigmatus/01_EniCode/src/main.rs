@@ -1,17 +1,16 @@
 use std::io::{BufRead, stdin};
 
 fn eni(n: u16, exp: u16, m: u16) -> u64 {
-    let mut rems: Vec<u16> = vec![];
-    let mut score: u16 = 1;
+    let rems: Vec<u16> = (0..exp)
+        .scan(1u16, |score, _| {
+            *score = *score * n;
+            *score = *score % m;
+            Some(*score)
+        })
+        .collect();
 
-    for _ in 0..exp {
-        score *= n;
-        score %= m;
-        rems.push(score);
-    }
-
-    rems.reverse();
     rems.into_iter()
+        .rev()
         .map(|r| r.to_string())
         .collect::<Vec<_>>()
         .join("")
@@ -19,7 +18,6 @@ fn eni(n: u16, exp: u16, m: u16) -> u64 {
         .unwrap()
 }
 
-#[derive(Debug)]
 struct Args {
     abc: [u16; 3],
     xyz: [u16; 3],
@@ -56,14 +54,8 @@ impl Args {
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    eprintln!("{:?}", lines);
-
     let args: Vec<Args> = lines.into_iter().map(|s| Args::decode(&s)).collect();
-    eprintln!("{:?}", args);
-
     let xs: Vec<u64> = args.into_iter().map(|a| a.three_sum()).collect();
-    eprintln!("{:?}", xs);
-
     let result = xs.into_iter().max().unwrap();
     println!("{}", result);
 }
