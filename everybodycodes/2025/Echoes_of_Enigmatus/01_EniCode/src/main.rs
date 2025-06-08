@@ -1,34 +1,17 @@
+use ac_library::ModInt as Mint;
 use std::io::{BufRead, stdin};
 
-fn modexp(n: u64, exp: u64, m: u64) -> u64 {
-    if exp == 0 {
-        1
-    } else if exp % 2 == 0 {
-        let q = modexp(n, exp / 2, m);
-        (q * q) % m
-    } else {
-        (n * modexp(n, exp - 1, m)) % m
-    }
-}
-
-fn eni(n: u64, exp: u64, m: u64) -> u64 {
-    let rems: Vec<u64> = (exp.saturating_sub(4)..=exp)
-        .map(|e| modexp(n, e, m))
-        .collect();
-
-    rems.into_iter()
-        .rev()
-        .map(|r| r.to_string())
-        .collect::<Vec<_>>()
-        .join("")
-        .parse()
-        .unwrap()
+fn eni(n: u64, exp: u64, m: u32) -> u64 {
+    Mint::set_modulus(m);
+    let nn = Mint::new(n);
+    let result = nn.pow(exp + 1) * (Mint::new(1) - Mint::new(n)).inv();
+    result.val() as u64
 }
 
 struct Args {
     abc: [u64; 3],
     xyz: [u64; 3],
-    m: u64,
+    m: u32,
 }
 
 impl Args {
@@ -41,7 +24,7 @@ impl Args {
         let parts = s.split_whitespace().collect::<Vec<_>>();
         let abc: Vec<u64> = parts[..3].iter().map(|s| Self::decode_one(s)).collect();
         let xyz: Vec<u64> = parts[3..6].iter().map(|s| Self::decode_one(s)).collect();
-        let m: u64 = Self::decode_one(parts[6]);
+        let m: u32 = Self::decode_one(parts[6]) as u32;
 
         Self {
             abc: abc.try_into().unwrap(),
@@ -50,6 +33,7 @@ impl Args {
         }
     }
 
+    // eni(A, X, M) + eni(B, Y, M) + eni(C, Z, M)
     fn three_sum(&self) -> u64 {
         self.abc
             .into_iter()
@@ -72,13 +56,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_modexp() {
-        assert_eq!(modexp(2, 10, 10000), 1024);
-    }
-
-    #[test]
     fn test_eni() {
-        assert_eq!(eni(2, 7, 5), 34213);
-        assert_eq!(eni(3, 8, 16), 111931);
+        assert_eq!(eni(2, 7, 5), 19);
+        assert_eq!(eni(3, 8, 16), 48);
     }
 }
