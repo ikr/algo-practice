@@ -1,17 +1,25 @@
 use std::io::{BufRead, stdin};
 
+fn modexp(n: u64, exp: u64, m: u64) -> u64 {
+    if exp == 0 {
+        1
+    } else {
+        if exp % 2 == 0 {
+            let q = modexp(n, exp / 2, m);
+            (q * q) % m
+        } else {
+            (n * modexp(n, exp - 1, m)) % m
+        }
+    }
+}
+
 fn eni(n: u64, exp: u64, m: u64) -> u64 {
-    let rems: Vec<u64> = (0..exp)
-        .scan(1u64, |score, _| {
-            *score = *score * n;
-            *score = *score % m;
-            Some(*score)
-        })
+    let rems: Vec<u64> = (exp.saturating_sub(4)..=exp)
+        .map(|e| modexp(n, e, m))
         .collect();
 
     rems.into_iter()
         .rev()
-        .take(5)
         .map(|r| r.to_string())
         .collect::<Vec<_>>()
         .join("")
@@ -64,6 +72,11 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_modexp() {
+        assert_eq!(modexp(2, 10, 10000), 1024);
+    }
 
     #[test]
     fn test_eni() {
