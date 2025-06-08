@@ -1,17 +1,31 @@
-use ac_library::ModInt as Mint;
 use std::io::{BufRead, stdin};
 
-fn eni(n: u64, exp: u64, m: u32) -> u64 {
-    Mint::set_modulus(m);
-    let nn = Mint::new(n);
-    let result = nn.pow(exp + 1) * (Mint::new(1) - Mint::new(n)).inv();
-    result.val() as u64
+fn eni(n: u64, exp: u64, m: u64) -> u64 {
+    let rems: Vec<u64> = (0..m)
+        .into_iter()
+        .scan(1u64, |score, _| {
+            *score = *score * n;
+            *score = *score % m;
+            Some(*score)
+        })
+        .collect();
+
+    eprintln!("n:{} exp:{} m:{} rems:{:?}", n, exp, m, rems);
+
+    let p = rems
+        .iter()
+        .enumerate()
+        .position(|(i, r)| i != 0 && *r == rems[0])
+        .unwrap();
+    let q = (exp as usize) / p;
+    let i = (exp as usize) % p;
+    rems[0..p].iter().sum::<u64>() * (q as u64) + rems[0..i].iter().sum::<u64>()
 }
 
 struct Args {
     abc: [u64; 3],
     xyz: [u64; 3],
-    m: u32,
+    m: u64,
 }
 
 impl Args {
@@ -24,7 +38,7 @@ impl Args {
         let parts = s.split_whitespace().collect::<Vec<_>>();
         let abc: Vec<u64> = parts[..3].iter().map(|s| Self::decode_one(s)).collect();
         let xyz: Vec<u64> = parts[3..6].iter().map(|s| Self::decode_one(s)).collect();
-        let m: u32 = Self::decode_one(parts[6]) as u32;
+        let m: u64 = Self::decode_one(parts[6]);
 
         Self {
             abc: abc.try_into().unwrap(),
