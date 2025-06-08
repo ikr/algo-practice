@@ -31,8 +31,18 @@ impl Scanner {
 
 fn num_partitions(xs: Vec<u32>) -> usize {
     let mut all: HashSet<u32> = HashSet::from([xs[0]]);
-    let mut cur: HashSet<u32> = HashSet::from([xs[0]]);
+    let mut cur: HashSet<u32> = HashSet::new();
+
     let mut result: usize = 1;
+
+    for x in xs.into_iter().skip(1) {
+        all.insert(x);
+        cur.insert(x);
+        if cur.len() == all.len() {
+            result += 1;
+            cur.clear();
+        }
+    }
 
     result
 }
