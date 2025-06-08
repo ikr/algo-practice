@@ -3,13 +3,11 @@ use std::io::{BufRead, stdin};
 fn modexp(n: u64, exp: u64, m: u64) -> u64 {
     if exp == 0 {
         1
+    } else if exp % 2 == 0 {
+        let q = modexp(n, exp / 2, m);
+        (q * q) % m
     } else {
-        if exp % 2 == 0 {
-            let q = modexp(n, exp / 2, m);
-            (q * q) % m
-        } else {
-            (n * modexp(n, exp - 1, m)) % m
-        }
+        (n * modexp(n, exp - 1, m)) % m
     }
 }
 
@@ -41,8 +39,8 @@ impl Args {
 
     fn decode(s: &str) -> Self {
         let parts = s.split_whitespace().collect::<Vec<_>>();
-        let abc: Vec<u64> = parts[..3].iter().map(|s| Self::decode_one(*s)).collect();
-        let xyz: Vec<u64> = parts[3..6].iter().map(|s| Self::decode_one(*s)).collect();
+        let abc: Vec<u64> = parts[..3].iter().map(|s| Self::decode_one(s)).collect();
+        let xyz: Vec<u64> = parts[3..6].iter().map(|s| Self::decode_one(s)).collect();
         let m: u64 = Self::decode_one(parts[6]);
 
         Self {
@@ -55,7 +53,7 @@ impl Args {
     fn three_sum(&self) -> u64 {
         self.abc
             .into_iter()
-            .zip(self.xyz.into_iter())
+            .zip(self.xyz)
             .map(|(p, q)| eni(p, q, self.m))
             .sum()
     }
