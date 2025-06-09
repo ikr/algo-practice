@@ -1,4 +1,7 @@
-use std::io::{BufWriter, Write, stdin, stdout};
+use std::{
+    collections::HashSet,
+    io::{BufWriter, Write, stdin, stdout},
+};
 
 #[derive(Default)]
 struct Scanner {
@@ -26,20 +29,41 @@ impl Scanner {
     }
 }
 
-fn max_matches(a: Vec<u32>, b: Vec<u32>) -> usize {
+fn max_matches(a: &[u32], b: &[u32]) -> usize {
     let n = a.len();
+    let mut avs: HashSet<u32> = HashSet::new();
+    let mut result = if a[0] == b[0] { 1 } else { 0 };
+
     for i in (1..n).rev() {
         if a[i] == b[i] {
-            return i + 1;
+            result = result.max(i + 1);
         }
-        if a[i - 1] == a[i] || b[i - 1] == b[i] {
-            return i;
+        {
+            let (cur, opp) = if (n - 1) % 2 == i % 2 {
+                (a[i], a[i - 1])
+            } else {
+                (b[i], b[i - 1])
+            };
+
+            avs.insert(cur);
+            if avs.contains(&opp) {
+                result = result.max(i);
+            }
         }
-        if i > 1 && (b[i - 2] == b[i] || b[i - 2] == b[i]) {
-            return i - 2;
+        if i > 1 {
+            let (cur, opp) = if (n - 1) % 2 != i % 2 {
+                (a[i], a[i - 2])
+            } else {
+                (b[i], b[i - 2])
+            };
+
+            avs.insert(cur);
+            if avs.contains(&opp) {
+                result = result.max(i - 1);
+            }
         }
     }
-    0
+    result
 }
 
 fn main() {
@@ -55,7 +79,7 @@ fn main() {
         let a: Vec<u32> = scanner.next_n(n);
         let b: Vec<u32> = scanner.next_n(n);
 
-        let result = max_matches(a, b);
+        let result = max_matches(&a, &b).max(max_matches(&b, &a));
         writeln!(writer, "{}", result).unwrap();
     }
 
