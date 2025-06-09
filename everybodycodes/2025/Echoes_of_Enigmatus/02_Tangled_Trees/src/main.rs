@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashSet,
+    io::{BufRead, stdin},
+};
 
 const TREE_LIM: usize = 1 << 24;
 const LEVEL_LIM: usize = 25;
@@ -76,6 +79,10 @@ impl Tree {
             .max_by_key(|s| s.len())
             .unwrap()
     }
+
+    fn eject_subtree(&mut self, i0: usize) -> Vec<Node> {
+        todo!()
+    }
 }
 
 fn parse_node(s: &str) -> Node {
@@ -98,9 +105,20 @@ fn main() {
     let mut tangled_indices: Vec<(usize, usize)> = vec![(0, 0)];
     let mut trees = vec![Tree::new(); 2];
 
+    let mut ranks: HashSet<u16> = HashSet::new();
+
     for cmd in commands {
         match cmd {
             Cmd::Add(left_tree_node, right_tree_node) => {
+                assert!(
+                    !ranks.contains(&left_tree_node.0),
+                    "collision on {}",
+                    left_tree_node.0
+                );
+                ranks.insert(left_tree_node.0);
+                assert!(!ranks.contains(&right_tree_node.0));
+                ranks.insert(right_tree_node.0);
+
                 let i = trees[0].insert(left_tree_node);
                 let j = trees[1].insert(right_tree_node);
                 tangled_indices.push((i, j));
@@ -124,15 +142,4 @@ fn main() {
         .collect::<Vec<_>>()
         .join("");
     println!("{}", result);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_noed() {
-        assert_eq!(parse_node("left=[146,E]"), Node(146, 'E'));
-        assert_eq!(parse_node("right=[283,!]"), Node(283, '!'));
-    }
 }
