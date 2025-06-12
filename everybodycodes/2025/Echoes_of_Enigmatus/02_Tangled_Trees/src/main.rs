@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    collections::VecDeque,
+    io::{BufRead, stdin},
+};
 
 const TREE_LIM: usize = 1 << 21;
 const LEVEL_LIM: usize = 22;
@@ -45,11 +48,7 @@ impl Tree {
 
     fn insert_recur(&mut self, i0: usize, node: Node) {
         if let Some(node0) = self.nodes[i0] {
-            let i1 = if node.0 <= node0.0 {
-                i0 * 2
-            } else {
-                i0 * 2 + 1
-            };
+            let i1 = if node.0 < node0.0 { i0 * 2 } else { i0 * 2 + 1 };
             self.insert_recur(i1, node);
         } else {
             self.nodes[i0] = Some(node);
@@ -87,7 +86,22 @@ impl Tree {
     }
 
     fn eject_subtree(&mut self, i0: usize) -> Vec<Node> {
-        todo!()
+        assert!(self.nodes[i0].is_some());
+        let mut result: Vec<Node> = vec![];
+        let mut q: VecDeque<usize> = VecDeque::from([i0]);
+
+        while let Some(i) = q.pop_front() {
+            result.push(self.nodes[i].unwrap());
+            self.nodes[i] = None;
+
+            for j in [i * 2, i * 2 + 1] {
+                if j < self.nodes.len() && self.nodes[j].is_some() {
+                    q.push_back(j);
+                }
+            }
+        }
+
+        result
     }
 }
 
@@ -143,6 +157,8 @@ fn main() {
             }
         }
     }
+
+    eprintln!("{:?}", trees[1].eject_subtree(1));
 
     let result = trees
         .into_iter()
