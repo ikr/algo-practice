@@ -1,7 +1,4 @@
-use std::{
-    collections::HashSet,
-    io::{BufRead, stdin},
-};
+use std::io::{BufRead, stdin};
 
 const TREE_LIM: usize = 1 << 24;
 const LEVEL_LIM: usize = 25;
@@ -42,21 +39,20 @@ impl Tree {
         }
     }
 
-    fn insert(&mut self, node: Node) -> usize {
+    fn insert(&mut self, node: Node) {
         self.insert_recur(1, node)
     }
 
-    fn insert_recur(&mut self, i0: usize, node: Node) -> usize {
+    fn insert_recur(&mut self, i0: usize, node: Node) {
         if let Some(node0) = self.nodes[i0] {
             let i1 = if node.0 <= node0.0 {
                 i0 * 2
             } else {
                 i0 * 2 + 1
             };
-            self.insert_recur(i1, node)
+            self.insert_recur(i1, node);
         } else {
             self.nodes[i0] = Some(node);
-            i0
         }
     }
 
@@ -78,6 +74,16 @@ impl Tree {
             .into_iter()
             .max_by_key(|s| s.len())
             .unwrap()
+    }
+
+    fn find_rank(&self, r: u16) -> Option<usize> {
+        self.nodes.iter().position(|maybe_node| {
+            if let Some(node) = maybe_node {
+                node.0 == r
+            } else {
+                false
+            }
+        })
     }
 
     fn eject_subtree(&mut self, i0: usize) -> Vec<Node> {
@@ -102,29 +108,31 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let commands: Vec<_> = lines.into_iter().map(|s| Cmd::parse(&s)).collect();
 
-    let mut tangled_indices: Vec<(usize, usize)> = vec![(0, 0)];
+    let mut tangled_ranks: Vec<(u16, u16)> = vec![(0, 0)];
     let mut trees = vec![Tree::new(); 2];
-
-    let mut ranks: HashSet<u16> = HashSet::new();
 
     for cmd in commands {
         match cmd {
             Cmd::Add(left_tree_node, right_tree_node) => {
-                assert!(
-                    !ranks.contains(&left_tree_node.0),
-                    "collision on {}",
-                    left_tree_node.0
-                );
-                ranks.insert(left_tree_node.0);
-                assert!(!ranks.contains(&right_tree_node.0));
-                ranks.insert(right_tree_node.0);
-
-                let i = trees[0].insert(left_tree_node);
-                let j = trees[1].insert(right_tree_node);
-                tangled_indices.push((i, j));
+                trees[0].insert(left_tree_node);
+                trees[1].insert(right_tree_node);
+                tangled_ranks.push((left_tree_node.0, right_tree_node.0));
             }
-            Cmd::Swap(i) => {
-                let (left_tree_index, right_tree_index) = tangled_indices[i];
+            Cmd::Swap(id) => {
+                let (rank_a, rank_b) = tangled_ranks[id];
+
+                let (left_tree_index, right_tree_index): (usize, usize) =
+                    if let (Some(i), Some(j)) =
+                        (trees[0].find_rank(rank_a), trees[1].find_rank(rank_b))
+                    {
+                        (i, j)
+                    } else if let (Some(i), Some(j)) =
+                        (trees[0].find_rank(rank_b), trees[1].find_rank(rank_a))
+                    {
+                        (i, j)
+                    } else {
+                        unreachable!()
+                    };
                 (
                     trees[0].nodes[left_tree_index],
                     trees[1].nodes[right_tree_index],
