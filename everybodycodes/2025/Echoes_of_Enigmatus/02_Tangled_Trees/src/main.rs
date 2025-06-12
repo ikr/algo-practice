@@ -71,8 +71,10 @@ impl Tree {
     fn longest_level_string(&self) -> String {
         self.level_strings()
             .into_iter()
-            .max_by_key(|s| s.len())
+            .enumerate()
+            .max_by_key(|(level, s)| (s.len(), -1 * (*level as i8)))
             .unwrap()
+            .1
     }
 
     fn find_rank(&self, r: u16) -> Option<usize> {
@@ -147,18 +149,19 @@ fn main() {
                     } else {
                         unreachable!()
                     };
-                (
-                    trees[0].nodes[left_tree_index],
-                    trees[1].nodes[right_tree_index],
-                ) = (
-                    trees[1].nodes[right_tree_index],
-                    trees[0].nodes[left_tree_index],
-                );
+
+                let nodes_a = trees[0].eject_subtree(left_tree_index);
+                let nodes_b = trees[1].eject_subtree(right_tree_index);
+
+                for node in nodes_a {
+                    trees[1].insert_recur(right_tree_index, node);
+                }
+                for node in nodes_b {
+                    trees[0].insert_recur(left_tree_index, node);
+                }
             }
         }
     }
-
-    eprintln!("{:?}", trees[1].eject_subtree(1));
 
     let result = trees
         .into_iter()
