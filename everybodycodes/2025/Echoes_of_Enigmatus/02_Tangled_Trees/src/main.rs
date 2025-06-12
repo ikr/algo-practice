@@ -72,7 +72,7 @@ impl Tree {
         self.level_strings()
             .into_iter()
             .enumerate()
-            .max_by_key(|(level, s)| (s.len(), -1 * (*level as i8)))
+            .max_by_key(|(level, s)| (s.len(), -(*level as i8)))
             .unwrap()
             .1
     }
@@ -137,27 +137,31 @@ fn main() {
             Cmd::Swap(id) => {
                 let (rank_a, rank_b) = tangled_ranks[id];
 
-                let (left_tree_index, right_tree_index): (usize, usize) =
-                    if let (Some(i), Some(j)) =
-                        (trees[0].find_rank(rank_a), trees[1].find_rank(rank_b))
-                    {
-                        (i, j)
-                    } else if let (Some(i), Some(j)) =
-                        (trees[0].find_rank(rank_b), trees[1].find_rank(rank_a))
-                    {
-                        (i, j)
+                let (ii, i, jj, j) = [
+                    (0usize, rank_a, 1usize, rank_b),
+                    (0, rank_b, 1, rank_a),
+                    (0, rank_a, 0, rank_b),
+                    (1, rank_a, 1, rank_b),
+                ]
+                .into_iter()
+                .filter_map(|(p, a, q, b)| {
+                    if let (Some(i), Some(j)) = (trees[p].find_rank(a), trees[q].find_rank(b)) {
+                        Some((p, i, q, j))
                     } else {
-                        unreachable!()
-                    };
+                        None
+                    }
+                })
+                .next()
+                .unwrap();
 
-                let nodes_a = trees[0].eject_subtree(left_tree_index);
-                let nodes_b = trees[1].eject_subtree(right_tree_index);
+                let nodes_a = trees[ii].eject_subtree(i);
+                let nodes_b = trees[jj].eject_subtree(j);
 
                 for node in nodes_a {
-                    trees[1].insert_recur(right_tree_index, node);
+                    trees[jj].insert_recur(j, node);
                 }
                 for node in nodes_b {
-                    trees[0].insert_recur(left_tree_index, node);
+                    trees[ii].insert_recur(i, node);
                 }
             }
         }
