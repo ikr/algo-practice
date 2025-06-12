@@ -1,7 +1,7 @@
 use std::io::{BufRead, stdin};
 
-const TREE_LIM: usize = 1 << 24;
-const LEVEL_LIM: usize = 25;
+const TREE_LIM: usize = 1 << 21;
+const LEVEL_LIM: usize = 22;
 
 enum Cmd {
     Add(Node, Node),
