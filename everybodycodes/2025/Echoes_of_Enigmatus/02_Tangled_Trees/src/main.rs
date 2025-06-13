@@ -3,8 +3,8 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const TREE_LIM: usize = 1 << 21;
-const LEVEL_LIM: usize = 22;
+const TREE_LIM: usize = 1 << 22;
+const LEVEL_LIM: usize = 23;
 
 enum Cmd {
     Add(Node, Node),
@@ -105,6 +105,24 @@ impl Tree {
 
         result
     }
+
+    fn copy_subtree(&self, i0: usize) -> Vec<Node> {
+        assert!(self.nodes[i0].is_some());
+        let mut result: Vec<Node> = vec![];
+        let mut q: VecDeque<usize> = VecDeque::from([i0]);
+
+        while let Some(i) = q.pop_front() {
+            result.push(self.nodes[i].unwrap());
+
+            for j in [i * 2, i * 2 + 1] {
+                if j < self.nodes.len() && self.nodes[j].is_some() {
+                    q.push_back(j);
+                }
+            }
+        }
+
+        result
+    }
 }
 
 fn parse_node(s: &str) -> Node {
@@ -154,14 +172,28 @@ fn main() {
                 .next()
                 .unwrap();
 
-                let nodes_a = trees[ii].eject_subtree(i);
-                let nodes_b = trees[jj].eject_subtree(j);
+                let copy_a = trees[ii].copy_subtree(i);
+                let copy_b = trees[jj].copy_subtree(j);
+                if copy_a
+                    .into_iter()
+                    .any(|node| node.0 == trees[jj].nodes[j].unwrap().0)
+                    || copy_b
+                        .into_iter()
+                        .any(|node| node.0 == trees[ii].nodes[i].unwrap().0)
+                {
+                    assert_eq!(ii, jj);
+                    (trees[ii].nodes[i], trees[jj].nodes[j]) =
+                        (trees[jj].nodes[j], trees[ii].nodes[i]);
+                } else {
+                    let nodes_a = trees[ii].eject_subtree(i);
+                    let nodes_b = trees[jj].eject_subtree(j);
 
-                for node in nodes_a {
-                    trees[jj].insert_recur(j, node);
-                }
-                for node in nodes_b {
-                    trees[ii].insert_recur(i, node);
+                    for node in nodes_a {
+                        trees[jj].insert_recur(j, node);
+                    }
+                    for node in nodes_b {
+                        trees[ii].insert_recur(i, node);
+                    }
                 }
             }
         }
