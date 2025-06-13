@@ -90,7 +90,7 @@ impl Tree {
             self.nodes.remove(&i);
 
             for j in [i * 2, i * 2 + 1] {
-                if j < self.nodes.len() && self.nodes.contains_key(&j) {
+                if self.nodes.contains_key(&j) {
                     q.push_back(j);
                 }
             }
@@ -108,7 +108,7 @@ impl Tree {
             result.push(*self.nodes.get(&i).unwrap());
 
             for j in [i * 2, i * 2 + 1] {
-                if j < self.nodes.len() && self.nodes.contains_key(&j) {
+                if self.nodes.contains_key(&j) {
                     q.push_back(j);
                 }
             }
@@ -168,20 +168,21 @@ fn main() {
                 let copy_a = trees[ii].copy_subtree(i);
                 let copy_b = trees[jj].copy_subtree(j);
                 if copy_a
-                    .into_iter()
+                    .iter()
                     .any(|node| node.0 == trees[jj].nodes.get(&j).unwrap().0)
                     || copy_b
-                        .into_iter()
+                        .iter()
                         .any(|node| node.0 == trees[ii].nodes.get(&i).unwrap().0)
                 {
                     assert_eq!(ii, jj);
-                    (
-                        *trees[ii].nodes.get_mut(&i).unwrap(),
-                        *trees[jj].nodes.get_mut(&j).unwrap(),
-                    ) = (
-                        *trees[jj].nodes.get(&j).unwrap(),
-                        *trees[ii].nodes.get(&i).unwrap(),
-                    );
+                    eprintln!("Must swap subtree {:?} with subtree {:?}", copy_a, copy_b);
+                    todo!();
+
+                    let node_a = *trees[ii].nodes.get(&i).unwrap();
+                    let node_b = *trees[jj].nodes.get(&j).unwrap();
+
+                    trees[ii].nodes.insert(i, node_b);
+                    trees[jj].nodes.insert(j, node_a);
                 } else {
                     let nodes_a = trees[ii].eject_subtree(i);
                     let nodes_b = trees[jj].eject_subtree(j);
