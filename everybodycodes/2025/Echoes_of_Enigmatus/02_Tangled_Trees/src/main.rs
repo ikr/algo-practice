@@ -1,10 +1,9 @@
 use std::{
-    collections::VecDeque,
+    collections::{BTreeMap, VecDeque},
     io::{BufRead, stdin},
 };
 
-const TREE_LIM: usize = 1 << 22;
-const LEVEL_LIM: usize = 23;
+const LEVEL_LIM: usize = 64;
 
 enum Cmd {
     Add(Node, Node),
@@ -32,13 +31,13 @@ struct Node(u16, char);
 
 #[derive(Clone)]
 struct Tree {
-    nodes: Vec<Option<Node>>,
+    nodes: BTreeMap<usize, Node>,
 }
 
 impl Tree {
     fn new() -> Self {
         Self {
-            nodes: vec![None; TREE_LIM],
+            nodes: BTreeMap::new(),
         }
     }
 
@@ -47,25 +46,22 @@ impl Tree {
     }
 
     fn insert_recur(&mut self, i0: usize, node: Node) {
-        if let Some(node0) = self.nodes[i0] {
+        if let Some(node0) = self.nodes.get(&i0) {
             let i1 = if node.0 < node0.0 { i0 * 2 } else { i0 * 2 + 1 };
             self.insert_recur(i1, node);
         } else {
-            self.nodes[i0] = Some(node);
+            self.nodes.insert(i0, node);
         }
     }
 
     fn level_strings(&self) -> Vec<String> {
-        self.nodes.iter().enumerate().fold(
-            vec![String::new(); LEVEL_LIM],
-            |mut acc, (i, maybe_node)| {
-                if let Some(node) = maybe_node {
-                    let l = ilog2(i);
-                    acc[l].push(node.1);
-                }
+        self.nodes
+            .iter()
+            .fold(vec![String::new(); LEVEL_LIM], |mut acc, (i, node)| {
+                let l = ilog2(*i);
+                acc[l].push(node.1);
                 acc
-            },
-        )
+            })
     }
 
     fn longest_level_string(&self) -> String {
@@ -78,26 +74,23 @@ impl Tree {
     }
 
     fn find_rank(&self, r: u16) -> Option<usize> {
-        self.nodes.iter().position(|maybe_node| {
-            if let Some(node) = maybe_node {
-                node.0 == r
-            } else {
-                false
-            }
-        })
+        self.nodes
+            .iter()
+            .find(|(_, node)| node.0 == r)
+            .map(|(i, _)| *i)
     }
 
     fn eject_subtree(&mut self, i0: usize) -> Vec<Node> {
-        assert!(self.nodes[i0].is_some());
+        assert!(self.nodes.contains_key(&i0));
         let mut result: Vec<Node> = vec![];
         let mut q: VecDeque<usize> = VecDeque::from([i0]);
 
         while let Some(i) = q.pop_front() {
-            result.push(self.nodes[i].unwrap());
-            self.nodes[i] = None;
+            result.push(*self.nodes.get(&i).unwrap());
+            self.nodes.remove(&i);
 
             for j in [i * 2, i * 2 + 1] {
-                if j < self.nodes.len() && self.nodes[j].is_some() {
+                if j < self.nodes.len() && self.nodes.contains_key(&j) {
                     q.push_back(j);
                 }
             }
@@ -107,15 +100,15 @@ impl Tree {
     }
 
     fn copy_subtree(&self, i0: usize) -> Vec<Node> {
-        assert!(self.nodes[i0].is_some());
+        assert!(self.nodes.contains_key(&i0));
         let mut result: Vec<Node> = vec![];
         let mut q: VecDeque<usize> = VecDeque::from([i0]);
 
         while let Some(i) = q.pop_front() {
-            result.push(self.nodes[i].unwrap());
+            result.push(*self.nodes.get(&i).unwrap());
 
             for j in [i * 2, i * 2 + 1] {
-                if j < self.nodes.len() && self.nodes[j].is_some() {
+                if j < self.nodes.len() && self.nodes.contains_key(&j) {
                     q.push_back(j);
                 }
             }
@@ -176,14 +169,19 @@ fn main() {
                 let copy_b = trees[jj].copy_subtree(j);
                 if copy_a
                     .into_iter()
-                    .any(|node| node.0 == trees[jj].nodes[j].unwrap().0)
+                    .any(|node| node.0 == trees[jj].nodes.get(&j).unwrap().0)
                     || copy_b
                         .into_iter()
-                        .any(|node| node.0 == trees[ii].nodes[i].unwrap().0)
+                        .any(|node| node.0 == trees[ii].nodes.get(&i).unwrap().0)
                 {
                     assert_eq!(ii, jj);
-                    (trees[ii].nodes[i], trees[jj].nodes[j]) =
-                        (trees[jj].nodes[j], trees[ii].nodes[i]);
+                    (
+                        *trees[ii].nodes.get_mut(&i).unwrap(),
+                        *trees[jj].nodes.get_mut(&j).unwrap(),
+                    ) = (
+                        *trees[jj].nodes.get(&j).unwrap(),
+                        *trees[ii].nodes.get(&i).unwrap(),
+                    );
                 } else {
                     let nodes_a = trees[ii].eject_subtree(i);
                     let nodes_b = trees[jj].eject_subtree(j);
