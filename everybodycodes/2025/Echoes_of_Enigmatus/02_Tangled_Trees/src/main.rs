@@ -41,10 +41,6 @@ impl Tree {
         }
     }
 
-    fn insert(&mut self, node: Node) {
-        self.insert_recur(1, node)
-    }
-
     fn insert_recur(&mut self, i0: usize, node: Node) {
         if let Some(node0) = self.nodes.get(&i0) {
             let i1 = if node.0 < node0.0 { i0 * 2 } else { i0 * 2 + 1 };
@@ -54,18 +50,26 @@ impl Tree {
         }
     }
 
-    fn level_strings(&self) -> Vec<String> {
-        self.nodes
-            .iter()
-            .fold(vec![String::new(); LEVEL_LIM], |mut acc, (i, node)| {
-                let l = ilog2(*i);
-                acc[l].push(node.1);
-                acc
-            })
+    fn level_strings(&self, i0: usize) -> Vec<String> {
+        let mut result = vec![String::new(); LEVEL_LIM];
+        let mut q: VecDeque<usize> = VecDeque::from([i0]);
+
+        while let Some(i) = q.pop_front() {
+            let l = ilog2(i);
+            result[l].push(self.nodes.get(&i).unwrap().1);
+
+            for j in [i * 2, i * 2 + 1] {
+                if self.nodes.contains_key(&j) {
+                    q.push_back(j);
+                }
+            }
+        }
+
+        result
     }
 
-    fn longest_level_string(&self) -> String {
-        self.level_strings()
+    fn longest_level_string(&self, i0: usize) -> String {
+        self.level_strings(i0)
             .into_iter()
             .enumerate()
             .max_by_key(|(level, s)| (s.len(), -(*level as i8)))
@@ -73,25 +77,23 @@ impl Tree {
             .1
     }
 
-    fn find_rank(&self, r: u16) -> Option<usize> {
-        self.nodes
-            .iter()
-            .find(|(_, node)| node.0 == r)
-            .map(|(i, _)| *i)
+    fn find_rank(&self, r: u16) -> usize {
+        *self.nodes.iter().find(|(_, node)| node.0 == r).unwrap().0
     }
 
-    fn eject_subtree(&mut self, i0: usize) -> Vec<Node> {
+    fn eject_subtree(&mut self, i0: usize) -> Tree {
         assert!(self.nodes.contains_key(&i0));
-        let mut result: Vec<Node> = vec![];
-        let mut q: VecDeque<usize> = VecDeque::from([i0]);
+        let mut result = Tree::new();
+        let mut q: VecDeque<(usize, usize)> = VecDeque::from([(i0, 1)]);
 
-        while let Some(i) = q.pop_front() {
-            result.push(*self.nodes.get(&i).unwrap());
+        while let Some((i, ii)) = q.pop_front() {
+            let node = *self.nodes.get(&i).unwrap();
+            result.nodes.insert(ii, node);
             self.nodes.remove(&i);
 
-            for j in [i * 2, i * 2 + 1] {
+            for (j, jj) in [(i * 2, ii * 2), (i * 2 + 1, ii * 2 + 1)] {
                 if self.nodes.contains_key(&j) {
-                    q.push_back(j);
+                    q.push_back((j, jj));
                 }
             }
         }
@@ -99,22 +101,22 @@ impl Tree {
         result
     }
 
-    fn copy_subtree(&self, i0: usize) -> Vec<Node> {
-        assert!(self.nodes.contains_key(&i0));
-        let mut result: Vec<Node> = vec![];
-        let mut q: VecDeque<usize> = VecDeque::from([i0]);
+    fn adopt_subtree(&mut self, i0: usize, other: Tree) {
+        let mut q: VecDeque<(usize, usize)> = VecDeque::from([(1, i0)]);
 
-        while let Some(i) = q.pop_front() {
-            result.push(*self.nodes.get(&i).unwrap());
+        while let Some((i, ii)) = q.pop_front() {
+            assert!(other.nodes.contains_key(&i));
+            let node = *other.nodes.get(&i).unwrap();
 
-            for j in [i * 2, i * 2 + 1] {
-                if self.nodes.contains_key(&j) {
-                    q.push_back(j);
+            assert!(!self.nodes.contains_key(&ii));
+            self.nodes.insert(ii, node);
+
+            for (j, jj) in [(i * 2, ii * 2), (i * 2 + 1, ii * 2 + 1)] {
+                if other.nodes.contains_key(&j) {
+                    q.push_back((j, jj));
                 }
             }
         }
-
-        result
     }
 }
 
@@ -136,71 +138,33 @@ fn main() {
     let commands: Vec<_> = lines.into_iter().map(|s| Cmd::parse(&s)).collect();
 
     let mut tangled_ranks: Vec<(u16, u16)> = vec![(0, 0)];
-    let mut trees = vec![Tree::new(); 2];
+    let mut tree = Tree::new();
+    tree.nodes.insert(1, Node(0, '/'));
 
     for cmd in commands {
         match cmd {
             Cmd::Add(left_tree_node, right_tree_node) => {
-                trees[0].insert(left_tree_node);
-                trees[1].insert(right_tree_node);
+                tree.insert_recur(2, left_tree_node);
+                tree.insert_recur(3, right_tree_node);
                 tangled_ranks.push((left_tree_node.0, right_tree_node.0));
             }
             Cmd::Swap(id) => {
                 let (rank_a, rank_b) = tangled_ranks[id];
+                let i = tree.find_rank(rank_a);
+                let j = tree.find_rank(rank_b);
 
-                let (ii, i, jj, j) = [
-                    (0usize, rank_a, 1usize, rank_b),
-                    (0, rank_b, 1, rank_a),
-                    (0, rank_a, 0, rank_b),
-                    (1, rank_a, 1, rank_b),
-                ]
-                .into_iter()
-                .filter_map(|(p, a, q, b)| {
-                    if let (Some(i), Some(j)) = (trees[p].find_rank(a), trees[q].find_rank(b)) {
-                        Some((p, i, q, j))
-                    } else {
-                        None
-                    }
-                })
-                .next()
-                .unwrap();
+                let subtree_a = tree.eject_subtree(i);
+                let subtree_b = tree.eject_subtree(j);
 
-                let copy_a = trees[ii].copy_subtree(i);
-                let copy_b = trees[jj].copy_subtree(j);
-                if copy_a
-                    .iter()
-                    .any(|node| node.0 == trees[jj].nodes.get(&j).unwrap().0)
-                    || copy_b
-                        .iter()
-                        .any(|node| node.0 == trees[ii].nodes.get(&i).unwrap().0)
-                {
-                    assert_eq!(ii, jj);
-                    eprintln!("Must swap subtree {:?} with subtree {:?}", copy_a, copy_b);
-                    todo!();
-
-                    let node_a = *trees[ii].nodes.get(&i).unwrap();
-                    let node_b = *trees[jj].nodes.get(&j).unwrap();
-
-                    trees[ii].nodes.insert(i, node_b);
-                    trees[jj].nodes.insert(j, node_a);
-                } else {
-                    let nodes_a = trees[ii].eject_subtree(i);
-                    let nodes_b = trees[jj].eject_subtree(j);
-
-                    for node in nodes_a {
-                        trees[jj].insert_recur(j, node);
-                    }
-                    for node in nodes_b {
-                        trees[ii].insert_recur(i, node);
-                    }
-                }
+                tree.adopt_subtree(i, subtree_b);
+                tree.adopt_subtree(j, subtree_a);
             }
         }
     }
 
-    let result = trees
+    let result = [2, 3]
         .into_iter()
-        .map(|t| t.longest_level_string())
+        .map(|i| tree.longest_level_string(i))
         .collect::<Vec<_>>()
         .join("");
     println!("{}", result);
