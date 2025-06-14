@@ -31,9 +31,6 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let coords: Vec<Coord> = lines.into_iter().map(|s| Coord::parse(&s)).collect();
 
-    let diameters: Vec<i64> = coords.iter().map(|coord| coord.disk_diameter()).collect();
-    eprintln!("{:?}", diameters);
-
     let r: Vec<i64> = coords
         .iter()
         .map(|coord| {
@@ -43,7 +40,11 @@ fn main() {
         })
         .collect();
 
-    let m: Vec<i64> = coords.iter().map(|coord| coord.disk_diameter()).collect();
+    let m: Vec<i64> = coords
+        .into_iter()
+        .map(|coord| coord.disk_diameter())
+        .collect();
+
     let result = math::crt(&r, &m).0;
     println!("{}", result);
 }
