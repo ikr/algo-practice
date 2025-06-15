@@ -25,8 +25,8 @@ if args.prefix_output:
 use proconio_derive::fastout;
 
 
-fn solve(xs: &[i32]) -> i32 {
-    xs.iter().sum::<i32>()
+fn solve(xs: Vec<i32>) -> i32 {
+    xs.into_iter().sum::<i32>()
 }
 
 #[fastout]
@@ -41,7 +41,7 @@ fn main() {
             xs: [i32; n],
         }
 
-        let result = solve(&xs);
+        let result = solve(xs);
         println!("Case #{}: {}", t, result);
     }
 }
@@ -103,8 +103,8 @@ elif args.atcoder:
 use proconio::input;
 // use proconio::marker::Bytes;
 
-fn solve(xs: &[i32]) -> i32 {
-    xs.iter().sum::<i32>()
+fn solve(xs: Vec<i32>) -> i32 {
+    xs.into_iter().sum::<i32>()
 }
 
 fn main() {
@@ -117,7 +117,7 @@ fn main() {
         xs: [i32; n],
     }
 
-    let result = solve(&xs);
+    let result = solve(xs);
     writeln!(writer, "{}", result).unwrap();
     writer.flush().unwrap();
 }
