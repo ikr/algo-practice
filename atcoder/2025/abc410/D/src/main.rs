@@ -1,8 +1,8 @@
-use proconio::input;
+use proconio::{input, marker::Usize1};
 use std::io::{BufWriter, Write, stdout};
 
-fn min_walk_xor(xs: Vec<i32>) -> i32 {
-    xs.into_iter().sum::<i32>()
+fn min_walk_xor(n: usize, edges: Vec<(usize, usize, i16)>) -> i16 {
+    todo!()
 }
 
 fn main() {
@@ -12,10 +12,11 @@ fn main() {
 
     input! {
         n: usize,
-        xs: [i32; n],
+        m: usize,
+        edges: [(Usize1, Usize1, i16); m],
     }
 
-    let result = min_walk_xor(xs);
+    let result = min_walk_xor(n, edges);
     writeln!(writer, "{}", result).unwrap();
     writer.flush().unwrap();
 }
