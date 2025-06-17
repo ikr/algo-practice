@@ -48,7 +48,10 @@ impl Op {
 
     fn k_left_a_shifts(i0: usize, k: usize) -> Vec<Self> {
         assert!(i0 >= k);
-        (i0..i0 + k).rev().map(|i| Self::ShiftLeftA(i)).collect()
+        (i0 + 1 - k..=i0)
+            .rev()
+            .map(|i| Self::ShiftLeftA(i))
+            .collect()
     }
 
     fn k_right_a_shifts(i0: usize, k: usize) -> Vec<Self> {
@@ -57,7 +60,10 @@ impl Op {
 
     fn k_left_b_shifts(i0: usize, k: usize) -> Vec<Self> {
         assert!(i0 >= k);
-        (i0..i0 + k).rev().map(|i| Self::ShiftLeftB(i)).collect()
+        (i0 + 1 - k..=i0)
+            .rev()
+            .map(|i| Self::ShiftLeftB(i))
+            .collect()
     }
 
     fn k_right_b_shifts(i0: usize, k: usize) -> Vec<Self> {
@@ -81,7 +87,6 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
         };
 
         if i <= j {
-            eprintln!("i:{} j:{}", i, j);
             result.extend(Op::k_left_a_shifts(j, j - i));
             a.remove(j);
             a.insert(i, x0);
@@ -115,8 +120,6 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
             b.insert(i - 1, x0);
         }
     }
-
-    eprintln!("{:?}", result);
 
     result
 }
