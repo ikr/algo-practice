@@ -70,40 +70,49 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
     let mut result = vec![];
 
     for x0 in 1..=n {
-        if let Some(j) = b.iter().position(|x| *x == x0) {
+        let i = x0 - 1;
+
+        let j: usize = if let Some(j) = b.iter().position(|x| *x == x0) {
             result.push(Op::Swap(j));
             (a[j], b[j]) = (b[j], a[j]);
+            j
+        } else {
+            a.iter().position(|x| *x == x0).unwrap()
+        };
 
-            let i = x0 - 1;
-            if i <= j {
-                result.extend(Op::k_left_a_shifts(j, j - i));
-                a.remove(j);
-                a.insert(i, x0);
-            } else {
-                assert!(j < i);
-                result.extend(Op::k_right_a_shifts(j, i - j));
-                a.remove(j);
-                a.insert(i - 1, x0);
-            }
+        if i <= j {
+            eprintln!("i:{} j:{}", i, j);
+            result.extend(Op::k_left_a_shifts(j, j - i));
+            a.remove(j);
+            a.insert(i, x0);
+        } else {
+            assert!(j < i);
+            result.extend(Op::k_right_a_shifts(j, i - j));
+            a.remove(j);
+            a.insert(i - 1, x0);
         }
     }
 
     for x0 in n + 1..=2 * n {
-        if let Some(j) = a.iter().position(|x| *x == x0) {
+        let i = x0 - n - 1;
+
+        let j: usize = if let Some(j) = a.iter().position(|x| *x == x0) {
             result.push(Op::Swap(j));
             (a[j], b[j]) = (b[j], a[j]);
+            j
+        } else {
+            b.iter().position(|x| *x == x0).unwrap()
+        };
 
-            let i = x0 - n - 1;
-            if i <= j {
-                result.extend(Op::k_left_b_shifts(j, j - i));
-                b.remove(j);
-                b.insert(i, x0);
-            } else {
-                assert!(j < i);
-                result.extend(Op::k_right_b_shifts(j, i - j));
-                b.remove(j);
-                b.insert(i - 1, x0);
-            }
+        if i <= j {
+            result.extend(Op::k_left_b_shifts(j, j - i));
+            b.remove(j);
+            b.insert(i, x0);
+        } else {
+            assert!(j < i);
+            result.extend(Op::k_right_b_shifts(j, i - j));
+            b.remove(j);
+            b.insert(i - 1, x0);
         }
     }
 
