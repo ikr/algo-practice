@@ -75,16 +75,16 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
     let n = a.len();
     let mut result = vec![];
 
+    for i in 0..n {
+        if a[i] > b[i] {
+            (a[i], b[i]) = (b[i], a[i]);
+            result.push(Op::Swap(i));
+        }
+    }
+
     for x0 in 1..=n {
         let i = x0 - 1;
-
-        let j: usize = if let Some(j) = b.iter().position(|x| *x == x0) {
-            result.push(Op::Swap(j));
-            (a[j], b[j]) = (b[j], a[j]);
-            j
-        } else {
-            a.iter().position(|x| *x == x0).unwrap()
-        };
+        let j: usize = a.iter().position(|x| *x == x0).unwrap();
 
         if i <= j {
             result.extend(Op::k_left_a_shifts(j, j - i));
@@ -100,14 +100,7 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
 
     for x0 in n + 1..=2 * n {
         let i = x0 - n - 1;
-
-        let j: usize = if let Some(j) = a.iter().position(|x| *x == x0) {
-            result.push(Op::Swap(j));
-            (a[j], b[j]) = (b[j], a[j]);
-            j
-        } else {
-            b.iter().position(|x| *x == x0).unwrap()
-        };
+        let j: usize = b.iter().position(|x| *x == x0).unwrap();
 
         if i <= j {
             result.extend(Op::k_left_b_shifts(j, j - i));
