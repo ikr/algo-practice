@@ -75,6 +75,13 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
     let n = a.len();
     let mut result = vec![];
 
+    for i in 0..n {
+        if a[i] > b[i] {
+            (a[i], b[i]) = (b[i], a[i]);
+            result.push(Op::Swap(i));
+        }
+    }
+
     for x0 in 1..=n {
         let i = x0 - 1;
 
@@ -121,6 +128,7 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
         }
     }
 
+    assert!(result.len() <= 1709);
     assert_eq!(a, (1..=n).collect::<Vec<_>>());
     assert_eq!(b, (n + 1..=2 * n).collect::<Vec<_>>());
 
