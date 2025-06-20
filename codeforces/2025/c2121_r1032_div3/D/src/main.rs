@@ -75,29 +75,33 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
     let n = a.len();
     let mut result = vec![];
 
-    eprintln!("{:?} {:?}", a, b);
-
-    for i in 0..n {
-        if a[i] > b[i] {
-            (a[i], b[i]) = (b[i], a[i]);
-            result.push(Op::Swap(i));
-        }
-    }
-    eprintln!("{:?} {:?}", a, b);
-
     for x0 in 1..=n {
         let i = x0 - 1;
-        let j: usize = a.iter().position(|x| *x == x0).unwrap();
 
-        if i <= j {
-            result.extend(Op::k_left_a_shifts(j, j - i));
-            a.remove(j);
-            a.insert(i, x0);
+        if let Some(j) = b.iter().position(|x| *x == x0) {
+            if i < j {
+                result.extend(Op::k_left_b_shifts(j, j - i));
+                b.remove(j);
+                b.insert(i, x0);
+            } else if i > j {
+                result.extend(Op::k_right_b_shifts(j, i - j));
+                b.insert(i + 1, x0);
+                b.remove(j);
+            }
+
+            result.push(Op::Swap(i));
+            (a[i], b[i]) = (b[i], a[i]);
         } else {
-            assert!(j < i);
-            result.extend(Op::k_right_a_shifts(j, i - j));
-            a.remove(j);
-            a.insert(i - 1, x0);
+            let j: usize = a.iter().position(|x| *x == x0).unwrap();
+            if i < j {
+                result.extend(Op::k_left_a_shifts(j, j - i));
+                a.remove(j);
+                a.insert(i, x0);
+            } else if i > j {
+                result.extend(Op::k_right_a_shifts(j, i - j));
+                a.insert(i + 1, x0);
+                a.remove(j);
+            }
         }
     }
 
