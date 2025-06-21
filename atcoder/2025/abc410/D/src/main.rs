@@ -1,19 +1,62 @@
 use proconio::{input, marker::Usize1};
-use std::io::{BufWriter, Write, stdout};
+use std::{
+    collections::VecDeque,
+    io::{BufWriter, Write, stdout},
+};
 
-fn min_walk_xor(n: usize, edges: Vec<(usize, usize, i16)>) -> i16 {
-    let mut d = vec![i16::MAX; n];
-    d[0] = 0;
+const BASE: usize = 1 << 10;
 
-    for _ in 0..n {
-        for &(u, v, w) in edges.iter() {
-            if d[u] != i16::MAX {
-                d[v] = d[v].min(d[u] ^ w);
+#[derive(Clone, Copy)]
+struct Edge {
+    dest: usize,
+    weight: usize,
+}
+
+impl Edge {
+    fn new(dest: usize, weight: usize) -> Self {
+        Self { dest, weight }
+    }
+}
+
+fn graph_from(n: usize, edges: Vec<(usize, usize, usize)>) -> Vec<Vec<Edge>> {
+    edges
+        .into_iter()
+        .fold(vec![vec![]; n], |mut acc, (u, v, w)| {
+            acc[u].push(Edge::new(v, w));
+            acc
+        })
+}
+
+fn min_walk_xor(n: usize, edges: Vec<(usize, usize, usize)>) -> isize {
+    let g = graph_from(n, edges);
+
+    let mut done: Vec<bool> = vec![false; BASE * BASE];
+    done[0] = true;
+    let mut result: usize = usize::MAX;
+
+    let mut q: VecDeque<usize> = VecDeque::from([0]);
+    while let Some(ueber_u) = q.pop_front() {
+        let u = ueber_u / BASE;
+        let acc = ueber_u % BASE;
+
+        for &Edge { dest, weight } in g[u].iter() {
+            let ueber_v = dest * BASE + (acc ^ weight);
+            if dest == n - 1 {
+                result = result.min(acc ^ weight);
+            }
+
+            if !done[ueber_v] {
+                q.push_back(ueber_v);
+                done[ueber_v] = true;
             }
         }
     }
 
-    if d[n - 1] == i16::MAX { -1 } else { d[n - 1] }
+    if result == usize::MAX {
+        -1
+    } else {
+        result as isize
+    }
 }
 
 fn main() {
@@ -24,7 +67,7 @@ fn main() {
     input! {
         n: usize,
         m: usize,
-        edges: [(Usize1, Usize1, i16); m],
+        edges: [(Usize1, Usize1, usize); m],
     }
 
     let result = min_walk_xor(n, edges);
