@@ -15,76 +15,43 @@ fn main() {
         xs: [i32; q],
     }
 
-    let lo = -2 * n;
-    let hi = 2 * n;
+    let lo = -20 * n;
+    let hi = 20 * n;
+    // Non-overlapping intervals
     let mut ab: BTreeSet<(i32, i32)> = BTreeSet::new();
 
     for x in xs {
         let le = ab.range((lo, lo)..=(x - 1, hi)).last().cloned();
         let (a, b) = le.unwrap_or((lo, lo));
+        assert_ne!(a, x);
 
         let ri = ab.range((x, x)..=(hi, hi)).next().cloned();
         let (c, d) = ri.unwrap_or((hi, hi));
+        //eprintln!("x:{} ab:{:?} cd:{:?}", x, (a, b), (c, d));
 
-        if let Some((a, b)) = ivl_1 {
-            eprintln!("ivl_1:{:?}", (a, b));
-            if x == a && x == b {
-                ab.remove(&(a, b));
-            } else if x == a {
-                ab.remove(&(a, b));
-                ab.insert((a + 1, b));
-            } else if x == b {
-                ab.remove(&(a, b));
-                ab.insert((a, b - 1));
-            } else {
-                assert!(a < x && x < b);
-                ab.remove(&(a, b));
-                ab.insert((a, x - 1));
-                ab.insert((x + 1, b));
-            }
+        if b == x {
+            ab.remove(&(a, b));
+            ab.insert((a, b - 1));
+        } else if c == x && d == x {
+            ab.remove(&(c, d));
+        } else if c == x {
+            ab.remove(&(c, d));
+            ab.insert((c + 1, d));
+        } else if b + 1 == x && x + 1 == c {
+            ab.remove(&(a, b));
+            ab.remove(&(c, d));
+            ab.insert((a, d));
+        } else if b + 1 == x {
+            ab.remove(&(a, b));
+            ab.insert((a, x));
+        } else if x + 1 == c {
+            ab.remove(&(c, d));
+            ab.insert((x, d));
         } else {
-            let ivl_0 = ab.range((0, x - 1)..=(x - 1, n + 1)).last().cloned();
-            let ivl_2 = ab.range((x + 1, x + 1)..=(x + 1, n + 1)).next().cloned();
-
-            if let Some((a, b)) = ivl_0 {
-                eprintln!("ivl_0:{:?}", (a, b));
-                if let Some((c, d)) = ivl_2 {
-                    eprintln!("ivl_2:{:?}", (c, d));
-                    if b == x - 1 && x + 1 == c {
-                        ab.remove(&(a, b));
-                        ab.remove(&(c, d));
-                        ab.insert((a, d));
-                    } else if b == x - 1 {
-                        ab.remove(&(a, b));
-                        ab.insert((a, x));
-                    } else if x + 1 == c {
-                        ab.remove(&(c, d));
-                        ab.insert((x, d));
-                    } else {
-                        ab.insert((x, x));
-                    }
-                } else {
-                    if b == x - 1 {
-                        ab.remove(&(a, b));
-                        ab.insert((a, x));
-                    } else {
-                        ab.insert((x, x));
-                    }
-                }
-            } else if let Some((c, d)) = ivl_2 {
-                eprintln!("ivl_2:{:?}", (c, d));
-                if x + 1 == c {
-                    ab.remove(&(c, d));
-                    ab.insert((x, d));
-                } else {
-                    ab.insert((x, x));
-                }
-            } else {
-                ab.insert((x, x));
-            }
+            ab.insert((x, x));
         }
 
-        eprintln!("{:?}", ab);
+        //eprintln!("{:?}", ab);
         writeln!(writer, "{}", ab.len()).unwrap();
     }
 
