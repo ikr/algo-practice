@@ -48,26 +48,20 @@ impl Op {
 
     fn k_left_a_shifts(i0: usize, k: usize) -> Vec<Self> {
         assert!(i0 >= k);
-        (i0 + 1 - k..=i0)
-            .rev()
-            .map(|i| Self::ShiftLeftA(i))
-            .collect()
+        (i0 + 1 - k..=i0).rev().map(Self::ShiftLeftA).collect()
     }
 
     fn k_right_a_shifts(i0: usize, k: usize) -> Vec<Self> {
-        (i0..i0 + k).map(|i| Self::ShiftRightA(i)).collect()
+        (i0..i0 + k).map(Self::ShiftRightA).collect()
     }
 
     fn k_left_b_shifts(i0: usize, k: usize) -> Vec<Self> {
         assert!(i0 >= k);
-        (i0 + 1 - k..=i0)
-            .rev()
-            .map(|i| Self::ShiftLeftB(i))
-            .collect()
+        (i0 + 1 - k..=i0).rev().map(Self::ShiftLeftB).collect()
     }
 
     fn k_right_b_shifts(i0: usize, k: usize) -> Vec<Self> {
-        (i0..i0 + k).map(|i| Self::ShiftRightB(i)).collect()
+        (i0..i0 + k).map(Self::ShiftRightB).collect()
     }
 }
 
@@ -129,8 +123,9 @@ fn sorting_program(mut a: Vec<usize>, mut b: Vec<usize>) -> Vec<Op> {
     }
 
     assert!(result.len() <= 1709);
-    assert_eq!(a, (1..=n).collect::<Vec<_>>());
-    assert_eq!(b, (n + 1..=2 * n).collect::<Vec<_>>());
+    assert!(a.is_sorted());
+    assert!(b.is_sorted());
+    assert!(a.into_iter().zip(b.into_iter()).all(|(x, y)| x < y));
 
     result
 }
