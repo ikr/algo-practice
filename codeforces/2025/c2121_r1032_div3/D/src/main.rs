@@ -93,49 +93,51 @@ fn buble(row: usize, xs: &mut Vec<usize>, isource: usize, itarget: usize) -> Vec
     }
 }
 
-fn sorting_program(mut ab: Vec<Vec<usize>>) -> Vec<Op> {
-    let n = ab[0].len();
+fn locate(ab: &[Vec<usize>], x0: usize) -> (usize, usize) {
+    for (i, row) in ab.iter().enumerate() {
+        for (j, &x) in row.iter().enumerate() {
+            if x == x0 {
+                return (i, j);
+            }
+        }
+    }
+    unreachable!()
+}
+
+fn plan_a(n: usize) -> Vec<Vec<usize>> {
+    vec![(1..=n).collect(), (n + 1..=2 * n).collect()]
+}
+
+fn plan_b(n: usize) -> Vec<Vec<usize>> {
+    vec![
+        (1..=2 * n).step_by(2).collect(),
+        (2..=2 * n).step_by(2).collect(),
+    ]
+}
+
+fn sorting_program_for_plan(mut ab: Vec<Vec<usize>>, plan: Vec<Vec<usize>>) -> Vec<Op> {
     let mut result = vec![];
 
-    for i in 0..n {
-        if ab[0][i] > ab[1][i] {
-            (ab[0][i], ab[1][i]) = (ab[1][i], ab[0][i]);
-            result.push(Op::Swap(i));
+    for (i1, row) in plan.into_iter().enumerate() {
+        for (j1, x0) in row.into_iter().enumerate() {
+            let (i0, j0) = locate(&ab, x0);
+
+            result.extend(buble(i0, &mut ab[i0], j0, j1));
+            if i0 != i1 {
+                result.push(Op::Swap(j1));
+                (ab[i0][j1], ab[i1][j1]) = (ab[i1][j1], ab[i0][j1]);
+            }
         }
     }
-
-    for x0 in 1..=n {
-        let i = x0 - 1;
-
-        if let Some(j) = ab[1].iter().position(|x| *x == x0) {
-            result.extend(buble(1, &mut ab[1], j, i));
-
-            result.push(Op::Swap(i));
-            (ab[0][i], ab[1][i]) = (ab[1][i], ab[0][i]);
-        } else {
-            let j: usize = ab[0].iter().position(|x| *x == x0).unwrap();
-            result.extend(buble(0, &mut ab[0], j, i));
-        }
-    }
-
-    for x0 in n + 1..=2 * n {
-        let i = x0 - n - 1;
-        let j: usize = ab[1].iter().position(|x| *x == x0).unwrap();
-
-        if i <= j {
-            result.extend(buble(1, &mut ab[1], j, i));
-        } else {
-            assert!(j < i);
-            result.extend(buble(0, &mut ab[0], j, i));
-        }
-    }
-
-    assert!(ab[0].is_sorted());
-    assert!(ab[1].is_sorted());
-    assert!(ab[0].iter().zip(ab[1].iter()).all(|(x, y)| x < y));
-    assert!(result.len() <= 1709);
 
     result
+}
+
+fn sorting_program(ab: Vec<Vec<usize>>) -> Vec<Op> {
+    let n = ab[0].len();
+    let o1 = sorting_program_for_plan(ab.clone(), plan_a(n));
+    let o2 = sorting_program_for_plan(ab, plan_b(n));
+    if o1.len() <= o2.len() { o1 } else { o2 }
 }
 
 fn main() {
