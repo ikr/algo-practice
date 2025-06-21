@@ -23,10 +23,11 @@ fn main() {
     for x in xs {
         let le = ab.range((lo, lo)..=(x - 1, hi)).last().cloned();
         let (a, b) = le.unwrap_or((lo, lo));
-        assert_ne!(a, x);
+        assert!(a < x);
 
         let ri = ab.range((x, x)..=(hi, hi)).next().cloned();
         let (c, d) = ri.unwrap_or((hi, hi));
+        assert!(x <= c);
         //eprintln!("x:{} ab:{:?} cd:{:?}", x, (a, b), (c, d));
 
         if b == x {
@@ -47,6 +48,10 @@ fn main() {
         } else if x + 1 == c {
             ab.remove(&(c, d));
             ab.insert((x, d));
+        } else if a < x && x < b {
+            ab.remove(&(a, b));
+            ab.insert((a, x - 1));
+            ab.insert((x + 1, b));
         } else {
             ab.insert((x, x));
         }
