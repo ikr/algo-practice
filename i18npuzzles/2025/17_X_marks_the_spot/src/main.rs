@@ -23,31 +23,61 @@ fn decode_bytes(s: &str) -> Vec<u8> {
         .collect()
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum TileRowKind {
     Complete,
-    LeftPort,
-    RightPort,
-    LeftRightPort,
+    OpenLeft,
+    OpenRight,
+    OpenBoth,
 }
 
 impl TileRowKind {
+    fn b1_mask_and_value_pairs() -> Vec<(u8, u8)> {
+        vec![
+            (0b1000_0000, 0b0000_0000),
+            (0b1110_0000, 0b1100_0000),
+            (0b1111_0000, 0b1110_0000),
+            (0b1111_1000, 0b1111_0000),
+        ]
+    }
+
+    fn is_tail_complete(xs: &[u8]) -> bool {
+        if let Some(x0) = xs.first() {
+            let j = Self::b1_mask_and_value_pairs()
+                .into_iter()
+                .position(|(m, v)| m & x0 == v)
+                .unwrap();
+
+            let l = j + 1;
+            l <= xs.len() && Self::is_tail_complete(&xs[l..])
+        } else {
+            true
+        }
+    }
+
     fn infer(xs: &[u8]) -> Self {
         assert!(xs.len() >= 4);
 
-        let b1_mask_and_value_pairs: Vec<(u8, u8)> = vec![
-            (0b1000_0000, 0b0000_0000),
-            (0b1110_0000, 0b1100_0000),
-            (0b1110_0000, 0b1110_0000),
-            (0b1111_0000, 0b1111_1000),
-        ];
-
         let i0 = xs
             .iter()
-            .position(|&x| b1_mask_and_value_pairs.iter().any(|&(m, v)| m & x == v))
+            .position(|&x| {
+                Self::b1_mask_and_value_pairs()
+                    .into_iter()
+                    .any(|(m, v)| m & x == v)
+            })
             .unwrap();
 
-        todo!()
+        if i0 == 0 {
+            if Self::is_tail_complete(xs) {
+                Self::Complete
+            } else {
+                Self::OpenRight
+            }
+        } else if Self::is_tail_complete(&xs[i0..]) {
+            Self::OpenLeft
+        } else {
+            Self::OpenBoth
+        }
     }
 }
 
@@ -93,5 +123,33 @@ mod tests {
     fn test_decode_bytes() {
         assert_eq!(decode_bytes(""), vec![]);
         assert_eq!(decode_bytes("7F0120"), vec![127, 1, 32]);
+    }
+
+    #[test]
+    fn test_tile_row_kind() {
+        assert_eq!(
+            TileRowKind::infer(&decode_bytes("e295902de295902de295902de295902d")),
+            TileRowKind::Complete
+        );
+
+        assert_eq!(
+            TileRowKind::infer(&decode_bytes("7ec3b1f091808de2898bc3b17e7ec3b1")),
+            TileRowKind::Complete
+        );
+
+        assert_eq!(
+            TileRowKind::infer(&decode_bytes("e29591c3b1c3b1e2898b7e7ee2898bf0")),
+            TileRowKind::OpenRight
+        );
+
+        assert_eq!(
+            TileRowKind::infer(&decode_bytes("91808d7ee2898b7ec3b1c3b17ec3b17e")),
+            TileRowKind::OpenLeft
+        );
+
+        assert_eq!(
+            TileRowKind::infer(&decode_bytes("91808d2dc2af7ec3b1c3b1c3b1c3b1c3")),
+            TileRowKind::OpenBoth
+        );
     }
 }
