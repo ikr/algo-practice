@@ -23,6 +23,16 @@ fn decode_bytes(s: &str) -> Vec<u8> {
         .collect()
 }
 
+#[derive(Debug)]
+struct Tile(Vec<Vec<u8>>);
+
+impl Tile {
+    fn from_block(xss: &[String]) -> Self {
+        let grid: Vec<Vec<u8>> = xss.iter().map(|s| decode_bytes(s)).collect();
+        Self(grid)
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
@@ -45,6 +55,7 @@ fn main() {
     });
 
     eprintln!("{:?}", blocks);
+    eprintln!("{:?}", Tile::from_block(&blocks[4]));
 }
 
 #[cfg(test)]
