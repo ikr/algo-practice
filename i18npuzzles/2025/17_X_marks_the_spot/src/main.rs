@@ -23,7 +23,35 @@ fn decode_bytes(s: &str) -> Vec<u8> {
         .collect()
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
+enum TileRowKind {
+    Complete,
+    LeftPort,
+    RightPort,
+    LeftRightPort,
+}
+
+impl TileRowKind {
+    fn infer(xs: &[u8]) -> Self {
+        assert!(xs.len() >= 4);
+
+        let b1_mask_and_value_pairs: Vec<(u8, u8)> = vec![
+            (0b1000_0000, 0b0000_0000),
+            (0b1110_0000, 0b1100_0000),
+            (0b1110_0000, 0b1110_0000),
+            (0b1111_0000, 0b1111_1000),
+        ];
+
+        let i0 = xs
+            .iter()
+            .position(|&x| b1_mask_and_value_pairs.iter().any(|&(m, v)| m & x == v))
+            .unwrap();
+
+        todo!()
+    }
+}
+
+#[derive(Clone, Debug)]
 struct Tile(Vec<Vec<u8>>);
 
 impl Tile {
@@ -54,8 +82,7 @@ fn main() {
         }
     });
 
-    eprintln!("{:?}", blocks);
-    eprintln!("{:?}", Tile::from_block(&blocks[4]));
+    eprintln!("{:?}\n{} blocks total", blocks, blocks.len());
 }
 
 #[cfg(test)]
