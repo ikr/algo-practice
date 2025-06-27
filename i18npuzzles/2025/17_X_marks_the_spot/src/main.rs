@@ -127,29 +127,14 @@ mod tests {
 
     #[test]
     fn test_tile_row_kind() {
-        assert_eq!(
-            TileRowKind::infer(&decode_bytes("e295902de295902de295902de295902d")),
-            TileRowKind::Complete
-        );
-
-        assert_eq!(
-            TileRowKind::infer(&decode_bytes("7ec3b1f091808de2898bc3b17e7ec3b1")),
-            TileRowKind::Complete
-        );
-
-        assert_eq!(
-            TileRowKind::infer(&decode_bytes("e29591c3b1c3b1e2898b7e7ee2898bf0")),
-            TileRowKind::OpenRight
-        );
-
-        assert_eq!(
-            TileRowKind::infer(&decode_bytes("91808d7ee2898b7ec3b1c3b17ec3b17e")),
-            TileRowKind::OpenLeft
-        );
-
-        assert_eq!(
-            TileRowKind::infer(&decode_bytes("91808d2dc2af7ec3b1c3b1c3b1c3b1c3")),
-            TileRowKind::OpenBoth
-        );
+        for (src, expected) in [
+            ("e295902de295902de295902de295902d", TileRowKind::Complete),
+            ("7ec3b1f091808de2898bc3b17e7ec3b1", TileRowKind::Complete),
+            ("e29591c3b1c3b1e2898b7e7ee2898bf0", TileRowKind::OpenRight),
+            ("91808d7ee2898b7ec3b1c3b17ec3b17e", TileRowKind::OpenLeft),
+            ("91808d2dc2af7ec3b1c3b1c3b1c3b1c3", TileRowKind::OpenBoth),
+        ] {
+            assert_eq!(TileRowKind::infer(&decode_bytes(src)), expected);
+        }
     }
 }
