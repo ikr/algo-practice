@@ -11,8 +11,21 @@ use std::io::{BufRead, stdin};
 +------------+------------+-----------+-----------+-----------+-----------+
 */
 
+fn decode_bytes(s: &str) -> Vec<u8> {
+    s.chars()
+        .collect::<Vec<_>>()
+        .chunks(2)
+        .map(|xy| {
+            assert_eq!(xy.len(), 2);
+            let buf: String = xy.iter().collect();
+            u8::from_str_radix(&buf, 16).unwrap()
+        })
+        .collect()
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
+
     let blocks: Vec<Vec<String>> = lines.into_iter().fold(vec![], |mut acc, line| {
         match (acc.last_mut(), line.as_str()) {
             (Some(_), "") => {
@@ -30,4 +43,17 @@ fn main() {
             }
         }
     });
+
+    eprintln!("{:?}", blocks);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_decode_bytes() {
+        assert_eq!(decode_bytes(""), vec![]);
+        assert_eq!(decode_bytes("7F0120"), vec![127, 1, 32]);
+    }
 }
