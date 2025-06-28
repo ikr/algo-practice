@@ -23,6 +23,15 @@ fn decode_bytes(s: &str) -> Vec<u8> {
         .collect()
 }
 
+fn b1_mask_and_value_pairs() -> Vec<(u8, u8)> {
+    vec![
+        (0b1000_0000, 0b0000_0000),
+        (0b1110_0000, 0b1100_0000),
+        (0b1111_0000, 0b1110_0000),
+        (0b1111_1000, 0b1111_0000),
+    ]
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum TileRowKind {
     Complete,
@@ -32,18 +41,9 @@ enum TileRowKind {
 }
 
 impl TileRowKind {
-    fn b1_mask_and_value_pairs() -> Vec<(u8, u8)> {
-        vec![
-            (0b1000_0000, 0b0000_0000),
-            (0b1110_0000, 0b1100_0000),
-            (0b1111_0000, 0b1110_0000),
-            (0b1111_1000, 0b1111_0000),
-        ]
-    }
-
     fn is_tail_complete(xs: &[u8]) -> bool {
         if let Some(x0) = xs.first() {
-            let j = Self::b1_mask_and_value_pairs()
+            let j = b1_mask_and_value_pairs()
                 .into_iter()
                 .position(|(m, v)| m & x0 == v)
                 .unwrap();
@@ -61,7 +61,7 @@ impl TileRowKind {
         let i0 = xs
             .iter()
             .position(|&x| {
-                Self::b1_mask_and_value_pairs()
+                b1_mask_and_value_pairs()
                     .into_iter()
                     .any(|(m, v)| m & x == v)
             })
