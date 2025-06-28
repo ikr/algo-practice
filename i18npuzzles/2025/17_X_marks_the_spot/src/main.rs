@@ -113,6 +113,10 @@ fn main() {
     });
 
     eprintln!("{:?}\n{} blocks total", blocks, blocks.len());
+
+    let mut heights: Vec<usize> = blocks.into_iter().map(|b| b.len()).collect();
+    heights.sort();
+    eprintln!("Heights: {:?}", heights);
 }
 
 #[cfg(test)]
