@@ -104,13 +104,21 @@ impl Tile {
         self.0.iter().map(|row| HSplitA::detect(row)).collect()
     }
 
-    fn is_left_top(&self) -> bool {
+    fn is_left_top_corner(&self) -> bool {
         let needle: Vec<u8> = "╔".bytes().collect();
 
         self.0[0]
             .windows(needle.len())
             .position(|xs| xs == needle)
             .is_some_and(|i| i == 0)
+    }
+
+    fn can_be_left_neigh(&self, other: &Self, vert_offset: usize) -> bool {
+        todo!()
+    }
+
+    fn can_be_right_neigh(&self, other: &Self, vert_offset: usize) -> bool {
+        todo!()
     }
 }
 
@@ -153,7 +161,11 @@ fn main() {
         .into_iter()
         .filter_map(|block| {
             let t = Tile::from_block(&block);
-            if t.is_left_top() { Some(true) } else { None }
+            if t.is_left_top_corner() {
+                Some(true)
+            } else {
+                None
+            }
         })
         .count();
 
