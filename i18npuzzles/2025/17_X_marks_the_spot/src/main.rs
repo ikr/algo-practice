@@ -156,13 +156,10 @@ fn main() {
     eprintln!("Heights: {heights:?}");
 
     for block in blocks.iter() {
-        let t = Tile::from_block(&block);
+        let t = Tile::from_block(block);
         eprintln!(
             "{:?}",
-            t.right_edge()
-                .into_iter()
-                .filter_map(|a| a)
-                .collect::<Vec<_>>()
+            t.right_edge().into_iter().flatten().collect::<Vec<_>>()
         );
     }
 
