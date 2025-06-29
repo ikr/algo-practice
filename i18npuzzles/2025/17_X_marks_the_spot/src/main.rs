@@ -32,32 +32,11 @@ fn b1_mask_and_value_pairs() -> Vec<(u8, u8)> {
     ]
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum TileRowKind {
-    Complete,
-    OpenLeft,
-    OpenRight,
-    OpenBoth,
-}
+#[derive(Clone, Debug, PartialEq)]
+struct HSplitB(Vec<u8>);
 
-impl TileRowKind {
-    fn is_tail_complete(xs: &[u8]) -> bool {
-        if let Some(x0) = xs.first() {
-            let j = b1_mask_and_value_pairs()
-                .into_iter()
-                .position(|(m, v)| m & x0 == v)
-                .unwrap();
-
-            let l = j + 1;
-            l <= xs.len() && Self::is_tail_complete(&xs[l..])
-        } else {
-            true
-        }
-    }
-
-    fn infer(xs: &[u8]) -> Self {
-        assert!(xs.len() >= 4);
-
+impl HSplitB {
+    fn detect(xs: &[u8]) -> Option<Self> {
         let i0 = xs
             .iter()
             .position(|&x| {
@@ -68,16 +47,43 @@ impl TileRowKind {
             .unwrap();
 
         if i0 == 0 {
-            if Self::is_tail_complete(xs) {
-                Self::Complete
-            } else {
-                Self::OpenRight
-            }
-        } else if Self::is_tail_complete(&xs[i0..]) {
-            Self::OpenLeft
+            None
         } else {
-            Self::OpenBoth
+            Some(Self(xs[..i0].to_vec()))
         }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct HSplitA(Vec<u8>);
+
+impl HSplitA {
+    fn split_tail(xs: &[u8]) -> Vec<u8> {
+        if let Some(x0) = xs.first() {
+            let j = b1_mask_and_value_pairs()
+                .into_iter()
+                .position(|(m, v)| m & x0 == v)
+                .unwrap();
+
+            let l = j + 1;
+            if l <= xs.len() {
+                Self::split_tail(&xs[l..])
+            } else {
+                xs.to_vec()
+            }
+        } else {
+            vec![]
+        }
+    }
+
+    fn detect(xs: &[u8]) -> Option<Self> {
+        let i0: usize = if let Some(HSplitB(bb)) = HSplitB::detect(xs) {
+            bb.len()
+        } else {
+            0
+        };
+        let aa = Self::split_tail(&xs[i0..]);
+        if aa.is_empty() { None } else { Some(Self(aa)) }
     }
 }
 
@@ -116,7 +122,7 @@ fn main() {
 
     let mut heights: Vec<usize> = blocks.into_iter().map(|b| b.len()).collect();
     heights.sort();
-    eprintln!("Heights: {:?}", heights);
+    eprintln!("Heights: {heights:?}");
 }
 
 #[cfg(test)]
@@ -130,15 +136,52 @@ mod tests {
     }
 
     #[test]
-    fn test_tile_row_kind() {
+    fn test_detection_of_a_suffix_of_a_horizontal_split() {
         for (src, expected) in [
-            ("e295902de295902de295902de295902d", TileRowKind::Complete),
-            ("7ec3b1f091808de2898bc3b17e7ec3b1", TileRowKind::Complete),
-            ("e29591c3b1c3b1e2898b7e7ee2898bf0", TileRowKind::OpenRight),
-            ("91808d7ee2898b7ec3b1c3b17ec3b17e", TileRowKind::OpenLeft),
-            ("91808d2dc2af7ec3b1c3b1c3b1c3b1c3", TileRowKind::OpenBoth),
+            ("e295902de295902de295902de295902d", None),
+            ("7ec3b1f091808de2898bc3b17e7ec3b1", None),
+            (
+                "91808d7ee2898b7ec3b1c3b17ec3b17e",
+                Some(HSplitB(vec![0x91, 0x80, 0x8D])),
+            ),
+            (
+                "91808d2dc2af7ec3b1c3b1c3b1c3b1c3",
+                Some(HSplitB(vec![0x91, 0x80, 0x8D])),
+            ),
+            (
+                "b1c3b1c3b1e288922dc2afc2afc3b17c",
+                Some(HSplitB(vec![0xB1])),
+            ),
         ] {
-            assert_eq!(TileRowKind::infer(&decode_bytes(src)), expected);
+            assert_eq!(
+                HSplitB::detect(&decode_bytes(src)),
+                expected,
+                "Failed on {}",
+                src
+            );
+        }
+    }
+
+    #[test]
+    fn test_detection_of_a_prefix_of_a_horizontal_split() {
+        for (src, expected) in [
+            ("e295902de295902de295902de295902d", None),
+            ("7ec3b1f091808de2898bc3b17e7ec3b1", None),
+            (
+                "e29591c3b1c3b1e2898b7e7ee2898bf0",
+                Some(HSplitA(vec![0xF0])),
+            ),
+            (
+                "91808d2dc2af7ec3b1c3b1c3b1c3b1c3",
+                Some(HSplitA(vec![0xC3])),
+            ),
+        ] {
+            assert_eq!(
+                HSplitA::detect(&decode_bytes(src)),
+                expected,
+                "Failed on {}",
+                src
+            );
         }
     }
 }
