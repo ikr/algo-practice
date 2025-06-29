@@ -95,6 +95,23 @@ impl Tile {
         let grid: Vec<Vec<u8>> = xss.iter().map(|s| decode_bytes(s)).collect();
         Self(grid)
     }
+
+    fn left_edge(&self) -> Vec<Option<HSplitB>> {
+        self.0.iter().map(|row| HSplitB::detect(row)).collect()
+    }
+
+    fn right_edge(&self) -> Vec<Option<HSplitA>> {
+        self.0.iter().map(|row| HSplitA::detect(row)).collect()
+    }
+
+    fn is_left_top(&self) -> bool {
+        let needle: Vec<u8> = "╔".bytes().collect();
+
+        self.0[0]
+            .windows(needle.len())
+            .position(|xs| xs == needle)
+            .is_some_and(|i| i == 0)
+    }
 }
 
 fn main() {
@@ -118,11 +135,29 @@ fn main() {
         }
     });
 
-    eprintln!("{:?}\n{} blocks total", blocks, blocks.len());
-
-    let mut heights: Vec<usize> = blocks.into_iter().map(|b| b.len()).collect();
+    let mut heights: Vec<usize> = blocks.iter().map(|b| b.len()).collect();
     heights.sort();
     eprintln!("Heights: {heights:?}");
+
+    for block in blocks.iter() {
+        let t = Tile::from_block(&block);
+        eprint!(
+            "({:?} {:?}) ",
+            t.left_edge().into_iter().filter(|a| a.is_some()).count(),
+            t.right_edge().into_iter().filter(|a| a.is_some()).count()
+        );
+    }
+    eprintln!();
+
+    let left_tops_count = blocks
+        .into_iter()
+        .filter_map(|block| {
+            let t = Tile::from_block(&block);
+            if t.is_left_top() { Some(true) } else { None }
+        })
+        .count();
+
+    dbg!(left_tops_count);
 }
 
 #[cfg(test)]
