@@ -58,14 +58,17 @@ impl HSplitB {
 struct HSplitA(Vec<u8>);
 
 impl HSplitA {
-    fn split_tail(xs: &[u8]) -> Vec<u8> {
-        if let Some(x0) = xs.first() {
-            let j = b1_mask_and_value_pairs()
-                .into_iter()
-                .position(|(m, v)| m & x0 == v)
-                .unwrap();
+    fn multibyte_seq_len(b1: u8) -> usize {
+        let j = b1_mask_and_value_pairs()
+            .into_iter()
+            .position(|(m, v)| m & b1 == v)
+            .unwrap();
+        j + 1
+    }
 
-            let l = j + 1;
+    fn split_tail(xs: &[u8]) -> Vec<u8> {
+        if let Some(&x0) = xs.first() {
+            let l = Self::multibyte_seq_len(x0);
             if l <= xs.len() {
                 Self::split_tail(&xs[l..])
             } else {
@@ -84,6 +87,11 @@ impl HSplitA {
         };
         let aa = Self::split_tail(&xs[i0..]);
         if aa.is_empty() { None } else { Some(Self(aa)) }
+    }
+
+    fn missing_len(&self) -> usize {
+        assert!(!self.0.is_empty());
+        Self::multibyte_seq_len(self.0[0]) - self.0.len()
     }
 }
 
@@ -149,13 +157,14 @@ fn main() {
 
     for block in blocks.iter() {
         let t = Tile::from_block(&block);
-        eprint!(
-            "({:?} {:?}) ",
-            t.left_edge().into_iter().filter(|a| a.is_some()).count(),
-            t.right_edge().into_iter().filter(|a| a.is_some()).count()
+        eprintln!(
+            "{:?}",
+            t.right_edge()
+                .into_iter()
+                .filter_map(|a| a)
+                .collect::<Vec<_>>()
         );
     }
-    eprintln!();
 
     let left_tops_count = blocks
         .into_iter()
@@ -230,5 +239,11 @@ mod tests {
                 src
             );
         }
+    }
+
+    #[test]
+    fn test_horizontal_split_a_missing_len() {
+        assert_eq!(HSplitA(vec![0xC3]).missing_len(), 1);
+        assert_eq!(HSplitA(vec![0xF0]).missing_len(), 3);
     }
 }
