@@ -42,7 +42,7 @@ fn main() {
         }
 
         let result = solve(xs);
-        println!("Case #{}: {}", t, result);
+        println!("Case #{t}: {result}");
     }
 }
 """
@@ -92,7 +92,7 @@ fn main() {
         let xs: Vec<i64> = scanner.next_n(n);
 
         let result = solve(xs);
-        writeln!(writer, "{}", result).unwrap();
+        writeln!(writer, "{result}").unwrap();
     }
 
     writer.flush().unwrap();
@@ -118,7 +118,7 @@ fn main() {
     }
 
     let result = solve(xs);
-    writeln!(writer, "{}", result).unwrap();
+    writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
 """
