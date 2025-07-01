@@ -58,8 +58,8 @@ fn possibilities(mut xs: Vec<u32>) -> Vec<bool> {
     xs.into_iter()
         .enumerate()
         .map(|(i, x)| {
-            let lhs = if i == 0 { u32::MAX } else { pref[i - 1] };
-            let rhs = if i == n - 1 { 0 } else { suff[i + 1] };
+            let lhs = if i == 0 { 0 } else { pref[i - 1] };
+            let rhs = if i == n - 1 { u32::MAX } else { suff[i + 1] };
             x == lo || x == hi || pref[i].min(rhs) == x || suff[i].max(lhs) == x
         })
         .collect()
