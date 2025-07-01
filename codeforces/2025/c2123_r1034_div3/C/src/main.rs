@@ -47,18 +47,20 @@ fn prefix_maxes(xs: &[u32]) -> Vec<u32> {
 fn possibilities(mut xs: Vec<u32>) -> Vec<bool> {
     let n = xs.len();
     let pref = prefix_mins(&xs);
+    let lo = *pref.last().unwrap();
 
     xs.reverse();
     let mut suff = prefix_maxes(&xs);
     suff.reverse();
     xs.reverse();
+    let hi = suff[0];
 
     xs.into_iter()
         .enumerate()
         .map(|(i, x)| {
-            let lhs = if i == 0 { 0 } else { pref[i - 1] };
-            let rhs = if i == n - 1 { u32::MAX } else { suff[i + 1] };
-            (x == pref[i] && x <= rhs) || (x == suff[i] && x >= lhs)
+            let lhs = if i == 0 { u32::MAX } else { pref[i - 1] };
+            let rhs = if i == n - 1 { 0 } else { suff[i + 1] };
+            x == lo || x == hi || pref[i].min(rhs) == x || suff[i].max(lhs) == x
         })
         .collect()
 }
