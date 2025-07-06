@@ -26,14 +26,14 @@ impl Scanner {
     }
 }
 
-fn can_index_j_stay_among_k_last(mut xs: Vec<u32>, j: usize, k: usize) -> bool {
-    let x0 = xs[j];
-    xs.sort();
-    xs.reverse();
-    xs.dedup();
-
-    let i0 = xs.into_iter().position(|x| x == x0).unwrap();
-    i0 < k
+fn can_index_j_stay_among_k_last(xs: Vec<u32>, j: usize, k: usize) -> bool {
+    if k == 1 {
+        let x0 = xs[j];
+        let hi = *xs.iter().max().unwrap();
+        x0 == hi
+    } else {
+        true
+    }
 }
 
 fn main() {
