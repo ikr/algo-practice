@@ -121,12 +121,20 @@ impl Tile {
             .is_some_and(|i| i == 0)
     }
 
-    fn can_be_left_neigh(&self, other: &Self, vert_offset: usize) -> bool {
-        todo!()
-    }
+    fn lhs_pluggable_into(&self, other: &Self, my_vert_offset_across_other: usize) -> bool {
+        let my_edge = self.right_edge();
+        let other_edge: Vec<_> = other.left_edge();
+        assert!(my_vert_offset_across_other < other_edge.len());
 
-    fn can_be_right_neigh(&self, other: &Self, vert_offset: usize) -> bool {
-        todo!()
+        my_edge
+            .into_iter()
+            .zip(other_edge.into_iter().skip(my_vert_offset_across_other))
+            .all(|(mb_a, mb_b)| match (mb_a, mb_b) {
+                (Some(a), Some(b)) => a.missing_len() == b.0.len(),
+                (None, Some(_)) => false,
+                (Some(_), None) => false,
+                _ => true,
+            })
     }
 }
 
@@ -242,5 +250,37 @@ mod tests {
     fn test_horizontal_split_a_missing_len() {
         assert_eq!(HSplitA(vec![0xC3]).missing_len(), 1);
         assert_eq!(HSplitA(vec![0xF0]).missing_len(), 3);
+    }
+
+    #[test]
+    fn test_lhs_pluggable_into_1() {
+        let aa = Tile::from_block(&[
+            "e295942de295902de295902de295902d".to_string(),
+            "7c7ee2898be2898bc3b1c3b1e2898b7e".to_string(),
+            "e29591c3b1c3b1e2898b7e7ee2898bf0".to_string(),
+            "7c7ec3b1c3b1f091808dc3b1e2898bf0".to_string(),
+        ]);
+
+        let bb = Tile::from_block(&[
+            "e295902de295902de295902de295902d".to_string(),
+            "7ec3b1f091808de2898bc3b17e7ec3b1".to_string(),
+            "91808d7ee2898b7ec3b1c3b17ec3b17e".to_string(),
+            "91808d2dc2af7ec3b1c3b1c3b1c3b1c3".to_string(),
+        ]);
+
+        let cc = Tile::from_block(&[
+            "2de295902de295902de295902de29597".to_string(),
+            "e2898b7ec3b1c3b1f091808d7ec3b17c".to_string(),
+            "c3b1c3b1c3b1e2898bc3b17e7ee29591".to_string(),
+            "b1c3b1c3b1e288922dc2afc2afc3b17c".to_string(),
+            "808de2898bc3b12d2d2d2dc3b1e29591".to_string(),
+            "808dc3b1c2afc2afe28892c2af2d7e7c".to_string(),
+            "8de2898b7ec2af2d2dc3b1c3b1e29591".to_string(),
+            "898b7ec3b1e2898bc2afe2898b7e7e7c".to_string(),
+        ]);
+
+        assert!(!aa.lhs_pluggable_into(&cc, 0));
+        assert!(aa.lhs_pluggable_into(&bb, 0));
+        assert!(bb.lhs_pluggable_into(&cc, 0));
     }
 }
