@@ -280,7 +280,11 @@ mod tests {
         ]);
 
         assert!(!aa.lhs_pluggable_into(&cc, 0));
+
         assert!(aa.lhs_pluggable_into(&bb, 0));
         assert!(bb.lhs_pluggable_into(&cc, 0));
+
+        assert!(!aa.lhs_pluggable_into(&bb, 1));
+        assert!(!bb.lhs_pluggable_into(&cc, 1));
     }
 }
