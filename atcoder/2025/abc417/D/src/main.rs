@@ -9,14 +9,63 @@ struct Present {
     b: usize,
 }
 
-// T[i][j] is the mood after opening all the presents up to- and including the present i, given that
-// the mood right before opening that present i was j
+// T[i][j] is the final mood given that before opening the present i the mood was j
 fn sequential_moods_table(presents: &[Present]) -> Vec<Vec<usize>> {
-    todo!()
+    let n = presents.len();
+    let mut result = vec![vec![usize::MAX; 1001]; n];
+
+    let tail: Present = presents[n - 1];
+    for (j, x) in result[n - 1].iter_mut().enumerate() {
+        *x = if j <= tail.p {
+            j + tail.a
+        } else {
+            j.saturating_sub(tail.b)
+        }
+    }
+
+    for i in (0..n - 1).rev() {
+        for j in 0..=1000 {
+            result[i][j] = if j <= presents[i].p {
+                result[i + 1][j + presents[i].a]
+            } else {
+                result[i + 1][j.saturating_sub(presents[i].b)]
+            };
+        }
+    }
+
+    result
 }
 
-fn final_moods(presents: Vec<Present>) -> Vec<usize> {
-    todo!()
+fn prefix_subs_of_mood_drops(presents: &[Present]) -> Vec<usize> {
+    presents
+        .iter()
+        .scan(0usize, |s, pr| {
+            *s += pr.b;
+            Some(*s)
+        })
+        .collect()
+}
+
+fn final_moods(presents: Vec<Present>, xs: Vec<usize>) -> Vec<usize> {
+    let n = presents.len();
+    let dp = sequential_moods_table(&presents);
+    let ss = prefix_subs_of_mood_drops(&presents);
+
+    xs.into_iter()
+        .map(|x0| {
+            let i0 = if x0 <= 1000 {
+                0
+            } else {
+                ss.partition_point(|&s| s < x0 - 1000)
+            };
+
+            if i0 == n {
+                x0 - ss[n - 1]
+            } else {
+                dp[i0][1000.min(x0)]
+            }
+        })
+        .collect()
 }
 
 fn main() {
@@ -27,9 +76,11 @@ fn main() {
     input! {
         n: usize,
         presents: [Present; n],
+        q: usize,
+        xs: [usize; q],
     }
 
-    let results = final_moods(presents);
+    let results = final_moods(presents, xs);
     for r in results {
         writeln!(writer, "{r}").unwrap();
     }
