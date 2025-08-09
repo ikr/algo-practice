@@ -56,19 +56,11 @@ fn final_moods(presents: Vec<Present>, xs: Vec<usize>) -> Vec<usize> {
             if x0 <= 1000 {
                 dp[0][x0]
             } else {
-                if x0.saturating_sub(ss[0]) <= 1000 {
-                    if n == 1 {
-                        x0.saturating_sub(ss[0])
-                    } else {
-                        dp[1][x0.saturating_sub(ss[0])]
-                    }
+                let i0 = ss.partition_point(|&s| x0.saturating_sub(s) > 1000);
+                if i0 >= n - 1 {
+                    x0.saturating_sub(ss[n - 1])
                 } else {
-                    let i0 = ss.partition_point(|&s| x0.saturating_sub(s) > 1000);
-                    if i0 == n {
-                        x0.saturating_sub(ss[n - 1])
-                    } else {
-                        dp[i0][x0.saturating_sub(ss[i0])]
-                    }
+                    dp[i0 + 1][x0.saturating_sub(ss[i0])]
                 }
             }
         })
