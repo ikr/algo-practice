@@ -3,20 +3,40 @@ use std::io::{BufWriter, Write, stdout};
 
 fn beautiful_substrings_count(xs: Vec<u8>) -> usize {
     let n = xs.len();
-    n * (n + 1) / 2
-        - xs.iter().filter(|&&x| x == 0).count()
-        - xs.windows(2)
-            .filter(|&xy| {
-                let v = xy.to_vec();
-                v == vec![0, 1] || v == vec![1, 0]
-            })
-            .count()
-        - xs.windows(3)
-            .filter(|&xy| {
-                let v = xy.to_vec();
-                v == vec![0, 0, 0] || v == vec![1, 0, 1] || v == vec![0, 1, 1] || v == vec![1, 1, 0]
-            })
-            .count()
+    let mut beau: Vec<usize> = vec![0; n];
+    let mut ugly: Vec<usize> = vec![0; n];
+
+    if xs[0] == 1 {
+        beau[0] = 1;
+        ugly[0] = 0;
+    } else {
+        beau[0] = 0;
+        ugly[0] = 1;
+    }
+
+    for i in 1..n {
+        match (xs[i - 1], xs[i]) {
+            (0, 0) => {
+                beau[i] = ugly[i - 1];
+                ugly[i] = beau[i - 1] + 1;
+            }
+            (0, 1) => {
+                beau[i] = beau[i - 1] + 1;
+                ugly[i] = ugly[i - 1];
+            }
+            (1, 0) => {
+                beau[i] = ugly[i - 1];
+                ugly[i] = beau[i - 1] + 1;
+            }
+            (1, 1) => {
+                beau[i] = ugly[i - 1] + 1;
+                ugly[i] = beau[i - 1];
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    beau.into_iter().sum()
 }
 
 fn main() {
@@ -30,8 +50,8 @@ fn main() {
     }
     assert_eq!(s.len(), n);
 
-    let result =
-        beautiful_substrings_count(s.chars().map(|c| if c == '1' { 1 } else { 0 }).collect());
+    let xs: Vec<u8> = s.chars().map(|c| if c == '1' { 1 } else { 0 }).collect();
+    let result = beautiful_substrings_count(xs);
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
