@@ -14,11 +14,7 @@ fn beautiful_substrings_count(xs: Vec<u8>) -> usize {
         - xs.windows(3)
             .filter(|&xy| {
                 let v = xy.to_vec();
-                v == vec![0, 0, 0]
-                    || v == vec![1, 0, 1]
-                    || v == vec![1, 1, 1]
-                    || v == vec![0, 1, 1]
-                    || v == vec![1, 1, 0]
+                v == vec![0, 0, 0] || v == vec![1, 0, 1] || v == vec![0, 1, 1] || v == vec![1, 1, 0]
             })
             .count()
 }
