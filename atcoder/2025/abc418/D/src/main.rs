@@ -29,8 +29,8 @@ fn beautiful_substrings_count(xs: Vec<u8>) -> usize {
                 ugly[i] = beau[i - 1] + 1;
             }
             (1, 1) => {
-                beau[i] = ugly[i - 1] + 1;
-                ugly[i] = beau[i - 1];
+                beau[i] = beau[i - 1] + 1;
+                ugly[i] = ugly[i - 1];
             }
             _ => unreachable!(),
         }
