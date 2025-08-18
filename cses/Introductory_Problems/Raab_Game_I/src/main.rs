@@ -1,4 +1,7 @@
-use std::io::{BufWriter, Write, stdin, stdout};
+use std::{
+    collections::VecDeque,
+    io::{BufWriter, Write, stdin, stdout},
+};
 
 #[derive(Default)]
 struct Scanner {
@@ -24,7 +27,43 @@ enum Answer {
 }
 
 fn score_model(n: usize, a: usize, b: usize) -> Answer {
-    todo!()
+    if a + b > n {
+        Answer::Impossible
+    } else {
+        let ties = n - a - b;
+        let mut aa: VecDeque<usize> = (ties + 1..=n).collect();
+        let mut bb = aa.clone();
+        let mut xs: Vec<usize> = (1..=ties).collect();
+        let mut ys: Vec<usize> = (1..=ties).collect();
+
+        for _ in 0..a {
+            if let Some(a) = aa.pop_back() {
+                if let Some(b) = bb.pop_front() {
+                    xs.push(a);
+                    ys.push(b);
+                } else {
+                    return Answer::Impossible;
+                }
+            } else {
+                return Answer::Impossible;
+            }
+        }
+
+        for _ in 0..b {
+            if let Some(b) = bb.pop_back() {
+                if let Some(a) = aa.pop_front() {
+                    xs.push(a);
+                    ys.push(b);
+                } else {
+                    return Answer::Impossible;
+                }
+            } else {
+                return Answer::Impossible;
+            }
+        }
+
+        Answer::PlayerMoves(xs, ys)
+    }
 }
 
 fn vec_str(xs: Vec<usize>) -> String {
