@@ -5,7 +5,7 @@ use std::{
     io::{BufWriter, Write, stdout},
 };
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 struct State {
     level: usize,
     row: usize,
@@ -20,32 +20,46 @@ impl State {
     fn adjacent(self, grid: &[Vec<u8>]) -> Vec<Self> {
         let h = grid.len();
         let w = grid[0].len();
+
+        if grid[self.row][self.col] == b'?' {
+            return vec![State {
+                level: (self.level + 1) % 2,
+                ..self
+            }];
+        }
+
         let mut result = vec![];
         let closed = if self.level == 0 {
             [b'#', b'x']
         } else {
             [b'#', b'o']
         };
-        let adjacent_level = if grid[self.row][self.col] == b'?' {
-            (self.level + 1) % 2
-        } else {
-            self.level
-        };
 
         if self.row != 0 && !closed.contains(&grid[self.row - 1][self.col]) {
-            result.push(State::new(adjacent_level, self.row - 1, self.col))
+            result.push(State {
+                row: self.row - 1,
+                ..self
+            });
         }
         if self.row != h - 1 && !closed.contains(&grid[self.row + 1][self.col]) {
-            result.push(State::new(adjacent_level, self.row + 1, self.col))
+            result.push(State {
+                row: self.row + 1,
+                ..self
+            });
         }
 
         if self.col != 0 && !closed.contains(&grid[self.row][self.col - 1]) {
-            result.push(State::new(adjacent_level, self.row, self.col - 1))
+            result.push(State {
+                col: self.col - 1,
+                ..self
+            });
         }
         if self.col != w - 1 && !closed.contains(&grid[self.row][self.col + 1]) {
-            result.push(State::new(adjacent_level, self.row, self.col + 1))
+            result.push(State {
+                col: self.col + 1,
+                ..self
+            });
         }
-
         result
     }
 }
@@ -54,9 +68,9 @@ fn start_and_goal(grid: &[Vec<u8>]) -> ((usize, usize), (usize, usize)) {
     let mut s = (usize::MAX, usize::MAX);
     let mut g = (usize::MAX, usize::MAX);
 
-    for i in 0..grid.len() {
-        for j in 0..grid[i].len() {
-            match grid[i][j] {
+    for (i, row) in grid.iter().enumerate() {
+        for (j, x) in row.iter().enumerate() {
+            match x {
                 b'S' => s = (i, j),
                 b'G' => g = (i, j),
                 _ => {}
@@ -78,9 +92,19 @@ fn min_steps_from_start_to_goal(grid: Vec<Vec<u8>>) -> Option<usize> {
     d[0][s.0][s.1] = 0;
 
     while let Some(u) = q.pop_front() {
-        for v in u.adjacent(&grid) {
+        let vs = u.adjacent(&grid);
+        eprintln!("vs:{:?}", vs);
+        for v in vs {
             if d[v.level][v.row][v.col] == usize::MAX {
-                d[v.level][v.row][v.col] = d[u.level][u.row][u.col] + 1;
+                let delta: usize = if grid[u.row][u.col] == b'?' && grid[v.row][v.col] == b'?' {
+                    assert_ne!(u.level, v.level);
+                    0
+                } else {
+                    1
+                };
+
+                d[v.level][v.row][v.col] = d[u.level][u.row][u.col] + delta;
+                eprintln!("Pushing {:?}", v);
                 q.push_back(v);
             }
         }
