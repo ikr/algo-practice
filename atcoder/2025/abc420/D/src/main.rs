@@ -21,13 +21,6 @@ impl State {
         let h = grid.len();
         let w = grid[0].len();
 
-        if grid[self.row][self.col] == b'?' {
-            return vec![State {
-                level: (self.level + 1) % 2,
-                ..self
-            }];
-        }
-
         let mut result = vec![];
         let closed = if self.level == 0 {
             [b'#', b'x']
@@ -35,29 +28,40 @@ impl State {
             [b'#', b'o']
         };
 
+        let new_level = |i: usize, j: usize, level: usize| -> usize {
+            if grid[i][j] == b'?' {
+                (level + 1) % 2
+            } else {
+                level
+            }
+        };
+
         if self.row != 0 && !closed.contains(&grid[self.row - 1][self.col]) {
             result.push(State {
+                level: new_level(self.row - 1, self.col, self.level),
                 row: self.row - 1,
-                ..self
+                col: self.col,
             });
         }
         if self.row != h - 1 && !closed.contains(&grid[self.row + 1][self.col]) {
             result.push(State {
+                level: new_level(self.row + 1, self.col, self.level),
                 row: self.row + 1,
-                ..self
+                col: self.col,
             });
         }
-
         if self.col != 0 && !closed.contains(&grid[self.row][self.col - 1]) {
             result.push(State {
+                level: new_level(self.row, self.col - 1, self.level),
+                row: self.row,
                 col: self.col - 1,
-                ..self
             });
         }
         if self.col != w - 1 && !closed.contains(&grid[self.row][self.col + 1]) {
             result.push(State {
+                level: new_level(self.row, self.col + 1, self.level),
+                row: self.row,
                 col: self.col + 1,
-                ..self
             });
         }
         result
@@ -67,7 +71,6 @@ impl State {
 fn start_and_goal(grid: &[Vec<u8>]) -> ((usize, usize), (usize, usize)) {
     let mut s = (usize::MAX, usize::MAX);
     let mut g = (usize::MAX, usize::MAX);
-
     for (i, row) in grid.iter().enumerate() {
         for (j, x) in row.iter().enumerate() {
             match x {
@@ -77,7 +80,6 @@ fn start_and_goal(grid: &[Vec<u8>]) -> ((usize, usize), (usize, usize)) {
             }
         }
     }
-
     (s, g)
 }
 
@@ -92,19 +94,9 @@ fn min_steps_from_start_to_goal(grid: Vec<Vec<u8>>) -> Option<usize> {
     d[0][s.0][s.1] = 0;
 
     while let Some(u) = q.pop_front() {
-        let vs = u.adjacent(&grid);
-        eprintln!("vs:{:?}", vs);
-        for v in vs {
+        for v in u.adjacent(&grid) {
             if d[v.level][v.row][v.col] == usize::MAX {
-                let delta: usize = if grid[u.row][u.col] == b'?' && grid[v.row][v.col] == b'?' {
-                    assert_ne!(u.level, v.level);
-                    0
-                } else {
-                    1
-                };
-
-                d[v.level][v.row][v.col] = d[u.level][u.row][u.col] + delta;
-                eprintln!("Pushing {:?}", v);
+                d[v.level][v.row][v.col] = d[u.level][u.row][u.col] + 1;
                 q.push_back(v);
             }
         }
