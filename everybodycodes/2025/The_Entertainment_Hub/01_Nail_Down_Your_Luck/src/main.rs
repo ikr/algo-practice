@@ -20,7 +20,7 @@ impl Dir {
 struct Crd(usize, usize);
 
 impl Crd {
-    fn at(self, grid: &[Vec<u8>]) -> u8 {
+    fn get(self, grid: &[Vec<u8>]) -> u8 {
         let h = grid.len();
         assert_ne!(h, 0);
         let w = grid[0].len();
@@ -33,6 +33,7 @@ impl Crd {
 }
 
 fn trajectory(grid: &[Vec<u8>], bounce_program: &[Dir], start: Crd) -> Vec<Crd> {
+    assert_ne!(start.get(&grid), 1);
     todo!()
 }
 
