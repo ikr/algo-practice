@@ -21,8 +21,10 @@ fn min_ops(xs: Vec<u8>) -> usize {
         .collect();
 
     let mut result = 0;
+    eprintln!("result:{result} q:{:?}", q);
     while let Some(b) = q.pop() {
         if let Some(a) = q.pop() {
+            eprintln!("a:{a} b:{b}");
             if !(a == 1 && b == 1) {
                 if b == 1 {
                     result += 1;
@@ -49,7 +51,9 @@ fn min_ops(xs: Vec<u8>) -> usize {
             }
         } else {
             assert_eq!(b, 1);
+            eprintln!("b:{b}");
         }
+        eprintln!("result:{result} q:{:?}", q);
     }
     result
 }
