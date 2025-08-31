@@ -72,6 +72,10 @@ fn final_slot_number(final_column: usize) -> usize {
     final_column / 2 + 1
 }
 
+fn toss_slots_count(grid_width: usize) -> usize {
+    grid_width.div_ceil(2)
+}
+
 fn coins_won(toss_slot: usize, final_slot: usize) -> usize {
     (final_slot * 2).saturating_sub(toss_slot)
 }
@@ -97,6 +101,26 @@ fn simulate_game_return_coins_won(
         .sum()
 }
 
+fn simalate_all_game_permutations_return_minmax_coins_won(
+    grid: &[Vec<u8>],
+    bounce_programs: &[Vec<Dir>],
+    toss_slots: Vec<usize>,
+) -> (usize, usize) {
+    let n = toss_slots.len();
+    match toss_slots
+        .into_iter()
+        .permutations(n)
+        .map(|toss_slots_by_program_index| {
+            simulate_game_return_coins_won(grid, bounce_programs, toss_slots_by_program_index)
+        })
+        .minmax()
+    {
+        OneElement(a) => (a, a),
+        MinMax(lo, hi) => (lo, hi),
+        NoElements => unreachable!(),
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     assert_ne!(lines.len(), 0);
@@ -116,19 +140,19 @@ fn main() {
         .map(|s| s.chars().map(Dir::decode).collect())
         .collect();
 
+    let n = toss_slots_count(grid_width);
     let m = programs.len();
-    let game_wins: Vec<usize> = (1..=m)
-        .permutations(m)
-        .map(|toss_slots_by_program_index| {
-            simulate_game_return_coins_won(&grid, &programs, toss_slots_by_program_index)
-        })
-        .collect();
 
-    let lo_hi_str = match game_wins.into_iter().minmax() {
-        OneElement(a) => format!("{a} {a}"),
-        MinMax(lo, hi) => format!("{lo} {hi}"),
-        NoElements => unreachable!(),
-    };
+    let mut lo: usize = usize::MAX;
+    let mut hi: usize = 0;
 
-    println!("{lo_hi_str}");
+    for toss_slots in (1..=n).combinations(m) {
+        let (a, b) =
+            simalate_all_game_permutations_return_minmax_coins_won(&grid, &programs, toss_slots);
+
+        lo = lo.min(a);
+        hi = hi.max(b);
+    }
+
+    println!("{lo} {hi}");
 }
