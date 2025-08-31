@@ -1,11 +1,11 @@
-use proconio::input;
+use proconio::{input, marker::Bytes};
 use std::io::{BufWriter, Write, stdout};
 
 fn min_ops(xs: Vec<u8>) -> usize {
     let ones_idx: Vec<usize> = xs
         .into_iter()
         .enumerate()
-        .filter_map(|(i, x)| if x == 1 { Some(i) } else { None })
+        .filter_map(|(i, x)| if x == b'A' { Some(i) } else { None })
         .collect();
 
     let mut moves_to_even = 0;
@@ -24,15 +24,11 @@ fn main() {
 
     input! {
         n: usize,
-        s: String,
+        xs: Bytes,
     }
-    assert_eq!(s.len(), 2 * n);
+    assert_eq!(xs.len(), 2 * n);
 
-    let result = min_ops(
-        s.chars()
-            .map(|c| if c == 'A' { 0 } else { 1 })
-            .collect::<Vec<_>>(),
-    );
+    let result = min_ops(xs);
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
