@@ -34,7 +34,31 @@ impl Crd {
 
 fn trajectory(grid: &[Vec<u8>], bounce_program: &[Dir], start: Crd) -> Vec<Crd> {
     assert_ne!(start.get(grid), 1);
-    todo!()
+    let h = grid.len();
+    let w = grid[0].len();
+    let q0: Vec<Dir> = bounce_program.iter().rev().cloned().collect();
+
+    (0..h + w)
+        .scan((start, q0), |(crd, q), _| {
+            if crd.get(grid) == 1 {
+                match q.pop().unwrap() {
+                    Dir::L if crd.1 != 0 => crd.1 -= 1,
+                    Dir::L => crd.1 += 1,
+                    Dir::R if crd.1 != w - 1 => crd.1 += 1,
+                    Dir::R => crd.1 -= 1,
+                }
+            } else {
+                crd.0 += 1;
+            }
+
+            if crd.0 == h {
+                None
+            } else {
+                Some((*crd, q.clone()))
+            }
+        })
+        .map(|(crd, _)| crd)
+        .collect()
 }
 
 fn main() {
@@ -60,6 +84,6 @@ fn main() {
 
     eprintln!("{:?}", programs);
 
-    let tr = trajectory(&grid, &programs[0], Crd(0, (5 - 1) * 2));
+    let tr = trajectory(&grid, &programs[0], Crd(0, (4 - 1) * 2));
     eprintln!("{:?}", tr);
 }
