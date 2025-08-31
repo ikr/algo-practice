@@ -71,7 +71,7 @@ fn final_slot_number(final_column: usize) -> usize {
 }
 
 fn toss_slots_count(grid_width: usize) -> usize {
-    (grid_width + 2 - 1) / 2
+    grid_width.div_ceil(2)
 }
 
 fn coins_won(toss_slot: usize, final_slot: usize) -> usize {
@@ -103,7 +103,7 @@ fn main() {
 
     let trajectories = toss_columns
         .into_iter()
-        .zip(programs.into_iter())
+        .zip(programs)
         .map(|(col, program)| trajectory(&grid, program, Crd(0, col)))
         .collect::<Vec<_>>();
 
@@ -117,6 +117,5 @@ fn main() {
         })
         .collect();
 
-    eprintln!("{:?}", wins);
     println!("{}", wins.into_iter().sum::<usize>());
 }
