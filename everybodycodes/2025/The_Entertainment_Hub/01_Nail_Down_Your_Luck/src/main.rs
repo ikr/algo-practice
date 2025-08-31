@@ -33,7 +33,7 @@ impl Crd {
 }
 
 fn trajectory(grid: &[Vec<u8>], bounce_program: &[Dir], start: Crd) -> Vec<Crd> {
-    assert_ne!(start.get(&grid), 1);
+    assert_ne!(start.get(grid), 1);
     todo!()
 }
 
