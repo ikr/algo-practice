@@ -36,7 +36,7 @@ fn trajectory(grid: &[Vec<u8>], bounce_program: &[Dir], start: Crd) -> Vec<Crd> 
     assert_ne!(start.get(grid), 1);
     let h = grid.len();
     let w = grid[0].len();
-    let q0: Vec<Dir> = bounce_program.iter().rev().collect();
+    let q0: Vec<Dir> = bounce_program.iter().rev().cloned().collect();
 
     let movement_coordinates = (0..h + w)
         .scan((start, q0), |(crd, q), _| {
@@ -83,12 +83,16 @@ fn simulate_toss_return_coins_won(
     bounce_program: &[Dir],
     toss_slot: usize,
 ) -> usize {
-    let tr = trajectory(&grid, &bounce_program, Crd(0, toss_column(toss_slot)));
+    let tr = trajectory(grid, bounce_program, Crd(0, toss_column(toss_slot)));
     coins_won(toss_slot, final_slot_number(tr.last().unwrap().1))
 }
 
 fn simulate_all_possible_tosses_choose_max_win(grid: &[Vec<u8>], bounce_program: &[Dir]) -> usize {
-    todo!()
+    let slots = toss_slots_count(grid[0].len());
+    (1..=slots)
+        .map(|toss_slot| simulate_toss_return_coins_won(grid, bounce_program, toss_slot))
+        .max()
+        .unwrap()
 }
 
 fn main() {
@@ -109,4 +113,11 @@ fn main() {
         .iter()
         .map(|s| s.chars().map(Dir::decode).collect())
         .collect();
+
+    let max_wins: Vec<usize> = programs
+        .into_iter()
+        .map(|pr| simulate_all_possible_tosses_choose_max_win(&grid, &pr))
+        .collect();
+
+    println!("{}", max_wins.into_iter().sum::<usize>());
 }
