@@ -1,3 +1,5 @@
+use itertools::Itertools;
+use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
 use std::io::{BufRead, stdin};
 
 #[derive(Clone, Copy, Debug)]
@@ -70,10 +72,6 @@ fn final_slot_number(final_column: usize) -> usize {
     final_column / 2 + 1
 }
 
-fn toss_slots_count(grid_width: usize) -> usize {
-    grid_width.div_ceil(2)
-}
-
 fn coins_won(toss_slot: usize, final_slot: usize) -> usize {
     (final_slot * 2).saturating_sub(toss_slot)
 }
@@ -87,12 +85,16 @@ fn simulate_toss_return_coins_won(
     coins_won(toss_slot, final_slot_number(tr.last().unwrap().1))
 }
 
-fn simulate_all_possible_tosses_choose_max_win(grid: &[Vec<u8>], bounce_program: &[Dir]) -> usize {
-    let slots = toss_slots_count(grid[0].len());
-    (1..=slots)
-        .map(|toss_slot| simulate_toss_return_coins_won(grid, bounce_program, toss_slot))
-        .max()
-        .unwrap()
+fn simulate_game_return_coins_won(
+    grid: &[Vec<u8>],
+    bounce_programs: &[Vec<Dir>],
+    toss_slots_by_program_index: Vec<usize>,
+) -> usize {
+    bounce_programs
+        .iter()
+        .zip(toss_slots_by_program_index)
+        .map(|(pr, toss_slot)| simulate_toss_return_coins_won(grid, pr, toss_slot))
+        .sum()
 }
 
 fn main() {
@@ -114,10 +116,19 @@ fn main() {
         .map(|s| s.chars().map(Dir::decode).collect())
         .collect();
 
-    let max_wins: Vec<usize> = programs
-        .into_iter()
-        .map(|pr| simulate_all_possible_tosses_choose_max_win(&grid, &pr))
+    let m = programs.len();
+    let game_wins: Vec<usize> = (1..=m)
+        .permutations(m)
+        .map(|toss_slots_by_program_index| {
+            simulate_game_return_coins_won(&grid, &programs, toss_slots_by_program_index)
+        })
         .collect();
 
-    println!("{}", max_wins.into_iter().sum::<usize>());
+    let lo_hi_str = match game_wins.into_iter().minmax() {
+        OneElement(a) => format!("{a} {a}"),
+        MinMax(lo, hi) => format!("{lo} {hi}"),
+        NoElements => unreachable!(),
+    };
+
+    println!("{lo_hi_str}");
 }
