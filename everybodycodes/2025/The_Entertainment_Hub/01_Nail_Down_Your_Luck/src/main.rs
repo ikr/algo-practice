@@ -32,11 +32,11 @@ impl Crd {
     }
 }
 
-fn trajectory(grid: &[Vec<u8>], bounce_program: Vec<Dir>, start: Crd) -> Vec<Crd> {
+fn trajectory(grid: &[Vec<u8>], bounce_program: &[Dir], start: Crd) -> Vec<Crd> {
     assert_ne!(start.get(grid), 1);
     let h = grid.len();
     let w = grid[0].len();
-    let q0: Vec<Dir> = bounce_program.into_iter().rev().collect();
+    let q0: Vec<Dir> = bounce_program.iter().rev().collect();
 
     let movement_coordinates = (0..h + w)
         .scan((start, q0), |(crd, q), _| {
@@ -78,6 +78,19 @@ fn coins_won(toss_slot: usize, final_slot: usize) -> usize {
     (final_slot * 2).saturating_sub(toss_slot)
 }
 
+fn simulate_toss_return_coins_won(
+    grid: &[Vec<u8>],
+    bounce_program: &[Dir],
+    toss_slot: usize,
+) -> usize {
+    let tr = trajectory(&grid, &bounce_program, Crd(0, toss_column(toss_slot)));
+    coins_won(toss_slot, final_slot_number(tr.last().unwrap().1))
+}
+
+fn simulate_all_possible_tosses_choose_max_win(grid: &[Vec<u8>], bounce_program: &[Dir]) -> usize {
+    todo!()
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     assert_ne!(lines.len(), 0);
@@ -96,26 +109,4 @@ fn main() {
         .iter()
         .map(|s| s.chars().map(Dir::decode).collect())
         .collect();
-
-    let toss_columns: Vec<usize> = (1..=toss_slots_count(grid_width))
-        .map(toss_column)
-        .collect();
-
-    let trajectories = toss_columns
-        .into_iter()
-        .zip(programs)
-        .map(|(col, program)| trajectory(&grid, program, Crd(0, col)))
-        .collect::<Vec<_>>();
-
-    let wins: Vec<usize> = trajectories
-        .into_iter()
-        .enumerate()
-        .map(|(i, tr)| {
-            let toss_slot = i + 1;
-            let final_coord = tr.last().unwrap();
-            coins_won(toss_slot, final_slot_number(final_coord.1))
-        })
-        .collect();
-
-    println!("{}", wins.into_iter().sum::<usize>());
 }
