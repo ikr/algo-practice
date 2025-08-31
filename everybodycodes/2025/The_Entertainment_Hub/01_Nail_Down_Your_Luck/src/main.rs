@@ -32,13 +32,13 @@ impl Crd {
     }
 }
 
-fn trajectory(grid: &[Vec<u8>], bounce_program: &[Dir], start: Crd) -> Vec<Crd> {
+fn trajectory(grid: &[Vec<u8>], bounce_program: Vec<Dir>, start: Crd) -> Vec<Crd> {
     assert_ne!(start.get(grid), 1);
     let h = grid.len();
     let w = grid[0].len();
-    let q0: Vec<Dir> = bounce_program.iter().rev().cloned().collect();
+    let q0: Vec<Dir> = bounce_program.into_iter().rev().collect();
 
-    (0..h + w)
+    let movement_coordinates = (0..h + w)
         .scan((start, q0), |(crd, q), _| {
             if crd.get(grid) == 1 {
                 match q.pop().unwrap() {
@@ -57,8 +57,25 @@ fn trajectory(grid: &[Vec<u8>], bounce_program: &[Dir], start: Crd) -> Vec<Crd> 
                 Some((*crd, q.clone()))
             }
         })
-        .map(|(crd, _)| crd)
-        .collect()
+        .map(|(crd, _)| crd);
+
+    std::iter::once(start).chain(movement_coordinates).collect()
+}
+
+fn toss_column(toss_slot_number: usize) -> usize {
+    (toss_slot_number - 1) * 2
+}
+
+fn final_slot_number(final_column: usize) -> usize {
+    final_column / 2 + 1
+}
+
+fn toss_slots_count(grid_width: usize) -> usize {
+    (grid_width + 2 - 1) / 2
+}
+
+fn coins_won(toss_slot: usize, final_slot: usize) -> usize {
+    (final_slot * 2).saturating_sub(toss_slot)
 }
 
 fn main() {
@@ -75,15 +92,31 @@ fn main() {
         )
         .collect();
 
-    eprintln!("{:?}", grid);
-
     let programs: Vec<Vec<Dir>> = lines[isep + 1..]
         .iter()
         .map(|s| s.chars().map(Dir::decode).collect())
         .collect();
 
-    eprintln!("{:?}", programs);
+    let toss_columns: Vec<usize> = (1..=toss_slots_count(grid_width))
+        .map(toss_column)
+        .collect();
 
-    let tr = trajectory(&grid, &programs[0], Crd(0, (4 - 1) * 2));
-    eprintln!("{:?}", tr);
+    let trajectories = toss_columns
+        .into_iter()
+        .zip(programs.into_iter())
+        .map(|(col, program)| trajectory(&grid, program, Crd(0, col)))
+        .collect::<Vec<_>>();
+
+    let wins: Vec<usize> = trajectories
+        .into_iter()
+        .enumerate()
+        .map(|(i, tr)| {
+            let toss_slot = i + 1;
+            let final_coord = tr.last().unwrap();
+            coins_won(toss_slot, final_slot_number(final_coord.1))
+        })
+        .collect();
+
+    eprintln!("{:?}", wins);
+    println!("{}", wins.into_iter().sum::<usize>());
 }
