@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
+use memoise::memoise;
 use std::io::{BufRead, stdin};
 
 #[derive(Clone, Copy, Debug)]
@@ -80,9 +81,11 @@ fn coins_won(toss_slot: usize, final_slot: usize) -> usize {
     (final_slot * 2).saturating_sub(toss_slot)
 }
 
+#[memoise(memo_bounce_program_index < 6, toss_slot <= 20)]
 fn simulate_toss_return_coins_won(
     grid: &[Vec<u8>],
     bounce_program: &[Dir],
+    memo_bounce_program_index: usize,
     toss_slot: usize,
 ) -> usize {
     let tr = trajectory(grid, bounce_program, Crd(0, toss_column(toss_slot)));
@@ -96,8 +99,9 @@ fn simulate_game_return_coins_won(
 ) -> usize {
     bounce_programs
         .iter()
+        .enumerate()
         .zip(toss_slots_by_program_index)
-        .map(|(pr, toss_slot)| simulate_toss_return_coins_won(grid, pr, toss_slot))
+        .map(|((ipr, pr), toss_slot)| simulate_toss_return_coins_won(grid, pr, ipr, toss_slot))
         .sum()
 }
 
