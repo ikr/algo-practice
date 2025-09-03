@@ -152,7 +152,9 @@ if args.prefix_output:
 with open("src/main.rs", "w+") as file:
     file.write(code)
 
+os.system("""echo -n '{0}' | xclip -selection clipboard""".format(path))
 os.system('emacsclient -n ./src/main.rs')
 
-clipboard_command = """echo 'cd ./{0} && cargo build' | xclip -selection clipboard""".format(normalize(args.name))
-os.system(clipboard_command)
+print("----------------------------------------")
+print("cd ./{0} && cargo build".format(normalize(args.name)))
+print("----------------------------------------")
