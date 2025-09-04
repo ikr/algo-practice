@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use proconio::input;
 use proconio::marker::Chars;
 
-const REPS: usize = 100;
+const REPS: usize = 100000;
 const BOLTS: [char; 3] = ['R', 'G', 'B'];
 
 fn initial_halves(pattern: &[char]) -> (VecDeque<char>, VecDeque<char>) {
