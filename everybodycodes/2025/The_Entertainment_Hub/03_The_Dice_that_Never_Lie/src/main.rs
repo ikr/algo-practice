@@ -24,9 +24,9 @@ impl Die {
         self.faces[self.current_face_index]
     }
 
-    fn preview_next_spin(&self) -> usize {
-        (self.roll_number + 1) * self.pulse
-    }
+    // fn preview_next_spin(&self) -> usize {
+    //     (self.roll_number + 1) * self.pulse
+    // }
 
     fn roll(&mut self) {
         self.roll_number += 1;
@@ -47,27 +47,26 @@ fn extract_faces(input_line: &str) -> Vec<i32> {
 }
 
 fn extract_seed(input_line: &str) -> usize {
-    input_line.split('=').last().unwrap().parse().unwrap()
+    input_line.split('=').next_back().unwrap().parse().unwrap()
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    for line in lines {
-        let xs = extract_faces(&line);
-        let s = extract_seed(&line);
 
-        let mut d = Die::new(xs, s);
-        eprintln!("{:?}", d);
+    let mut dies: Vec<Die> = lines
+        .into_iter()
+        .map(|line| Die::new(extract_faces(&line), extract_seed(&line)))
+        .collect();
 
-        for _ in 0..100 {
-            let spin = d.preview_next_spin();
-            d.roll();
-
-            let result = d.value();
-            let pulse_after_roll = d.pulse;
-
-            let roll_number = d.roll_number;
-            eprintln!("{roll_number}\t{spin}\t{result}\t{pulse_after_roll}");
+    let mut points: i32 = 0;
+    loop {
+        for die in &mut dies {
+            die.roll();
+            points += die.value();
+        }
+        if points >= 10_000 {
+            break;
         }
     }
+    println!("{}", dies[0].roll_number);
 }
