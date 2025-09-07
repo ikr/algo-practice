@@ -1,5 +1,7 @@
 use std::io::{BufRead, stdin};
 
+use itertools::Itertools;
+
 #[derive(Debug)]
 struct Die {
     faces: Vec<i32>,
@@ -46,6 +48,17 @@ fn extract_seed(input_line: &str) -> usize {
     input_line.split('=').next_back().unwrap().parse().unwrap()
 }
 
+fn rolls_to_finish(race_track: &[i32], mut d: Die) -> usize {
+    let mut i: usize = 0;
+    while i != race_track.len() {
+        d.roll();
+        if race_track[i] == d.value() {
+            i += 1;
+        }
+    }
+    d.roll_number
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
@@ -54,8 +67,20 @@ fn main() {
         .iter()
         .map(|line| Die::new(extract_faces(line), extract_seed(line)))
         .collect();
-    eprintln!("{:?}", dies);
 
     let race_track: Vec<i32> = lines[isep + 1].bytes().map(|x| (x - b'0') as i32).collect();
-    eprintln!("{:?}", race_track);
+
+    let rtf: Vec<_> = dies
+        .into_iter()
+        .map(|d| rolls_to_finish(&race_track, d))
+        .collect();
+
+    let answer = rtf
+        .into_iter()
+        .enumerate()
+        .sorted_by_key(|(_, rs)| *rs)
+        .map(|(i, _)| i + 1)
+        .map(|k| k.to_string())
+        .join(",");
+    println!("{answer}");
 }
