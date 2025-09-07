@@ -2,7 +2,6 @@ use std::io::{BufRead, stdin};
 
 use itertools::Itertools;
 
-#[derive(Debug)]
 struct Die {
     faces: Vec<i32>,
     seed: usize,
