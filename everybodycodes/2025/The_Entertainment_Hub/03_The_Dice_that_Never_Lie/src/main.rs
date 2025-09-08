@@ -1,7 +1,7 @@
 use std::io::{BufRead, stdin};
 
 struct Die {
-    faces: Vec<i32>,
+    faces: Vec<i8>,
     seed: usize,
     pulse: usize,
     current_face_index: usize,
@@ -9,7 +9,7 @@ struct Die {
 }
 
 impl Die {
-    fn new(faces: Vec<i32>, seed: usize) -> Self {
+    fn new(faces: Vec<i8>, seed: usize) -> Self {
         Self {
             faces,
             seed,
@@ -19,7 +19,7 @@ impl Die {
         }
     }
 
-    fn value(&self) -> i32 {
+    fn value(&self) -> i8 {
         self.faces[self.current_face_index]
     }
 
@@ -36,7 +36,7 @@ impl Die {
     }
 }
 
-fn extract_faces(input_line: &str) -> Vec<i32> {
+fn extract_faces(input_line: &str) -> Vec<i8> {
     let csv = input_line.split(['[', ']']).nth(1).unwrap();
     csv.split(',').map(|s| s.parse().unwrap()).collect()
 }
@@ -45,7 +45,7 @@ fn extract_seed(input_line: &str) -> usize {
     input_line.split('=').next_back().unwrap().parse().unwrap()
 }
 
-fn k_rolls(k: usize, d0: Die) -> Vec<i32> {
+fn k_rolls(k: usize, d0: Die) -> Vec<i8> {
     (0..k)
         .scan(d0, |d, _| {
             d.roll();
@@ -63,9 +63,9 @@ fn main() {
         .map(|line| Die::new(extract_faces(line), extract_seed(line)))
         .collect();
 
-    let grid: Vec<Vec<i32>> = lines[isep + 1..]
+    let grid: Vec<Vec<i8>> = lines[isep + 1..]
         .iter()
-        .map(|s| s.bytes().map(|x| (x - b'0') as i32).collect())
+        .map(|s| s.bytes().map(|x| (x - b'0') as i8).collect())
         .collect();
 
     eprintln!("{:?}", grid);
