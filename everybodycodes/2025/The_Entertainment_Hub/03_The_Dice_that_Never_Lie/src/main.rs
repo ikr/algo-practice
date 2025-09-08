@@ -44,11 +44,9 @@ impl Crd {
         grid[self.0][self.1]
     }
 
-    fn neighs(self, grid: &[Vec<i8>]) -> Vec<Self> {
-        let h = grid.len();
-        let w = grid[0].len();
+    fn neighs(self, h: usize, w: usize) -> Vec<Self> {
         let Self(i, j) = self;
-        let mut result = vec![];
+        let mut result = vec![self];
 
         if i != 0 {
             result.push(Self(i - 1, j));
@@ -85,6 +83,45 @@ impl Exploration {
             visited,
         }
     }
+
+    fn recur(&mut self, mut path: Vec<Crd>, iroll: usize) {
+        let p = path.last().unwrap();
+        assert_eq!(p.get(&self.grid), self.rolls[iroll]);
+        assert!(iroll + 1 < self.rolls.len());
+        let h = self.grid.len();
+        let w = self.grid[0].len();
+
+        let qs: Vec<_> = p
+            .neighs(h, w)
+            .into_iter()
+            .filter(|q| q.get(&self.grid) == self.rolls[iroll + 1])
+            .collect();
+
+        if qs.is_empty() {
+            for Crd(i, j) in path {
+                self.visited[i][j] = true;
+            }
+        } else {
+            for q in qs {
+                path.push(q);
+                self.recur(path.clone(), iroll + 1);
+                path.pop();
+            }
+        }
+    }
+
+    fn start_at(&mut self, crd: Crd) {
+        if crd.get(&self.grid) == self.rolls[0] {
+            self.recur(vec![crd], 0);
+        }
+    }
+
+    fn total_visited(&self) -> usize {
+        self.visited
+            .iter()
+            .map(|row| row.iter().filter(|x| **x).count())
+            .sum()
+    }
 }
 
 fn extract_faces(input_line: &str) -> Vec<i8> {
@@ -119,7 +156,16 @@ fn main() {
         .map(|s| s.bytes().map(|x| (x - b'0') as i8).collect())
         .collect();
 
-    eprintln!("{:?}", grid);
-    eprintln!("{} x {}", grid.len(), grid[0].len());
-    eprintln!("{:?}", k_rolls(32, dies.pop().unwrap()));
+    let rolls = k_rolls(1000, dies.pop().unwrap());
+
+    let h = grid.len();
+    let w = grid[0].len();
+    let mut expl = Exploration::new(grid, rolls);
+
+    for i in 0..h {
+        for j in 0..w {
+            expl.start_at(Crd(i, j));
+        }
+    }
+    println!("{}", expl.total_visited());
 }
