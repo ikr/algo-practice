@@ -1,7 +1,5 @@
 use std::io::{BufRead, stdin};
 
-use itertools::Itertools;
-
 struct Die {
     faces: Vec<i32>,
     seed: usize,
@@ -47,39 +45,30 @@ fn extract_seed(input_line: &str) -> usize {
     input_line.split('=').next_back().unwrap().parse().unwrap()
 }
 
-fn rolls_to_finish(race_track: &[i32], mut d: Die) -> usize {
-    let mut i: usize = 0;
-    while i != race_track.len() {
-        d.roll();
-        if race_track[i] == d.value() {
-            i += 1;
-        }
-    }
-    d.roll_number
+fn k_rolls(k: usize, d0: Die) -> Vec<i32> {
+    (0..k)
+        .scan(d0, |d, _| {
+            d.roll();
+            Some(d.value())
+        })
+        .collect()
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
 
-    let dies: Vec<Die> = lines[..isep]
+    let mut dies: Vec<Die> = lines[..isep]
         .iter()
         .map(|line| Die::new(extract_faces(line), extract_seed(line)))
         .collect();
 
-    let race_track: Vec<i32> = lines[isep + 1].bytes().map(|x| (x - b'0') as i32).collect();
-
-    let rtf: Vec<_> = dies
-        .into_iter()
-        .map(|d| rolls_to_finish(&race_track, d))
+    let grid: Vec<Vec<i32>> = lines[isep + 1..]
+        .iter()
+        .map(|s| s.bytes().map(|x| (x - b'0') as i32).collect())
         .collect();
 
-    let answer = rtf
-        .into_iter()
-        .enumerate()
-        .sorted_by_key(|(_, rs)| *rs)
-        .map(|(i, _)| i + 1)
-        .map(|k| k.to_string())
-        .join(",");
-    println!("{answer}");
+    eprintln!("{:?}", grid);
+    eprintln!("{} x {}", grid.len(), grid[0].len());
+    eprintln!("{:?}", k_rolls(32, dies.pop().unwrap()));
 }
