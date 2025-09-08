@@ -72,16 +72,20 @@ struct Exploration {
 }
 
 impl Exploration {
-    fn new(grid: Vec<Vec<i8>>, rolls: Vec<i8>) -> Self {
+    fn new(grid: Vec<Vec<i8>>) -> Self {
         let h = grid.len();
         let w = grid[0].len();
         let visited = vec![vec![false; w]; h];
 
         Self {
             grid,
-            rolls,
+            rolls: vec![],
             visited,
         }
+    }
+
+    fn set_rolls(&mut self, rolls: Vec<i8>) {
+        self.rolls = rolls;
     }
 
     fn recur(&mut self, mut path: Vec<Crd>, iroll: usize) {
@@ -146,7 +150,7 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let isep = lines.iter().position(|s| s.is_empty()).unwrap();
 
-    let mut dies: Vec<Die> = lines[..isep]
+    let dies: Vec<Die> = lines[..isep]
         .iter()
         .map(|line| Die::new(extract_faces(line), extract_seed(line)))
         .collect();
@@ -156,16 +160,21 @@ fn main() {
         .map(|s| s.bytes().map(|x| (x - b'0') as i8).collect())
         .collect();
 
-    let rolls = k_rolls(1000, dies.pop().unwrap());
-
     let h = grid.len();
     let w = grid[0].len();
-    let mut expl = Exploration::new(grid, rolls);
+    let mut expl = Exploration::new(grid);
 
-    for i in 0..h {
-        for j in 0..w {
-            expl.start_at(Crd(i, j));
+    for (i, d) in dies.into_iter().enumerate() {
+        let rolls = k_rolls(1000, d);
+        expl.set_rolls(rolls);
+
+        for i in 0..h {
+            for j in 0..w {
+                expl.start_at(Crd(i, j));
+            }
+            eprint!(".");
         }
+        eprintln!(" Die #{} done", i + 1);
     }
     println!("{}", expl.total_visited());
 }
