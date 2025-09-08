@@ -36,6 +36,57 @@ impl Die {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Crd(usize, usize);
+
+impl Crd {
+    fn get(self, grid: &[Vec<i8>]) -> i8 {
+        grid[self.0][self.1]
+    }
+
+    fn neighs(self, grid: &[Vec<i8>]) -> Vec<Self> {
+        let h = grid.len();
+        let w = grid[0].len();
+        let Self(i, j) = self;
+        let mut result = vec![];
+
+        if i != 0 {
+            result.push(Self(i - 1, j));
+        }
+        if j != w - 1 {
+            result.push(Self(i, j + 1));
+        }
+        if i != h - 1 {
+            result.push(Self(i + 1, j));
+        }
+        if j != 0 {
+            result.push(Self(i, j - 1));
+        }
+
+        result
+    }
+}
+
+struct Exploration {
+    grid: Vec<Vec<i8>>,
+    rolls: Vec<i8>,
+    visited: Vec<Vec<bool>>,
+}
+
+impl Exploration {
+    fn new(grid: Vec<Vec<i8>>, rolls: Vec<i8>) -> Self {
+        let h = grid.len();
+        let w = grid[0].len();
+        let visited = vec![vec![false; w]; h];
+
+        Self {
+            grid,
+            rolls,
+            visited,
+        }
+    }
+}
+
 fn extract_faces(input_line: &str) -> Vec<i8> {
     let csv = input_line.split(['[', ']']).nth(1).unwrap();
     csv.split(',').map(|s| s.parse().unwrap()).collect()
