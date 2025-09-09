@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashSet,
+    io::{BufRead, stdin},
+};
 
 struct Die {
     faces: Vec<i8>,
@@ -69,6 +72,7 @@ struct Exploration {
     grid: Vec<Vec<i8>>,
     rolls: Vec<i8>,
     visited: Vec<Vec<bool>>,
+    states: HashSet<(usize, usize, usize)>,
 }
 
 impl Exploration {
@@ -81,15 +85,19 @@ impl Exploration {
             grid,
             rolls: vec![],
             visited,
+            states: HashSet::new(),
         }
     }
 
     fn set_rolls(&mut self, rolls: Vec<i8>) {
         self.rolls = rolls;
+        self.states = HashSet::new();
     }
 
     fn recur(&mut self, mut path: Vec<Crd>, iroll: usize) {
         let p = path.last().unwrap();
+        self.states.insert((p.0, p.1, iroll));
+
         assert_eq!(p.get(&self.grid), self.rolls[iroll]);
         assert!(iroll + 1 < self.rolls.len());
         let h = self.grid.len();
@@ -98,7 +106,10 @@ impl Exploration {
         let qs: Vec<_> = p
             .neighs(h, w)
             .into_iter()
-            .filter(|q| q.get(&self.grid) == self.rolls[iroll + 1])
+            .filter(|q| {
+                q.get(&self.grid) == self.rolls[iroll + 1]
+                    && !self.states.contains(&(q.0, q.1, iroll + 1))
+            })
             .collect();
 
         if qs.is_empty() {
@@ -164,17 +175,15 @@ fn main() {
     let w = grid[0].len();
     let mut expl = Exploration::new(grid);
 
-    for (i, d) in dies.into_iter().enumerate() {
-        let rolls = k_rolls(1000, d);
+    for d in dies {
+        let rolls = k_rolls(5_000, d);
         expl.set_rolls(rolls);
 
         for i in 0..h {
             for j in 0..w {
                 expl.start_at(Crd(i, j));
             }
-            eprint!(".");
         }
-        eprintln!(" Die #{} done", i + 1);
     }
     println!("{}", expl.total_visited());
 }
