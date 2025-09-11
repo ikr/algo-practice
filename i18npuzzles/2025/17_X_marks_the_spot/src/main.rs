@@ -158,32 +158,14 @@ fn main() {
             }
         }
     });
+    eprintln!("{} blocks total", blocks.len());
 
-    let mut heights: Vec<usize> = blocks.iter().map(|b| b.len()).collect();
-    heights.sort();
-    eprintln!("Heights: {heights:?}");
+    let mut tiles: Vec<Tile> = blocks.into_iter().map(|b| Tile::from_block(&b)).collect();
 
-    for block in blocks.iter() {
-        let t = Tile::from_block(block);
-        eprintln!(
-            "{:?}",
-            t.right_edge().into_iter().flatten().collect::<Vec<_>>()
-        );
-    }
-
-    let left_tops_count = blocks
-        .into_iter()
-        .filter_map(|block| {
-            let t = Tile::from_block(&block);
-            if t.is_left_top_corner() {
-                Some(true)
-            } else {
-                None
-            }
-        })
-        .count();
-
-    dbg!(left_tops_count);
+    let left_top_tile: Tile = {
+        let i = tiles.iter().position(|t| t.is_left_top_corner()).unwrap();
+        tiles.remove(i)
+    };
 }
 
 #[cfg(test)]
