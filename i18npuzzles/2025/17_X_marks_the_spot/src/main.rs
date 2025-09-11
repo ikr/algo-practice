@@ -138,6 +138,42 @@ impl Tile {
     }
 }
 
+type Paste = (Tile, usize, usize);
+
+struct Grid {
+    pastes: Vec<Paste>,
+}
+
+impl Grid {
+    const H: usize = 25;
+    const W: usize = 100;
+
+    fn new() -> Self {
+        Self { pastes: vec![] }
+    }
+
+    fn paste_at(&mut self, tile: Tile, row: usize, col: usize) {
+        self.pastes.push((tile, row, col));
+    }
+
+    fn eprint_atlas(&self) {
+        let mut raster: Vec<Vec<char>> = vec![vec![' '; Self::W]; Self::H];
+
+        for (tile, i0, j0) in self.pastes.iter() {
+            for (i, row) in tile.0.iter().enumerate() {
+                for (j, _) in row.iter().enumerate() {
+                    raster[i0 + i][j0 + j] = '.';
+                }
+            }
+        }
+
+        for row in raster {
+            let s: String = row.into_iter().collect();
+            eprintln!("|{s}|");
+        }
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
@@ -161,11 +197,19 @@ fn main() {
     eprintln!("{} blocks total", blocks.len());
 
     let mut tiles: Vec<Tile> = blocks.into_iter().map(|b| Tile::from_block(&b)).collect();
+    assert_eq!(tiles.iter().filter(|t| t.is_left_top_corner()).count(), 1);
 
     let left_top_tile: Tile = {
         let i = tiles.iter().position(|t| t.is_left_top_corner()).unwrap();
         tiles.remove(i)
     };
+    assert!(left_top_tile.left_edge().into_iter().all(|x| x.is_none()));
+    eprintln!("{:?}", left_top_tile.right_edge());
+
+    let mut grid: Grid = Grid::new();
+    grid.paste_at(left_top_tile, 0, 0);
+
+    grid.eprint_atlas();
 }
 
 #[cfg(test)]
