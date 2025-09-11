@@ -11,18 +11,6 @@ use std::io::{BufRead, stdin};
 +------------+------------+-----------+-----------+-----------+-----------+
 */
 
-fn decode_bytes(s: &str) -> Vec<u8> {
-    s.chars()
-        .collect::<Vec<_>>()
-        .chunks(2)
-        .map(|xy| {
-            assert_eq!(xy.len(), 2);
-            let buf: String = xy.iter().collect();
-            u8::from_str_radix(&buf, 16).unwrap()
-        })
-        .collect()
-}
-
 fn b1_mask_and_value_pairs() -> Vec<(u8, u8)> {
     vec![
         (0b1000_0000, 0b0000_0000),
@@ -99,8 +87,20 @@ impl HSplitA {
 struct Tile(Vec<Vec<u8>>);
 
 impl Tile {
+    fn decode_bytes(s: &str) -> Vec<u8> {
+        s.chars()
+            .collect::<Vec<_>>()
+            .chunks(2)
+            .map(|xy| {
+                assert_eq!(xy.len(), 2);
+                let buf: String = xy.iter().collect();
+                u8::from_str_radix(&buf, 16).unwrap()
+            })
+            .collect()
+    }
+
     fn from_block(xss: &[String]) -> Self {
-        let grid: Vec<Vec<u8>> = xss.iter().map(|s| decode_bytes(s)).collect();
+        let grid: Vec<Vec<u8>> = xss.iter().map(|s| Self::decode_bytes(s)).collect();
         Self(grid)
     }
 
@@ -174,8 +174,8 @@ mod tests {
 
     #[test]
     fn test_decode_bytes() {
-        assert_eq!(decode_bytes(""), vec![]);
-        assert_eq!(decode_bytes("7F0120"), vec![127, 1, 32]);
+        assert_eq!(Tile::decode_bytes(""), vec![]);
+        assert_eq!(Tile::decode_bytes("7F0120"), vec![127, 1, 32]);
     }
 
     #[test]
@@ -197,7 +197,7 @@ mod tests {
             ),
         ] {
             assert_eq!(
-                HSplitB::detect(&decode_bytes(src)),
+                HSplitB::detect(&Tile::decode_bytes(src)),
                 expected,
                 "Failed on {}",
                 src
@@ -220,7 +220,7 @@ mod tests {
             ),
         ] {
             assert_eq!(
-                HSplitA::detect(&decode_bytes(src)),
+                HSplitA::detect(&Tile::decode_bytes(src)),
                 expected,
                 "Failed on {}",
                 src
