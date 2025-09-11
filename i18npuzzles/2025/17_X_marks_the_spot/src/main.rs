@@ -165,6 +165,25 @@ impl Grid {
                     raster[i0 + i][j0 + j] = '.';
                 }
             }
+
+            for (i, mbx) in tile.left_edge().into_iter().enumerate() {
+                if let Some(x) = mbx {
+                    let k = x.0.len();
+                    for j in 0..k {
+                        raster[i][j] = '=';
+                    }
+                }
+            }
+
+            for (i, mbx) in tile.right_edge().into_iter().enumerate() {
+                if let Some(x) = mbx {
+                    let k = x.0.len();
+                    let w = tile.0[0].len();
+                    for j in w - k..w {
+                        raster[i][j] = '=';
+                    }
+                }
+            }
         }
 
         for row in raster {
