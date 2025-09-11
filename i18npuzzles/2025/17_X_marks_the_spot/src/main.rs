@@ -145,8 +145,8 @@ struct Grid {
 }
 
 impl Grid {
-    const H: usize = 25;
-    const W: usize = 150;
+    const H: usize = 50;
+    const W: usize = 550;
 
     fn new() -> Self {
         Self { pastes: vec![] }
@@ -215,6 +215,7 @@ fn main() {
     });
 
     let mut tiles: Vec<Tile> = blocks.into_iter().map(|b| Tile::from_block(&b)).collect();
+    eprintln!("Initial number of tiles: {}", tiles.len());
     assert_eq!(tiles.iter().filter(|t| t.is_left_top_corner()).count(), 1);
 
     let left_top_tile: Tile = {
@@ -230,6 +231,14 @@ fn main() {
     let mut j0 = pre.0[0].len();
 
     loop {
+        assert_eq!(
+            tiles
+                .iter()
+                .filter(|t| pre.lhs_pluggable_into(t, 0))
+                .count(),
+            1
+        );
+
         let it = tiles
             .iter()
             .position(|t| pre.lhs_pluggable_into(t, 0))
@@ -248,6 +257,7 @@ fn main() {
     }
 
     grid.eprint_atlas();
+    eprintln!("Remaining number of tiles: {}", tiles.len());
 }
 
 #[cfg(test)]
