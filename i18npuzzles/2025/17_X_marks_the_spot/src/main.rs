@@ -146,7 +146,7 @@ struct Grid {
 
 impl Grid {
     const H: usize = 25;
-    const W: usize = 100;
+    const W: usize = 150;
 
     fn new() -> Self {
         Self { pastes: vec![] }
@@ -170,7 +170,7 @@ impl Grid {
                 if let Some(x) = mbx {
                     let k = x.0.len();
                     for j in 0..k {
-                        raster[i][j] = '=';
+                        raster[i0 + i][j0 + j] = '=';
                     }
                 }
             }
@@ -180,7 +180,7 @@ impl Grid {
                     let k = x.0.len();
                     let w = tile.0[0].len();
                     for j in w - k..w {
-                        raster[i][j] = '=';
+                        raster[i0 + i][j0 + j] = '-';
                     }
                 }
             }
@@ -188,7 +188,7 @@ impl Grid {
 
         for row in raster {
             let s: String = row.into_iter().collect();
-            eprintln!("|{s}|");
+            eprintln!("{s}");
         }
     }
 }
@@ -213,20 +213,39 @@ fn main() {
             }
         }
     });
-    eprintln!("{} blocks total", blocks.len());
 
     let mut tiles: Vec<Tile> = blocks.into_iter().map(|b| Tile::from_block(&b)).collect();
     assert_eq!(tiles.iter().filter(|t| t.is_left_top_corner()).count(), 1);
 
     let left_top_tile: Tile = {
-        let i = tiles.iter().position(|t| t.is_left_top_corner()).unwrap();
-        tiles.remove(i)
+        let it = tiles.iter().position(|t| t.is_left_top_corner()).unwrap();
+        tiles.remove(it)
     };
     assert!(left_top_tile.left_edge().into_iter().all(|x| x.is_none()));
-    eprintln!("{:?}", left_top_tile.right_edge());
 
     let mut grid: Grid = Grid::new();
+    let mut pre = left_top_tile.clone();
     grid.paste_at(left_top_tile, 0, 0);
+
+    let mut j0 = pre.0[0].len();
+
+    loop {
+        let it = tiles
+            .iter()
+            .position(|t| pre.lhs_pluggable_into(t, 0))
+            .unwrap();
+
+        let tile = tiles.remove(it);
+        pre = tile.clone();
+
+        let w = tile.0[0].len();
+        grid.paste_at(tile, 0, j0);
+        j0 += w;
+
+        if pre.right_edge().into_iter().all(|x| x.is_none()) {
+            break;
+        }
+    }
 
     grid.eprint_atlas();
 }
