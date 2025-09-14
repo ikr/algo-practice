@@ -168,7 +168,7 @@ impl Paste {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 enum Port {
     None,
     A {
@@ -188,7 +188,7 @@ struct Grid {
 }
 
 impl Grid {
-    const H: usize = 50;
+    const H: usize = 96;
     const W: usize = 512;
 
     fn new() -> Self {
@@ -227,6 +227,44 @@ impl Grid {
                 }
             }
         }
+    }
+
+    fn first_open_right_top_port(&self) -> Port {
+        for i in 1..Self::H - 1 {
+            for j in 1..Self::W - 1 {
+                if self.bytes[i][j].is_none()
+                    && self.bytes[i - 1][j].is_some()
+                    && self.bytes[i][j + 1].is_some()
+                {
+                    match self.ports[i][j] {
+                        p @ Port::B { .. } => {
+                            return p;
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+            }
+        }
+        Port::None
+    }
+
+    fn first_open_left_top_port(&self) -> Port {
+        for i in 1..Self::H - 1 {
+            for j in 1..Self::W - 1 {
+                if self.bytes[i][j].is_none()
+                    && self.bytes[i - 1][j].is_some()
+                    && self.bytes[i][j - 1].is_some()
+                {
+                    match self.ports[i][j] {
+                        p @ Port::A { .. } => {
+                            return p;
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+            }
+        }
+        Port::None
     }
 
     fn eprint_atlas(&self) {
@@ -268,6 +306,17 @@ impl Grid {
             let s: String = row.into_iter().collect();
             eprintln!("{s}");
         }
+        eprintln!();
+    }
+
+    fn chars_grid(&self) -> Vec<Vec<char>> {
+        self.bytes
+            .iter()
+            .map(|bytes_row| {
+                let raw: Vec<u8> = bytes_row.iter().filter_map(|mb_x| *mb_x).collect();
+                String::from_utf8(raw).unwrap().chars().collect()
+            })
+            .collect()
     }
 }
 
@@ -293,7 +342,6 @@ fn main() {
     });
 
     let mut tiles: Vec<Tile> = blocks.into_iter().map(|b| Tile::from_block(&b)).collect();
-    eprintln!("Initial number of tiles: {}", tiles.len());
     assert_eq!(tiles.iter().filter(|t| t.is_left_top_corner()).count(), 1);
 
     let left_top_tile: Tile = {
@@ -335,7 +383,75 @@ fn main() {
     }
 
     grid.eprint_atlas();
-    eprintln!("Remaining number of tiles: {}", tiles.len());
+
+    loop {
+        let b = grid.first_open_right_top_port();
+        match b {
+            Port::B {
+                paste_index,
+                vert_offset,
+            } => {
+                let paste_b = &grid.pastes[paste_index];
+
+                if let Some(it) = tiles
+                    .iter()
+                    .position(|t| t.lhs_pluggable_into(&paste_b.tile, vert_offset))
+                {
+                    let tile_a = tiles.remove(it);
+                    let w_a = tile_a.0[0].len();
+                    let i0 = paste_b.irow + vert_offset;
+                    let j0 = paste_b.icol - w_a;
+                    grid.paste_at(tile_a, i0, j0);
+                }
+            }
+            Port::None => {}
+            _ => unreachable!(),
+        }
+
+        grid.eprint_atlas();
+
+        let a = grid.first_open_left_top_port();
+        match a {
+            Port::A {
+                paste_index,
+                vert_offset,
+            } => {
+                let paste_a = &grid.pastes[paste_index];
+
+                if let Some(it) = tiles
+                    .iter()
+                    .position(|t| t.rhs_pluggable_into(&paste_a.tile, vert_offset))
+                {
+                    let tile_b = tiles.remove(it);
+                    let w_a = paste_a.tile.0[0].len();
+                    let i0 = paste_a.irow + vert_offset;
+                    let j0 = paste_a.icol + w_a;
+                    grid.paste_at(tile_b, i0, j0);
+                }
+            }
+            Port::None => {}
+            _ => unreachable!(),
+        }
+
+        if let (Port::None, Port::None) = (a, b) {
+            break;
+        }
+    }
+
+    let decoded = grid.chars_grid();
+
+    for row in &decoded {
+        let s: String = row.iter().collect();
+        eprintln!("{s}");
+    }
+
+    for (i, row) in decoded.into_iter().enumerate() {
+        for (j, x) in row.into_iter().enumerate() {
+            if x == '╳' {
+                println!("{} * {} = {}", j, i, i * j)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
