@@ -136,6 +136,23 @@ impl Tile {
                 _ => true,
             })
     }
+
+    fn rhs_pluggable_into(&self, other: &Self, my_vert_offset_across_other: usize) -> bool {
+        let my_edge = self.left_edge();
+        let other_edge: Vec<_> = other.right_edge();
+        assert!(my_vert_offset_across_other < other_edge.len());
+
+        other_edge
+            .into_iter()
+            .skip(my_vert_offset_across_other)
+            .zip(my_edge.into_iter())
+            .all(|(mb_a, mb_b)| match (mb_a, mb_b) {
+                (Some(a), Some(b)) => a.missing_len() == b.0.len(),
+                (None, Some(_)) => false,
+                (Some(_), None) => false,
+                _ => true,
+            })
+    }
 }
 
 type Paste = (Tile, usize, usize);
@@ -327,7 +344,7 @@ mod tests {
     }
 
     #[test]
-    fn test_lhs_pluggable_into_1() {
+    fn test_pluggable_into() {
         let aa = Tile::from_block(&[
             "e295942de295902de295902de295902d".to_string(),
             "7c7ee2898be2898bc3b1c3b1e2898b7e".to_string(),
@@ -356,8 +373,12 @@ mod tests {
         assert!(!aa.lhs_pluggable_into(&cc, 0));
 
         assert!(aa.lhs_pluggable_into(&bb, 0));
-        assert!(bb.lhs_pluggable_into(&cc, 0));
+        assert!(bb.rhs_pluggable_into(&aa, 0));
 
+        assert!(bb.lhs_pluggable_into(&cc, 0));
+        assert!(cc.rhs_pluggable_into(&bb, 0));
+
+        assert!(!bb.rhs_pluggable_into(&aa, 2));
         assert!(!aa.lhs_pluggable_into(&bb, 1));
         assert!(!bb.lhs_pluggable_into(&cc, 1));
     }
