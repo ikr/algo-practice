@@ -20,10 +20,10 @@ fn b1_mask_and_value_pairs() -> Vec<(u8, u8)> {
     ]
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct HSplitB(Vec<u8>);
+#[derive(Clone)]
+struct SplitB(Vec<u8>);
 
-impl HSplitB {
+impl SplitB {
     fn detect(xs: &[u8]) -> Option<Self> {
         let i0 = xs
             .iter()
@@ -42,10 +42,10 @@ impl HSplitB {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct HSplitA(Vec<u8>);
+#[derive(Clone)]
+struct SplitA(Vec<u8>);
 
-impl HSplitA {
+impl SplitA {
     fn multibyte_seq_len(b1: u8) -> usize {
         let j = b1_mask_and_value_pairs()
             .into_iter()
@@ -68,7 +68,7 @@ impl HSplitA {
     }
 
     fn detect(xs: &[u8]) -> Option<Self> {
-        let i0: usize = if let Some(HSplitB(bb)) = HSplitB::detect(xs) {
+        let i0: usize = if let Some(SplitB(bb)) = SplitB::detect(xs) {
             bb.len()
         } else {
             0
@@ -104,12 +104,12 @@ impl Tile {
         Self(grid)
     }
 
-    fn left_edge(&self) -> Vec<Option<HSplitB>> {
-        self.0.iter().map(|row| HSplitB::detect(row)).collect()
+    fn left_edge(&self) -> Vec<Option<SplitB>> {
+        self.0.iter().map(|row| SplitB::detect(row)).collect()
     }
 
-    fn right_edge(&self) -> Vec<Option<HSplitA>> {
-        self.0.iter().map(|row| HSplitA::detect(row)).collect()
+    fn right_edge(&self) -> Vec<Option<SplitA>> {
+        self.0.iter().map(|row| SplitA::detect(row)).collect()
     }
 
     fn is_left_top_corner(&self) -> bool {
@@ -145,7 +145,7 @@ impl Tile {
         other_edge
             .into_iter()
             .skip(my_vert_offset_across_other)
-            .zip(my_edge.into_iter())
+            .zip(my_edge)
             .all(|(mb_a, mb_b)| match (mb_a, mb_b) {
                 (Some(a), Some(b)) => a.missing_len() == b.0.len(),
                 (None, Some(_)) => false,
@@ -183,6 +183,8 @@ enum Port {
 
 struct Grid {
     pastes: Vec<Paste>,
+    bytes: Vec<Vec<Option<u8>>>,
+    ports: Vec<Vec<Port>>,
 }
 
 impl Grid {
@@ -190,11 +192,22 @@ impl Grid {
     const W: usize = 550;
 
     fn new() -> Self {
-        Self { pastes: vec![] }
+        Self {
+            pastes: vec![],
+            bytes: vec![vec![None; Self::W]; Self::H],
+            ports: vec![vec![Port::None; Self::W]; Self::H],
+        }
     }
 
-    fn paste_at(&mut self, tile: Tile, row: usize, col: usize) {
-        self.pastes.push(Paste::new(tile, row, col));
+    fn paste_at(&mut self, tile: Tile, irow: usize, icol: usize) {
+        for (i, row) in tile.0.iter().enumerate() {
+            for (j, x) in row.iter().enumerate() {
+                assert!(self.bytes[irow + i][icol + j].is_none());
+                self.bytes[irow + i][icol + j] = Some(*x);
+            }
+        }
+
+        self.pastes.push(Paste::new(tile, irow, icol));
     }
 
     fn eprint_atlas(&self) {
@@ -318,19 +331,16 @@ mod tests {
             ("7ec3b1f091808de2898bc3b17e7ec3b1", None),
             (
                 "91808d7ee2898b7ec3b1c3b17ec3b17e",
-                Some(HSplitB(vec![0x91, 0x80, 0x8D])),
+                Some(SplitB(vec![0x91, 0x80, 0x8D])),
             ),
             (
                 "91808d2dc2af7ec3b1c3b1c3b1c3b1c3",
-                Some(HSplitB(vec![0x91, 0x80, 0x8D])),
+                Some(SplitB(vec![0x91, 0x80, 0x8D])),
             ),
-            (
-                "b1c3b1c3b1e288922dc2afc2afc3b17c",
-                Some(HSplitB(vec![0xB1])),
-            ),
+            ("b1c3b1c3b1e288922dc2afc2afc3b17c", Some(SplitB(vec![0xB1]))),
         ] {
             assert_eq!(
-                HSplitB::detect(&Tile::decode_bytes(src)),
+                SplitB::detect(&Tile::decode_bytes(src)),
                 expected,
                 "Failed on {}",
                 src
@@ -343,17 +353,11 @@ mod tests {
         for (src, expected) in [
             ("e295902de295902de295902de295902d", None),
             ("7ec3b1f091808de2898bc3b17e7ec3b1", None),
-            (
-                "e29591c3b1c3b1e2898b7e7ee2898bf0",
-                Some(HSplitA(vec![0xF0])),
-            ),
-            (
-                "91808d2dc2af7ec3b1c3b1c3b1c3b1c3",
-                Some(HSplitA(vec![0xC3])),
-            ),
+            ("e29591c3b1c3b1e2898b7e7ee2898bf0", Some(SplitA(vec![0xF0]))),
+            ("91808d2dc2af7ec3b1c3b1c3b1c3b1c3", Some(SplitA(vec![0xC3]))),
         ] {
             assert_eq!(
-                HSplitA::detect(&Tile::decode_bytes(src)),
+                SplitA::detect(&Tile::decode_bytes(src)),
                 expected,
                 "Failed on {}",
                 src
@@ -363,8 +367,8 @@ mod tests {
 
     #[test]
     fn test_horizontal_split_a_missing_len() {
-        assert_eq!(HSplitA(vec![0xC3]).missing_len(), 1);
-        assert_eq!(HSplitA(vec![0xF0]).missing_len(), 3);
+        assert_eq!(SplitA(vec![0xC3]).missing_len(), 1);
+        assert_eq!(SplitA(vec![0xF0]).missing_len(), 3);
     }
 
     #[test]
