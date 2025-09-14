@@ -155,7 +155,31 @@ impl Tile {
     }
 }
 
-type Paste = (Tile, usize, usize);
+#[derive(Clone)]
+struct Paste {
+    tile: Tile,
+    irow: usize,
+    icol: usize,
+}
+
+impl Paste {
+    fn new(tile: Tile, irow: usize, icol: usize) -> Self {
+        Self { tile, irow, icol }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Port {
+    None,
+    A {
+        paste_index: usize,
+        vert_offset: usize,
+    },
+    B {
+        paste_index: usize,
+        vert_offset: usize,
+    },
+}
 
 struct Grid {
     pastes: Vec<Paste>,
@@ -170,16 +194,16 @@ impl Grid {
     }
 
     fn paste_at(&mut self, tile: Tile, row: usize, col: usize) {
-        self.pastes.push((tile, row, col));
+        self.pastes.push(Paste::new(tile, row, col));
     }
 
     fn eprint_atlas(&self) {
         let mut raster: Vec<Vec<char>> = vec![vec![' '; Self::W]; Self::H];
 
-        for (tile, i0, j0) in self.pastes.iter() {
+        for Paste { tile, irow, icol } in &self.pastes {
             for (i, row) in tile.0.iter().enumerate() {
                 for (j, _) in row.iter().enumerate() {
-                    raster[i0 + i][j0 + j] = '.';
+                    raster[irow + i][icol + j] = '.';
                 }
             }
 
@@ -187,7 +211,7 @@ impl Grid {
                 if let Some(x) = mbx {
                     let k = x.0.len();
                     for j in 0..k {
-                        raster[i0 + i][j0 + j] = '=';
+                        raster[irow + i][icol + j] = '=';
                     }
                 }
             }
@@ -197,7 +221,7 @@ impl Grid {
                     let k = x.0.len();
                     let w = tile.0[0].len();
                     for j in w - k..w {
-                        raster[i0 + i][j0 + j] = '-';
+                        raster[irow + i][icol + j] = '-';
                     }
                 }
             }
