@@ -20,7 +20,7 @@ fn b1_mask_and_value_pairs() -> Vec<(u8, u8)> {
     ]
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 struct SplitB(Vec<u8>);
 
 impl SplitB {
@@ -42,7 +42,7 @@ impl SplitB {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 struct SplitA(Vec<u8>);
 
 impl SplitA {
