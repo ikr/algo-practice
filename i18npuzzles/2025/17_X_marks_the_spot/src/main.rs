@@ -199,15 +199,34 @@ impl Grid {
         }
     }
 
-    fn paste_at(&mut self, tile: Tile, irow: usize, icol: usize) {
+    fn paste_at(&mut self, tile: Tile, i0: usize, j0: usize) {
         for (i, row) in tile.0.iter().enumerate() {
             for (j, x) in row.iter().enumerate() {
-                assert!(self.bytes[irow + i][icol + j].is_none());
-                self.bytes[irow + i][icol + j] = Some(*x);
+                assert!(self.bytes[i0 + i][j0 + j].is_none());
+                self.bytes[i0 + i][j0 + j] = Some(*x);
             }
         }
 
-        self.pastes.push(Paste::new(tile, irow, icol));
+        let h = tile.0.len();
+        let w = tile.0[0].len();
+        let paste_index = self.pastes.len();
+        self.pastes.push(Paste::new(tile, i0, j0));
+
+        for vert_offset in 0..h {
+            if j0 != 0 {
+                self.ports[i0 + vert_offset][j0 - 1] = Port::B {
+                    paste_index,
+                    vert_offset,
+                }
+            }
+
+            if j0 + w != Self::W {
+                self.ports[i0 + vert_offset][j0 + w] = Port::A {
+                    paste_index,
+                    vert_offset,
+                }
+            }
+        }
     }
 
     fn eprint_atlas(&self) {
