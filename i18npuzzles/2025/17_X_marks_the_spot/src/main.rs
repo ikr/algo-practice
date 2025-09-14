@@ -189,7 +189,7 @@ struct Grid {
 
 impl Grid {
     const H: usize = 50;
-    const W: usize = 550;
+    const W: usize = 512;
 
     fn new() -> Self {
         Self {
