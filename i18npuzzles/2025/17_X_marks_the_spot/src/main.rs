@@ -230,6 +230,7 @@ impl Grid {
     }
 
     fn eprint_atlas(&self) {
+        let indicators: Vec<char> = (0..9).map(|b| (b'0' + b) as char).collect();
         let mut raster: Vec<Vec<char>> = vec![vec![' '; Self::W]; Self::H];
 
         for Paste { tile, irow, icol } in &self.pastes {
@@ -253,7 +254,11 @@ impl Grid {
                     let k = x.0.len();
                     let w = tile.0[0].len();
                     for j in w - k..w {
-                        raster[irow + i][icol + j] = '-';
+                        raster[irow + i][icol + j] = if j == w - 1 {
+                            indicators[x.missing_len()]
+                        } else {
+                            '-'
+                        };
                     }
                 }
             }
