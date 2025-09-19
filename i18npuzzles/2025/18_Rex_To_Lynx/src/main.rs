@@ -33,6 +33,19 @@ fn first_top_stretch_bounds(xs: &[u8]) -> (usize, usize) {
 }
 
 fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> String {
+    let mut xs: Vec<char> = string_with_instruction_marker_chars.chars().collect();
+    let mut lv: Vec<u8> = vec![0; xs.len()];
+
+    let mut current_level: u8 = 0;
+    for (i, &x) in xs.iter().enumerate() {
+        match x {
+            RLI | LRI => current_level += 1,
+            PDI => current_level -= 1,
+            _ => {}
+        }
+        todo!();
+    }
+
     todo!()
 }
 
