@@ -37,15 +37,35 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
     let mut lv: Vec<u8> = vec![0; xs.len()];
 
     let mut current_level: u8 = 0;
+    let mut digit_bump_active: bool = false;
+
     for (i, &x) in xs.iter().enumerate() {
         match x {
-            RLI | LRI => current_level += 1,
-            PDI => current_level -= 1,
-            _ => {}
+            RLI | LRI => {
+                current_level += 1;
+                digit_bump_active = false;
+            }
+            PDI => {
+                current_level -= 1;
+                digit_bump_active = false;
+            }
+            '0'..='9' if current_level % 2 == 1 => {
+                current_level += 1;
+                digit_bump_active = true;
+            }
+            _ if digit_bump_active => {
+                current_level -= 1;
+                digit_bump_active = false;
+            }
+            _ => digit_bump_active = false,
         }
-        todo!();
+        lv[i] = current_level;
     }
 
+    eprintln!("{:?}", lv);
+    let tmp = "00000000000000001112111121112111112111112222222222222344333343334332211000";
+    let ys: Vec<u8> = tmp.bytes().map(|b| b - b'0').collect();
+    assert_eq!(lv, ys);
     todo!()
 }
 
@@ -56,6 +76,8 @@ fn main() {
 
     let naive_lines: Vec<String> = lines.iter().map(|s| remove_bidi_markers(s)).collect();
     eprintln!("{:?}", naive_lines);
+
+    apply_bidi_instructions(lines.last().unwrap().clone());
 }
 
 #[cfg(test)]
