@@ -4,8 +4,63 @@ const RLI: char = '\u{2067}';
 const LRI: char = '\u{2066}';
 const PDI: char = '\u{2069}';
 
+#[derive(Clone, Copy)]
+enum BidiMarker {
+    Rli,
+    Lri,
+    Pdi,
+}
+
+impl BidiMarker {
+    fn from(x: char) -> Option<Self> {
+        match x {
+            RLI => Some(Self::Rli),
+            LRI => Some(Self::Lri),
+            PDI => Some(Self::Pdi),
+            _ => None,
+        }
+    }
+
+    fn all() -> Vec<Self> {
+        vec![Self::Rli, Self::Lri, Self::Pdi]
+    }
+
+    fn index(self) -> usize {
+        match self {
+            Self::Rli => 0,
+            Self::Lri => 1,
+            Self::Pdi => 2,
+        }
+    }
+}
+
+struct BidiMarkersIndex {
+    idx: Vec<Vec<usize>>,
+}
+
+impl BidiMarkersIndex {}
+
+fn externalize_bidi_markers(
+    string_with_instruction_marker_chars: String,
+) -> (String, BidiMarkersIndex) {
+    let mut idx = vec![vec![]; BidiMarker::all().len()];
+    let mut xs: Vec<char> = vec![];
+
+    for x in string_with_instruction_marker_chars.chars() {
+        if let Some(bm) = BidiMarker::from(x) {
+            idx[bm.index()].push(xs.len());
+        } else {
+            xs.push(x);
+        }
+    }
+
+    (xs.into_iter().collect(), BidiMarkersIndex { idx })
+}
+
 fn remove_bidi_markers(s: &str) -> String {
-    s.chars().filter(|c| ![RLI, LRI, PDI].contains(c)).collect()
+    s.chars()
+        .filter(|&c| BidiMarker::from(c).is_none())
+        .collect()
 }
 
 fn run_length_encoding(xs: &[u8]) -> Vec<(u8, usize)> {
