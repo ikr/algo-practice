@@ -38,11 +38,17 @@ struct BidiMarkersIndex {
     idx: Vec<Vec<usize>>,
 }
 
-impl BidiMarkersIndex {}
+impl BidiMarkersIndex {
+    fn marker_on(&self, i: usize) -> Option<BidiMarker> {
+        BidiMarker::all()
+            .into_iter()
+            .find(|bm| self.idx[bm.index()].contains(&i))
+    }
+}
 
 fn externalize_bidi_markers(
     string_with_instruction_marker_chars: String,
-) -> (String, BidiMarkersIndex) {
+) -> (Vec<char>, BidiMarkersIndex) {
     let mut idx = vec![vec![]; BidiMarker::all().len()];
     let mut xs: Vec<char> = vec![];
 
@@ -54,7 +60,7 @@ fn externalize_bidi_markers(
         }
     }
 
-    (xs.into_iter().collect(), BidiMarkersIndex { idx })
+    (xs, BidiMarkersIndex { idx })
 }
 
 fn remove_bidi_markers(s: &str) -> String {
@@ -88,23 +94,23 @@ fn first_top_stretch_bounds(xs: &[u8]) -> (usize, usize) {
 }
 
 fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> String {
-    let mut xs: Vec<char> = string_with_instruction_marker_chars.chars().collect();
+    let (mut xs, idx) = externalize_bidi_markers(string_with_instruction_marker_chars);
     let mut lv: Vec<u8> = vec![0; xs.len()];
 
     let mut current_level: u8 = 0;
     let mut digit_bump_active: bool = false;
 
     for (i, &x) in xs.iter().enumerate() {
-        match x {
-            RLI | LRI => {
+        match idx.marker_on(i) {
+            Some(BidiMarker::Rli | BidiMarker::Lri) => {
                 current_level += 1;
                 digit_bump_active = false;
             }
-            PDI => {
+            Some(BidiMarker::Pdi) => {
                 current_level -= 1;
                 digit_bump_active = false;
             }
-            '0'..='9' if current_level % 2 == 1 => {
+            _ if x.is_ascii_digit() && current_level % 2 == 1 => {
                 current_level += 1;
                 digit_bump_active = true;
             }
@@ -118,7 +124,7 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
     }
 
     eprintln!("{:?}", lv);
-    let tmp = "00000000000000001112111121112111112111112222222222222344333343334332211000";
+    let tmp = "00000000000000011121111211121111121111222222222222344333343334332100";
     let ys: Vec<u8> = tmp.bytes().map(|b| b - b'0').collect();
     assert_eq!(lv, ys);
     todo!()
