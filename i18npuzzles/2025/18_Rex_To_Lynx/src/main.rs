@@ -114,6 +114,7 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
                 current_level += 1;
                 digit_bump_active = true;
             }
+            _ if digit_bump_active && x.is_ascii_digit() => {}
             _ if digit_bump_active => {
                 current_level -= 1;
                 digit_bump_active = false;
