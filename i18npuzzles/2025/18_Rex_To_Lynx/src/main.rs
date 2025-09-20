@@ -173,4 +173,15 @@ mod tests {
             assert_eq!(first_top_stretch_bounds(&input), output);
         }
     }
+
+    #[test]
+    fn test_cumulative_size_at() {
+        for (xs, i, expected) in vec![
+            (vec![(1u8, 100)], 0, 0),
+            (vec![(1u8, 1), (2u8, 3)], 1, 1),
+            (vec![(1u8, 1), (2u8, 3), (1u8, 1)], 2, 4),
+        ] {
+            assert_eq!(rle_cumulative_size_at(&xs, i), expected);
+        }
+    }
 }
