@@ -124,22 +124,38 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
         lv[i] = current_level;
     }
 
-    eprintln!("{:?}", lv);
-    let tmp = "00000000000000011121111211121111121111222222222222344333343334332100";
-    let ys: Vec<u8> = tmp.bytes().map(|b| b - b'0').collect();
-    assert_eq!(lv, ys);
-    todo!()
+    loop {
+        let (begin, end) = first_top_stretch_bounds(&lv);
+        if lv[begin] == 0 {
+            break;
+        }
+
+        xs[begin..end].reverse();
+        for l in &mut lv[begin..end] {
+            *l -= 1;
+        }
+    }
+
+    xs.into_iter()
+        .collect::<String>()
+        .replace("(", "[")
+        .replace(")", "]")
+        .replace("[", ")")
+        .replace("]", "(")
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    eprintln!("{:?}", lines);
-    assert!(lines.iter().all(|s| s.chars().count() < 256));
+    eprintln!("{:?}\n", lines);
 
     let naive_lines: Vec<String> = lines.iter().map(|s| remove_bidi_markers(s)).collect();
-    eprintln!("{:?}", naive_lines);
+    eprintln!("{}\n", naive_lines.join("\n"));
 
-    apply_bidi_instructions(lines.last().unwrap().clone());
+    let transformed_lines: Vec<String> = lines
+        .into_iter()
+        .map(|s| apply_bidi_instructions(s))
+        .collect();
+    eprintln!("{}\n", transformed_lines.join("\n"));
 }
 
 #[cfg(test)]
