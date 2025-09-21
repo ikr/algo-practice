@@ -137,11 +137,12 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
     }
 
     xs.into_iter()
+        .map(|x| match x {
+            '(' => ')',
+            ')' => '(',
+            _ => x,
+        })
         .collect::<String>()
-        .replace("(", "[")
-        .replace(")", "]")
-        .replace("[", ")")
-        .replace("]", "(")
 }
 
 fn main() {
