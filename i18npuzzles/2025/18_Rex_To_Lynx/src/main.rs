@@ -124,6 +124,19 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
         lv[i] = current_level;
     }
 
+    let lv_str: String = lv.iter().map(|l| (b'0' + l) as char).collect();
+
+    let m_str: String = (0..lv.len())
+        .map(|i| match idx.marker_on(i) {
+            Some(BidiMarker::Lri) => '>',
+            Some(BidiMarker::Rli) => '<',
+            Some(BidiMarker::Pdi) => '^',
+            None => '.',
+        })
+        .collect();
+
+    eprintln!("\n{lv_str}\n{m_str}\n{}\n", xs.iter().collect::<String>());
+
     loop {
         let (begin, end) = first_top_stretch_bounds(&lv);
         if lv[begin] == 0 {
@@ -145,16 +158,23 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
         .collect::<String>()
 }
 
+fn remove_spaces(s: String) -> String {
+    s.chars().filter(|x| *x != ' ').collect()
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     eprintln!("{:?}\n", lines);
 
-    let naive_lines: Vec<String> = lines.iter().map(|s| remove_bidi_markers(s)).collect();
+    let naive_lines: Vec<String> = lines
+        .iter()
+        .map(|s| remove_spaces(remove_bidi_markers(s)))
+        .collect();
     eprintln!("{}\n", naive_lines.join("\n"));
 
     let transformed_lines: Vec<String> = lines
         .into_iter()
-        .map(|s| apply_bidi_instructions(s))
+        .map(|s| apply_bidi_instructions(remove_spaces(s)))
         .collect();
     eprintln!("{}\n", transformed_lines.join("\n"));
 }
