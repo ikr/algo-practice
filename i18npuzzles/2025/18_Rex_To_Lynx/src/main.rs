@@ -135,7 +135,7 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
         })
         .collect();
 
-    eprintln!("\n{lv_str}\n{m_str}\n{}\n", xs.iter().collect::<String>());
+    eprintln!("\n{lv_str}\n{}\n{m_str}\n", xs.iter().collect::<String>());
 
     loop {
         let (begin, end) = first_top_stretch_bounds(&lv);
