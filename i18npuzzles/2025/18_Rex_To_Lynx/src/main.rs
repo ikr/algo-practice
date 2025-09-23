@@ -143,10 +143,12 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
             break;
         }
 
+        eprintln!("Will reverse {}", xs[begin..end].iter().collect::<String>());
         xs[begin..end].reverse();
         for l in &mut lv[begin..end] {
             *l -= 1;
         }
+        eprintln!("{}", xs[begin..end].iter().collect::<String>());
     }
 
     xs.into_iter()
