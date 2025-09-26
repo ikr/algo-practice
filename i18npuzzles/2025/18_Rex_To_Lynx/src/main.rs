@@ -143,21 +143,28 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
             break;
         }
 
-        eprintln!("Will reverse {}", xs[begin..end].iter().collect::<String>());
+        eprintln!(
+            "According to {:?} Will reverse {}",
+            &lv[begin..end],
+            xs[begin..end].iter().collect::<String>()
+        );
         xs[begin..end].reverse();
+
+        for x in &mut xs[begin..end] {
+            if *x == '(' {
+                *x = ')';
+            } else if *x == ')' {
+                *x = '(';
+            }
+        }
+
         for l in &mut lv[begin..end] {
             *l -= 1;
         }
         eprintln!("{}", xs[begin..end].iter().collect::<String>());
     }
 
-    xs.into_iter()
-        // .map(|x| match x {
-        //     '(' => ')',
-        //     ')' => '(',
-        //     _ => x,
-        // })
-        .collect::<String>()
+    xs.into_iter().collect::<String>()
 }
 
 fn remove_spaces(s: String) -> String {
@@ -166,13 +173,11 @@ fn remove_spaces(s: String) -> String {
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    eprintln!("{:?}\n", lines);
 
     let naive_lines: Vec<String> = lines
         .iter()
         .map(|s| remove_spaces(remove_bidi_markers(s)))
         .collect();
-    eprintln!("{}\n", naive_lines.join("\n"));
 
     let transformed_lines: Vec<String> = lines
         .into_iter()
