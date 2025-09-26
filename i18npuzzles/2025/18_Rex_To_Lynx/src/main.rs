@@ -124,30 +124,12 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
         lv[i] = current_level;
     }
 
-    let lv_str: String = lv.iter().map(|l| (b'0' + l) as char).collect();
-
-    let m_str: String = (0..lv.len())
-        .map(|i| match idx.marker_on(i) {
-            Some(BidiMarker::Lri) => '>',
-            Some(BidiMarker::Rli) => '<',
-            Some(BidiMarker::Pdi) => '^',
-            None => '.',
-        })
-        .collect();
-
-    eprintln!("\n{lv_str}\n{}\n{m_str}\n", xs.iter().collect::<String>());
-
     loop {
         let (begin, end) = first_top_stretch_bounds(&lv);
         if lv[begin] == 0 {
             break;
         }
 
-        eprintln!(
-            "According to {:?} Will reverse {}",
-            &lv[begin..end],
-            xs[begin..end].iter().collect::<String>()
-        );
         xs[begin..end].reverse();
 
         for x in &mut xs[begin..end] {
@@ -161,7 +143,6 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
         for l in &mut lv[begin..end] {
             *l -= 1;
         }
-        eprintln!("{}", xs[begin..end].iter().collect::<String>());
     }
 
     xs.into_iter().collect::<String>()
@@ -178,6 +159,7 @@ fn main() {
         .iter()
         .map(|s| remove_spaces(remove_bidi_markers(s)))
         .collect();
+    eprintln!("{}\n", naive_lines.join("\n"));
 
     let transformed_lines: Vec<String> = lines
         .into_iter()
