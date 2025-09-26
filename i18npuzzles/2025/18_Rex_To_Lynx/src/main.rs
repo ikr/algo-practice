@@ -165,11 +165,16 @@ fn main() {
         .collect();
     eprintln!("{}\n", naive_lines.join("\n"));
 
+    let a = lines[13].clone();
+
     let transformed_lines: Vec<String> = lines
         .into_iter()
         .map(|s| apply_bidi_instructions(remove_spaces(s)))
         .collect();
     eprintln!("{}\n", transformed_lines.join("\n"));
+
+    let b = naive_lines[13].clone();
+    let c = transformed_lines[13].clone();
 
     let deltas: Vec<f64> = naive_lines
         .into_iter()
@@ -177,12 +182,20 @@ fn main() {
         .map(|(s1, s2)| {
             let x1 = eval_str(&s1).unwrap();
             let x2 = eval_str(&s2).unwrap();
-            (x1 - x2).abs().round()
+            (x1 - x2).abs()
         })
         .collect();
     eprintln!("{:?}", deltas);
 
     println!("{}", deltas.into_iter().sum::<f64>());
+
+    let x = eval_str(&b).unwrap();
+    let y = eval_str(&c).unwrap();
+    eprintln!(
+        "\nSource: {:?}\nRex: {b}\nLynx: {c}\nEval: |{x} - {y}| = {}",
+        a,
+        (x - y).abs()
+    );
 }
 
 #[cfg(test)]
