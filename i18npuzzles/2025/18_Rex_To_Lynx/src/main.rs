@@ -1,3 +1,4 @@
+use meval::eval_str;
 use std::io::{BufRead, stdin};
 
 const RLI: char = '\u{2067}';
@@ -169,6 +170,19 @@ fn main() {
         .map(|s| apply_bidi_instructions(remove_spaces(s)))
         .collect();
     eprintln!("{}\n", transformed_lines.join("\n"));
+
+    let deltas: Vec<u64> = naive_lines
+        .into_iter()
+        .zip(transformed_lines)
+        .map(|(s1, s2)| {
+            let x1 = eval_str(&s1).unwrap();
+            let x2 = eval_str(&s2).unwrap();
+            (x1 - x2).abs() as u64
+        })
+        .collect();
+    eprintln!("{:?}", deltas);
+
+    println!("{}", deltas.into_iter().sum::<u64>());
 }
 
 #[cfg(test)]
