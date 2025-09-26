@@ -93,6 +93,14 @@ fn first_top_stretch_bounds(xs: &[u8]) -> (usize, usize) {
     (i0, i0 + rle[rle_index].1)
 }
 
+fn paren_flip(x: char) -> char {
+    match x {
+        '(' => ')',
+        ')' => '(',
+        _ => x,
+    }
+}
+
 fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> String {
     let (mut xs, idx) = externalize_bidi_markers(string_with_instruction_marker_chars);
     let mut lv: Vec<u8> = vec![0; xs.len()];
@@ -131,13 +139,8 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
         }
 
         xs[begin..end].reverse();
-
         for x in &mut xs[begin..end] {
-            if *x == '(' {
-                *x = ')';
-            } else if *x == ')' {
-                *x = '(';
-            }
+            *x = paren_flip(*x);
         }
 
         for l in &mut lv[begin..end] {
