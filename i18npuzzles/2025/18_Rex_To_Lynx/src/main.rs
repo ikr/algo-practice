@@ -171,18 +171,18 @@ fn main() {
         .collect();
     eprintln!("{}\n", transformed_lines.join("\n"));
 
-    let deltas: Vec<u64> = naive_lines
+    let deltas: Vec<f64> = naive_lines
         .into_iter()
         .zip(transformed_lines)
         .map(|(s1, s2)| {
             let x1 = eval_str(&s1).unwrap();
             let x2 = eval_str(&s2).unwrap();
-            (x1 - x2).abs() as u64
+            (x1 - x2).abs().round()
         })
         .collect();
     eprintln!("{:?}", deltas);
 
-    println!("{}", deltas.into_iter().sum::<u64>());
+    println!("{}", deltas.into_iter().sum::<f64>());
 }
 
 #[cfg(test)]
