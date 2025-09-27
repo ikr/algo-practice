@@ -40,10 +40,11 @@ struct BidiMarkersIndex {
 }
 
 impl BidiMarkersIndex {
-    fn marker_on(&self, i: usize) -> Option<BidiMarker> {
+    fn markers_on(&self, i: usize) -> Vec<BidiMarker> {
         BidiMarker::all()
             .into_iter()
-            .find(|bm| self.idx[bm.index()].contains(&i))
+            .filter(|bm| self.idx[bm.index()].contains(&i))
+            .collect()
     }
 }
 
@@ -110,26 +111,32 @@ fn apply_bidi_instructions(string_with_instruction_marker_chars: String) -> Stri
     let mut digit_bump_active: bool = false;
 
     for (i, &x) in xs.iter().enumerate() {
-        match idx.marker_on(i) {
-            Some(BidiMarker::Rli | BidiMarker::Lri) => {
-                current_level += 1;
-                digit_bump_active = false;
-            }
-            Some(BidiMarker::Pdi) => {
-                current_level -= 1;
-                digit_bump_active = false;
-            }
-            _ if x.is_ascii_digit() && current_level % 2 == 1 => {
+        if idx.markers_on(i).is_empty() {
+            if x.is_ascii_digit() && current_level % 2 == 1 {
                 current_level += 1;
                 digit_bump_active = true;
-            }
-            _ if digit_bump_active && x.is_ascii_digit() => {}
-            _ if digit_bump_active => {
+            } else if digit_bump_active && x.is_ascii_digit() {
+            } else if digit_bump_active {
                 current_level -= 1;
                 digit_bump_active = false;
+            } else {
+                digit_bump_active = false;
             }
-            _ => digit_bump_active = false,
+        } else {
+            for m in idx.markers_on(i) {
+                match m {
+                    BidiMarker::Rli | BidiMarker::Lri => {
+                        current_level += 1;
+                        digit_bump_active = false;
+                    }
+                    BidiMarker::Pdi => {
+                        current_level -= 1;
+                        digit_bump_active = false;
+                    }
+                }
+            }
         }
+
         lv[i] = current_level;
     }
 
@@ -165,16 +172,11 @@ fn main() {
         .collect();
     eprintln!("{}\n", naive_lines.join("\n"));
 
-    let a = lines[13].clone();
-
     let transformed_lines: Vec<String> = lines
         .into_iter()
         .map(|s| apply_bidi_instructions(remove_spaces(s)))
         .collect();
     eprintln!("{}\n", transformed_lines.join("\n"));
-
-    let b = naive_lines[13].clone();
-    let c = transformed_lines[13].clone();
 
     let deltas: Vec<f64> = naive_lines
         .into_iter()
@@ -188,14 +190,6 @@ fn main() {
     eprintln!("{:?}", deltas);
 
     println!("{}", deltas.into_iter().sum::<f64>());
-
-    let x = eval_str(&b).unwrap();
-    let y = eval_str(&c).unwrap();
-    eprintln!(
-        "\nSource: {:?}\nRex: {b}\nLynx: {c}\nEval: |{x} - {y}| = {}",
-        a,
-        (x - y).abs()
-    );
 }
 
 #[cfg(test)]
