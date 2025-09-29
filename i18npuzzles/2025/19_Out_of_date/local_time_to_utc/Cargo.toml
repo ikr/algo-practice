@@ -5,4 +5,4 @@ edition = "2024"
 
 [dependencies]
 chrono = "0.4.42"
-chrono-tz = { path = "../chrono-tz/chrono-tz" }
+chrono-tz = { path = "../chrono-tz/chrono-tz", features = ["case-insensitive"] }
