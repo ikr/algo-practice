@@ -22,7 +22,7 @@ Outputs the corresponding lines of ISO-8601-formatted UTC times, like:
 
 The `case-insensitive` feature bit in the `Cargo.toml` is very important:
 
-``toml
+```toml
 [dependencies]
 chrono-tz = { path = "../chrono-tz/chrono-tz", features = ["case-insensitive"] }
 ```

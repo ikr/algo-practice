@@ -18,4 +18,4 @@
   (shell {:dir "chrono-tz/chrono-tz/tz"} "git" "checkout" tv)
   (shell {:dir "local_time_to_utc"} "cargo" "clean")
   (shell {:dir "local_time_to_utc"} "cargo" "build")
-  (shell {:in input, :out (format "%s.txt" tv)} "local_time_to_utc/target/debug/local_time_to_utc"))
+  (shell {:in input, :out (str tv ".txt")} "local_time_to_utc/target/debug/local_time_to_utc"))
