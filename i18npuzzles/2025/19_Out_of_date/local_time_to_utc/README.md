@@ -19,3 +19,12 @@ Outputs the corresponding lines of ISO-8601-formatted UTC times, like:
 2024-04-09T17:49:00+00:00
 ...
 ```
+
+The `case-insensitive` feature bit in the `Cargo.toml` is very important:
+
+``toml
+[dependencies]
+chrono-tz = { path = "../chrono-tz/chrono-tz", features = ["case-insensitive"] }
+```
+
+It forces the local instance of chrono-tz/chrono-tz to use the IANA TZDB files in the `chrono-tz/chrono-tz/tz` directory, instead of the pre-built TZDATA in the `chrono-tz/chrono-tz/src/prebuilt`.

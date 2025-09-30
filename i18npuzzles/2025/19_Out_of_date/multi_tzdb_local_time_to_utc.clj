@@ -2,9 +2,7 @@
 
 (require '[babashka.process :refer [shell]])
 
-(def input-file (first *command-line-args*))
-(assert (seq input-file) "Usage: specify the puzzle input file name as the first argument")
-(def input (slurp input-file))
+(def input (slurp *in*))
 
 (shell "rm" "-rf" "chrono-tz")
 (shell "git"
