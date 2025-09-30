@@ -6,7 +6,9 @@ fn parse_line(src: String) -> DateTime<Tz> {
     let parts: Vec<_> = src.split("; ").collect();
     let ndt = NaiveDateTime::parse_from_str(parts[0], "%Y-%m-%d %H:%M:%S").unwrap();
     let tz: Tz = parts[1].parse().unwrap();
-    tz.from_local_datetime(&ndt).unwrap()
+    tz.from_local_datetime(&ndt)
+        .single()
+        .unwrap_or(Utc::now().with_timezone(&tz))
 }
 
 fn format_utc(dt: DateTime<Tz>) -> String {
