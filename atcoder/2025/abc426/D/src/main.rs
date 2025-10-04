@@ -1,36 +1,29 @@
 use proconio::input;
 use proconio::marker::Bytes;
 use std::{
-    collections::HashSet,
     io::{BufWriter, Write, stdout},
     usize,
 };
 
-fn min_ops_one_side(xs: &[u8], target: u8) -> usize {
-    if let Some(deepest_i) = xs.iter().rposition(|&x| x != target) {
-        xs[..=deepest_i]
-            .iter()
-            .map(|&x| if x == target { 2 } else { 1 })
-            .sum()
-    } else {
-        0
-    }
-}
-
-fn div_ceil(x: usize, y: usize) -> usize {
-    if x == 0 { 0 } else { 1 + (x - 1) / y }
-}
-
 fn min_ops(xs: &[u8], target: u8) -> usize {
+    let elops = |x: u8| -> usize { if x == target { 2 } else { 1 } };
     let n = xs.len();
-    let mut result: usize = usize::MAX;
-    for m in HashSet::from([n / 2, div_ceil(n, 2)]) {
-        let a = &xs[..m];
 
-        let mut b: Vec<u8> = xs[m..].to_vec();
-        b.reverse();
+    let mut pref: Vec<usize> = vec![elops(xs[0]); n];
+    for i in 1..n {
+        pref[i] = pref[i - 1] + elops(xs[i]);
+    }
 
-        result = result.min(min_ops_one_side(a, target) + min_ops_one_side(&b, target));
+    let mut suff: Vec<usize> = vec![elops(*xs.last().unwrap()); n];
+    for i in (0..n - 1).rev() {
+        suff[i] = suff[i + 1] + elops(xs[i]);
+    }
+
+    let mut result = usize::MAX;
+    for i in 0..n {
+        let a = if i == 0 { 0 } else { pref[i - 1] };
+        let b = if i == n - 1 { 0 } else { suff[i + 1] };
+        result = result.min(sub);
     }
     result
 }
@@ -56,12 +49,6 @@ fn main() {
         }
 
         let mut result = usize::MAX;
-
-        result = result.min(min_ops(&xs, 0));
-        result = result.min(min_ops(&xs, 1));
-
-        xs.reverse();
-
         result = result.min(min_ops(&xs, 0));
         result = result.min(min_ops(&xs, 1));
 
