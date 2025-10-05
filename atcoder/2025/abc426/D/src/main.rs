@@ -1,31 +1,27 @@
+use itertools::Itertools;
 use proconio::input;
 use proconio::marker::Bytes;
-use std::{
-    io::{BufWriter, Write, stdout},
-    usize,
-};
+use std::io::{BufWriter, Write, stdout};
 
 fn min_ops(xs: &[u8], target: u8) -> usize {
-    let elops = |x: u8| -> usize { if x == target { 2 } else { 1 } };
+    let rle: Vec<(u8, usize)> = xs
+        .iter()
+        .chunk_by(|x| *x)
+        .into_iter()
+        .map(|(&x, xs)| (x, xs.count()))
+        .collect();
+
+    let hi: usize = rle
+        .into_iter()
+        .filter_map(|(x, k)| if x == target { Some(k) } else { None })
+        .max()
+        .unwrap_or_default();
+
     let n = xs.len();
+    let a = xs.iter().filter(|&&x| x == target).count();
+    let b = n - a;
 
-    let mut pref: Vec<usize> = vec![elops(xs[0]); n];
-    for i in 1..n {
-        pref[i] = pref[i - 1] + elops(xs[i]);
-    }
-
-    let mut suff: Vec<usize> = vec![elops(*xs.last().unwrap()); n];
-    for i in (0..n - 1).rev() {
-        suff[i] = suff[i + 1] + elops(xs[i]);
-    }
-
-    let mut result = usize::MAX;
-    for i in 0..n {
-        let a = if i == 0 { 0 } else { pref[i - 1] };
-        let b = if i == n - 1 { 0 } else { suff[i + 1] };
-        result = result.min(sub);
-    }
-    result
+    2 * (a - hi) + b
 }
 
 fn main() {
