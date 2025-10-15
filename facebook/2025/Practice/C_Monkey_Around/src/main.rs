@@ -93,6 +93,7 @@ fn deconstruct_program(xs: Vec<usize>) -> Vec<Op> {
     result
 }
 
+#[allow(dead_code)]
 fn verify_program(ops: &[Op], expected_result: &[usize]) {
     let mut xss: Vec<Vec<usize>> = vec![];
 
@@ -125,12 +126,12 @@ fn main() {
             xs: [usize; n],
         }
 
-        let ys = xs.clone();
+        //let ys = xs.clone();
         //eprintln!("ys: {:?}", ys);
 
         let result = deconstruct_program(xs);
 
-        verify_program(&result, &ys);
+        //verify_program(&result, &ys);
         assert!(result.len() <= 2 * n);
 
         println!("Case #{t}: {}", result.len());
