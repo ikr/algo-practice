@@ -1,7 +1,22 @@
 use num_integer::lcm;
 use proconio::input;
 use proconio_derive::fastout;
-use std::{collections::BTreeSet, usize};
+use std::sync::OnceLock;
+
+const MAX_N: usize = 500_000;
+
+static NSUM: OnceLock<Vec<usize>> = OnceLock::new();
+
+fn get_memo() -> &'static [usize] {
+    NSUM.get_or_init(|| {
+        (0..=MAX_N)
+            .scan(0usize, |state, k| {
+                *state += k;
+                Some(*state)
+            })
+            .collect()
+    })
+}
 
 #[derive(Clone, Copy)]
 enum Op {
@@ -19,26 +34,25 @@ impl Op {
 }
 
 fn perm_boundaries(xs: &[usize]) -> Vec<(usize, usize)> {
-    let mut seen: BTreeSet<usize> = BTreeSet::new();
+    let nsum: &[usize] = get_memo();
     let mut result = vec![];
-    let mut lo = usize::MAX;
+    let mut s: usize = 0;
+    let mut k: usize = 0;
 
     for &x in xs {
-        if lo == 1 && (seen.contains(&x) || (!seen.is_empty() && seen.len().abs_diff(x) > 1)) {
+        if k != 0 && nsum[k] == s && nsum[k + 1] != s + x {
             let i0: usize = result.last().map_or(0, |(_, prev_end)| *prev_end);
-            let k = seen.len();
 
             result.push((i0, i0 + k));
-            seen.clear();
-            lo = usize::MAX;
+            s = 0;
+            k = 0;
         }
 
-        seen.insert(x);
-        lo = lo.min(x);
+        s += x;
+        k += 1;
     }
 
     let i0: usize = result.last().map_or(0, |(_, prev_end)| *prev_end);
-    let k = seen.len();
     result.push((i0, i0 + k));
 
     result
