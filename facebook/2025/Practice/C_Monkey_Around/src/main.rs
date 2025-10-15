@@ -1,7 +1,7 @@
-use std::collections::HashSet;
-
+use num_integer::lcm;
 use proconio::input;
 use proconio_derive::fastout;
+use std::collections::HashSet;
 
 #[derive(Clone, Copy)]
 enum Op {
@@ -40,8 +40,54 @@ fn perm_boundaries(xs: &[usize]) -> Vec<(usize, usize)> {
     result
 }
 
+fn roation_phase(xs: &[usize]) -> usize {
+    let n = xs.len();
+    let i1 = xs.iter().position(|x| *x == 1).unwrap();
+    (n - i1) % n
+}
+
 fn deconstruct_program(xs: Vec<usize>) -> Vec<Op> {
-    vec![Op::Append(3), Op::Rotate]
+    let mut result = vec![];
+    let mut global_p: usize = 0;
+    let ii = perm_boundaries(&xs);
+    let m: usize = ii
+        .iter()
+        .map(|(i, j)| j - i)
+        .reduce(|acc, k| lcm(acc, k))
+        .unwrap();
+
+    for (i, j) in ii.into_iter().rev() {
+        let k = j - i;
+        let p0 = roation_phase(&xs[i..j]);
+        global_p += p0;
+        global_p %= m;
+
+        result.extend(vec![Op::Rotate; global_p]);
+        result.push(Op::Append(k));
+    }
+
+    result.reverse();
+    result
+}
+
+fn verify_program(ops: &[Op], expected_result: &[usize]) {
+    let mut xss: Vec<Vec<usize>> = vec![];
+
+    for &op in ops {
+        match op {
+            Op::Append(k) => xss.push((1..=k).collect()),
+            Op::Rotate => {
+                for xs in &mut xss {
+                    xs.rotate_left(1);
+                }
+            }
+        }
+    }
+
+    assert_eq!(
+        xss.iter().flatten().cloned().collect::<Vec<_>>(),
+        expected_result
+    );
 }
 
 #[fastout]
@@ -56,8 +102,13 @@ fn main() {
             xs: [usize; n],
         }
 
+        let ys = xs.clone();
+
         let result = deconstruct_program(xs);
+
+        //verify_program(&result, &ys);
         assert!(result.len() <= 2 * n);
+
         println!("Case #{t}: {}", result.len());
 
         for op in result {
@@ -93,6 +144,45 @@ mod tests {
         assert_eq!(
             perm_boundaries(&[4, 3, 2, 1, 1, 1, 2]),
             vec![(0, 4), (4, 5), (5, 7)]
+        );
+    }
+
+    #[test]
+    fn test_rotation_phase_a() {
+        assert_eq!(roation_phase(&[1]), 0);
+    }
+
+    #[test]
+    fn test_rotation_phase_b() {
+        assert_eq!(roation_phase(&[3, 4, 1, 2]), 2);
+    }
+
+    #[test]
+    fn test_rotation_phase_c() {
+        assert_eq!(roation_phase(&[2, 3, 1]), 1);
+    }
+
+    #[test]
+    fn test_rotation_phase_d() {
+        assert_eq!(roation_phase(&[3, 1, 2]), 2);
+    }
+
+    #[test]
+    fn test_rotation_phase_e() {
+        assert_eq!(roation_phase(&[1, 2, 3]), 0);
+    }
+
+    #[test]
+    fn test_verify_program() {
+        verify_program(
+            &[
+                Op::Append(3),
+                Op::Rotate,
+                Op::Append(4),
+                Op::Rotate,
+                Op::Rotate,
+            ],
+            &[1, 2, 3, 3, 4, 1, 2],
         );
     }
 }
