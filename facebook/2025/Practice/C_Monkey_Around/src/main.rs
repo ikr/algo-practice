@@ -1,7 +1,7 @@
 use num_integer::lcm;
 use proconio::input;
 use proconio_derive::fastout;
-use std::collections::HashSet;
+use std::{collections::BTreeSet, usize};
 
 #[derive(Clone, Copy)]
 enum Op {
@@ -19,18 +19,22 @@ impl Op {
 }
 
 fn perm_boundaries(xs: &[usize]) -> Vec<(usize, usize)> {
-    let mut seen: HashSet<usize> = HashSet::new();
+    let mut seen: BTreeSet<usize> = BTreeSet::new();
     let mut result = vec![];
+    let mut lo = usize::MAX;
 
     for &x in xs {
-        if seen.contains(&x) {
+        if lo == 1 && (seen.contains(&x) || (!seen.is_empty() && seen.len().abs_diff(x) > 1)) {
             let i0: usize = result.last().map_or(0, |(_, prev_end)| *prev_end);
             let k = seen.len();
 
             result.push((i0, i0 + k));
             seen.clear();
+            lo = usize::MAX;
         }
+
         seen.insert(x);
+        lo = lo.min(x);
     }
 
     let i0: usize = result.last().map_or(0, |(_, prev_end)| *prev_end);
@@ -130,10 +134,8 @@ mod tests {
 
     #[test]
     fn test_perm_boundaries_b() {
-        assert_eq!(
-            perm_boundaries(&[1, 2, 3, 3, 4, 1, 2]),
-            vec![(0, 3), (3, 7)]
-        );
+        let xs = [1, 2, 3, 3, 4, 1, 2];
+        assert_eq!(perm_boundaries(&xs), vec![(0, 3), (3, 7)], "xs: {:?}", xs);
     }
 
     #[test]
@@ -150,11 +152,42 @@ mod tests {
     }
 
     #[test]
-    fn test_perm_boundaries() {
+    fn test_perm_boundaries_e() {
+        let xs = [2, 3, 4, 5, 1, 14, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+        assert_eq!(perm_boundaries(&xs), vec![(0, 5), (5, 19)], "xs: {:?}", xs);
+    }
+
+    #[test]
+    fn test_perm_boundaries_f() {
+        assert_eq!(perm_boundaries(&[1, 1, 1]), vec![(0, 1), (1, 2), (2, 3)]);
+    }
+
+    #[test]
+    fn test_perm_boundaries_g() {
+        let xs = [1, 2, 1, 1];
         assert_eq!(
-            perm_boundaries(&[2, 3, 4, 5, 1, 14, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]),
-            vec![(0, 5), (5, 19)]
+            perm_boundaries(&xs),
+            vec![(0, 2), (2, 3), (3, 4)],
+            "xs: {:?}",
+            xs
         );
+    }
+
+    #[test]
+    fn test_perm_boundaries_h() {
+        let xs = [1, 1, 2, 1];
+        assert_eq!(
+            perm_boundaries(&xs),
+            vec![(0, 1), (1, 3), (3, 4)],
+            "xs: {:?}",
+            xs
+        );
+    }
+
+    #[test]
+    fn test_perm_boundaries_i() {
+        let xs = [2, 3, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 1, 2, 3];
+        assert_eq!(perm_boundaries(&xs), vec![(0, 3), (3, 17)], "xs: {:?}", xs);
     }
 
     #[test]
