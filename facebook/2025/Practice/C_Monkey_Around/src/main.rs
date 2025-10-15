@@ -1,4 +1,3 @@
-use num_integer::lcm;
 use proconio::input;
 use proconio_derive::fastout;
 use std::sync::OnceLock;
@@ -38,18 +37,26 @@ fn perm_boundaries(xs: &[usize]) -> Vec<(usize, usize)> {
     let mut result = vec![];
     let mut s: usize = 0;
     let mut k: usize = 0;
+    let mut leaps = false;
 
-    for &x in xs {
-        if k != 0 && nsum[k] == s && nsum[k + 1] != s + x {
+    for (i, &x) in xs.iter().enumerate() {
+        if k != 0
+            && ((nsum[k] == s && nsum[k + 1] != s + x)
+                || (leaps && nsum[k] == s && (xs[i - 1] > x || xs[i - 1].abs_diff(x) != 1)))
+        {
             let i0: usize = result.last().map_or(0, |(_, prev_end)| *prev_end);
 
             result.push((i0, i0 + k));
             s = 0;
             k = 0;
+            leaps = false;
         }
 
         s += x;
         k += 1;
+        if i != 0 && (xs[i - 1] > x || xs[i - 1].abs_diff(x) != 1) {
+            leaps = true;
+        }
     }
 
     let i0: usize = result.last().map_or(0, |(_, prev_end)| *prev_end);
@@ -67,22 +74,19 @@ fn roation_phase(xs: &[usize]) -> usize {
 fn deconstruct_program(xs: Vec<usize>) -> Vec<Op> {
     let mut result = vec![];
 
-    let ppp_kk: Vec<(usize, usize)> = perm_boundaries(&xs)
+    let ppp_kk: Vec<(isize, isize)> = perm_boundaries(&xs)
         .into_iter()
-        .map(|(i, j)| (roation_phase(&xs[i..j]), j - i))
+        .map(|(i, j)| (roation_phase(&xs[i..j]) as isize, (j - i) as isize))
         .collect();
 
-    let m: usize = ppp_kk.iter().map(|(_, k)| *k).reduce(lcm).unwrap();
-
-    let mut sigma_p: usize = 0;
+    let mut sigma_p: isize = 0;
 
     for (p_prime, k) in ppp_kk.into_iter().rev() {
-        let p = (p_prime + m - sigma_p) % k;
+        let p = (((p_prime - sigma_p) % k) + k) % k;
         sigma_p += p;
-        sigma_p %= m;
 
-        result.extend(vec![Op::Rotate; p]);
-        result.push(Op::Append(k));
+        result.extend(vec![Op::Rotate; p as usize]);
+        result.push(Op::Append(k as usize));
     }
 
     result.reverse();
@@ -122,7 +126,7 @@ fn main() {
         }
 
         let ys = xs.clone();
-        eprintln!("ys: {:?}", ys);
+        //eprintln!("ys: {:?}", ys);
 
         let result = deconstruct_program(xs);
 
@@ -154,15 +158,14 @@ mod tests {
 
     #[test]
     fn test_perm_boundaries_c() {
-        assert_eq!(perm_boundaries(&[4, 3, 2, 1]), vec![(0, 4)]);
+        let xs = [4, 1, 2, 3];
+        assert_eq!(perm_boundaries(&xs), vec![(0, 4)], "xs: {:?}", xs);
     }
 
     #[test]
     fn test_perm_boundaries_d() {
-        assert_eq!(
-            perm_boundaries(&[4, 3, 2, 1, 1, 1, 2]),
-            vec![(0, 4), (4, 5), (5, 7)]
-        );
+        let xs = [2, 3, 4, 1, 1, 2];
+        assert_eq!(perm_boundaries(&xs), vec![(0, 4), (4, 6)], "xs: {:?}", xs);
     }
 
     #[test]
