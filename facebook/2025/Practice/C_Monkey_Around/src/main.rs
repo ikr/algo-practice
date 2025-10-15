@@ -48,21 +48,22 @@ fn roation_phase(xs: &[usize]) -> usize {
 
 fn deconstruct_program(xs: Vec<usize>) -> Vec<Op> {
     let mut result = vec![];
-    let mut global_p: usize = 0;
-    let ii = perm_boundaries(&xs);
-    let m: usize = ii
-        .iter()
-        .map(|(i, j)| j - i)
-        .reduce(|acc, k| lcm(acc, k))
-        .unwrap();
 
-    for (i, j) in ii.into_iter().rev() {
-        let k = j - i;
-        let p0 = roation_phase(&xs[i..j]);
-        global_p += p0;
-        global_p %= m;
+    let ppp_kk: Vec<(usize, usize)> = perm_boundaries(&xs)
+        .into_iter()
+        .map(|(i, j)| (roation_phase(&xs[i..j]), j - i))
+        .collect();
 
-        result.extend(vec![Op::Rotate; global_p]);
+    let m: usize = ppp_kk.iter().map(|(_, k)| *k).reduce(lcm).unwrap();
+
+    let mut sigma_p: usize = 0;
+
+    for (p_prime, k) in ppp_kk.into_iter().rev() {
+        let p = (p_prime + m - sigma_p) % k;
+        sigma_p += p;
+        sigma_p %= m;
+
+        result.extend(vec![Op::Rotate; p]);
         result.push(Op::Append(k));
     }
 
@@ -103,10 +104,11 @@ fn main() {
         }
 
         let ys = xs.clone();
+        eprintln!("ys: {:?}", ys);
 
         let result = deconstruct_program(xs);
 
-        //verify_program(&result, &ys);
+        verify_program(&result, &ys);
         assert!(result.len() <= 2 * n);
 
         println!("Case #{t}: {}", result.len());
@@ -144,6 +146,14 @@ mod tests {
         assert_eq!(
             perm_boundaries(&[4, 3, 2, 1, 1, 1, 2]),
             vec![(0, 4), (4, 5), (5, 7)]
+        );
+    }
+
+    #[test]
+    fn test_perm_boundaries() {
+        assert_eq!(
+            perm_boundaries(&[2, 3, 4, 5, 1, 14, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]),
+            vec![(0, 5), (5, 19)]
         );
     }
 
