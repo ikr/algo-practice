@@ -79,7 +79,7 @@ struct Solution {}
 
 fn random_sample(k: usize) -> Vec<i32> {
     let mut rng = rand::rng();
-    (0..k).map(|_| rng.random_range(0..=100)).collect()
+    (0..k).map(|_| rng.random_range(0..=10)).collect()
 }
 
 fn oracle(mut xs: Vec<i32>) -> i32 {
@@ -122,6 +122,7 @@ mod tests {
             (vec![3, 1, 5, 8], 167),
             (vec![1, 5], 10),
             (vec![4, 21, 3, 100, 0, 99], 223011),
+            (vec![0, 4, 0, 1], 8),
             (vec![0, 78, 95, 27], 202254),
             (
                 vec![
