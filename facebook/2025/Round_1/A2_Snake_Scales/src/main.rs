@@ -1,18 +1,38 @@
 use proconio::input;
 use proconio_derive::fastout;
 
-fn shortest_ladder_height(xs: Vec<u32>) -> u32 {
-    let n = xs.len();
-    let lo = xs[0];
-    let mut up: Vec<u32> = vec![lo; n];
-    let mut gr: Vec<u32> = vec![lo; n];
-
-    for i in 1..n {
-        up[i] = xs[i - 1].abs_diff(xs[i]).max(gr[i - 1].min(up[i - 1]));
-        gr[i] = xs[i].max(gr[i - 1].min(up[i - 1]));
+fn can_make_it_with(xs: &[u32], h: u32) -> bool {
+    if h < *xs.iter().min().unwrap() {
+        return false;
     }
 
-    up[n - 1].min(gr[n - 1])
+    for i in 1..xs.len() {
+        let d = xs[i - 1].abs_diff(xs[i]);
+
+        if h < d && h < xs[i] {
+            return false;
+        }
+    }
+
+    true
+}
+
+fn shortest_ladder_height(xs: Vec<u32>) -> u32 {
+    let mut lo: u32 = 0;
+    assert!(!can_make_it_with(&xs, lo));
+    let mut hi: u32 = 2 * xs.iter().max().unwrap();
+    assert!(can_make_it_with(&xs, hi));
+
+    while lo + 1 < hi {
+        let mid = lo + (hi - lo) / 2;
+        if can_make_it_with(&xs, mid) {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
+    }
+
+    hi
 }
 
 #[fastout]
