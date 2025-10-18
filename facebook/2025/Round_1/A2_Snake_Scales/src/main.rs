@@ -1,20 +1,25 @@
+use ac_library::Dsu;
 use proconio::input;
 use proconio_derive::fastout;
 
 fn can_make_it_with(xs: &[u32], h: u32) -> bool {
-    if h < *xs.iter().min().unwrap() {
-        return false;
-    }
+    let n = xs.len();
+    let mut dsu = Dsu::new(n + 1);
 
-    for i in 1..xs.len() {
-        let d = xs[i - 1].abs_diff(xs[i]);
-
-        if h < d && h < xs[i] {
-            return false;
+    for (i, &x) in xs.iter().enumerate() {
+        if x <= h {
+            dsu.merge(n, i);
         }
     }
 
-    true
+    for i in 1..n {
+        let d = xs[i - 1].abs_diff(xs[i]);
+        if d <= h {
+            dsu.merge(i - 1, i);
+        }
+    }
+
+    (0..n).all(|i| dsu.same(i, n))
 }
 
 fn shortest_ladder_height(xs: Vec<u32>) -> u32 {
