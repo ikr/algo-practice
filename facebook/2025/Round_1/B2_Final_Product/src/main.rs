@@ -47,6 +47,7 @@ fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
             .iter()
             .map(|&(p, k0)| {
                 if let Some(i) = a_prime_index(p) {
+                    assert!(ii[i] <= k0);
                     k0 - ii[i]
                 } else {
                     k0
