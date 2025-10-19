@@ -14,16 +14,21 @@ fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
 
     let mut result = Mint::new(0);
 
+    eprintln!("n:{n} a:{a} b:{b} fb:{:?}", fb);
     for ii in exps_b.into_iter().multi_cartesian_product() {
         let aa: usize = ii
             .iter()
             .enumerate()
-            .map(|(i, &k0)| fb[i].0.pow(k0 as u32))
+            .map(|(i, &k)| {
+                assert!(k <= fb[i].1);
+                fb[i].0.pow(k as u32)
+            })
             .fold(1, |acc, x| acc * x);
 
         if aa > a {
             continue;
         }
+        eprintln!("ii:{:?} aa:{}", ii, aa);
 
         let total_exp_a: usize = ii.iter().sum();
         let lhs = Mint::new(n).pow(total_exp_a as u64);
