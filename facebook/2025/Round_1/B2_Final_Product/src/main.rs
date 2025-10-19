@@ -30,6 +30,7 @@ fn capped_factors(sieve: &Sieve, x: usize, cap: &[(usize, usize)]) -> Vec<(usize
 fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
     let fb = sieve.factor(b).unwrap();
     let fa = capped_factors(sieve, a, &fb);
+    eprintln!("n: {n}, a: {a}, b: {b}, fa: {:?}, fb: {:?}", fa, fb);
 
     let exps_a: Vec<Vec<usize>> = fa
         .iter()
@@ -57,6 +58,11 @@ fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
 
         let total_exp_b: usize = kk.into_iter().sum();
         let rhs_placements_num = Mint::new(n).pow(total_exp_b as u64);
+        eprintln!(
+            "lhs: {}, rhs: {}",
+            lhs_placements_num.val(),
+            rhs_placements_num.val()
+        );
         result += lhs_placements_num * rhs_placements_num;
     }
 
