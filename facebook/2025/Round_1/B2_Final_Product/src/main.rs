@@ -31,7 +31,7 @@ fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
                 assert!(k <= fb[i].1);
                 fb[i].0.pow(k as u32)
             })
-            .fold(1, |acc, x| acc * x);
+            .product();
 
         if aa > a {
             continue;
