@@ -4,6 +4,15 @@ use primal::Sieve;
 use proconio::input;
 use proconio_derive::fastout;
 
+fn stars_and_bars_ways_num(s: usize, b: usize) -> Mint {
+    let numerator = (0..s)
+        .map(|addition| b + addition)
+        .fold(Mint::new(1), |acc, x| acc * Mint::new(x));
+
+    let denominator = (1..=s).fold(Mint::new(1), |acc, x| acc * Mint::new(x));
+    numerator * denominator.inv()
+}
+
 fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
     let fb = sieve.factor(b).unwrap();
 
@@ -14,7 +23,6 @@ fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
 
     let mut result = Mint::new(0);
 
-    eprintln!("n:{n} a:{a} b:{b} fb:{:?}", fb);
     for ii in exps_b.into_iter().multi_cartesian_product() {
         let aa: usize = ii
             .iter()
@@ -28,10 +36,11 @@ fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
         if aa > a {
             continue;
         }
-        eprintln!("ii:{:?} aa:{}", ii, aa);
 
-        let total_exp_a: usize = ii.iter().sum();
-        let lhs = Mint::new(n).pow(total_exp_a as u64);
+        let lhs = ii
+            .iter()
+            .map(|&k| stars_and_bars_ways_num(k, n))
+            .fold(Mint::new(1), |acc, x| acc * x);
 
         let kk: Vec<usize> = fb
             .iter()
@@ -42,8 +51,11 @@ fn sequences_num(sieve: &Sieve, n: usize, a: usize, b: usize) -> Mint {
             })
             .collect();
 
-        let total_exp_b: usize = kk.into_iter().sum();
-        let rhs = Mint::new(n).pow(total_exp_b as u64);
+        let rhs = kk
+            .iter()
+            .map(|&k| stars_and_bars_ways_num(k, n))
+            .fold(Mint::new(1), |acc, x| acc * x);
+
         result += lhs * rhs;
     }
 
