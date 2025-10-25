@@ -29,6 +29,9 @@ fn sum_over_xi(m: usize, aa: Vec<usize>, c: usize) -> usize {
 
     let xs: Vec<usize> = fq.values().cloned().chain(fq.values().cloned()).collect();
     let n = xs.len() / 2;
+    if c == n {
+        return m;
+    }
     let ss = prefix_sums(xs);
 
     let sigma = |i: usize, j: usize| -> usize {
@@ -40,9 +43,9 @@ fn sum_over_xi(m: usize, aa: Vec<usize>, c: usize) -> usize {
     let mut result = 0;
 
     for i in 0..n {
-        let mut lo = sigma(i, i);
-        if lo >= c {
-            result += lo;
+        let mut lo = i;
+        if sigma(lo, lo) >= c {
+            result += sigma(lo, lo);
         } else {
             let mut hi = 2 * n - 1;
             assert!(sigma(i, hi) >= c);
@@ -55,7 +58,7 @@ fn sum_over_xi(m: usize, aa: Vec<usize>, c: usize) -> usize {
                     lo = mid;
                 }
             }
-            result += hi;
+            result += sigma(i, hi);
         }
     }
 
