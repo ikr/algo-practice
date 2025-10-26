@@ -18,7 +18,18 @@ impl Scanner {
     }
 }
 
+fn distinct(abc: [usize; 3]) -> Vec<usize> {
+    assert!(abc.is_sorted());
+    let mut xs = abc.to_vec();
+    xs.dedup();
+    xs
+}
+
 fn nth_number_divisible_by_two_out_of_three(abc: [usize; 3], n: usize) -> Option<usize> {
+    if distinct(abc).len() == 1 {
+        return None;
+    }
+
     None
 }
 
@@ -38,6 +49,7 @@ fn main() {
     for x in &mut abc {
         *x = scanner.next();
     }
+    abc.sort();
     let n: usize = scanner.next();
 
     let result = nth_number_divisible_by_two_out_of_three(abc, n);
