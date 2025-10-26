@@ -92,7 +92,8 @@ fn nth_number_divisible_by_two_out_of_three(abc: [usize; 3], n: usize) -> Option
 
     while lo + 1 < hi {
         let mid = lo + (hi - lo) / 2;
-        let cur = (mid / lcm(a, b) + mid / lcm(b, c) + mid / lcm(a, c)) - 3 * lcm(lcm(a, b), c);
+        let cur = (mid / lcm(a, b) + mid / lcm(b, c) + mid / lcm(a, c))
+            .saturating_sub(3 * lcm(lcm(a, b), c));
 
         if cur > n {
             hi = mid;
@@ -121,7 +122,7 @@ fn main() {
         *x = scanner.next();
     }
     abc.sort();
-    let mut n: usize = scanner.next();
+    let n: usize = scanner.next();
 
     let result = nth_number_divisible_by_two_out_of_three(abc, n);
     if let Some(x) = result {
