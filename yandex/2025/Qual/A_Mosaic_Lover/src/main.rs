@@ -18,20 +18,26 @@ impl Scanner {
     }
 }
 
-fn is_perfect_square(x: usize) -> bool {
+fn perfect_square(x: usize) -> Option<usize> {
     if x < 2 {
-        return true;
+        return Some(x);
     }
 
     let q = ((x as f64).sqrt()) as usize;
-    q.pow(2) == x || (q - 1).pow(2) == x || (q + 1).pow(2) == x
+    [q - 1, q, q + 1].into_iter().find(|&qq| qq.pow(2) == x)
 }
 
 fn is_possible(a: usize, b: usize) -> bool {
     if a + b == 0 {
         return false;
     }
-    is_perfect_square(a + b)
+
+    let mb_k = perfect_square(a + b);
+    if let Some(k) = mb_k {
+        if k % 2 == 0 { a % 2 == 0 } else { true }
+    } else {
+        false
+    }
 }
 
 fn main() {
