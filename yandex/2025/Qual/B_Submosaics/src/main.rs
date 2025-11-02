@@ -18,7 +18,24 @@ impl Scanner {
     }
 }
 
+fn intersection_mask(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
+    let h = aa.len();
+    let w = aa[0].len();
+    let mut result = vec![vec![0; w]; h];
+
+    for (i, row) in aa.into_iter().enumerate() {
+        for (j, cell) in row.into_iter().enumerate() {
+            if cell == bb[i][j] {
+                result[i][j] = 1;
+            }
+        }
+    }
+
+    result
+}
+
 fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
+    eprintln!("{:?}", intersection_mask(aa, bb));
     todo!()
 }
 
