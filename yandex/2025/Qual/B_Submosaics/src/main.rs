@@ -104,6 +104,52 @@ fn largest_square_size_at(ps: &PrefixSum2D, i: usize, j: usize) -> usize {
     lo
 }
 
+fn largest_width_at(ps: &PrefixSum2D, i: usize, j: usize, q: usize) -> usize {
+    let w = ps.xss[0].len();
+    if j + q == w {
+        return q;
+    }
+
+    let mut hi = w - j;
+    if ps.sigma(i, j, i + q - 1, j + hi - 1) as usize == q * hi {
+        return hi;
+    }
+
+    let mut lo = q;
+    while lo + 1 != hi {
+        let mid = lo + (hi - lo) / 2;
+        if ps.sigma(i, j, i + q - 1, j + mid - 1) as usize == q * mid {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    lo
+}
+
+fn largest_height_at(ps: &PrefixSum2D, i: usize, j: usize, q: usize) -> usize {
+    let h = ps.xss.len();
+    if i + q == h {
+        return q;
+    }
+
+    let mut hi = h - i;
+    if ps.sigma(i, j, i + hi - 1, j + q - 1) as usize == q * hi {
+        return hi;
+    }
+
+    let mut lo = q;
+    while lo + 1 != hi {
+        let mid = lo + (hi - lo) / 2;
+        if ps.sigma(i, j, i + mid - 1, j + q - 1) as usize == mid * q {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    lo
+}
+
 fn coords_of_ones(xss: &[Vec<u32>]) -> Vec<(usize, usize)> {
     let mut result: Vec<(usize, usize)> = vec![];
     for (i, row) in xss.iter().enumerate() {
@@ -121,12 +167,15 @@ fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
     let ones = coords_of_ones(&mask);
     let ps = PrefixSum2D::new(mask);
 
-    for (i, j) in ones {
-        eprintln!("{:?} {}", (i, j), largest_square_size_at(&ps, i, j));
-    }
-
-    eprintln!();
-    0
+    ones.into_iter()
+        .map(|(i, j)| {
+            let q = largest_square_size_at(&ps, i, j);
+            let a = largest_height_at(&ps, i, j, q);
+            let b = largest_width_at(&ps, i, j, q);
+            a * b
+        })
+        .max()
+        .unwrap_or_default()
 }
 
 fn main() {
