@@ -164,6 +164,7 @@ fn coords_of_ones(xss: &[Vec<u32>]) -> Vec<(usize, usize)> {
 
 fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
     let mask = intersection_mask(aa, bb);
+    eprintln!("{:?}", mask);
     let ones = coords_of_ones(&mask);
     let ps = PrefixSum2D::new(mask);
 
@@ -178,6 +179,38 @@ fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
         })
         .max()
         .unwrap_or_default()
+}
+
+fn brute_max_common_area(aa: &[Vec<u32>], bb: &[Vec<u32>]) -> usize {
+    let h = aa.len();
+    let w = aa[0].len();
+
+    let is_a_match = |r1: usize, c1: usize, r2: usize, c2: usize| -> bool {
+        for i in r1..=r2 {
+            for j in c1..=c2 {
+                if aa[i][j] != bb[i][j] {
+                    return false;
+                }
+            }
+        }
+        true
+    };
+
+    let mut result = 0;
+
+    for r1 in 0..h {
+        for c1 in 0..w {
+            for r2 in r1..h {
+                for c2 in c1..w {
+                    if is_a_match(r1, c1, r2, c2) {
+                        result = result.max((r2 - r1 + 1) * (c2 - c1 + 1))
+                    }
+                }
+            }
+        }
+    }
+
+    result
 }
 
 fn main() {
@@ -210,4 +243,34 @@ fn main() {
     }
 
     writer.flush().unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rand::Rng;
+
+    fn random_row(w: usize) -> Vec<u32> {
+        let mut rng = rand::rng();
+        let mut result: Vec<u32> = vec![0; w];
+        for x in &mut result {
+            *x = rng.random_range(0..2);
+        }
+        result
+    }
+
+    fn random_grid(h: usize, w: usize) -> Vec<Vec<u32>> {
+        (0..h).map(|_| random_row(w)).collect()
+    }
+
+    #[test]
+    fn test_matches_brute_force_on_a_random_input() {
+        for _ in 0..1000 {
+            let aa = random_grid(5, 4);
+            let bb = random_grid(5, 4);
+            let expected = brute_max_common_area(&aa, &bb);
+            let actual = max_common_area(aa.clone(), bb.clone());
+            assert_eq!(actual, expected, "on {:?} {:?}", aa, bb);
+        }
+    }
 }
