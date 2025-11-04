@@ -70,18 +70,63 @@ impl PrefixSum2D {
         let total = self.xss[r2][c2];
         let above = if r1 == 0 { 0 } else { self.xss[r1 - 1][c2] };
         let to_the_left = if c1 == 0 { 0 } else { self.xss[r2][c1 - 1] };
-        let both_above_and_to_the_left = if r1 == 0 || r2 == 0 {
+        let both_above_and_to_the_left = if r1 == 0 || c1 == 0 {
             0
         } else {
             self.xss[r1 - 1][c1 - 1]
         };
 
-        total - above - to_the_left + both_above_and_to_the_left
+        (total + both_above_and_to_the_left) - above - to_the_left
     }
 }
 
+fn largest_square_size_at(ps: &PrefixSum2D, i: usize, j: usize) -> usize {
+    assert_eq!(ps.sigma(i, j, i, j), 1);
+    let h = ps.xss.len();
+    assert!(i < h);
+    let w = ps.xss[0].len();
+    assert!(j < w);
+
+    let mut hi: usize = (h - i).min(w - j);
+    if ps.sigma(i, j, i + hi - 1, j + hi - 1) as usize == hi * hi {
+        return hi;
+    }
+
+    let mut lo: usize = 1;
+    while lo + 1 != hi {
+        let mid = lo + (hi - lo) / 2;
+        if ps.sigma(i, j, i + mid - 1, j + mid - 1) as usize == mid * mid {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    lo
+}
+
+fn coords_of_ones(xss: &[Vec<u32>]) -> Vec<(usize, usize)> {
+    let mut result: Vec<(usize, usize)> = vec![];
+    for (i, row) in xss.iter().enumerate() {
+        for (j, cell) in row.iter().enumerate() {
+            if *cell == 1 {
+                result.push((i, j));
+            }
+        }
+    }
+    result
+}
+
 fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
-    todo!()
+    let mask = intersection_mask(aa, bb);
+    let ones = coords_of_ones(&mask);
+    let ps = PrefixSum2D::new(mask);
+
+    for (i, j) in ones {
+        eprintln!("{:?} {}", (i, j), largest_square_size_at(&ps, i, j));
+    }
+
+    eprintln!();
+    0
 }
 
 fn main() {
