@@ -171,7 +171,9 @@ fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
         .map(|(i, j)| {
             let q = largest_square_size_at(&ps, i, j);
             let a = largest_height_at(&ps, i, j, q);
+            assert!(a >= q);
             let b = largest_width_at(&ps, i, j, q);
+            assert!(b >= q);
             a * b
         })
         .max()
