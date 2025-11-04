@@ -19,13 +19,16 @@ impl Op {
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let names: Vec<String> = lines[0].split(',').map(|x| x.to_string()).collect();
+    let mut names: Vec<String> = lines[0].split(',').map(|x| x.to_string()).collect();
     let ops: Vec<Op> = lines[2].split(',').map(Op::decode).collect();
     let n = names.len();
 
-    let i = ops.into_iter().fold(0usize, |acc, op| match op {
-        Op::L(k) => (acc + 100 * n - k) % n,
-        Op::R(k) => (acc + k) % n,
-    });
-    println!("{}", names[i]);
+    for op in ops {
+        let j: usize = match op {
+            Op::L(k) => (100 * n - k) % n,
+            Op::R(k) => k % n,
+        };
+        names.swap(0, j);
+    }
+    println!("{}", names[0]);
 }
