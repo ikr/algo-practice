@@ -24,8 +24,8 @@ fn main() {
     let n = names.len();
 
     let i = ops.into_iter().fold(0usize, |acc, op| match op {
-        Op::L(k) => acc.saturating_sub(k),
-        Op::R(k) => (n - 1).min(acc + k),
+        Op::L(k) => (acc + 100 * n - k) % n,
+        Op::R(k) => (acc + k) % n,
     });
     println!("{}", names[i]);
 }
