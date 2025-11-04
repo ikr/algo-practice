@@ -34,8 +34,53 @@ fn intersection_mask(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
     result
 }
 
+struct PrefixSum2D {
+    xss: Vec<Vec<u32>>,
+}
+
+impl PrefixSum2D {
+    fn new(mut xss: Vec<Vec<u32>>) -> Self {
+        let h = xss.len();
+        assert_ne!(h, 0);
+        let w = xss[0].len();
+
+        for i in 0..h {
+            for j in 0..w {
+                if i != 0 {
+                    xss[i][j] += xss[i - 1][j];
+                }
+
+                if j != 0 {
+                    xss[i][j] += xss[i][j - 1];
+                }
+
+                if i != 0 && j != 0 {
+                    xss[i][j] -= xss[i - 1][j - 1];
+                }
+            }
+        }
+
+        Self { xss }
+    }
+
+    fn sigma(&self, r1: usize, c1: usize, r2: usize, c2: usize) -> u32 {
+        assert!(r1 <= r2);
+        assert!(c1 <= c2);
+
+        let total = self.xss[r2][c2];
+        let above = if r1 == 0 { 0 } else { self.xss[r1 - 1][c2] };
+        let to_the_left = if c1 == 0 { 0 } else { self.xss[r2][c1 - 1] };
+        let both_above_and_to_the_left = if r1 == 0 || r2 == 0 {
+            0
+        } else {
+            self.xss[r1 - 1][c1 - 1]
+        };
+
+        total - above - to_the_left + both_above_and_to_the_left
+    }
+}
+
 fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
-    eprintln!("{:?}", intersection_mask(aa, bb));
     todo!()
 }
 
