@@ -58,8 +58,8 @@ fn main() {
     let bottom_right = top_left + Num(1000, 1000);
 
     let mut result = 0;
-    for y in (top_left.1..=bottom_right.1).step_by(10) {
-        for x in (top_left.0..=bottom_right.0).step_by(10) {
+    for y in top_left.1..=bottom_right.1 {
+        for x in top_left.0..=bottom_right.0 {
             let a = Num(x, y);
 
             let engrave: bool = || -> bool {
