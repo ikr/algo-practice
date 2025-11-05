@@ -175,7 +175,8 @@ fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
             assert!(a >= q);
             let b = largest_width_at(&ps, i, j, q);
             assert!(b >= q);
-            a * b
+            eprintln!("Found {q} ⇒ {a}x{b} at {:?}", (i, j));
+            (a * q).max(q * b)
         })
         .max()
         .unwrap_or_default()
