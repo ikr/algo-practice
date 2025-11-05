@@ -1,8 +1,16 @@
 use std::fmt;
 use std::io::{Read, stdin};
 
+const CAP: i64 = 1_000_000;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Num(i32, i32);
+struct Num(i64, i64);
+
+impl Num {
+    fn in_range(self) -> bool {
+        self.0.abs() <= CAP && self.1.abs() <= CAP
+    }
+}
 
 impl std::ops::Add<Num> for Num {
     type Output = Num;
@@ -45,14 +53,34 @@ fn main() {
         .strip_suffix(']')
         .unwrap();
 
-    let parts: Vec<_> = csv.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-    let a = Num(parts[0], parts[1]);
+    let parts: Vec<_> = csv.split(',').map(|s| s.parse::<i64>().unwrap()).collect();
+    let top_left = Num(parts[0], parts[1]);
+    let bottom_right = top_left + Num(1000, 1000);
 
-    let mut result = Num(0, 0);
-    for _ in 0..3 {
-        result = result * result;
-        result = result / Num(10, 10);
-        result = result + a;
+    let mut result = 0;
+    for y in (top_left.1..=bottom_right.1).step_by(10) {
+        for x in (top_left.0..=bottom_right.0).step_by(10) {
+            let a = Num(x, y);
+
+            let engrave: bool = || -> bool {
+                let mut cur = Num(0, 0);
+
+                for _ in 0..100 {
+                    cur = cur * cur;
+                    cur = cur / Num(100000, 100000);
+                    cur = cur + a;
+
+                    if !cur.in_range() {
+                        return false;
+                    }
+                }
+                true
+            }();
+
+            if engrave {
+                result += 1;
+            }
+        }
     }
     println!("{result}");
 }
