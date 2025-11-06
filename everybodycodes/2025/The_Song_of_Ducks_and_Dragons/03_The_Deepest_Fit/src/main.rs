@@ -8,7 +8,7 @@ fn main() {
     eprintln!("{:?}", csv);
     csv.sort();
     csv.dedup();
-    eprintln!("{:?}", csv);
-    let result: u32 = csv.into_iter().sum();
+    let n = csv.len();
+    let result: u32 = csv[..20].into_iter().sum();
     println!("{result}");
 }
