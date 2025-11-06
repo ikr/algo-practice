@@ -164,24 +164,31 @@ fn coords_of_ones(xss: &[Vec<u32>]) -> Vec<(usize, usize)> {
 
 fn max_common_area(aa: Vec<Vec<u32>>, bb: Vec<Vec<u32>>) -> usize {
     let mask = intersection_mask(aa, bb);
-    eprintln!("{:?}", mask);
     let ones = coords_of_ones(&mask);
     let ps = PrefixSum2D::new(mask);
 
     ones.into_iter()
         .map(|(i, j)| {
             let q = largest_square_size_at(&ps, i, j);
-            let a = largest_height_at(&ps, i, j, q);
-            assert!(a >= q);
-            let b = largest_width_at(&ps, i, j, q);
-            assert!(b >= q);
-            eprintln!("Found {q} ⇒ {a}x{b} at {:?}", (i, j));
-            (a * q).max(q * b)
+            let mut result = q * q;
+
+            for b in 1..=q {
+                let a = largest_height_at(&ps, i, j, b);
+                result = result.max(a * b);
+            }
+
+            for a in 1..=q {
+                let b = largest_width_at(&ps, i, j, a);
+                result = result.max(a * b);
+            }
+
+            result
         })
         .max()
         .unwrap_or_default()
 }
 
+#[allow(dead_code)]
 fn brute_max_common_area(aa: &[Vec<u32>], bb: &[Vec<u32>]) -> usize {
     let h = aa.len();
     let w = aa[0].len();
@@ -266,9 +273,13 @@ mod tests {
 
     #[test]
     fn test_matches_brute_force_on_a_random_input() {
-        for _ in 0..1000 {
-            let aa = random_grid(5, 4);
-            let bb = random_grid(5, 4);
+        let mut rng = rand::rng();
+
+        for _ in 0..10_000 {
+            let h: usize = rng.random_range(1..21);
+            let w: usize = rng.random_range(1..21);
+            let aa = random_grid(h, w);
+            let bb = random_grid(h, w);
             let expected = brute_max_common_area(&aa, &bb);
             let actual = max_common_area(aa.clone(), bb.clone());
             assert_eq!(actual, expected, "on {:?} {:?}", aa, bb);
