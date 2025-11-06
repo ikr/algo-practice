@@ -276,8 +276,8 @@ mod tests {
         let mut rng = rand::rng();
 
         for _ in 0..10_000 {
-            let h: usize = rng.random_range(1..21);
-            let w: usize = rng.random_range(1..21);
+            let h: usize = rng.random_range(1..33);
+            let w: usize = rng.random_range(1..33);
             let aa = random_grid(h, w);
             let bb = random_grid(h, w);
             let expected = brute_max_common_area(&aa, &bb);
