@@ -1,5 +1,5 @@
-use itertools::Itertools;
-use std::io::Read;
+use itertools::{Itertools, MinMaxResult};
+use std::io::BufRead;
 
 #[derive(Clone, Copy)]
 enum El {
@@ -56,13 +56,7 @@ fn quality(xs: Vec<u8>) -> u64 {
         if let Some((i, new_el)) = result
             .iter()
             .enumerate()
-            .filter_map(|(j, el)| {
-                if let Some(new_el) = el.accommodate(x) {
-                    Some((j, new_el))
-                } else {
-                    None
-                }
-            })
+            .filter_map(|(j, el)| el.accommodate(x).map(|new_el| (j, new_el)))
             .next()
         {
             result[i] = new_el;
@@ -79,16 +73,25 @@ fn quality(xs: Vec<u8>) -> u64 {
         .unwrap()
 }
 
-fn main() {
-    let mut buf = String::new();
-    std::io::stdin().read_to_string(&mut buf).unwrap();
-    let isep = buf.bytes().position(|x| x == b':').unwrap();
+fn parse_line(s: String) -> Vec<u8> {
+    let isep = s.find(':').unwrap();
 
-    let xs: Vec<u8> = buf[isep + 1..]
-        .trim()
+    s[isep + 1..]
         .split(',')
         .map(|s| s.parse::<u8>().unwrap())
+        .collect()
+}
+
+fn main() {
+    let xss: Vec<Vec<u8>> = std::io::stdin()
+        .lock()
+        .lines()
+        .map(|line| parse_line(line.unwrap()))
         .collect();
 
-    println!("{}", quality(xs));
+    let qs: Vec<_> = xss.into_iter().map(quality).collect();
+    match qs.into_iter().minmax() {
+        MinMaxResult::MinMax(lo, hi) => println!("{}", hi - lo),
+        _ => unreachable!(),
+    }
 }
