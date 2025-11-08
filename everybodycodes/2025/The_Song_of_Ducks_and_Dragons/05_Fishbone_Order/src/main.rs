@@ -3,14 +3,14 @@ use std::io::Read;
 
 #[derive(Clone, Copy)]
 enum El {
-    Single(i32),
-    WithL(i32),
-    WithR(i32),
-    WithLR(i32),
+    Single(u8),
+    WithL(u8),
+    WithR(u8),
+    WithLR(u8),
 }
 
 impl El {
-    fn center(self) -> i32 {
+    fn center(self) -> u8 {
         match self {
             El::Single(x) => x,
             El::WithL(x) => x,
@@ -19,7 +19,7 @@ impl El {
         }
     }
 
-    fn accommodate(self, x: i32) -> Option<Self> {
+    fn accommodate(self, x: u8) -> Option<Self> {
         match self {
             El::Single(y) => {
                 if x < y {
@@ -49,18 +49,9 @@ impl El {
     }
 }
 
-fn main() {
-    let mut buf = String::new();
-    std::io::stdin().read_to_string(&mut buf).unwrap();
-    let isep = buf.bytes().position(|x| x == b':').unwrap();
-
-    let xs: Vec<i32> = buf[isep + 1..]
-        .trim()
-        .split(',')
-        .map(|s| s.parse::<i32>().unwrap())
-        .collect();
-
+fn quality(xs: Vec<u8>) -> u64 {
     let mut result: Vec<El> = vec![];
+
     for x in xs {
         if let Some((i, new_el)) = result
             .iter()
@@ -80,5 +71,24 @@ fn main() {
         }
     }
 
-    println!("{}", result.into_iter().map(|el| el.center()).join(""));
+    result
+        .into_iter()
+        .map(|el| el.center())
+        .join("")
+        .parse()
+        .unwrap()
+}
+
+fn main() {
+    let mut buf = String::new();
+    std::io::stdin().read_to_string(&mut buf).unwrap();
+    let isep = buf.bytes().position(|x| x == b':').unwrap();
+
+    let xs: Vec<u8> = buf[isep + 1..]
+        .trim()
+        .split(',')
+        .map(|s| s.parse::<u8>().unwrap())
+        .collect();
+
+    println!("{}", quality(xs));
 }
