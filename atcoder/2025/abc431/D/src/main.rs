@@ -2,24 +2,27 @@ use proconio::input;
 use std::io::{BufWriter, Write, stdout};
 
 fn max_happiness(params: &[(usize, u64, u64)]) -> u64 {
-    let mut tab: Vec<(usize, u64)> = vec![(0, 0); 25001];
+    let mut tab: Vec<u64> = vec![0; 500 * 500 + 1];
     let (w0, _, b0) = params[0];
-    tab[w0] = (0, b0);
+    tab[w0] = b0;
 
     for &(w, h, b) in &params[1..] {
-        let mut new_tab = tab.clone();
+        let mut new_tab = vec![0; 500 * 500 + 1];
 
-        for (wb, (wh, x0)) in tab.into_iter().enumerate() {
-            if wh + w <= wb {
-                let (cur_wb, cur_x) = new_tab[wb];
-                new_tab[wb] = todo!();
+        for (capacity, x) in tab.into_iter().enumerate() {
+            if capacity >= w {
+                new_tab[capacity - w] = new_tab[capacity - w].max(x + h);
+            }
+
+            if capacity + w < new_tab.len() {
+                new_tab[capacity + w] = new_tab[capacity + w].max(x + b);
             }
         }
 
         tab = new_tab;
     }
 
-    tab.into_iter().map(|(_, h)| h).max().unwrap()
+    tab.into_iter().max().unwrap()
 }
 
 fn main() {
@@ -29,10 +32,15 @@ fn main() {
 
     input! {
         n: usize,
-        params: [(usize, u64, u64); n],
+        mut params: [(usize, u64, u64); n],
     }
 
-    let result = max_happiness(&params);
+    let mut result = 0;
+    for _ in 0..=n {
+        params.rotate_right(1);
+        result = result.max(max_happiness(&params));
+    }
+
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
