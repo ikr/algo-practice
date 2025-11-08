@@ -31,41 +31,45 @@ fn main() {
         .map(|s| s.parse::<i32>().unwrap())
         .collect();
 
-    let mut result: Vec<i32> = vec![];
-    let mut cur: El = El::Single(xs[0]);
+    let mut result: Vec<El> = vec![];
+    for x in xs {
+        let mut patched = false;
 
-    for &x in &xs[1..] {
-        match cur {
-            El::Single(y) => {
-                if x <= y {
-                    cur = El::WithL(y);
-                } else {
-                    cur = El::WithR(y);
+        for el in &mut result {
+            match *el {
+                El::Single(y) => {
+                    if x < y {
+                        *el = El::WithL(y);
+                        patched = true;
+                        break;
+                    } else if x > y {
+                        *el = El::WithR(y);
+                        patched = true;
+                        break;
+                    }
                 }
-            }
-            El::WithL(y) => {
-                if x <= y {
-                    result.push(x);
-                    cur = El::Single(y);
-                } else {
-                    cur = El::WithLR(y);
+                El::WithL(y) => {
+                    if x > y {
+                        *el = El::WithLR(y);
+                        patched = true;
+                        break;
+                    }
                 }
-            }
-            El::WithR(y) => {
-                if x <= y {
-                    cur = El::WithLR(y);
-                } else {
-                    result.push(x);
-                    cur = El::Single(y);
+                El::WithR(y) => {
+                    if x < y {
+                        *el = El::WithLR(y);
+                        patched = true;
+                        break;
+                    }
                 }
-            }
-            El::WithLR(y) => {
-                result.push(x);
-                cur = El::Single(y);
+                El::WithLR(_) => {}
             }
         }
-    }
-    result.push(cur.center());
 
-    println!("{}", result.iter().join(""))
+        if !patched {
+            result.push(El::Single(x));
+        }
+    }
+
+    println!("{}", result.into_iter().map(|el| el.center()).join(""));
 }
