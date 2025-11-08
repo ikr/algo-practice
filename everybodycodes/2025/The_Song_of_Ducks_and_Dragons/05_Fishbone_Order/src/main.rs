@@ -49,7 +49,7 @@ impl El {
     }
 }
 
-fn quality(xs: Vec<u8>) -> u64 {
+fn fishbone(xs: Vec<u8>) -> Vec<El> {
     let mut result: Vec<El> = vec![];
 
     for x in xs {
@@ -66,6 +66,10 @@ fn quality(xs: Vec<u8>) -> u64 {
     }
 
     result
+}
+
+fn quality(xs: Vec<u8>) -> u64 {
+    fishbone(xs)
         .into_iter()
         .map(|el| el.center())
         .join("")
