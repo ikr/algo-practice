@@ -7,15 +7,18 @@ fn max_happiness(params: &[(usize, u64, u64)]) -> u64 {
     tab[w0] = b0;
 
     for &(w, h, b) in &params[1..] {
-        let mut new_tab = vec![0; 500 * 500 + 1];
+        let mut new_tab = tab.clone();
+        new_tab[w] = new_tab[w].min(b);
 
         for (capacity, x) in tab.into_iter().enumerate() {
-            if capacity >= w {
-                new_tab[capacity - w] = new_tab[capacity - w].max(x + h);
-            }
+            if x != 0 {
+                if capacity >= w {
+                    new_tab[capacity - w] = new_tab[capacity - w].max(x + h);
+                }
 
-            if capacity + w < new_tab.len() {
-                new_tab[capacity + w] = new_tab[capacity + w].max(x + b);
+                if capacity + w < new_tab.len() {
+                    new_tab[capacity + w] = new_tab[capacity + w].max(x + b);
+                }
             }
         }
 
