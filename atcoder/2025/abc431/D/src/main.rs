@@ -1,24 +1,28 @@
 use proconio::input;
 use std::io::{BufWriter, Write, stdout};
 
-fn max_happiness(params: &[(usize, u64, u64)]) -> u64 {
-    let mut tab: Vec<u64> = vec![0; 500 * 500 + 1];
-    let (w0, _, b0) = params[0];
-    tab[w0] = b0;
+#[derive(Clone, Copy)]
+struct Part {
+    w: usize,
+    h: u64,
+    b: u64,
+}
 
-    for &(w, h, b) in &params[1..] {
+fn max_happiness(parts: Vec<Part>) -> u64 {
+    let (total_weight, total_body_happiness) =
+        parts.iter().fold((0, 0), |(w, b), p| (w + p.w, b + p.b));
+
+    // tab[i] is the current head happiness
+    let mut tab = vec![0; total_weight / 2 + 1];
+    tab[0] = total_body_happiness;
+
+    for p in parts {
+        let n = tab.len();
         let mut new_tab = tab.clone();
-        new_tab[w] = new_tab[w].min(b);
 
-        for (capacity, x) in tab.into_iter().enumerate() {
-            if x != 0 {
-                if capacity >= w {
-                    new_tab[capacity - w] = new_tab[capacity - w].max(x + h);
-                }
-
-                if capacity + w < new_tab.len() {
-                    new_tab[capacity + w] = new_tab[capacity + w].max(x + b);
-                }
+        for (w0, h0) in tab.into_iter().enumerate() {
+            if w0 + p.w < n && h0 != 0 {
+                new_tab[w0 + p.w] = new_tab[w0 + p.w].max(h0 + p.h - p.b);
             }
         }
 
@@ -35,15 +39,15 @@ fn main() {
 
     input! {
         n: usize,
-        mut params: [(usize, u64, u64); n],
+        params: [(usize, u64, u64); n],
     }
 
-    let mut result = 0;
-    for _ in 0..=n {
-        params.rotate_right(1);
-        result = result.max(max_happiness(&params));
-    }
-
+    let result = max_happiness(
+        params
+            .into_iter()
+            .map(|(w, h, b)| Part { w, h, b })
+            .collect(),
+    );
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
