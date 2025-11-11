@@ -13,9 +13,9 @@ fn main() {
     std::io::stdin().read_to_string(&mut buf).unwrap();
     let xs: Vec<u8> = buf.trim().bytes().collect();
 
-    let result = xs
-        .into_iter()
-        .fold((vec![0usize; 128], 0), |(mut fq, s), x| {
+    let result = xs.into_iter().filter(|&x| x == b'a' || x == b'A').fold(
+        (vec![0usize; 128], 0),
+        |(mut fq, s), x| {
             if is_novice_symbol(x) {
                 let xx = mentor_symbol(x);
                 (fq.clone(), s + fq[xx as usize])
@@ -23,7 +23,8 @@ fn main() {
                 fq[x as usize] += 1;
                 (fq, s)
             }
-        });
+        },
+    );
 
     println!("{}", result.1);
 }
