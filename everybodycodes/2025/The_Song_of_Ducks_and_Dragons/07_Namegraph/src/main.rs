@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::io::{BufRead, stdin};
 
 const LO: usize = 7;
@@ -15,33 +16,32 @@ fn is_valid_word(rule_pairs: &[(char, char)], word: &[char]) -> bool {
         .all(|xy| rule_pairs.contains(&(xy[0], xy[1])))
 }
 
-fn words_count(rule_pairs: &[(char, char)], prefix: Vec<char>) -> usize {
+fn words_from(rule_pairs: &[(char, char)], prefix: Vec<char>) -> Vec<String> {
     if prefix.len() == HI {
-        println!("{}", prefix.iter().cloned().collect::<String>());
-        return 1;
+        return vec![prefix.into_iter().collect()];
     }
 
-    let own_count = if prefix.len() < LO {
-        0
+    let base: Vec<String> = if prefix.len() < LO {
+        vec![]
     } else {
-        println!("{}", prefix.iter().cloned().collect::<String>());
-        1
+        vec![prefix.iter().cloned().collect()]
     };
     let t: char = *prefix.last().unwrap();
 
-    own_count
-        + rule_pairs
-            .iter()
-            .filter_map(|&(x, y)| {
-                if x == t {
-                    let mut new_prefix = prefix.clone();
-                    new_prefix.push(y);
-                    Some(words_count(rule_pairs, new_prefix))
-                } else {
-                    None
-                }
-            })
-            .sum::<usize>()
+    rule_pairs
+        .iter()
+        .filter_map(|&(x, y)| {
+            if x == t {
+                let mut new_prefix = prefix.clone();
+                new_prefix.push(y);
+                Some(words_from(rule_pairs, new_prefix))
+            } else {
+                None
+            }
+        })
+        .flatten()
+        .chain(base)
+        .collect()
 }
 
 fn main() {
@@ -49,17 +49,20 @@ fn main() {
     let names: Vec<String> = lines[0].split(',').map(|x| x.to_string()).collect();
     let rule_pairs: Vec<(char, char)> = lines[2..].iter().flat_map(|x| decode_rule(x)).collect();
 
-    let result: usize = names
+    let words: Vec<String> = names
         .into_iter()
         .filter_map(|s| {
             let xs: Vec<_> = s.chars().collect();
             if is_valid_word(&rule_pairs, &xs) {
-                Some(words_count(&rule_pairs, xs))
+                Some(words_from(&rule_pairs, xs))
             } else {
                 None
             }
         })
-        .sum();
+        .flatten()
+        .sorted()
+        .dedup()
+        .collect();
 
-    eprintln!("{result}");
+    println!("{}", words.len());
 }
