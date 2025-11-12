@@ -15,15 +15,21 @@ fn main() {
     let names: Vec<String> = lines[0].split(',').map(|x| x.to_string()).collect();
     let ps: Vec<(char, char)> = lines[2..].iter().flat_map(|x| decode_rule(x)).collect();
 
-    let result = names
+    let result: usize = names
         .into_iter()
-        .find(|s| {
-            s.chars()
+        .enumerate()
+        .filter_map(|(i, s)| {
+            if s.chars()
                 .collect::<Vec<_>>()
                 .windows(2)
                 .all(|xy| ps.contains(&(xy[0], xy[1])))
+            {
+                Some(i + 1)
+            } else {
+                None
+            }
         })
-        .unwrap();
+        .sum();
 
     println!("{result}");
 }
