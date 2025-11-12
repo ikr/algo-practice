@@ -17,10 +17,16 @@ fn is_valid_word(rule_pairs: &[(char, char)], word: &[char]) -> bool {
 
 fn words_count(rule_pairs: &[(char, char)], prefix: Vec<char>) -> usize {
     if prefix.len() == HI {
+        println!("{}", prefix.iter().cloned().collect::<String>());
         return 1;
     }
 
-    let own_count = if prefix.len() < LO { 0 } else { 1 };
+    let own_count = if prefix.len() < LO {
+        0
+    } else {
+        println!("{}", prefix.iter().cloned().collect::<String>());
+        1
+    };
     let t: char = *prefix.last().unwrap();
 
     own_count
@@ -55,5 +61,5 @@ fn main() {
         })
         .sum();
 
-    println!("{result}");
+    eprintln!("{result}");
 }
