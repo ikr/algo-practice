@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use std::io::Read;
 
-const N: usize = 8;
+const N: usize = 256;
 
 fn intersect(mut xs: [usize; 4]) -> bool {
     xs.sort();
@@ -48,11 +48,7 @@ fn main() {
 
     let result = (1..=N)
         .tuple_combinations()
-        .map(|(a, b)| {
-            let r = chords.iter().filter(|&&cd| chords_knot((a, b), cd)).count();
-            eprintln!("{r} at {:?}", (a, b));
-            r
-        })
+        .map(|(a, b)| chords.iter().filter(|&&cd| chords_knot((a, b), cd)).count())
         .max()
         .unwrap();
 
