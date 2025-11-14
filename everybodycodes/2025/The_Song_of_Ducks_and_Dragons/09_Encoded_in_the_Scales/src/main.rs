@@ -1,3 +1,4 @@
+use ac_library::Dsu;
 use itertools::{Itertools, izip};
 use std::io::{BufRead, stdin};
 
@@ -9,34 +10,40 @@ fn is_child_of_ab(a: &[u8], b: &[u8], c: &[u8]) -> bool {
     izip!(a, b, c).all(|(x, y, z)| z == x || z == y)
 }
 
-fn degree_of_similarity(xs: &[u8], ys: &[u8]) -> usize {
-    xs.iter()
-        .zip(ys)
-        .map(|(x, y)| if x == y { 1 } else { 0 })
-        .sum()
-}
+fn maybe_edges(
+    xss: &[Vec<u8>],
+    ijk: (usize, usize, usize),
+) -> Option<((usize, usize), (usize, usize))> {
+    let (i, j, k) = ijk;
 
-fn maybe_degree_of_similarity(xss: Vec<Vec<u8>>) -> Option<usize> {
-    assert_eq!(xss.len(), 3);
-    [(0, 1, 2), (1, 2, 0), (0, 2, 1)]
+    [(i, j, k), (j, k, i), (i, k, j)]
         .into_iter()
         .find(|&(i, j, k)| is_child_of_ab(&xss[i], &xss[j], &xss[k]))
-        .map(|(i, j, k)| {
-            let da = degree_of_similarity(&xss[i], &xss[k]);
-            let db = degree_of_similarity(&xss[j], &xss[k]);
-            da * db
-        })
+        .map(|(i, j, k)| ((i, j), (j, k)))
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let xss: Vec<Vec<u8>> = lines.into_iter().map(|s| parse_line(&s)).collect();
+    let n = xss.len();
+    let mut dsu = Dsu::new(n);
 
-    let result: usize = xss
+    for (i, j, k) in (0..n).tuple_combinations() {
+        if let Some(((a, b), (c, d))) = maybe_edges(&xss, (i, j, k)) {
+            dsu.merge(a, b);
+            dsu.merge(c, d);
+        }
+    }
+
+    let largest_family: Vec<usize> = dsu
+        .groups()
         .into_iter()
-        .combinations(3)
-        .filter_map(|tri| maybe_degree_of_similarity(tri))
-        .sum();
+        .max_by_key(|g| g.len())
+        .unwrap()
+        .iter()
+        .map(|i| i + 1)
+        .collect();
 
+    let result: usize = largest_family.into_iter().sum();
     println!("{result}");
 }
