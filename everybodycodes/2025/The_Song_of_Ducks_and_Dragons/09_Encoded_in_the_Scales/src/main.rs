@@ -26,14 +26,16 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let xss: Vec<Vec<u8>> = lines.into_iter().map(|s| parse_line(&s)).collect();
     let n = xss.len();
-    let mut dsu = Dsu::new(n);
 
-    for (i, j, k) in (0..n).tuple_combinations() {
-        if let Some(((a, b), (c, d))) = maybe_edges(&xss, (i, j, k)) {
-            dsu.merge(a, b);
-            dsu.merge(c, d);
-        }
-    }
+    let mut dsu = (0..n)
+        .tuple_combinations()
+        .fold(Dsu::new(n), |mut acc, (i, j, k)| {
+            if let Some(((a, b), (c, d))) = maybe_edges(&xss, (i, j, k)) {
+                acc.merge(a, b);
+                acc.merge(c, d);
+            }
+            acc
+        });
 
     let largest_family: Vec<usize> = dsu
         .groups()
