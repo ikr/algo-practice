@@ -4,7 +4,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const RANGE: u8 = 4;
+const ROUNDS: usize = 3;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -69,12 +69,19 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
-fn sheep_move(grid: &[Vec<u8>], crds: HashSet<Crd>) -> HashSet<Crd> {
+fn sheep_move(
+    grid: &[Vec<u8>],
+    dragon: &HashSet<Crd>,
+    hideouts: &HashSet<Crd>,
+    crds: HashSet<Crd>,
+) -> HashSet<Crd> {
     crds.into_iter()
         .filter_map(|crd| {
             let new_crd = crd + Crd(1, 0);
 
-            if new_crd.is_valid_in(grid) {
+            if new_crd.is_valid_in(grid)
+                && (hideouts.contains(&new_crd) || !dragon.contains(&new_crd))
+            {
                 Some(new_crd)
             } else {
                 None
@@ -83,32 +90,19 @@ fn sheep_move(grid: &[Vec<u8>], crds: HashSet<Crd>) -> HashSet<Crd> {
         .collect()
 }
 
-fn main() {
-    let grid: Vec<Vec<u8>> = stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().bytes().collect())
-        .collect();
-    assert!(!grid.is_empty());
-
-    let mut visited: Vec<Vec<bool>> = vec![vec![false; grid[0].len()]; grid.len()];
+fn dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
     let start_crd: Crd = Crd::crds_of_xs_in(&grid, b'D')[0];
-    let mut dragon: HashSet<Crd> = HashSet::from([start_crd]);
-    let mut sheep: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'S').into_iter().collect();
-    let hideouts: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'#').into_iter().collect();
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; grid[0].len()]; grid.len()];
     visited[start_crd.as_roco().0][start_crd.as_roco().1] = true;
 
-    let mut q: VecDeque<(Crd, u8)> = VecDeque::from([(start_crd, 0)]);
-    let mut result = 0;
+    let mut q: VecDeque<(Crd, usize)> = VecDeque::from([(start_crd, 0)]);
+    let mut result = vec![HashSet::new(); ROUNDS + 1];
 
-    while let Some((u, u_dist)) = q.pop_front() {
-        assert!(u_dist <= RANGE);
+    while let Some((u, t)) = q.pop_front() {
+        assert!(t <= ROUNDS);
+        result[t].insert(u);
 
-        if u.value_in(&grid) == b'S' {
-            result += 1;
-        }
-
-        if u_dist != RANGE {
+        if u.is_valid_in(grid) && t != ROUNDS {
             let vs: Vec<Crd> = Crd::dragon_deltas()
                 .into_iter()
                 .filter_map(|delta| {
@@ -124,10 +118,26 @@ fn main() {
 
             for v in vs {
                 visited[v.as_roco().0][v.as_roco().1] = true;
-                q.push_back((v, u_dist + 1));
+                q.push_back((v, t + 1));
             }
         }
     }
+    result
+}
 
+fn main() {
+    let grid: Vec<Vec<u8>> = stdin()
+        .lock()
+        .lines()
+        .map(|line| line.unwrap().bytes().collect())
+        .collect();
+    assert!(!grid.is_empty());
+
+    let mut sheep: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'S').into_iter().collect();
+    let hideouts: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'#').into_iter().collect();
+
+    eprintln!("{:?}", dragon_by_time(&grid));
+
+    let mut result = 0;
     println!("{result}");
 }
