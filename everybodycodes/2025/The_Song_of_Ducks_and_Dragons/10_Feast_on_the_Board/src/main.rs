@@ -4,7 +4,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const ROUNDS: usize = 3;
+const ROUNDS: usize = 20;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -19,11 +19,6 @@ impl Crd {
         assert_ne!(h, 0);
         let w = grid[0].len();
         0 <= self.0 && self.0 < h as i32 && 0 <= self.1 && self.1 < w as i32
-    }
-
-    fn value_in(self, grid: &[Vec<u8>]) -> u8 {
-        assert!(self.is_valid_in(grid));
-        grid[self.0 as usize][self.1 as usize]
     }
 
     fn as_roco(self) -> (usize, usize) {
@@ -69,19 +64,12 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
-fn sheep_move(
-    grid: &[Vec<u8>],
-    dragon: &HashSet<Crd>,
-    hideouts: &HashSet<Crd>,
-    crds: HashSet<Crd>,
-) -> HashSet<Crd> {
+fn sheep_move(hideouts: &HashSet<Crd>, dragon: &HashSet<Crd>, crds: HashSet<Crd>) -> HashSet<Crd> {
     crds.into_iter()
         .filter_map(|crd| {
             let new_crd = crd + Crd(1, 0);
 
-            if new_crd.is_valid_in(grid)
-                && (hideouts.contains(&new_crd) || !dragon.contains(&new_crd))
-            {
+            if hideouts.contains(&new_crd) || !dragon.contains(&new_crd) {
                 Some(new_crd)
             } else {
                 None
@@ -90,8 +78,8 @@ fn sheep_move(
         .collect()
 }
 
-fn dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
-    let start_crd: Crd = Crd::crds_of_xs_in(&grid, b'D')[0];
+fn possible_dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
+    let start_crd: Crd = Crd::crds_of_xs_in(grid, b'D')[0];
     let mut visited: Vec<Vec<bool>> = vec![vec![false; grid[0].len()]; grid.len()];
     visited[start_crd.as_roco().0][start_crd.as_roco().1] = true;
 
@@ -108,7 +96,7 @@ fn dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
                 .filter_map(|delta| {
                     let v: Crd = u + delta;
 
-                    if v.is_valid_in(&grid) && !visited[v.as_roco().0][v.as_roco().1] {
+                    if v.is_valid_in(grid) && !visited[v.as_roco().0][v.as_roco().1] {
                         Some(v)
                     } else {
                         None
@@ -136,8 +124,19 @@ fn main() {
     let mut sheep: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'S').into_iter().collect();
     let hideouts: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'#').into_iter().collect();
 
-    eprintln!("{:?}", dragon_by_time(&grid));
-
     let mut result = 0;
+    for dbt in possible_dragon_by_time(&grid).into_iter().skip(1) {
+        for d_crd in &dbt {
+            if !hideouts.contains(d_crd) && sheep.contains(d_crd) {
+                result += 1;
+                sheep.remove(d_crd);
+            }
+        }
+
+        let pre_count = sheep.len();
+        sheep = sheep_move(&hideouts, &dbt, sheep);
+        let post_count = sheep.len();
+        result += pre_count - post_count;
+    }
     println!("{result}");
 }
