@@ -79,11 +79,16 @@ fn sheep_move(hideouts: &HashSet<Crd>, dragon: &HashSet<Crd>, crds: HashSet<Crd>
 }
 
 fn possible_dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
-    let start_crd: Crd = Crd::crds_of_xs_in(grid, b'D')[0];
     let mut visited: Vec<Vec<bool>> = vec![vec![false; grid[0].len()]; grid.len()];
-    visited[start_crd.as_roco().0][start_crd.as_roco().1] = true;
+    let mut q: VecDeque<(Crd, usize)> = VecDeque::new();
+    let start_crd: Crd = Crd::crds_of_xs_in(grid, b'D')[0];
 
-    let mut q: VecDeque<(Crd, usize)> = VecDeque::from([(start_crd, 0)]);
+    for delta in Crd::dragon_deltas() {
+        let crd = start_crd + delta;
+        visited[crd.as_roco().0][crd.as_roco().1] = true;
+        q.push_back((crd, 1));
+    }
+
     let mut result = vec![HashSet::new(); ROUNDS + 1];
 
     while let Some((u, t)) = q.pop_front() {
@@ -110,6 +115,8 @@ fn possible_dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
             }
         }
     }
+
+    assert_eq!(result[2].len(), 33);
     result
 }
 
