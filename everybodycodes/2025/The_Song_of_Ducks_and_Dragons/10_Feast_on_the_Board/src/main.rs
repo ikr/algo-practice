@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::HashSet,
     io::{BufRead, stdin},
 };
 
@@ -19,10 +19,6 @@ impl Crd {
         assert_ne!(h, 0);
         let w = grid[0].len();
         0 <= self.0 && self.0 < h as i32 && 0 <= self.1 && self.1 < w as i32
-    }
-
-    fn as_roco(self) -> (usize, usize) {
-        (self.0 as usize, self.1 as usize)
     }
 
     fn crds_of_xs_in(grid: &[Vec<u8>], x: u8) -> Vec<Self> {
@@ -79,45 +75,37 @@ fn sheep_move(hideouts: &HashSet<Crd>, dragon: &HashSet<Crd>, crds: HashSet<Crd>
 }
 
 fn possible_dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
-    let mut visited: Vec<Vec<bool>> = vec![vec![false; grid[0].len()]; grid.len()];
-    let mut q: VecDeque<(Crd, usize)> = VecDeque::new();
     let start_crd: Crd = Crd::crds_of_xs_in(grid, b'D')[0];
 
-    for delta in Crd::dragon_deltas() {
-        let crd = start_crd + delta;
-        visited[crd.as_roco().0][crd.as_roco().1] = true;
-        q.push_back((crd, 1));
-    }
+    let r: Vec<HashSet<Crd>> = (0..=ROUNDS)
+        .scan(HashSet::new(), |state: &mut HashSet<Crd>, _| {
+            if state.is_empty() {
+                *state = HashSet::from([start_crd]);
+                Some(state.clone())
+            } else {
+                let mut result: HashSet<Crd> = HashSet::new();
 
-    let mut result = vec![HashSet::new(); ROUNDS + 1];
+                for &crd in state.iter() {
+                    for delta in Crd::dragon_deltas() {
+                        let new_crd: Crd = crd + delta;
 
-    while let Some((u, t)) = q.pop_front() {
-        assert!(t <= ROUNDS);
-        result[t].insert(u);
-
-        if u.is_valid_in(grid) && t != ROUNDS {
-            let vs: Vec<Crd> = Crd::dragon_deltas()
-                .into_iter()
-                .filter_map(|delta| {
-                    let v: Crd = u + delta;
-
-                    if v.is_valid_in(grid) && !visited[v.as_roco().0][v.as_roco().1] {
-                        Some(v)
-                    } else {
-                        None
+                        if new_crd.is_valid_in(grid) {
+                            result.insert(new_crd);
+                        }
                     }
-                })
-                .collect();
+                }
 
-            for v in vs {
-                visited[v.as_roco().0][v.as_roco().1] = true;
-                q.push_back((v, t + 1));
+                *state = result;
+                Some(state.clone())
             }
-        }
-    }
+        })
+        .collect();
 
-    assert_eq!(result[2].len(), 33);
-    result
+    assert_eq!(r.len(), ROUNDS + 1);
+    assert_eq!(r[0].len(), 1);
+    assert_eq!(r[1].len(), 8);
+    assert_eq!(r[2].len(), 33);
+    r
 }
 
 fn main() {
