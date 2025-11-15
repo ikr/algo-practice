@@ -1,5 +1,6 @@
+use itertools::Itertools;
 use std::{
-    collections::VecDeque,
+    collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
 };
 
@@ -9,6 +10,10 @@ const RANGE: u8 = 4;
 struct Crd(i32, i32);
 
 impl Crd {
+    fn new(i: usize, j: usize) -> Self {
+        Self(i as i32, j as i32)
+    }
+
     fn is_valid_in(self, grid: &[Vec<u8>]) -> bool {
         let h = grid.len();
         assert_ne!(h, 0);
@@ -25,15 +30,21 @@ impl Crd {
         (self.0 as usize, self.1 as usize)
     }
 
-    fn crd_of_x_in(grid: &[Vec<u8>], x: u8) -> Self {
-        for (i, row) in grid.iter().enumerate() {
-            for (j, &cell) in row.iter().enumerate() {
-                if cell == x {
-                    return Self(i as i32, j as i32);
+    fn crds_of_xs_in(grid: &[Vec<u8>], x: u8) -> Vec<Self> {
+        let h = grid.len();
+        assert_ne!(h, 0);
+        let w = grid[0].len();
+
+        (0..h)
+            .cartesian_product(0..w)
+            .filter_map(|(i, j)| {
+                if grid[i][j] == x {
+                    Some(Crd::new(i, j))
+                } else {
+                    None
                 }
-            }
-        }
-        unreachable!()
+            })
+            .collect()
     }
 
     fn dragon_deltas() -> Vec<Self> {
@@ -58,6 +69,20 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
+fn sheep_move(grid: &[Vec<u8>], crds: HashSet<Crd>) -> HashSet<Crd> {
+    crds.into_iter()
+        .filter_map(|crd| {
+            let new_crd = crd + Crd(1, 0);
+
+            if new_crd.is_valid_in(grid) {
+                Some(new_crd)
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 fn main() {
     let grid: Vec<Vec<u8>> = stdin()
         .lock()
@@ -67,7 +92,10 @@ fn main() {
     assert!(!grid.is_empty());
 
     let mut visited: Vec<Vec<bool>> = vec![vec![false; grid[0].len()]; grid.len()];
-    let start_crd = Crd::crd_of_x_in(&grid, b'D');
+    let start_crd: Crd = Crd::crds_of_xs_in(&grid, b'D')[0];
+    let mut dragon: HashSet<Crd> = HashSet::from([start_crd]);
+    let mut sheep: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'S').into_iter().collect();
+    let hideouts: HashSet<Crd> = Crd::crds_of_xs_in(&grid, b'#').into_iter().collect();
     visited[start_crd.as_roco().0][start_crd.as_roco().1] = true;
 
     let mut q: VecDeque<(Crd, u8)> = VecDeque::from([(start_crd, 0)]);
