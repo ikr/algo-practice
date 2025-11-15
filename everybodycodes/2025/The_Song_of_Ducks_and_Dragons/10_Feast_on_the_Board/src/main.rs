@@ -77,8 +77,8 @@ fn sheep_move(hideouts: &HashSet<Crd>, dragon: &HashSet<Crd>, crds: HashSet<Crd>
 fn possible_dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
     let start_crd: Crd = Crd::crds_of_xs_in(grid, b'D')[0];
 
-    let r: Vec<HashSet<Crd>> = (0..=ROUNDS)
-        .scan(HashSet::new(), |state: &mut HashSet<Crd>, _| {
+    (0..=ROUNDS)
+        .scan(HashSet::new(), |state, _| {
             if state.is_empty() {
                 *state = HashSet::from([start_crd]);
                 Some(state.clone())
@@ -99,13 +99,7 @@ fn possible_dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
                 Some(state.clone())
             }
         })
-        .collect();
-
-    assert_eq!(r.len(), ROUNDS + 1);
-    assert_eq!(r[0].len(), 1);
-    assert_eq!(r[1].len(), 8);
-    assert_eq!(r[2].len(), 33);
-    r
+        .collect()
 }
 
 fn main() {
