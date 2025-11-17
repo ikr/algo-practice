@@ -7,18 +7,15 @@ use std::{
 const ROUNDS: usize = 20;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Crd(i32, i32);
+struct Crd(i8, i8);
 
 impl Crd {
     fn new(i: usize, j: usize) -> Self {
-        Self(i as i32, j as i32)
+        Self(i as i8, j as i8)
     }
 
-    fn is_valid_in(self, grid: &[Vec<u8>]) -> bool {
-        let h = grid.len();
-        assert_ne!(h, 0);
-        let w = grid[0].len();
-        0 <= self.0 && self.0 < h as i32 && 0 <= self.1 && self.1 < w as i32
+    fn is_valid_in(self, h: i8, w: i8) -> bool {
+        0 <= self.0 && self.0 < h && 0 <= self.1 && self.1 < w
     }
 
     fn crds_of_xs_in(grid: &[Vec<u8>], x: u8) -> Vec<Self> {
@@ -89,7 +86,7 @@ fn possible_dragon_by_time(grid: &[Vec<u8>]) -> Vec<HashSet<Crd>> {
                     for delta in Crd::dragon_deltas() {
                         let new_crd: Crd = crd + delta;
 
-                        if new_crd.is_valid_in(grid) {
+                        if new_crd.is_valid_in(grid.len() as i8, grid[0].len() as i8) {
                             result.insert(new_crd);
                         }
                     }
@@ -128,4 +125,14 @@ fn main() {
         result += pre_count - post_count;
     }
     println!("{result}");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_placeholder() {
+        assert_eq!(1, 1);
+    }
 }
