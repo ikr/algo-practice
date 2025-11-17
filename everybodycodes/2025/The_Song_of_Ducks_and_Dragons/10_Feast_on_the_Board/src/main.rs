@@ -14,8 +14,8 @@ impl Crd {
         Self(i as i8, j as i8)
     }
 
-    fn is_valid_in(self, h: i8, w: i8) -> bool {
-        0 <= self.0 && self.0 < h && 0 <= self.1 && self.1 < w
+    fn is_valid_in(self, height: i8, width: i8) -> bool {
+        0 <= self.0 && self.0 < height && 0 <= self.1 && self.1 < width
     }
 
     fn crds_of_xs_in(grid: &[Vec<u8>], x: u8) -> Vec<Self> {
@@ -55,6 +55,46 @@ impl std::ops::Add<Crd> for Crd {
     fn add(self, o: Crd) -> Crd {
         Crd(self.0 + o.0, self.1 + o.1)
     }
+}
+
+struct Field {
+    height: i8,
+    width: i8,
+    initial_sheep: Vec<Crd>,
+    initial_dragon: Crd,
+    hideouts: Vec<Crd>,
+}
+
+impl Field {
+    fn from_rows(rows: &[&str]) -> Self {
+        let height = rows.len() as i8;
+        assert_ne!(height, 0);
+        let width = rows[0].len() as i8;
+
+        let grid: Vec<Vec<u8>> = rows.iter().map(|s| s.bytes().collect()).collect();
+        let initial_sheep = Crd::crds_of_xs_in(&grid, b'S');
+        let initial_dragon = Crd::crds_of_xs_in(&grid, b'D')[0];
+        let hideouts = Crd::crds_of_xs_in(&grid, b'#');
+
+        Self {
+            height,
+            width,
+            initial_sheep,
+            initial_dragon,
+            hideouts,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Player {
+    Sheep,
+    Dragon,
+}
+
+#[derive(Clone)]
+struct State {
+    next_move: Player,
 }
 
 fn sheep_move(hideouts: &HashSet<Crd>, dragon: &HashSet<Crd>, crds: HashSet<Crd>) -> HashSet<Crd> {
@@ -132,7 +172,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_placeholder() {
-        assert_eq!(1, 1);
+    fn test_field_creation() {
+        let f = Field::from_rows(&["...", ".D."]);
+        assert_eq!(f.height, 2);
+        assert_eq!(f.width, 3);
     }
 }
