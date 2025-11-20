@@ -66,12 +66,15 @@ struct Field {
 }
 
 impl Field {
-    fn from_rows(rows: &[&str]) -> Self {
-        let height = rows.len() as i8;
-        assert_ne!(height, 0);
-        let width = rows[0].len() as i8;
+    fn from_strings(ss: &[&str]) -> Self {
+        Self::from_grid(ss.iter().map(|s| s.bytes().collect()).collect())
+    }
 
-        let grid: Vec<Vec<u8>> = rows.iter().map(|s| s.bytes().collect()).collect();
+    fn from_grid(grid: Vec<Vec<u8>>) -> Self {
+        let height = grid.len() as i8;
+        assert_ne!(height, 0);
+        let width = grid[0].len() as i8;
+
         let initial_sheep = Crd::crds_of_xs_in(&grid, b'S');
         let initial_dragon = Crd::crds_of_xs_in(&grid, b'D')[0];
         let hideouts = Crd::crds_of_xs_in(&grid, b'#');
@@ -83,6 +86,13 @@ impl Field {
             initial_dragon,
             hideouts,
         }
+    }
+
+    fn escape_row(&self, col: i8) -> i8 {
+        assert!(!self.hideouts.contains(&Crd(0, col)));
+        (1..=self.height)
+            .rfind(|i| !self.hideouts.contains(&Crd(i - 1, col)))
+            .unwrap()
     }
 }
 
@@ -173,8 +183,24 @@ mod tests {
 
     #[test]
     fn test_field_creation() {
-        let f = Field::from_rows(&["...", ".D."]);
+        let f = Field::from_strings(&["...", ".D."]);
         assert_eq!(f.height, 2);
         assert_eq!(f.width, 3);
+    }
+
+    #[test]
+    fn test_escape_row_a() {
+        let f = Field::from_strings(&["...", ".D."]);
+        for j in 0..3 {
+            assert_eq!(f.escape_row(j), 2);
+        }
+    }
+
+    #[test]
+    fn test_escape_row_b() {
+        let f = Field::from_strings(&["...", "#D#", "###"]);
+        assert_eq!(f.escape_row(0), 1);
+        assert_eq!(f.escape_row(1), 2);
+        assert_eq!(f.escape_row(2), 1);
     }
 }
