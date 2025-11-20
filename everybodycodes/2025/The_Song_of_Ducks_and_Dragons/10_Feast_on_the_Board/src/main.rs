@@ -124,6 +124,7 @@ impl State {
 
     fn sheep_adjacent(&self, field: &Field) -> Vec<Self> {
         assert!(Self::can_sheep_move(field, &self.sheep, self.dragon));
+        assert!(self.dragon.in_bounds(field.height, field.width));
 
         self.sheep
             .iter()
