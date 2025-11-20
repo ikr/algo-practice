@@ -100,13 +100,13 @@ impl Field {
     }
 }
 
-#[derive(Clone, Copy, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum Player {
     Sheep,
     Dragon,
 }
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct State {
     next_move: Player,
     sheep: Vec<Crd>,
