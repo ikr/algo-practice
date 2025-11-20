@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::VecDeque,
     io::{BufRead, stdin},
 };
 
@@ -195,6 +195,7 @@ impl State {
         assert!(dragon.in_bounds(field.height, field.width));
 
         sheep.iter().any(|&sheep_crd| {
+            assert!(sheep_crd.0 < field.escape_row(sheep_crd.1));
             let next_crd = sheep_crd + Crd(1, 0);
             field.hideouts.contains(&next_crd) || next_crd != dragon
         })
@@ -218,19 +219,14 @@ fn main() {
     };
 
     let mut q: VecDeque<State> = VecDeque::from([s0.clone()]);
-    let mut seen: HashSet<State> = HashSet::from([s0]);
     let mut result: u64 = 0;
 
     while let Some(u) = q.pop_front() {
         for v in u.adjacent(&field) {
-            if !seen.contains(&v) {
-                seen.insert(v.clone());
-
-                if !v.sheep.is_empty() {
-                    q.push_back(v);
-                } else {
-                    result += 1;
-                }
+            if v.sheep.is_empty() {
+                result += 1;
+            } else {
+                q.push_back(v);
             }
         }
     }
@@ -263,5 +259,13 @@ mod tests {
         assert_eq!(f.escape_row(0), 1);
         assert_eq!(f.escape_row(1), 2);
         assert_eq!(f.escape_row(2), 1);
+    }
+
+    #[test]
+    fn test_escape_row_c() {
+        let f = Field::from_strings(&["SSS", "..#", "#.#", "#D."]);
+        assert_eq!(f.escape_row(0), 2);
+        assert_eq!(f.escape_row(1), 4);
+        assert_eq!(f.escape_row(2), 4);
     }
 }
