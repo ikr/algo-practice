@@ -1,5 +1,8 @@
 use itertools::Itertools;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::{HashSet, VecDeque},
+    io::{BufRead, stdin},
+};
 
 fn without_element_at<T>(mut xs: Vec<T>, i: usize) -> Vec<T> {
     xs.remove(i);
@@ -66,6 +69,7 @@ struct Field {
 }
 
 impl Field {
+    #[allow(dead_code)]
     fn from_strings(ss: &[&str]) -> Self {
         Self::from_grid(ss.iter().map(|s| s.bytes().collect()).collect())
     }
@@ -96,13 +100,13 @@ impl Field {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 enum Player {
     Sheep,
     Dragon,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 struct State {
     next_move: Player,
     sheep: Vec<Crd>,
@@ -119,7 +123,33 @@ impl State {
     }
 
     fn sheep_adjacent(&self, field: &Field) -> Vec<Self> {
-        todo!()
+        assert!(Self::can_sheep_move(field, &self.sheep, self.dragon));
+
+        self.sheep
+            .iter()
+            .enumerate()
+            .filter_map(|(k, &s)| {
+                let next_crd = s + Crd(1, 0);
+
+                if next_crd == self.dragon && !field.hideouts.contains(&next_crd) {
+                    None
+                } else {
+                    let sheep: Vec<Crd> = if next_crd.0 == field.escape_row(next_crd.1) {
+                        without_element_at(self.sheep.clone(), k)
+                    } else {
+                        let mut new_sheep = self.sheep.clone();
+                        new_sheep[k] = next_crd;
+                        new_sheep
+                    };
+
+                    Some(Self {
+                        next_move: Player::Dragon,
+                        sheep,
+                        dragon: self.dragon,
+                    })
+                }
+            })
+            .collect()
     }
 
     fn dragon_adjacent(&self, field: &Field) -> Vec<Self> {
@@ -180,6 +210,32 @@ fn main() {
     assert!(!grid.is_empty());
 
     let field = Field::from_grid(grid);
+
+    let s0 = State {
+        next_move: Player::Sheep,
+        sheep: field.initial_sheep.clone(),
+        dragon: field.initial_dragon,
+    };
+
+    let mut q: VecDeque<State> = VecDeque::from([s0.clone()]);
+    let mut seen: HashSet<State> = HashSet::from([s0]);
+    let mut result: u64 = 0;
+
+    while let Some(u) = q.pop_front() {
+        for v in u.adjacent(&field) {
+            if !seen.contains(&v) {
+                seen.insert(v.clone());
+
+                if !v.sheep.is_empty() {
+                    q.push_back(v);
+                } else {
+                    result += 1;
+                }
+            }
+        }
+    }
+
+    println!("{result}");
 }
 
 #[cfg(test)]
