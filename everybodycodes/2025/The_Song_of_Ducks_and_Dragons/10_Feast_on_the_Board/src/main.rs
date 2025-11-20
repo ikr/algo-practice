@@ -132,16 +132,13 @@ impl State {
             .filter_map(|(k, &s)| {
                 let next_crd = s + Crd(1, 0);
 
-                if next_crd == self.dragon && !field.hideouts.contains(&next_crd) {
+                if (next_crd == self.dragon && !field.hideouts.contains(&next_crd))
+                    || next_crd.0 == field.escape_row(next_crd.1)
+                {
                     None
                 } else {
-                    let sheep: Vec<Crd> = if next_crd.0 == field.escape_row(next_crd.1) {
-                        without_element_at(self.sheep.clone(), k)
-                    } else {
-                        let mut new_sheep = self.sheep.clone();
-                        new_sheep[k] = next_crd;
-                        new_sheep
-                    };
+                    let mut sheep = self.sheep.clone();
+                    sheep[k] = next_crd;
 
                     Some(Self {
                         next_move: Player::Dragon,
