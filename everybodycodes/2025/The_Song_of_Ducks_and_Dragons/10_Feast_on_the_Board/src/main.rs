@@ -1,8 +1,6 @@
 use itertools::Itertools;
-use std::{
-    collections::VecDeque,
-    io::{BufRead, stdin},
-};
+use memoize::memoize;
+use std::io::{BufRead, stdin};
 
 fn without_element_at<T>(mut xs: Vec<T>, i: usize) -> Vec<T> {
     xs.remove(i);
@@ -200,6 +198,19 @@ impl State {
     }
 }
 
+#[memoize(Ignore: field)]
+fn ak_count(field: &Field, u: State) -> u64 {
+    let mut result = 0;
+    for v in u.adjacent(field) {
+        if v.sheep.is_empty() {
+            result += 1;
+        } else {
+            result += ak_count(field, v);
+        }
+    }
+    result
+}
+
 fn main() {
     let grid: Vec<Vec<u8>> = stdin()
         .lock()
@@ -216,20 +227,7 @@ fn main() {
         dragon: field.initial_dragon,
     };
 
-    let mut q: VecDeque<State> = VecDeque::from([s0.clone()]);
-    let mut result: u64 = 0;
-
-    while let Some(u) = q.pop_front() {
-        for v in u.adjacent(&field) {
-            if v.sheep.is_empty() {
-                result += 1;
-            } else {
-                q.push_back(v);
-            }
-        }
-    }
-
-    println!("{result}");
+    println!("{}", ak_count(&field, s0));
 }
 
 #[cfg(test)]
