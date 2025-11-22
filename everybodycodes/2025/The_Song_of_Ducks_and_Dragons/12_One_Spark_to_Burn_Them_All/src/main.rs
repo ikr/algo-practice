@@ -15,8 +15,9 @@ fn main() {
 
     let mut exploded: Vec<Vec<bool>> = vec![vec![false; w]; h];
     exploded[0][0] = true;
+    exploded[h - 1][w - 1] = true;
 
-    let mut q: VecDeque<(usize, usize)> = VecDeque::from([(0, 0)]);
+    let mut q: VecDeque<(usize, usize)> = VecDeque::from([(0, 0), (h - 1, w - 1)]);
     while let Some((i, j)) = q.pop_front() {
         if i != 0 && !exploded[i - 1][j] && grid[i - 1][j] <= grid[i][j] {
             exploded[i - 1][j] = true;
