@@ -10,7 +10,7 @@ fn digits_num(x: i64) -> i64 {
 }
 
 fn proper_pairs_num(m: i64, xs: Vec<i64>) -> usize {
-    let mut fq: Vec<HashMap<i64, usize>> = vec![HashMap::new(); 11];
+    let mut fq: Vec<HashMap<i64, usize>> = vec![HashMap::new(); 12];
 
     for &x in &xs {
         let q = digits_num(x) as usize;
@@ -20,7 +20,7 @@ fn proper_pairs_num(m: i64, xs: Vec<i64>) -> usize {
     let mut result = 0;
 
     for a in xs {
-        for q in 1..6 {
+        for q in 1..11 {
             let mut b: i64 = ((-a % m) + m) % m;
             b *= 10i64.pow(q as u32) % m;
             b %= m;
