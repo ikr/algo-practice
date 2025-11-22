@@ -24,28 +24,15 @@ fn ltr_additive_rounds_until_stable(mut xs: Vec<u64>) -> (Vec<u64>, u64) {
     (xs, rounds)
 }
 
-fn ltr_subtractive_rounds_until_stable(mut xs: Vec<u64>) -> u64 {
-    let mut rounds: u64 = 0;
+fn ltr_subtractive_rounds_until_stable(xs: Vec<u64>) -> u64 {
+    let n: u64 = xs.len() as u64;
+    let total: u64 = xs.iter().sum();
+    assert_eq!(total % n, 0);
+    let average = total / n;
 
-    loop {
-        let mut cur: u64 = 0;
-
-        for i in 1..xs.len() {
-            if xs[i - 1] < xs[i] {
-                let delta = (xs[i] - xs[i - 1]).div_ceil(2);
-                cur = cur.max(delta);
-                xs[i - 1] += delta;
-                xs[i] -= delta;
-            }
-        }
-
-        if cur == 0 {
-            break;
-        }
-        rounds += cur;
-    }
-
-    rounds
+    xs.into_iter()
+        .filter_map(|x| if x > average { Some(x - average) } else { None })
+        .sum()
 }
 
 fn ltr_additive(xs0: &[u64]) -> Option<Vec<u64>> {
@@ -96,10 +83,13 @@ fn main() {
         .map(|line| line.unwrap().parse().unwrap())
         .collect();
 
-    let (ys, r0) = run_until_stable_return_rounds(xs, 10_000_000, ltr_additive);
-    eprintln!("{:?} / {r0}", ys);
+    // let (ys, r0) = run_until_stable_return_rounds(xs, 10_000_000, ltr_additive);
+    // eprintln!("{:?} / {r0}", ys);
     //let (_, r1) = run_until_stable_return_rounds(ys, 10_000_000, ltr_subtractive);
-    let r1 = ltr_subtractive_rounds_until_stable(ys);
-    eprintln!("... / {r1}");
-    println!("{}", r0 + r1);
+    // let r1 = ltr_subtractive_rounds_until_stable(ys);
+    // eprintln!("... / {r1}");
+    // println!("{}", r0 + r1);
+
+    assert!(xs.is_sorted());
+    println!("{}", ltr_subtractive_rounds_until_stable(xs));
 }
