@@ -57,6 +57,7 @@ fn main() {
     for _ in 0..3 {
         let first = (0..h)
             .cartesian_product(0..w)
+            .filter(|&(i, j)| !exploded[i][j])
             .max_by_key(|ij| {
                 let mut tmp = exploded.clone();
                 explosion_yield(&grid, &mut tmp, *ij)
