@@ -43,7 +43,7 @@ fn main() {
         .collect();
 
     let mut result = 0;
-    for _ in 0..10 {
+    for _ in 0..2025 {
         grid = next_gen(grid);
         result += true_count(&grid);
     }
