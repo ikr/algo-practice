@@ -1,6 +1,7 @@
 use std::io::{BufRead, stdin};
 
 const SZ: usize = 34;
+const ROUNDS: usize = 1_000_000_000;
 
 fn grid_dimentions(grid: &[Vec<bool>]) -> (usize, usize) {
     (grid.len(), grid[0].len())
@@ -58,7 +59,7 @@ fn main() {
         .map(|line| line.unwrap().bytes().map(|x| x == b'#').collect())
         .collect();
 
-    let grid = vec![vec![false; SZ]; SZ];
+    let mut grid = vec![vec![false; SZ]; SZ];
 
     assert!(!confirm_center_piece_match(&grid, &special_center_piece));
 
@@ -66,4 +67,10 @@ fn main() {
         &special_center_piece,
         &special_center_piece
     ));
+
+    for _ in 0..125 {
+        grid = next_gen(grid);
+    }
+    assert!(confirm_center_piece_match(&grid, &special_center_piece));
+    eprintln!("Yep");
 }
