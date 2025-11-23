@@ -1,8 +1,13 @@
 use std::io::{BufRead, stdin};
 
+const SZ: usize = 34;
+
+fn grid_dimentions(grid: &[Vec<bool>]) -> (usize, usize) {
+    (grid.len(), grid[0].len())
+}
+
 fn neighs_count(grid: &[Vec<bool>], i: usize, j: usize) -> usize {
-    let h = grid.len();
-    let w = grid[0].len();
+    let (h, w) = grid_dimentions(grid);
     [
         (i != 0 && j != 0, i.saturating_sub(1), j.saturating_sub(1)),
         (i != 0 && j != w - 1, i.saturating_sub(1), j + 1),
@@ -15,8 +20,7 @@ fn neighs_count(grid: &[Vec<bool>], i: usize, j: usize) -> usize {
 }
 
 fn next_gen(grid: Vec<Vec<bool>>) -> Vec<Vec<bool>> {
-    let h = grid.len();
-    let w = grid[0].len();
+    let (h, w) = grid_dimentions(&grid);
     let mut result = vec![vec![false; w]; h];
 
     for i in 0..h {
@@ -35,17 +39,31 @@ fn true_count(xss: &[Vec<bool>]) -> usize {
         .sum()
 }
 
+fn confirm_center_piece_match(grid: &[Vec<bool>], center_piece: &[Vec<bool>]) -> bool {
+    let (h, w) = grid_dimentions(grid);
+    let (hh, ww) = grid_dimentions(center_piece);
+    let dh = (h - hh) / 2;
+    let dw = (w - ww) / 2;
+
+    grid[dh..dh + hh]
+        .iter()
+        .zip(center_piece)
+        .all(|(row_a, row_b)| row_a[dw..dw + ww] == *row_b)
+}
+
 fn main() {
-    let mut grid: Vec<Vec<bool>> = stdin()
+    let special_center_piece: Vec<Vec<bool>> = stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().bytes().map(|x| x == b'#').collect())
         .collect();
 
-    let mut result = 0;
-    for _ in 0..2025 {
-        grid = next_gen(grid);
-        result += true_count(&grid);
-    }
-    println!("{result}");
+    let grid = vec![vec![false; SZ]; SZ];
+
+    assert!(!confirm_center_piece_match(&grid, &special_center_piece));
+
+    assert!(confirm_center_piece_match(
+        &special_center_piece,
+        &special_center_piece
+    ));
 }
