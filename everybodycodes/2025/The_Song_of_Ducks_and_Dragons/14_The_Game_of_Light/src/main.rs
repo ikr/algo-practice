@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashMap,
+    io::{BufRead, stdin},
+};
 
 const SZ: usize = 34;
 const ROUNDS: usize = 1_000_000_000;
@@ -60,17 +63,30 @@ fn main() {
         .collect();
 
     let mut grid = vec![vec![false; SZ]; SZ];
+    let mut round_by_state: HashMap<Vec<Vec<bool>>, usize> = HashMap::new();
+    let mut periodic_rounds: Vec<usize> = vec![];
+    let mut period: usize = 0;
 
-    assert!(!confirm_center_piece_match(&grid, &special_center_piece));
-
-    assert!(confirm_center_piece_match(
-        &special_center_piece,
-        &special_center_piece
-    ));
-
-    for _ in 0..125 {
+    for r in 1..20_001 {
         grid = next_gen(grid);
+
+        if confirm_center_piece_match(&grid, &special_center_piece) {
+            if let Some(older_r) = round_by_state.get(&grid) {
+                if period == 0 {
+                    period = r - older_r;
+                }
+
+                if periodic_rounds
+                    .iter()
+                    .all(|pr| (older_r - pr) % period != 0)
+                {
+                    periodic_rounds.push(*older_r);
+                }
+            }
+
+            round_by_state.insert(grid.clone(), r);
+        }
     }
-    assert!(confirm_center_piece_match(&grid, &special_center_piece));
-    eprintln!("Yep");
+
+    eprintln!("{:?}", periodic_rounds);
 }
