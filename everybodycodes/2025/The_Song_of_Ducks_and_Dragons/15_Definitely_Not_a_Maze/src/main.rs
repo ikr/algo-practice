@@ -98,7 +98,6 @@ fn main() {
     let mut buf = String::new();
     std::io::stdin().read_to_string(&mut buf).unwrap();
     let instructions: Vec<Instr> = buf.trim().split(',').map(Instr::decode).collect();
-    eprintln!("{:?}", instructions);
 
     let start = Crd(0, 0);
     let mut walls: HashSet<Crd> = HashSet::new();
@@ -125,6 +124,5 @@ fn main() {
 
     walls.remove(&crd);
     let finish = crd;
-    eprintln!("{:?}\n{:?} -> {:?}", walls, start, finish);
     println!("{}", shortest_path_length(&walls, start, finish));
 }
