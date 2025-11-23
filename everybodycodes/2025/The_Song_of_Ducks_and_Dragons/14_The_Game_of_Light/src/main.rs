@@ -65,6 +65,7 @@ fn main() {
     let mut grid = vec![vec![false; SZ]; SZ];
     let mut round_by_state: HashMap<Vec<Vec<bool>>, usize> = HashMap::new();
     let mut periodic_rounds: Vec<usize> = vec![];
+    let mut periodic_states: Vec<usize> = vec![];
     let mut period: usize = 0;
 
     for r in 1..20_001 {
@@ -81,6 +82,7 @@ fn main() {
                     .all(|pr| (older_r - pr) % period != 0)
                 {
                     periodic_rounds.push(*older_r);
+                    periodic_states.push(true_count(&grid));
                 }
             }
 
@@ -89,4 +91,15 @@ fn main() {
     }
 
     eprintln!("{:?}", periodic_rounds);
+
+    let result: usize = periodic_rounds
+        .into_iter()
+        .zip(periodic_states)
+        .map(|(r, s)| {
+            let k = 1 + (ROUNDS - r) / period;
+            s * k
+        })
+        .sum();
+
+    println!("{result}");
 }
