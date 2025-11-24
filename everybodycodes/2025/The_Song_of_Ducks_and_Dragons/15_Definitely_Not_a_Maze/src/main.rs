@@ -1,5 +1,7 @@
 use std::io::Read;
 
+use pathfinding::prelude::astar;
+
 #[derive(Clone, Copy, Debug)]
 enum Instr {
     L(i32),
@@ -22,6 +24,10 @@ struct Crd(i32, i32);
 impl Crd {
     fn scale_by(self, k: i32) -> Self {
         Self(k * self.0, k * self.1)
+    }
+
+    fn manhattan_distance(self, p: Self) -> u32 {
+        self.0.abs_diff(p.0) + self.1.abs_diff(p.1)
     }
 
     fn dot(self, p: Self) -> i32 {
@@ -98,9 +104,31 @@ impl Dir {
     }
 }
 
+fn is_walkable(wall_segments: &[(Crd, Crd)], p: Crd) -> bool {
+    !wall_segments.iter().any(|&(s, e)| Crd::on_segment(s, e, p))
+}
+
 fn shortest_path_length(wall_segments: Vec<(Crd, Crd)>, start: Crd, finish: Crd) -> u32 {
-    eprintln!("{:?} {:?} → {:?}", wall_segments, start, finish);
-    todo!()
+    astar(
+        &start,
+        |&u| {
+            Dir::all()
+                .into_iter()
+                .filter_map(|dir| {
+                    let v = u + dir.delta();
+                    if is_walkable(&wall_segments, v) {
+                        Some((v, 1))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>()
+        },
+        |u| u.manhattan_distance(finish),
+        |u| *u == finish,
+    )
+    .unwrap()
+    .1
 }
 
 fn main() {
