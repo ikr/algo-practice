@@ -1,6 +1,6 @@
-use std::{collections::HashSet, io::Read};
-
+use itertools::Itertools;
 use pathfinding::prelude::astar;
+use std::{collections::HashSet, io::Read};
 
 #[derive(Clone, Copy, Debug)]
 enum Instr {
@@ -24,6 +24,15 @@ struct Crd(i64, i64);
 // Geometry functions adapted from KACTL
 // https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry
 impl Crd {
+    fn neighs(self) -> Vec<Crd> {
+        Dir::all()
+            .into_iter()
+            .circular_tuple_windows()
+            .map(|(d1, d2)| d1.delta() + d2.delta())
+            .chain(Dir::all().into_iter().map(|d| d.delta()))
+            .collect()
+    }
+
     fn sgn(x: i64) -> i64 {
         if x > 0 {
             1
@@ -217,4 +226,26 @@ fn main() {
     }
 
     println!("{}", shortest_path_length(wall_segments, start, finish));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_crd_neighs() {
+        assert_eq!(
+            Crd(0, 0).neighs(),
+            vec![
+                Crd(-1, 1),
+                Crd(1, 1),
+                Crd(1, -1),
+                Crd(-1, -1),
+                Crd(-1, 0),
+                Crd(0, 1),
+                Crd(1, 0),
+                Crd(0, -1)
+            ]
+        );
+    }
 }
