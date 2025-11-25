@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use pathfinding::prelude::astar;
-use std::{collections::HashSet, io::Read};
+use std::{collections::HashSet, io::Read, iter::once};
 
 #[derive(Clone, Copy, Debug)]
 enum Instr {
@@ -168,22 +168,40 @@ fn is_walkable(wall_segments: &[(Crd, Crd)], p: Crd) -> bool {
     !wall_segments.iter().any(|&(s, e)| Crd::on_segment(s, e, p))
 }
 
+fn confirm_no_obstacles_from_a_to_b(wall_segments: &[(Crd, Crd)], a: Crd, b: Crd) -> bool {
+    is_walkable(wall_segments, a)
+        && is_walkable(wall_segments, b)
+        && wall_segments
+            .iter()
+            .all(|&(p, q)| Crd::segments_intersection(a, b, p, q).is_empty())
+}
+
+fn adjacent(wall_segments: &[(Crd, Crd)], start: Crd, finish: Crd, a: Crd) -> Vec<Crd> {
+    assert!(is_walkable(wall_segments, a), "{:?} isn't walkable", a);
+
+    wall_segments
+        .iter()
+        .flat_map(|&(p, q)| {
+            let mut result = p.neighs();
+            result.extend(q.neighs());
+            result
+        })
+        .chain(once(finish))
+        .chain(once(start))
+        .filter(|&b| confirm_no_obstacles_from_a_to_b(wall_segments, a, b))
+        .collect()
+}
+
+fn edges_from(a: Crd, bs: Vec<Crd>) -> Vec<(Crd, u64)> {
+    bs.into_iter()
+        .map(|b| (b, a.manhattan_distance(b)))
+        .collect()
+}
+
 fn shortest_path_length(wall_segments: Vec<(Crd, Crd)>, start: Crd, finish: Crd) -> u64 {
     astar(
         &start,
-        |&u| {
-            Dir::all()
-                .into_iter()
-                .filter_map(|dir| {
-                    let v = u + dir.delta();
-                    if is_walkable(&wall_segments, v) {
-                        Some((v, 1))
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Vec<_>>()
-        },
+        |&u| edges_from(u, adjacent(&wall_segments, start, finish, u)),
         |u| u.manhattan_distance(finish),
         |u| *u == finish,
     )
@@ -221,9 +239,13 @@ fn main() {
                 .mul_by(k - if i == instructions_count - 1 { 1 } else { 0 });
 
         finish = crd + dir.delta().mul_by(k);
+        if crd == Crd(0, 0) {
+            crd = crd + dir.delta();
+        }
         wall_segments.push((crd, next_crd));
         crd = next_crd;
     }
+    eprintln!("{:?} {:?} → {:?}", wall_segments, start, finish);
 
     println!("{}", shortest_path_length(wall_segments, start, finish));
 }
