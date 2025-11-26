@@ -6,11 +6,11 @@ fn main() {
 
     let mut xs: Vec<u8> = buf.trim().split(',').map(|s| s.parse().unwrap()).collect();
     let n = xs.len();
-    let mut result: usize = 1;
+    let mut spell: Vec<usize> = vec![];
 
     while let Some(i0) = xs.iter().position(|&x| x != 0) {
         let d = i0 + 1;
-        result *= d;
+        spell.push(d);
 
         for i in (i0..n).step_by(d) {
             assert_ne!(xs[i], 0);
@@ -18,5 +18,5 @@ fn main() {
         }
     }
 
-    println!("{result}");
+    eprintln!("{:?}", spell);
 }
