@@ -25,7 +25,6 @@ fn main() {
 
     let h = grid.len();
     let w = grid[0].len();
-    eprintln!("{h} x {w}");
     let (zi, zj) = crd_of_x(&grid, 0);
 
     let mut damage_by_radius: Vec<u64> = vec![0; (h.pow(2) + w.pow(2)).isqrt() + 2];
@@ -45,9 +44,6 @@ fn main() {
             damage_by_radius[r] += cell;
         }
     }
-
-    eprintln!("{:?}", radius);
-    eprintln!("{:?}", damage_by_radius);
 
     let (r, damage) = damage_by_radius
         .into_iter()
