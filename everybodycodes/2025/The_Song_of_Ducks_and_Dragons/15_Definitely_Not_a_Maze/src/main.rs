@@ -169,15 +169,9 @@ fn is_reachable(wall_segments: &[(Crd, Crd)], p: Crd) -> bool {
 }
 
 fn is_b_reachable_from_a(wall_segments: &[(Crd, Crd)], a: Crd, b: Crd) -> bool {
-    assert!(is_reachable(wall_segments, a), "{:?} isn't reachable", a);
-    assert!(is_reachable(wall_segments, b), "{:?} isn't reachable", b);
-
-    wall_segments.iter().all(|&(p, q)| {
-        // if !Crd::segments_intersection(a, b, p, q).is_empty() {
-        //     eprintln!("{:?} intersects {:?}", (a, b), (p, q));
-        // }
-        Crd::segments_intersection(a, b, p, q).is_empty()
-    })
+    wall_segments
+        .iter()
+        .all(|&(p, q)| Crd::segments_intersection(a, b, p, q).is_empty())
 }
 
 fn reachable_neighs(wall_segments: &[(Crd, Crd)], a: Crd) -> Vec<Crd> {
@@ -207,8 +201,6 @@ fn adjacent(wall_segments: &[(Crd, Crd)], finish: Crd, a: Crd) -> Vec<Crd> {
         .filter(|&b| is_reachable(wall_segments, b) && is_b_reachable_from_a(wall_segments, a, b))
         .collect();
     result.extend(reachable_edge_neighs);
-
-    // eprintln!("Adjacent to {:?}: {:?}", a, result);
     result
 }
 
@@ -265,7 +257,6 @@ fn main() {
         wall_segments.push((crd, next_crd));
         crd = next_crd;
     }
-    // eprintln!("{:?} {:?} → {:?}", wall_segments, start, finish);
 
     println!("{}", shortest_path_length(wall_segments, start, finish));
 }
