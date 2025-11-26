@@ -28,8 +28,8 @@ impl Crd {
         Dir::all()
             .into_iter()
             .circular_tuple_windows()
-            .map(|(d1, d2)| d1.delta() + d2.delta())
-            .chain(Dir::all().into_iter().map(|d| d.delta()))
+            .map(|(d1, d2)| self + d1.delta() + d2.delta())
+            .chain(Dir::all().into_iter().map(|d| self + d.delta()))
             .collect()
     }
 
@@ -164,32 +164,52 @@ impl Dir {
     }
 }
 
-fn is_walkable(wall_segments: &[(Crd, Crd)], p: Crd) -> bool {
+fn is_reachable(wall_segments: &[(Crd, Crd)], p: Crd) -> bool {
     !wall_segments.iter().any(|&(s, e)| Crd::on_segment(s, e, p))
 }
 
-fn confirm_no_obstacles_from_a_to_b(wall_segments: &[(Crd, Crd)], a: Crd, b: Crd) -> bool {
-    is_walkable(wall_segments, a)
-        && is_walkable(wall_segments, b)
-        && wall_segments
-            .iter()
-            .all(|&(p, q)| Crd::segments_intersection(a, b, p, q).is_empty())
+fn is_b_reachable_from_a(wall_segments: &[(Crd, Crd)], a: Crd, b: Crd) -> bool {
+    assert!(is_reachable(wall_segments, a), "{:?} isn't reachable", a);
+    assert!(is_reachable(wall_segments, b), "{:?} isn't reachable", b);
+
+    wall_segments.iter().all(|&(p, q)| {
+        // if !Crd::segments_intersection(a, b, p, q).is_empty() {
+        //     eprintln!("{:?} intersects {:?}", (a, b), (p, q));
+        // }
+        Crd::segments_intersection(a, b, p, q).is_empty()
+    })
 }
 
-fn adjacent(wall_segments: &[(Crd, Crd)], start: Crd, finish: Crd, a: Crd) -> Vec<Crd> {
-    assert!(is_walkable(wall_segments, a), "{:?} isn't walkable", a);
-
-    wall_segments
-        .iter()
-        .flat_map(|&(p, q)| {
-            let mut result = p.neighs();
-            result.extend(q.neighs());
-            result
-        })
-        .chain(once(finish))
-        .chain(once(start))
-        .filter(|&b| confirm_no_obstacles_from_a_to_b(wall_segments, a, b))
+fn reachable_neighs(wall_segments: &[(Crd, Crd)], a: Crd) -> Vec<Crd> {
+    a.neighs()
+        .into_iter()
+        .filter(|&p| is_reachable(wall_segments, p))
         .collect()
+}
+
+fn adjacent(wall_segments: &[(Crd, Crd)], finish: Crd, a: Crd) -> Vec<Crd> {
+    let mut result: Vec<Crd> = if a == Crd(0, 0) {
+        reachable_neighs(wall_segments, a)
+    } else {
+        vec![]
+    };
+
+    if is_b_reachable_from_a(wall_segments, a, finish) {
+        result.push(finish);
+    }
+
+    let reachable_edge_neighs: Vec<Crd> = wall_segments
+        .iter()
+        .flat_map(|&(p, q)| vec![p, q])
+        .chain(once(finish))
+        .flat_map(|p| p.neighs())
+        .unique()
+        .filter(|&b| is_reachable(wall_segments, b) && is_b_reachable_from_a(wall_segments, a, b))
+        .collect();
+    result.extend(reachable_edge_neighs);
+
+    // eprintln!("Adjacent to {:?}: {:?}", a, result);
+    result
 }
 
 fn edges_from(a: Crd, bs: Vec<Crd>) -> Vec<(Crd, u64)> {
@@ -201,7 +221,7 @@ fn edges_from(a: Crd, bs: Vec<Crd>) -> Vec<(Crd, u64)> {
 fn shortest_path_length(wall_segments: Vec<(Crd, Crd)>, start: Crd, finish: Crd) -> u64 {
     astar(
         &start,
-        |&u| edges_from(u, adjacent(&wall_segments, start, finish, u)),
+        |&u| edges_from(u, adjacent(&wall_segments, finish, u)),
         |u| u.manhattan_distance(finish),
         |u| *u == finish,
     )
@@ -245,7 +265,7 @@ fn main() {
         wall_segments.push((crd, next_crd));
         crd = next_crd;
     }
-    eprintln!("{:?} {:?} → {:?}", wall_segments, start, finish);
+    // eprintln!("{:?} {:?} → {:?}", wall_segments, start, finish);
 
     println!("{}", shortest_path_length(wall_segments, start, finish));
 }
@@ -269,5 +289,21 @@ mod tests {
                 Crd(0, -1)
             ]
         );
+    }
+
+    #[test]
+    fn test_segments_intersection_a() {
+        assert_eq!(
+            Crd::segments_intersection(Crd(0, 0), Crd(0, 10), Crd(1, 0), Crd(1, 5)).len(),
+            0
+        )
+    }
+
+    #[test]
+    fn test_segments_intersection_b() {
+        assert_eq!(
+            Crd::segments_intersection(Crd(0, 3), Crd(20, 3), Crd(3, 0), Crd(7, 7)).len(),
+            1
+        )
     }
 }
