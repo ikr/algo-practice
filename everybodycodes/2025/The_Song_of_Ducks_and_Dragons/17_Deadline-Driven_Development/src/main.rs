@@ -2,6 +2,7 @@ use itertools::Itertools;
 use std::io::{BufRead, stdin};
 
 const INF: i32 = 100_000_000;
+const ERUPTION_STEP_DT: i32 = 30;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -11,8 +12,21 @@ impl Crd {
         Self(i as i32, j as i32)
     }
 
-    fn get_in(self, grid: &[Vec<i32>]) -> i32 {
-        grid[self.0 as usize][self.1 as usize]
+    fn get_in(self, grid: &[Vec<i32>]) -> Option<i32> {
+        if self.0 >= 0 && self.1 >= 0 {
+            let h = grid.len();
+            let w = grid[0].len();
+            let i = self.0 as usize;
+            let j = self.1 as usize;
+
+            if i < h && j < w {
+                Some(grid[i][j])
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
     fn dist2(self, p: Self) -> u32 {
@@ -25,6 +39,29 @@ impl std::ops::Add<Crd> for Crd {
 
     fn add(self, o: Crd) -> Crd {
         Crd(self.0 + o.0, self.1 + o.1)
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+enum Dir {
+    N,
+    E,
+    S,
+    W,
+}
+
+impl Dir {
+    fn all() -> Vec<Self> {
+        vec![Self::N, Self::E, Self::S, Self::W]
+    }
+
+    fn delta(&self) -> Crd {
+        match self {
+            Dir::N => Crd(-1, 0),
+            Dir::E => Crd(0, 1),
+            Dir::S => Crd(1, 0),
+            Dir::W => Crd(0, -1),
+        }
     }
 }
 
