@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use pathfinding::prelude::dijkstra;
 use std::io::{BufRead, stdin};
 
 const INF: i32 = 100_000_000;
@@ -31,6 +32,10 @@ impl Crd {
 
     fn dist2(self, p: Self) -> u32 {
         self.0.abs_diff(p.0).pow(2) + self.1.abs_diff(p.1).pow(2)
+    }
+
+    fn mul_by(self, k: i32) -> Self {
+        Self(self.0 * k, self.1 * k)
     }
 }
 
@@ -143,5 +148,64 @@ fn main() {
 
     let h = grid.len();
     let w = grid[0].len();
+    let eruption_radius_bound: i32 = h.min(w) as i32;
     let [start, epicenter] = special_crds(&grid);
+    let radius_table = radius_table_for(h, w, epicenter);
+
+    let mut optimal_path_cost: i32 = INF;
+    let mut optimal_eruption_radius: i32 = 0;
+
+    for r in 0..eruption_radius_bound {
+        for left_waypoint_factor in r + 1..=eruption_radius_bound {
+            let left_waypoint = epicenter + Dir::W.delta().mul_by(left_waypoint_factor);
+
+            for right_waypoint_factor in r + 1..=eruption_radius_bound {
+                let right_waypoint = epicenter + Dir::E.delta().mul_by(right_waypoint_factor);
+
+                for bottom_waypoint_factor in r + 1..=eruption_radius_bound {
+                    let bottom_waypoint = epicenter + Dir::S.delta().mul_by(bottom_waypoint_factor);
+
+                    let one = dijkstra(
+                        &start,
+                        |&u| adjacent(&grid, &radius_table, r, u),
+                        |&u| u == left_waypoint,
+                    );
+
+                    let two = dijkstra(
+                        &left_waypoint,
+                        |&u| adjacent(&grid, &radius_table, r, u),
+                        |&u| u == bottom_waypoint,
+                    );
+
+                    let three = dijkstra(
+                        &bottom_waypoint,
+                        |&u| adjacent(&grid, &radius_table, r, u),
+                        |&u| u == right_waypoint,
+                    );
+
+                    let four = dijkstra(
+                        &right_waypoint,
+                        |&u| adjacent(&grid, &radius_table, r, u),
+                        |&u| u == start,
+                    );
+
+                    match (one, two, three, four) {
+                        (Some((_, a)), Some((_, b)), Some((_, c)), Some((_, d))) => {
+                            let total = a + b + c + d;
+                            if total <= r * ERUPTION_STEP_DT && total < optimal_path_cost {
+                                optimal_path_cost = total;
+                                optimal_eruption_radius = r;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+
+    println!(
+        "c:{optimal_path_cost} with r:{optimal_eruption_radius} → {}",
+        optimal_path_cost * optimal_eruption_radius
+    );
 }
