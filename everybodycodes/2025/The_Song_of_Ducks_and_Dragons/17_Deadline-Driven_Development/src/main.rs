@@ -110,6 +110,30 @@ fn radius_table_for(h: usize, w: usize, epicenter: Crd) -> Vec<Vec<i32>> {
     result
 }
 
+fn adjacent(
+    grid: &[Vec<i32>],
+    radius_table: &[Vec<i32>],
+    eruption_radius: i32,
+    u: Crd,
+) -> Vec<(Crd, i32)> {
+    Dir::all()
+        .iter()
+        .filter_map(|dir| {
+            let v = u + dir.delta();
+
+            if let Some(c) = v.get_in(grid)
+                && let Some(r) = v.get_in(radius_table)
+                && r > eruption_radius
+            {
+                Some((v, c))
+            } else {
+                assert_eq!(v.get_in(grid).is_none(), v.get_in(radius_table).is_none());
+                None
+            }
+        })
+        .collect()
+}
+
 fn main() {
     let grid: Vec<Vec<i32>> = stdin()
         .lock()
@@ -120,7 +144,4 @@ fn main() {
     let h = grid.len();
     let w = grid[0].len();
     let [start, epicenter] = special_crds(&grid);
-    eprintln!("{h} x {w}, start: {:?}, epicenter: {:?}", start, epicenter);
-
-    eprintln!("{:?}", radius_table_for(h, w, epicenter));
 }
