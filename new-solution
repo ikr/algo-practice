@@ -5,119 +5,131 @@ import os
 import re
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--tests",
-                    help="Main function runs unit tests instead of reading STDIN",
+parser.add_argument("-a", "--atcoder",
+                    help="Assume the crates available at AtCoder",
+                    action="store_true")
+parser.add_argument("-e", "--embed",
+                    help="Assume running in a “0 crates available” mode; embed input scanner",
                     action="store_true")
 parser.add_argument("-p", "--prefix-output",
                     help="Read STDIN & prefix K-th test case's output with `Case #K: `",
                     action="store_true")
-parser.add_argument("-s", "--cpp-standard",
-                    type=int,
-                    default=20,
-                    help="The C++ standard to use: 20 (default), 17, 14, or 11")
 parser.add_argument("name", help="The name of the problem")
 args = parser.parse_args()
 
-streams_snippet = """cin.tie(0)->sync_with_stdio(0);
-    cin.exceptions(cin.failbit);
-"""
+code = ""
 
-code = '#include "lest.hpp"\n' if args.tests else ""
+if args.prefix_output:
+    code = code + """use proconio::input;
+// use proconio::marker::Bytes;
+use proconio_derive::fastout;
 
-code += """#include <bits/stdc++.h>
-using namespace std;
 
-template <typename T> constexpr int inof(const T x) { return static_cast<int>(x); }
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-"""
-
-if args.cpp_standard < 17:
-    code = code + """
-template <typename T> constexpr typename T::const_iterator xbegin(const T &xs) {
-    return xs.cbegin();
+fn solve(xs: Vec<i32>) -> i32 {
+    xs.into_iter().sum::<i32>()
 }
 
-template <typename T> constexpr typename T::const_iterator xend(const T &xs) {
-    return xs.cend();
+#[fastout]
+fn main() {
+    input! {
+        cases_num: u16,
+    }
+
+    for t in 1..=cases_num {
+        input! {
+            n: usize,
+            xs: [i32; n],
+        }
+
+        let result = solve(xs);
+        println!("Case #{t}: {result}");
+    }
 }
 """
+elif args.embed:
+    code += """use std::io::{BufWriter, Write, stdin, stdout};
 
-if args.tests:
-    code = code + """
-struct Solution final {
-    int solve_it() const { return 42; }
-};
+#[derive(Default)]
+struct Scanner {
+    buffer: Vec<String>,
+}
 
-// clang-format off
-const lest::test tests[] = {
-    CASE("Example 0") {
-        const auto actual = Solution{}.solve_it();
-        const auto expected = 42;
-        EXPECT(actual == expected);
-    },
-    CASE("Example 1") {
-        const auto actual = Solution{}.solve_it();
-        const auto expected = 42;
-        EXPECT(actual == expected);
-    },
-};
-// clang-format on
+impl Scanner {
+    fn next<T: std::str::FromStr>(&mut self) -> T {
+        loop {
+            if let Some(token) = self.buffer.pop() {
+                return token.parse().ok().expect("Failed parse");
+            }
+            let mut input = String::new();
+            stdin().read_line(&mut input).expect("Failed read");
+            self.buffer = input.split_whitespace().rev().map(String::from).collect();
+        }
+    }
 
-int main(int argc, char **argv) { return lest::run(tests, argc, argv); }
+    fn next_n<T: std::str::FromStr>(&mut self, n: usize) -> Vec<T> {
+        let mut result: Vec<T> = Vec::with_capacity(n);
+        for _ in 0..n {
+            result.push(self.next());
+        }
+        result
+    }
+}
+
+fn solve(xs: Vec<i64>) -> i64 {
+    xs.into_iter().sum()
+}
+
+fn main() {
+    let stdout = stdout();
+    let handle = stdout.lock();
+    let mut writer = BufWriter::new(handle);
+
+    let mut scanner = Scanner::default();
+    let cases_num: u16 = scanner.next();
+
+    for _ in 1..=cases_num {
+        let n: usize = scanner.next();
+        let xs: Vec<i64> = scanner.next_n(n);
+
+        let result = solve(xs);
+        writeln!(writer, "{result}").unwrap();
+    }
+
+    writer.flush().unwrap();
+}
 """
-elif args.prefix_output:
-    code = code + """
-int solve() {{
-    return -1;
-}}
+elif args.atcoder:
+    code += """use std::io::{stdout, BufWriter, Write};
+use proconio::input;
+// use proconio::marker::Bytes;
 
-int main() {{
-    {0}
-    int t;
-    cin >> t;
-    for (int i = 1; i <= t; ++i) {{
-        cout << "Case #" << i << ": " << solve() << '\\n';
-    }}
+fn solve(xs: Vec<i32>) -> i32 {
+    xs.into_iter().sum::<i32>()
+}
 
-    return 0;
-}}
-""".format(streams_snippet)
+fn main() {
+    let stdout = stdout();
+    let handle = stdout.lock();
+    let mut writer = BufWriter::new(handle);
+
+    input! {
+        n: usize,
+        xs: [i32; n],
+    }
+
+    let result = solve(xs);
+    writeln!(writer, "{result}").unwrap();
+    writer.flush().unwrap();
+}
+"""
 else:
-    code = code + """
-int main() {{
-    {0}
-    int t;
-    cin >> t;
-    while (t--) {{
-    }}
+    code += """use std::io::{BufRead, stdin};
 
-    return 0;
-}}
-""".format(streams_snippet)
-
-sanitization_arguments="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_CONCEPT_CHECKS -D_GLIBCXX_ASSERTIONS -D_GLIBCXX_SANITIZE_VECTOR -D_FORTIFY_SOURCE=2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector "
-
-static_argument="-static "
-
-compilation_command_base="g++ -I/home/ikr/code/ac-library -std=gnu++{0} -Wall -Wextra -Wshadow -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -pedantic -Wcast-qual -Wcast-align {1}-O2 -o ./solution ./solution.cpp"
-
-normal_compilation_command = compilation_command_base.format(args.cpp_standard, sanitization_arguments)
-optimized_compilation_command = compilation_command_base.format(args.cpp_standard, static_argument)
-
-makefile = """build:
-	{0}
-
-optimized:
-	{1}
-
-run: build
-	./solution{2}
-""".format(normal_compilation_command, optimized_compilation_command, ' -p' if args.tests else '')
-
-compile_flags = """-I/home/ikr/code/ac-library
--std=c++{0}
-""".format(args.cpp_standard)
+fn main() {
+    let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
+    eprintln!("{:?}", lines);
+}
+"""
 
 def normalize(name):
     ans = name
@@ -126,23 +138,23 @@ def normalize(name):
         ans = ans.replace(x, '')
     return re.sub(r'[ &,/]+', '_', ans)
 
+os.system('cargo new {0} --name solution'.format(normalize(args.name)))
 path = os.path.join(os.getcwd(), normalize(args.name))
-os.mkdir(path)
 os.chdir(path)
 
-with open("solution.cpp", "w+") as file:
+if args.atcoder:
+    os.system('cargo add proconio')
+
+if args.prefix_output:
+    os.system('cargo add proconio')
+    os.system('cargo add proconio_derive')
+
+with open("src/main.rs", "w+") as file:
     file.write(code)
 
-with open("Makefile", "w+") as file:
-    file.write(makefile)
+os.system("""echo -n '{0}' | xclip -selection clipboard""".format(path))
+os.system('emacsclient -n ./src/main.rs')
 
-with open("compile_flags.txt", "w+") as file:
-    file.write(compile_flags)
-
-if args.tests:
-    os.system('ln -s /home/ikr/code/lest/include/lest/lest.hpp ./lest.hpp')
-
-os.system('emacsclient -n ./solution.cpp')
-
-clipboard_command = """echo 'cd ./{0} && make run' | xclip -selection clipboard""".format(normalize(args.name))
-os.system(clipboard_command)
+print("----------------------------------------")
+print("cd ./{0} && cargo build".format(normalize(args.name)))
+print("----------------------------------------")
