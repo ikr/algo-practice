@@ -92,8 +92,8 @@ fn grid_cell_value(x: u8) -> i32 {
     match x {
         b'@' => INF,
         b'S' => 0,
-        b'1'..b'9' => (x - b'0') as i32,
-        _ => unreachable!(),
+        b'1'..=b'9' => (x - b'0') as i32,
+        _ => unreachable!("Unexpected {}", x),
     }
 }
 
@@ -128,7 +128,7 @@ fn adjacent(
 
             if let Some(c) = v.get_in(grid)
                 && let Some(r) = v.get_in(radius_table)
-                && r > eruption_radius
+                && r >= eruption_radius
             {
                 Some((v, c))
             } else {
@@ -155,14 +155,14 @@ fn main() {
     let mut optimal_path_cost: i32 = INF;
     let mut optimal_eruption_radius: i32 = 0;
 
-    for r in 0..eruption_radius_bound {
-        for left_waypoint_factor in r + 1..=eruption_radius_bound {
+    for r in 1..eruption_radius_bound {
+        for left_waypoint_factor in r..=eruption_radius_bound {
             let left_waypoint = epicenter + Dir::W.delta().mul_by(left_waypoint_factor);
 
-            for right_waypoint_factor in r + 1..=eruption_radius_bound {
+            for right_waypoint_factor in r..=eruption_radius_bound {
                 let right_waypoint = epicenter + Dir::E.delta().mul_by(right_waypoint_factor);
 
-                for bottom_waypoint_factor in r + 1..=eruption_radius_bound {
+                for bottom_waypoint_factor in r..=eruption_radius_bound {
                     let bottom_waypoint = epicenter + Dir::S.delta().mul_by(bottom_waypoint_factor);
 
                     let one = dijkstra(
@@ -195,6 +195,7 @@ fn main() {
                             if total <= r * ERUPTION_STEP_DT && total < optimal_path_cost {
                                 optimal_path_cost = total;
                                 optimal_eruption_radius = r;
+                                eprintln!("c:{optimal_path_cost} with r:{optimal_eruption_radius}");
                             }
                         }
                         _ => {}
@@ -204,6 +205,7 @@ fn main() {
         }
     }
 
+    optimal_eruption_radius -= 1;
     println!(
         "c:{optimal_path_cost} with r:{optimal_eruption_radius} → {}",
         optimal_path_cost * optimal_eruption_radius
