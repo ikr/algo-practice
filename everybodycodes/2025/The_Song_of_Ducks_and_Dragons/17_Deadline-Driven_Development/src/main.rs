@@ -156,13 +156,13 @@ fn main() {
     let mut optimal_eruption_radius: i32 = 0;
 
     for r in 1..eruption_radius_bound {
-        for left_waypoint_factor in r..=eruption_radius_bound {
+        for left_waypoint_factor in r..r + 3 {
             let left_waypoint = epicenter + Dir::W.delta().mul_by(left_waypoint_factor);
 
-            for right_waypoint_factor in r..=eruption_radius_bound {
+            for right_waypoint_factor in r..r + 3 {
                 let right_waypoint = epicenter + Dir::E.delta().mul_by(right_waypoint_factor);
 
-                for bottom_waypoint_factor in r..=eruption_radius_bound {
+                for bottom_waypoint_factor in r..r + 3 {
                     let bottom_waypoint = epicenter + Dir::S.delta().mul_by(bottom_waypoint_factor);
 
                     let one = dijkstra(
@@ -194,7 +194,7 @@ fn main() {
                             let total = a + b + c + d;
                             if total <= r * ERUPTION_STEP_DT && total < optimal_path_cost {
                                 optimal_path_cost = total;
-                                optimal_eruption_radius = r;
+                                optimal_eruption_radius = r - 1;
                                 eprintln!("c:{optimal_path_cost} with r:{optimal_eruption_radius}");
                             }
                         }
@@ -205,9 +205,9 @@ fn main() {
         }
     }
 
-    optimal_eruption_radius -= 1;
     println!(
-        "c:{optimal_path_cost} with r:{optimal_eruption_radius} → {}",
+        "c:{optimal_path_cost} with r:{} → {}",
+        optimal_eruption_radius,
         optimal_path_cost * optimal_eruption_radius
     );
 }
