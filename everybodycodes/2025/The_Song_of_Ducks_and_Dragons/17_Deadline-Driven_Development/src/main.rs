@@ -189,16 +189,14 @@ fn main() {
                         |&u| u == start,
                     );
 
-                    match (one, two, three, four) {
-                        (Some((_, a)), Some((_, b)), Some((_, c)), Some((_, d))) => {
-                            let total = a + b + c + d;
-                            if total <= r * ERUPTION_STEP_DT && total < optimal_path_cost {
-                                optimal_path_cost = total;
-                                optimal_eruption_radius = r - 1;
-                                eprintln!("c:{optimal_path_cost} with r:{optimal_eruption_radius}");
-                            }
+                    if let (Some((_, a)), Some((_, b)), Some((_, c)), Some((_, d))) =
+                        (one, two, three, four)
+                    {
+                        let total = a + b + c + d;
+                        if total < r * ERUPTION_STEP_DT && total < optimal_path_cost {
+                            optimal_path_cost = total;
+                            optimal_eruption_radius = r - 1;
                         }
-                        _ => {}
                     }
                 }
             }
