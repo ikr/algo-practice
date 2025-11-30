@@ -42,6 +42,38 @@ fn decode_bool_matrix(zero_one_rows: &str) -> Vec<Vec<bool>> {
     zero_one_rows.split('\n').map(decode_bools).collect()
 }
 
+fn sinked_energy(
+    g: &[Vec<(usize, i64)>],
+    plant_thicknesses: &[i64],
+    source_activations: &[bool],
+) -> i64 {
+    let n = plant_thicknesses.len();
+    let mut flow_energy: Vec<i64> = vec![0; n];
+    flow_energy[0] = 1;
+
+    for (u, &(v, w)) in g[0].iter().enumerate() {
+        if source_activations[u] {
+            flow_energy[v] += flow_energy[0] * w;
+        }
+    }
+
+    for u in 1..n {
+        for &(v, w) in &g[u] {
+            if flow_energy[u] >= plant_thicknesses[u] {
+                flow_energy[v] += flow_energy[u] * w;
+            }
+        }
+    }
+
+    let sinked: i64 = *flow_energy.last().unwrap();
+
+    if sinked >= *plant_thicknesses.last().unwrap() {
+        sinked
+    } else {
+        0
+    }
+}
+
 fn main() {
     let mut buf: String = String::new();
     std::io::stdin().read_to_string(&mut buf).unwrap();
@@ -66,36 +98,14 @@ fn main() {
         .collect();
 
     let activation_rows: Vec<Vec<bool>> = decode_bool_matrix(buf[isep + 3..].trim_end());
+    eprintln!("Activation row length is {}", activation_rows[0].len());
 
     let n = plant_thicknesses.len();
     let g = graph_from_edges(n, edges);
     let mut result = 0;
 
-    for activations in activation_rows {
-        let mut flow_energy: Vec<i64> = vec![0; n];
-        flow_energy[0] = 1;
-
-        for (u, &(v, w)) in g[0].iter().enumerate() {
-            if activations[u] {
-                flow_energy[v] += flow_energy[0] * w;
-            }
-        }
-
-        for u in 1..n {
-            for &(v, w) in &g[u] {
-                if flow_energy[u] >= plant_thicknesses[u] {
-                    flow_energy[v] += flow_energy[u] * w;
-                }
-            }
-        }
-
-        let sinked: i64 = *flow_energy.last().unwrap();
-
-        result += if sinked >= *plant_thicknesses.last().unwrap() {
-            sinked
-        } else {
-            0
-        };
+    for source_activations in activation_rows {
+        result += sinked_energy(&g, &plant_thicknesses, &source_activations);
     }
 
     println!("{}", result);
