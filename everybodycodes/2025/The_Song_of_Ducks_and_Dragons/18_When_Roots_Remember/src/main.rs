@@ -49,14 +49,24 @@ fn main() {
         .collect();
 
     let edges: Vec<Vec<(usize, u64)>> = once(vec![])
-        .chain(plant_sources.into_iter().map(|s| {
-            s.split('\n')
-                .skip(1)
-                .map(|line| decode_edge(line))
-                .collect()
-        }))
+        .chain(
+            plant_sources
+                .into_iter()
+                .map(|s| s.split('\n').skip(1).map(decode_edge).collect()),
+        )
         .collect();
 
-    let g = graph_from_edges(plant_thicknesses.len(), edges);
-    eprintln!("{:?}", g);
+    let n = plant_thicknesses.len();
+    let g = graph_from_edges(n, edges);
+    let mut flow_energy: Vec<u64> = vec![0; n];
+    flow_energy[0] = 1;
+
+    for u in 0..n {
+        for &(v, w) in &g[u] {
+            if flow_energy[u] >= plant_thicknesses[u] {
+                flow_energy[v] += flow_energy[u] * w;
+            }
+        }
+    }
+    println!("{}", flow_energy.last().unwrap());
 }
