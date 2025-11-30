@@ -1,5 +1,10 @@
+use itertools::Itertools;
+use rand::{Rng, rngs::ThreadRng};
 use regex::Regex;
 use std::{io::Read, iter::once};
+
+const POPULATION_LIMIT: usize = 10_000;
+const GENERATIONS: usize = 100;
 
 fn decode_thickness(plant_source: &str) -> i64 {
     let re = Regex::new(r"^Plant (\d+) with thickness (-?\d+):").unwrap();
@@ -74,6 +79,57 @@ fn sinked_energy(
     }
 }
 
+fn individuals_cross_over(rng: &mut ThreadRng, xs: Vec<bool>, ys: Vec<bool>) -> Vec<bool> {
+    let m = xs.len();
+    assert_eq!(ys.len(), m);
+    let remaining_length: usize = rng.random_range(1..m);
+
+    let mut result: Vec<bool> = xs[..remaining_length].to_vec();
+    result.extend(&ys[remaining_length..]);
+    assert_eq!(result.len(), m);
+    result
+}
+
+fn random_individual(rng: &mut ThreadRng, m: usize) -> Vec<bool> {
+    (0..m).map(|_| rng.random_bool(0.5)).collect()
+}
+
+fn next_generation(
+    rng: &mut ThreadRng,
+    g: &[Vec<(usize, i64)>],
+    plant_thicknesses: &[i64],
+    population: Vec<Vec<bool>>,
+) -> Vec<Vec<bool>> {
+    let m = population[0].len();
+
+    let mut result: Vec<Vec<bool>> = population
+        .into_iter()
+        .tuple_combinations()
+        .map(|(xs, ys)| individuals_cross_over(rng, xs, ys))
+        .k_largest_by_key((POPULATION_LIMIT / 10) * 9, |xs| {
+            sinked_energy(g, plant_thicknesses, xs)
+        })
+        .collect();
+
+    while result.len() < POPULATION_LIMIT {
+        result.push(random_individual(rng, m));
+    }
+
+    result
+}
+
+fn best_energy_in_population(
+    g: &[Vec<(usize, i64)>],
+    plant_thicknesses: &[i64],
+    population: &[Vec<bool>],
+) -> i64 {
+    population
+        .iter()
+        .map(|xs| sinked_energy(g, plant_thicknesses, xs))
+        .max()
+        .unwrap()
+}
+
 fn main() {
     let mut buf: String = String::new();
     std::io::stdin().read_to_string(&mut buf).unwrap();
@@ -102,11 +158,35 @@ fn main() {
 
     let n = plant_thicknesses.len();
     let g = graph_from_edges(n, edges);
-    let mut result = 0;
 
-    for source_activations in activation_rows {
-        result += sinked_energy(&g, &plant_thicknesses, &source_activations);
+    let es: Vec<i64> = activation_rows
+        .iter()
+        .filter_map(|source_activations| {
+            let sub = sinked_energy(&g, &plant_thicknesses, source_activations);
+            if sub == 0 { None } else { Some(sub) }
+        })
+        .collect();
+    eprintln!("{:?} with max value of {}", es, es.iter().max().unwrap());
+
+    let m = activation_rows[0].len();
+    let mut rng = rand::rng();
+    let mut population: Vec<Vec<bool>> = (0..n).map(|_| random_individual(&mut rng, m)).collect();
+    let mut hi = 0;
+
+    for t in 1..=GENERATIONS {
+        population = next_generation(&mut rng, &g, &plant_thicknesses, population);
+        let cur = best_energy_in_population(&g, &plant_thicknesses, &population);
+
+        if cur > hi {
+            hi = cur;
+
+            let result: i64 = if es.iter().all(|&e| e <= hi) {
+                es.iter().map(|&e| hi - e).sum()
+            } else {
+                0
+            };
+
+            println!("hi: {hi} in generation {t}, final result: {result}");
+        }
     }
-
-    println!("{}", result);
 }
