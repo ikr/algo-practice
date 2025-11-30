@@ -22,11 +22,19 @@ fn walls_and_windows_from_triplets(triplests: Vec<(u16, u16, u16)>) -> (Vec<u16>
 
 fn is_passable(walls: &[u16], windows: &[(u16, u16)], crd: (u16, u16)) -> bool {
     let (row, col) = crd;
-    if let Some(i) = walls.iter().position(|&wall_col| wall_col == col) {
-        let (row_lo, row_hi) = windows[i];
-        row_lo <= row && row <= row_hi
-    } else {
+    let ii: Vec<usize> = walls
+        .iter()
+        .enumerate()
+        .filter_map(|(i, &wall_col)| if wall_col == col { Some(i) } else { None })
+        .collect();
+
+    if ii.is_empty() {
         true
+    } else {
+        ii.into_iter().any(|i| {
+            let (row_lo, row_hi) = windows[i];
+            row_lo <= row && row <= row_hi
+        })
     }
 }
 
@@ -49,9 +57,7 @@ fn adjacent(walls: &[u16], windows: &[(u16, u16)], crd: (u16, u16)) -> Vec<((u16
 fn is_finish_line(walls: &[u16], windows: &[(u16, u16)], crd: (u16, u16)) -> bool {
     assert!(is_passable(walls, windows, crd));
     let n = walls.len();
-    let (row, col) = crd;
-    let (row_lo, row_hi) = windows[n - 1];
-    col == walls[n - 1] && row_lo <= row && row <= row_hi
+    crd.1 == walls[n - 1] && is_passable(walls, windows, crd)
 }
 
 fn main() {
