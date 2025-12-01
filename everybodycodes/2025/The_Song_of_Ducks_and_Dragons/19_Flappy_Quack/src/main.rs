@@ -39,6 +39,7 @@ fn is_passable(walls: &[usize], windows: &[(usize, usize)], crd: (usize, usize))
     }
 }
 
+#[allow(clippy::needless_range_loop)]
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
