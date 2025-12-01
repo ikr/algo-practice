@@ -28,16 +28,20 @@ fn main() {
     let mut cur: i32 = 50;
 
     for instr in instrs {
-        match instr {
-            Instr::L(x) => cur -= x,
-            Instr::R(x) => cur += x,
-        }
+        let (delta, times) = match instr {
+            Instr::L(x) => (-1, x),
+            Instr::R(x) => (1, x),
+        };
 
-        cur %= M;
-        cur += M;
-        cur %= M;
-        if cur == 0 {
-            result += 1;
+        for _ in 0..times {
+            cur += delta;
+            cur %= M;
+            cur += M;
+            cur %= M;
+
+            if cur == 0 {
+                result += 1;
+            }
         }
     }
 
