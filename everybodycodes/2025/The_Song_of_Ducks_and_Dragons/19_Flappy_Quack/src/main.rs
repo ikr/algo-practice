@@ -49,27 +49,29 @@ fn main() {
         .collect();
 
     let (walls, windows) = walls_and_windows_from_triplets(triplests);
-    let h = windows.iter().map(|(_, row_hi)| row_hi).max().unwrap() * 2;
+    let h = (windows.iter().map(|(_, row_hi)| row_hi).max().unwrap() * 3) / 2;
     let w = walls.last().unwrap() + 1;
 
-    let mut tab: Vec<Vec<u32>> = vec![vec![INF; w]; h];
-    tab[0][0] = 0;
+    let mut tab: Vec<u32> = vec![INF; h];
+    tab[0] = 0;
 
     for col in 0..w - 1 {
+        let mut new_tab: Vec<u32> = vec![INF; h];
+
         for row in 0..h {
             if row != 0 && is_passable(&walls, &windows, (row - 1, col + 1)) {
-                tab[row - 1][col + 1] = tab[row - 1][col + 1].min(tab[row][col]);
+                new_tab[row - 1] = new_tab[row - 1].min(tab[row]);
             }
 
             if row != h - 1 && is_passable(&walls, &windows, (row + 1, col + 1)) {
-                tab[row + 1][col + 1] = tab[row + 1][col + 1].min(tab[row][col] + 1);
+                new_tab[row + 1] = new_tab[row + 1].min(tab[row] + 1);
             }
         }
-    }
 
-    let mut result = INF;
-    for row in 0..h {
-        result = result.min(*tab[row].last().unwrap());
+        tab = new_tab;
     }
+    eprintln!();
+
+    let result = tab.into_iter().min().unwrap();
     println!("{result}");
 }
