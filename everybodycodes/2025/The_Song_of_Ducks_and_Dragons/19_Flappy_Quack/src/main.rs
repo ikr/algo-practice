@@ -1,14 +1,15 @@
-use std::{
-    collections::VecDeque,
-    io::{BufRead, stdin},
-};
+use std::io::{BufRead, stdin};
 
-fn decode_triplet(s: &str) -> (u16, u16, u16) {
-    let parts: Vec<u16> = s.split(',').map(|x| x.parse().unwrap()).collect();
+const INF: u32 = 100_000_000;
+
+fn decode_triplet(s: &str) -> (usize, usize, usize) {
+    let parts: Vec<usize> = s.split(',').map(|x| x.parse().unwrap()).collect();
     (parts[0], parts[1], parts[2])
 }
 
-fn walls_and_windows_from_triplets(triplests: Vec<(u16, u16, u16)>) -> (Vec<u16>, Vec<(u16, u16)>) {
+fn walls_and_windows_from_triplets(
+    triplests: Vec<(usize, usize, usize)>,
+) -> (Vec<usize>, Vec<(usize, usize)>) {
     let mut walls = vec![];
     let mut windows = vec![];
 
@@ -20,7 +21,7 @@ fn walls_and_windows_from_triplets(triplests: Vec<(u16, u16, u16)>) -> (Vec<u16>
     (walls, windows)
 }
 
-fn is_passable(walls: &[u16], windows: &[(u16, u16)], crd: (u16, u16)) -> bool {
+fn is_passable(walls: &[usize], windows: &[(usize, usize)], crd: (usize, usize)) -> bool {
     let (row, col) = crd;
     let ii: Vec<usize> = walls
         .iter()
@@ -38,54 +39,36 @@ fn is_passable(walls: &[u16], windows: &[(u16, u16)], crd: (u16, u16)) -> bool {
     }
 }
 
-fn adjacent(walls: &[u16], windows: &[(u16, u16)], crd: (u16, u16)) -> Vec<((u16, u16), u16)> {
-    assert!(is_passable(walls, windows, crd));
-    let (row, col) = crd;
-    let mut result = vec![];
-
-    if row != 0 && is_passable(walls, windows, (row - 1, col + 1)) {
-        result.push(((row - 1, col + 1), 0))
-    }
-
-    if is_passable(walls, windows, (row + 1, col + 1)) {
-        result.push(((row + 1, col + 1), 1))
-    }
-
-    result
-}
-
-fn is_finish_line(walls: &[u16], windows: &[(u16, u16)], crd: (u16, u16)) -> bool {
-    assert!(is_passable(walls, windows, crd));
-    let n = walls.len();
-    crd.1 == walls[n - 1] && is_passable(walls, windows, crd)
-}
-
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
-    let triplests: Vec<(u16, u16, u16)> = lines
+    let triplests: Vec<(usize, usize, usize)> = lines
         .into_iter()
         .map(|line| decode_triplet(&line))
         .collect();
 
     let (walls, windows) = walls_and_windows_from_triplets(triplests);
-    let mut q: VecDeque<((u16, u16), u16)> = VecDeque::from([((0, 0), 0)]);
-    let mut result = u16::MAX;
+    let h = windows.iter().map(|(_, row_hi)| row_hi).max().unwrap() * 2;
+    let w = walls.last().unwrap() + 1;
 
-    while let Some((u, distance)) = q.pop_front() {
-        if is_finish_line(&walls, &windows, u) {
-            result = result.min(distance);
-        } else {
-            for (v, w) in adjacent(&walls, &windows, u) {
-                if w == 1 {
-                    q.push_back((v, distance + 1))
-                } else {
-                    assert_eq!(w, 0);
-                    q.push_front((v, distance))
-                }
+    let mut tab: Vec<Vec<u32>> = vec![vec![INF; w]; h];
+    tab[0][0] = 0;
+
+    for col in 0..w - 1 {
+        for row in 0..h {
+            if row != 0 && is_passable(&walls, &windows, (row - 1, col + 1)) {
+                tab[row - 1][col + 1] = tab[row - 1][col + 1].min(tab[row][col]);
+            }
+
+            if row != h - 1 && is_passable(&walls, &windows, (row + 1, col + 1)) {
+                tab[row + 1][col + 1] = tab[row + 1][col + 1].min(tab[row][col] + 1);
             }
         }
     }
 
+    let mut result = INF;
+    for row in 0..h {
+        result = result.min(*tab[row].last().unwrap());
+    }
     println!("{result}");
 }
