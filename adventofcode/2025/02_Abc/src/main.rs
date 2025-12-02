@@ -50,7 +50,7 @@ fn is_invalid_id(x: u64) -> bool {
     (1..=n / 2 + 1).any(|p| {
         if n % p == 0 {
             let q = n / p;
-            q == 2 && number(repeat_k_times(&ds[0..p], q)) == x
+            q >= 2 && number(repeat_k_times(&ds[0..p], q)) == x
         } else {
             false
         }
