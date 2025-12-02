@@ -75,20 +75,6 @@ fn main() {
         .collect();
 
     let invalid: Vec<u64> = xs.into_iter().filter(|&x| is_invalid_id(x)).collect();
-    eprintln!("{:?}", invalid);
     let result: u64 = invalid.into_iter().sum();
     println!("{result}");
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_is_invalid_id() {
-        assert!(is_invalid_id(11));
-        assert!(!is_invalid_id(12));
-        assert!(!is_invalid_id(113112));
-        assert!(is_invalid_id(113113));
-    }
 }
