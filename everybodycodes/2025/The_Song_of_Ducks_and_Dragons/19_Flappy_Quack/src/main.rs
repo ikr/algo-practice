@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    io::{BufRead, stdin},
+    ops::{Add, Mul, Sub},
+};
 
 const INF: u32 = 100_000_000;
 
@@ -37,6 +40,29 @@ fn is_passable(walls: &[usize], windows: &[(usize, usize)], crd: (usize, usize))
             row_lo <= row && row <= row_hi
         })
     }
+}
+
+fn vec_add<T>(a: Vec<T>, b: Vec<T>) -> Vec<T>
+where
+    T: Add<Output = T>,
+{
+    assert_eq!(a.len(), b.len());
+    a.into_iter().zip(b).map(|(x, y)| x + y).collect()
+}
+
+fn vec_sub<T>(a: Vec<T>, b: Vec<T>) -> Vec<T>
+where
+    T: Sub<Output = T>,
+{
+    assert_eq!(a.len(), b.len());
+    a.into_iter().zip(b).map(|(x, y)| x - y).collect()
+}
+
+fn vec_scale_by_k<T>(a: Vec<T>, k: T) -> Vec<T>
+where
+    T: Mul<Output = T> + Copy,
+{
+    a.into_iter().map(|x| x * k).collect()
 }
 
 #[allow(clippy::needless_range_loop)]
