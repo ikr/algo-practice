@@ -1,44 +1,40 @@
 use std::{
+    collections::BTreeMap,
     io::{BufRead, stdin},
     ops::{Add, Mul, Sub},
 };
 
 const INF: u32 = 100_000_000;
 
+type Windows = Vec<(usize, usize)>;
+type Walls = BTreeMap<usize, Windows>;
+
 fn decode_triplet(s: &str) -> (usize, usize, usize) {
     let parts: Vec<usize> = s.split(',').map(|x| x.parse().unwrap()).collect();
     (parts[0], parts[1], parts[2])
 }
 
-fn walls_and_windows_from_triplets(
-    triplests: Vec<(usize, usize, usize)>,
-) -> (Vec<usize>, Vec<(usize, usize)>) {
-    let mut walls = vec![];
-    let mut windows = vec![];
-
-    for (col, first_row, window_height) in triplests {
-        walls.push(col);
-        windows.push((first_row, first_row + window_height - 1));
-    }
-
-    (walls, windows)
+fn walls_from_triplets(triplets: Vec<(usize, usize, usize)>) -> Walls {
+    triplets.into_iter().fold(
+        BTreeMap::new(),
+        |mut acc, (col, first_row, window_height)| {
+            let window = (first_row, first_row + window_height - 1);
+            acc.entry(col)
+                .and_modify(|windows| windows.push(window))
+                .or_insert(vec![window]);
+            acc
+        },
+    )
 }
 
-fn is_passable(walls: &[usize], windows: &[(usize, usize)], crd: (usize, usize)) -> bool {
+fn is_passable(walls: &Walls, crd: (usize, usize)) -> bool {
     let (row, col) = crd;
-    let ii: Vec<usize> = walls
-        .iter()
-        .enumerate()
-        .filter_map(|(i, &wall_col)| if wall_col == col { Some(i) } else { None })
-        .collect();
-
-    if ii.is_empty() {
-        true
+    if let Some(windows) = walls.get(&col) {
+        windows
+            .iter()
+            .any(|&(row_lo, row_hi)| row_lo <= row && row <= row_hi)
     } else {
-        ii.into_iter().any(|i| {
-            let (row_lo, row_hi) = windows[i];
-            row_lo <= row && row <= row_hi
-        })
+        true
     }
 }
 
@@ -69,14 +65,22 @@ where
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
-    let triplests: Vec<(usize, usize, usize)> = lines
+    let triplets: Vec<(usize, usize, usize)> = lines
         .into_iter()
         .map(|line| decode_triplet(&line))
         .collect();
 
-    let (walls, windows) = walls_and_windows_from_triplets(triplests);
-    let h = (windows.iter().map(|(_, row_hi)| row_hi).max().unwrap() * 3) / 2;
-    let w = walls.last().unwrap() + 1;
+    let max_col: usize = triplets.iter().map(|&(co, _, _)| co).max().unwrap();
+
+    let max_row: usize = triplets
+        .iter()
+        .map(|(_, ro, delta)| ro + delta - 1)
+        .max()
+        .unwrap();
+
+    let walls = walls_from_triplets(triplets);
+    let h = (max_row * 3) / 2;
+    let w = max_col + 1;
 
     let mut tab: Vec<u32> = vec![INF; h];
     tab[0] = 0;
@@ -85,11 +89,11 @@ fn main() {
         let mut new_tab: Vec<u32> = vec![INF; h];
 
         for row in 0..h {
-            if row != 0 && is_passable(&walls, &windows, (row - 1, col + 1)) {
+            if row != 0 && is_passable(&walls, (row - 1, col + 1)) {
                 new_tab[row - 1] = new_tab[row - 1].min(tab[row]);
             }
 
-            if row != h - 1 && is_passable(&walls, &windows, (row + 1, col + 1)) {
+            if row != h - 1 && is_passable(&walls, (row + 1, col + 1)) {
                 new_tab[row + 1] = new_tab[row + 1].min(tab[row] + 1);
             }
         }
