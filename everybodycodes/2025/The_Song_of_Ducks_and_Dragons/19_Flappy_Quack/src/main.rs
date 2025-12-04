@@ -61,12 +61,27 @@ where
     a.into_iter().map(|x| x * k).collect()
 }
 
-fn strictly_containing_columns_interval(wall_cols: &[usize], col: usize) -> (usize, usize) {
-    assert!(!wall_cols.binary_search(&col).is_err());
-    let j = wall_cols.partition_point(|&wall_col| wall_col <= col);
-    assert_ne!(j, 0);
-    assert!(j < wall_cols.len());
-    (wall_cols[j - 1], wall_cols[j])
+fn strictly_containing_columns_interval(wall_cols: &[usize], col: usize) -> Option<(usize, usize)> {
+    wall_cols.binary_search(&col).is_err().then(|| {
+        let j = wall_cols.partition_point(|&wall_col| wall_col <= col);
+        assert_ne!(j, 0);
+        (wall_cols[j - 1], wall_cols[j])
+    })
+}
+
+fn next_dp_state(h: usize, walls: &Walls, col: usize, tab: Vec<u32>) -> Vec<u32> {
+    let mut result: Vec<u32> = vec![INF; h];
+
+    for row in 0..h {
+        if row != 0 && is_passable(walls, (row - 1, col + 1)) {
+            result[row - 1] = result[row - 1].min(tab[row]);
+        }
+
+        if row != h - 1 && is_passable(walls, (row + 1, col + 1)) {
+            result[row + 1] = result[row + 1].min(tab[row] + 1);
+        }
+    }
+    result
 }
 
 #[allow(clippy::needless_range_loop)]
@@ -87,28 +102,26 @@ fn main() {
         .unwrap();
 
     let walls = walls_from_triplets(triplets);
+    let wall_cols: Vec<usize> = walls.keys().copied().collect();
     let h = (max_row * 3) / 2;
     let w = max_col + 1;
 
     let mut tab: Vec<u32> = vec![INF; h];
     tab[0] = 0;
+    let mut col: usize = 0;
 
-    for col in 0..w - 1 {
-        let mut new_tab: Vec<u32> = vec![INF; h];
-
-        for row in 0..h {
-            if row != 0 && is_passable(&walls, (row - 1, col + 1)) {
-                new_tab[row - 1] = new_tab[row - 1].min(tab[row]);
-            }
-
-            if row != h - 1 && is_passable(&walls, (row + 1, col + 1)) {
-                new_tab[row + 1] = new_tab[row + 1].min(tab[row] + 1);
-            }
+    while col != w - 1 {
+        if wall_cols[0] < col
+            && let Some((col1, col2)) = strictly_containing_columns_interval(&wall_cols, col)
+        {
+            assert!(col1 < col2);
+            tab = next_dp_state(h, &walls, col, tab);
+            col += 1;
+        } else {
+            tab = next_dp_state(h, &walls, col, tab);
+            col += 1;
         }
-
-        tab = new_tab;
     }
-    eprintln!();
 
     let result = tab.into_iter().min().unwrap();
     println!("{result}");
