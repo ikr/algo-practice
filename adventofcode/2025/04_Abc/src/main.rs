@@ -34,7 +34,7 @@ fn roll_neighs_count(grid: &[Vec<u8>], ro: usize, co: usize) -> usize {
 }
 
 fn main() {
-    let grid: Vec<Vec<u8>> = stdin()
+    let mut grid: Vec<Vec<u8>> = stdin()
         .lock()
         .lines()
         .map(|line| line.unwrap().bytes().collect())
@@ -43,10 +43,23 @@ fn main() {
     let h = grid.len();
     let w = grid[0].len();
 
-    let result = (0..h)
-        .cartesian_product(0..w)
-        .filter(|&(i, j)| grid[i][j] == b'@' && roll_neighs_count(&grid, i, j) < 4)
-        .count();
+    let mut result = 0;
+
+    loop {
+        let q: Vec<(usize, usize)> = (0..h)
+            .cartesian_product(0..w)
+            .filter(|&(i, j)| grid[i][j] == b'@' && roll_neighs_count(&grid, i, j) < 4)
+            .collect();
+
+        if q.is_empty() {
+            break;
+        }
+
+        result += q.len();
+        for (i, j) in q {
+            grid[i][j] = b'.';
+        }
+    }
 
     eprintln!("{result}");
 }
