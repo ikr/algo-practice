@@ -61,6 +61,14 @@ where
     a.into_iter().map(|x| x * k).collect()
 }
 
+fn strictly_containing_columns_interval(wall_cols: &[usize], col: usize) -> (usize, usize) {
+    assert!(!wall_cols.binary_search(&col).is_err());
+    let j = wall_cols.partition_point(|&wall_col| wall_col <= col);
+    assert_ne!(j, 0);
+    assert!(j < wall_cols.len());
+    (wall_cols[j - 1], wall_cols[j])
+}
+
 #[allow(clippy::needless_range_loop)]
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
