@@ -40,18 +40,18 @@ fn is_passable(walls: &Walls, crd: (usize, usize)) -> bool {
 
 fn vec_add<T>(a: Vec<T>, b: Vec<T>) -> Vec<T>
 where
-    T: Add<Output = T>,
+    T: Add<Output = T> + Copy,
 {
     assert_eq!(a.len(), b.len());
     a.into_iter().zip(b).map(|(x, y)| x + y).collect()
 }
 
-fn vec_sub<T>(a: Vec<T>, b: Vec<T>) -> Vec<T>
+fn vec_sub<T>(a: Vec<T>, b: &[T]) -> Vec<T>
 where
-    T: Sub<Output = T>,
+    T: Sub<Output = T> + Copy,
 {
     assert_eq!(a.len(), b.len());
-    a.into_iter().zip(b).map(|(x, y)| x - y).collect()
+    a.into_iter().zip(b).map(|(x, &y)| x - y).collect()
 }
 
 fn vec_scale_by_k<T>(a: Vec<T>, k: T) -> Vec<T>
@@ -113,10 +113,12 @@ fn main() {
     while col != w - 1 {
         if wall_cols[0] < col
             && let Some((col1, col2)) = strictly_containing_columns_interval(&wall_cols, col)
+            && col2 - col1 > 4
         {
-            assert!(col1 < col2);
-            tab = next_dp_state(h, &walls, col, tab);
-            col += 1;
+            let new_tab = next_dp_state(h, &walls, col, tab.clone());
+            let leap: Vec<u32> = vec_scale_by_k(vec_sub(new_tab, &tab), (col2 - col1 - 1) as u32);
+            tab = vec_add(tab, leap);
+            col += col2 - col1 - 1;
         } else {
             tab = next_dp_state(h, &walls, col, tab);
             col += 1;
