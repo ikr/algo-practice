@@ -2,28 +2,20 @@ use itertools::Itertools;
 use std::io::{BufRead, stdin};
 
 fn neighs(grid: &[Vec<u8>], ro: usize, co: usize) -> Vec<(usize, usize)> {
-    let i: i64 = ro as i64;
-    let j: i64 = co as i64;
-    let h = grid.len() as i64;
-    let w = grid[0].len() as i64;
-    let mut result = vec![];
+    let (i, j) = (ro as i32, co as i32);
+    let (h, w) = (grid.len() as i32, grid[0].len() as i32);
 
-    for di in -1..=1 {
-        for dj in -1..=1 {
-            if di == 0 && dj == 0 {
-                continue;
+    (-1..=1)
+        .cartesian_product(-1..=1)
+        .filter_map(|(di, dj)| {
+            if di != 0 || dj != 0 {
+                let (ii, jj) = (i + di, j + dj);
+                (0 <= ii && ii < h && 0 <= jj && jj < w).then_some((ii as usize, jj as usize))
+            } else {
+                None
             }
-
-            let ii = i + di;
-            let jj = j + dj;
-
-            if 0 <= ii && ii < h && 0 <= jj && jj < w {
-                result.push((ii as usize, jj as usize));
-            }
-        }
-    }
-
-    result
+        })
+        .collect()
 }
 
 fn roll_neighs_count(grid: &[Vec<u8>], ro: usize, co: usize) -> usize {
@@ -40,9 +32,7 @@ fn main() {
         .map(|line| line.unwrap().bytes().collect())
         .collect();
 
-    let h = grid.len();
-    let w = grid[0].len();
-
+    let (h, w) = (grid.len(), grid[0].len());
     let mut result = 0;
 
     loop {
@@ -60,6 +50,5 @@ fn main() {
             grid[i][j] = b'.';
         }
     }
-
     eprintln!("{result}");
 }
