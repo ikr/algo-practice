@@ -1,6 +1,7 @@
 use itertools::Itertools;
+use pathfinding::prelude::dijkstra;
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     io::{BufRead, stdin},
 };
 
@@ -37,11 +38,34 @@ fn walls_from_triplets(triplets: Vec<(i64, i64, i64)>) -> Walls {
     )
 }
 
-fn window_crds(window_col: i64, window_row_ranges: &[(i64, i64)]) -> Vec<Crd> {
+fn window_crds_for(window_col: i64, window_row_ranges: Windows) -> Vec<Crd> {
     window_row_ranges
         .iter()
         .flat_map(|&(a, b)| (a..=b).map(|row| Crd(row, window_col)).collect::<Vec<_>>())
         .collect()
+}
+
+fn flaps_from_a_to_b(a: Crd, b: Crd) -> Option<i64> {
+    let Crd(ro_a, co_a) = a;
+    let Crd(ro_b, co_b) = b;
+    assert!(co_a < co_b);
+
+    let horz_distance = co_b - co_a;
+    let max_reachable_ro = ro_a + horz_distance;
+    let min_reachable_ro = ro_a - horz_distance;
+    let offset = max_reachable_ro - ro_b;
+
+    (min_reachable_ro <= ro_b && ro_b <= max_reachable_ro && offset % 2 == 0).then_some(offset / 2)
+}
+
+fn graph_from(window_crds: Vec<Vec<Crd>>) -> HashMap<Crd, Vec<(Crd, i64)>> {
+    let mut result = HashMap::new();
+    let start = Crd(0, 0);
+
+    for &b in &window_crds[0] {
+        if let Some(w) = flaps_from_a_to_b(start, b) {}
+    }
+    result
 }
 
 // ......X
@@ -62,6 +86,11 @@ fn main() {
         .collect();
 
     let walls = walls_from_triplets(triplets);
-    let wall_cols: Vec<i64> = walls.keys().copied().collect();
-    eprintln!("{:?}", wall_cols);
+
+    let window_crds: Vec<Vec<Crd>> = walls
+        .into_iter()
+        .map(|(co, windows)| window_crds_for(co, windows))
+        .collect();
+
+    eprintln!("{:?}", window_crds);
 }
