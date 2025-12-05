@@ -44,7 +44,15 @@ fn window_crds(window_col: i64, window_row_ranges: &[(i64, i64)]) -> Vec<Crd> {
         .collect()
 }
 
-#[allow(clippy::needless_range_loop)]
+// ......X
+// .....*#
+// ....*.X
+// ...*.*#
+// ..*.*.*
+// .*...*.*
+// *.....*.*
+// .......*.*
+//
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
