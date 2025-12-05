@@ -36,12 +36,12 @@ fn walls_from_triplets(triplets: Vec<(i64, i64, i64)>) -> Walls {
         },
     )
 }
-fn strictly_containing_columns_interval(wall_cols: &[i64], col: i64) -> Option<(i64, i64)> {
-    wall_cols.binary_search(&col).is_err().then(|| {
-        let j = wall_cols.partition_point(|&wall_col| wall_col <= col);
-        assert_ne!(j, 0);
-        (wall_cols[j - 1], wall_cols[j])
-    })
+
+fn window_crds(window_col: i64, window_row_ranges: &[(i64, i64)]) -> Vec<Crd> {
+    window_row_ranges
+        .iter()
+        .flat_map(|&(a, b)| (a..=b).map(|row| Crd(row, window_col)).collect::<Vec<_>>())
+        .collect()
 }
 
 #[allow(clippy::needless_range_loop)]
