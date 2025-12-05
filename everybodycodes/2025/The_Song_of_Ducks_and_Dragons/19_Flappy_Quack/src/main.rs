@@ -123,3 +123,18 @@ fn main() {
 
     println!("{result}");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_flaps_from_a_to_b() {
+        for (a, b, expected) in [
+            (Crd(0, 0), Crd(7, 7), Some(7)),
+            (Crd(7, 7), Crd(2, 12), Some(0)),
+        ] {
+            assert_eq!(flaps_from_a_to_b(a, b), expected, "{:?} → {:?}", a, b);
+        }
+    }
+}
