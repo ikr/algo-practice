@@ -63,8 +63,26 @@ fn graph_from(window_crds: Vec<Vec<Crd>>) -> HashMap<Crd, Vec<(Crd, i64)>> {
     let start = Crd(0, 0);
 
     for &b in &window_crds[0] {
-        if let Some(w) = flaps_from_a_to_b(start, b) {}
+        let mut vs: Vec<(Crd, i64)> = vec![];
+        if let Some(w) = flaps_from_a_to_b(start, b) {
+            vs.push((b, w))
+        }
+        result.insert(start, vs);
     }
+
+    for (us, vs) in window_crds.into_iter().tuple_windows() {
+        for (u, v) in us.into_iter().cartesian_product(vs) {
+            if let Some(w) = flaps_from_a_to_b(u, v) {
+                let e = (v, w);
+
+                result
+                    .entry(u)
+                    .and_modify(|vs| vs.push(e))
+                    .or_insert(vec![e]);
+            }
+        }
+    }
+
     result
 }
 
@@ -86,11 +104,22 @@ fn main() {
         .collect();
 
     let walls = walls_from_triplets(triplets);
+    let max_col: i64 = *walls.keys().last().unwrap();
 
     let window_crds: Vec<Vec<Crd>> = walls
         .into_iter()
         .map(|(co, windows)| window_crds_for(co, windows))
         .collect();
 
-    eprintln!("{:?}", window_crds);
+    let g = graph_from(window_crds);
+
+    let result: i64 = dijkstra(
+        &Crd(0, 0),
+        |u| g.get(u).unwrap_or(&vec![]).clone(),
+        |u| u.1 == max_col,
+    )
+    .unwrap()
+    .1;
+
+    println!("{result}");
 }
