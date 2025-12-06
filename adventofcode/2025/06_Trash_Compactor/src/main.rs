@@ -1,5 +1,7 @@
 use std::io::{BufRead, stdin};
 
+const SEP: u8 = 0xFF;
+
 #[derive(Clone, Copy, Debug)]
 enum Op {
     Add,
@@ -38,22 +40,66 @@ fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
         .collect()
 }
 
+fn number(ds: Vec<u8>) -> u64 {
+    if ds.is_empty() {
+        0
+    } else {
+        let mut ans: u64 = 0;
+        let mut mul: u64 = 1;
+
+        for d in ds.into_iter().rev() {
+            ans += (d as u64) * mul;
+            mul *= 10;
+        }
+
+        ans
+    }
+}
+
+fn number_without_seps(ds: Vec<u8>) -> u64 {
+    number(ds.into_iter().filter(|&d| d != SEP).collect())
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let n = lines.len();
+    let input_lines_num = lines.len();
 
-    let grid: Vec<Vec<u64>> = transpose(
-        lines[..n - 1]
-            .iter()
-            .map(|s| {
-                s.split_whitespace()
-                    .map(|sub| sub.parse().unwrap())
-                    .collect()
-            })
-            .collect(),
-    );
+    let ops: Vec<Op> = lines[input_lines_num - 1]
+        .split_whitespace()
+        .map(Op::decode)
+        .rev()
+        .collect();
 
-    let ops: Vec<Op> = lines[n - 1].split_whitespace().map(Op::decode).collect();
-    let result: u64 = ops.into_iter().zip(grid).map(|(op, xs)| op.apply(xs)).sum();
+    let mut initial_grid: Vec<Vec<u8>> = lines[..input_lines_num - 1]
+        .iter()
+        .map(|s| {
+            s.bytes()
+                .map(|x| if x == b' ' { SEP } else { x - b'0' })
+                .collect()
+        })
+        .collect();
+
+    let initial_w: usize = initial_grid.iter().map(|row| row.len()).max().unwrap();
+    for row in initial_grid.iter_mut() {
+        if row.len() < initial_w {
+            row.extend(vec![SEP; initial_w - row.len()]);
+        }
+    }
+
+    let grid: Vec<Vec<u8>> = transpose(initial_grid).into_iter().rev().collect();
+    let mut result: u64 = 0;
+    let mut stash: Vec<u64> = vec![];
+    let mut i: usize = 0;
+
+    for ds in grid {
+        if ds.iter().all(|&d| d == SEP) {
+            result += ops[i].apply(stash);
+            stash = vec![];
+            i += 1;
+        } else {
+            stash.push(number_without_seps(ds));
+        }
+    }
+    result += ops.last().unwrap().apply(stash);
     println!("{result}");
 }
