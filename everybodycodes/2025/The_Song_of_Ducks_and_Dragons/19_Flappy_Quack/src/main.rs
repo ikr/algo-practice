@@ -62,13 +62,13 @@ fn graph_from(window_crds: Vec<Vec<Crd>>) -> HashMap<Crd, Vec<(Crd, i64)>> {
     let mut result = HashMap::new();
     let start = Crd(0, 0);
 
+    let mut start_vs: Vec<(Crd, i64)> = vec![];
     for &b in &window_crds[0] {
-        let mut vs: Vec<(Crd, i64)> = vec![];
         if let Some(w) = flaps_from_a_to_b(start, b) {
-            vs.push((b, w))
+            start_vs.push((b, w))
         }
-        result.insert(start, vs);
     }
+    result.insert(start, start_vs);
 
     for (us, vs) in window_crds.into_iter().tuple_windows() {
         for (u, v) in us.into_iter().cartesian_product(vs) {
@@ -133,6 +133,10 @@ mod tests {
         for (a, b, expected) in [
             (Crd(0, 0), Crd(7, 7), Some(7)),
             (Crd(7, 7), Crd(2, 12), Some(0)),
+            (Crd(12, 2), Crd(5, 15), Some(3)),
+            (Crd(5, 15), Crd(4, 24), Some(4)),
+            (Crd(4, 24), Crd(8, 28), Some(4)),
+            (Crd(8, 28), Crd(8, 40), Some(6)),
         ] {
             assert_eq!(flaps_from_a_to_b(a, b), expected, "{:?} → {:?}", a, b);
         }
