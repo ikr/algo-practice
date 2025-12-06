@@ -53,7 +53,7 @@ fn flaps_from_a_to_b(a: Crd, b: Crd) -> Option<i64> {
     let horz_distance = co_b - co_a;
     let max_reachable_ro = ro_a + horz_distance;
     let min_reachable_ro = ro_a - horz_distance;
-    let offset = max_reachable_ro - ro_b;
+    let offset = ro_b - min_reachable_ro;
 
     (min_reachable_ro <= ro_b && ro_b <= max_reachable_ro && offset % 2 == 0).then_some(offset / 2)
 }
