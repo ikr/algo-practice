@@ -63,32 +63,59 @@ impl TriGrid {
         }
         unreachable!()
     }
+
+    fn jth_column_reversed(&self, j: usize) -> Vec<char> {
+        let n = self.xss[j].len();
+        let mut result = vec![];
+        let lo = if j % 2 == 0 { 0 } else { 1 };
+
+        for i in (lo..lo + 2 * n).step_by(2) {
+            result.push(self.xss[i][j / 2]);
+        }
+
+        result.reverse();
+        result
+    }
+
+    fn rotate(&self) -> Self {
+        let mut xss = self.xss.clone();
+
+        for (i, row) in xss.iter_mut().enumerate() {
+            for (j, cell) in row.iter_mut().enumerate() {}
+        }
+
+        Self { xss }
+    }
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let g = TriGrid::from_rectangular(lines);
-    let src = g.crd_of('S');
-    let dst = g.crd_of('E');
+    // let src = g.crd_of('S');
+    // let dst = g.crd_of('E');
 
-    let mut distance: HashMap<(usize, usize), usize> = HashMap::new();
-    distance.insert(src, 0);
-    let mut q: VecDeque<(usize, usize)> = VecDeque::from([src]);
-
-    while let Some(u) = q.pop_front() {
-        let du: usize = *distance.get(&u).unwrap();
-
-        for v in g
-            .adjacent(u)
-            .into_iter()
-            .filter(|&(i, j)| g.xss[i][j] != '#')
-        {
-            if !distance.contains_key(&(v.0, v.1)) {
-                distance.insert(v, du + 1);
-                q.push_back(v);
-            }
-        }
+    for j in 0..g.xss[0].len() {
+        eprintln!("{:?}", g.jth_column_reversed(j));
     }
 
-    println!("{}", distance.get(&dst).unwrap());
+    // let mut distance: HashMap<(usize, usize), usize> = HashMap::new();
+    // distance.insert(src, 0);
+    // let mut q: VecDeque<(usize, usize)> = VecDeque::from([src]);
+
+    // while let Some(u) = q.pop_front() {
+    //     let du: usize = *distance.get(&u).unwrap();
+
+    //     for v in g
+    //         .adjacent(u)
+    //         .into_iter()
+    //         .filter(|&(i, j)| g.xss[i][j] != '#')
+    //     {
+    //         if !distance.contains_key(&(v.0, v.1)) {
+    //             distance.insert(v, du + 1);
+    //             q.push_back(v);
+    //         }
+    //     }
+    // }
+
+    // println!("{}", distance.get(&dst).unwrap());
 }
