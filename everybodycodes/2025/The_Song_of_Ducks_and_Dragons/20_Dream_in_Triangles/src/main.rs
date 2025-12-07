@@ -34,7 +34,19 @@ impl TriGrid {
         assert!(co < self.xss[ro].len());
 
         let mut result = vec![];
-        todo!();
+        if ro % 2 == 0 {
+            if ro != 0 {
+                result.push((ro - 1, co));
+            }
+            if co != 0 {
+                result.push((ro + 1, co - 1));
+            }
+            if co != self.xss[ro].len() - 1 {
+                result.push((ro + 1, co));
+            }
+        } else {
+            result.extend([(ro - 1, co), (ro - 1, co + 1), (ro + 1, co)]);
+        }
         result
     }
 }
@@ -42,5 +54,19 @@ impl TriGrid {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let g = TriGrid::from_rectangular(lines);
-    eprintln!("{:?}", g);
+    let mut result = 0;
+
+    for (i, row) in g.xss.iter().enumerate() {
+        for (j, &cell) in row.iter().enumerate() {
+            if cell == 'T' {
+                result += g
+                    .adjacent((i, j))
+                    .into_iter()
+                    .filter(|&(ii, jj)| i < ii && g.xss[ii][jj] == 'T')
+                    .count();
+            }
+        }
+    }
+
+    println!("{result}");
 }
