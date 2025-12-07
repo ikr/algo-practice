@@ -8,25 +8,24 @@ fn main() {
         .collect();
 
     let start_co = grid[0].iter().position(|&x| x == 'S').unwrap();
-    let mut beam: Vec<bool> = vec![false; grid[0].len()];
-    beam[start_co] = true;
+    let mut beam: Vec<u64> = vec![0; grid[0].len()];
+    beam[start_co] = 1;
 
-    let mut result = 0;
     for row in grid.into_iter().skip(1) {
-        let mut new_beam = vec![false; beam.len()];
+        let mut new_beam: Vec<u64> = vec![0; beam.len()];
 
-        for (co, _) in beam.iter().enumerate().filter(|(_, x)| **x) {
+        for (co, b) in beam.iter().enumerate() {
             if row[co] == '^' {
-                new_beam[co - 1] = true;
-                new_beam[co + 1] = true;
-                result += 1;
+                new_beam[co - 1] += b;
+                new_beam[co + 1] += b;
             } else {
-                new_beam[co] = true;
+                new_beam[co] += b;
             }
         }
 
         beam = new_beam;
     }
 
+    let result: u64 = beam.into_iter().sum();
     println!("{result}");
 }
