@@ -1,5 +1,8 @@
 use itertools::{Either, Itertools};
-use std::io::{BufRead, stdin};
+use std::{
+    collections::{HashMap, VecDeque},
+    io::{BufRead, stdin},
+};
 
 #[derive(Debug)]
 struct TriGrid {
@@ -49,24 +52,43 @@ impl TriGrid {
         }
         result
     }
+
+    fn crd_of(&self, x: char) -> (usize, usize) {
+        for (i, row) in self.xss.iter().enumerate() {
+            for (j, &cell) in row.iter().enumerate() {
+                if cell == x {
+                    return (i, j);
+                }
+            }
+        }
+        unreachable!()
+    }
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let g = TriGrid::from_rectangular(lines);
-    let mut result = 0;
+    let src = g.crd_of('S');
+    let dst = g.crd_of('E');
 
-    for (i, row) in g.xss.iter().enumerate() {
-        for (j, &cell) in row.iter().enumerate() {
-            if cell == 'T' {
-                result += g
-                    .adjacent((i, j))
-                    .into_iter()
-                    .filter(|&(ii, jj)| i < ii && g.xss[ii][jj] == 'T')
-                    .count();
+    let mut distance: HashMap<(usize, usize), usize> = HashMap::new();
+    distance.insert(src, 0);
+    let mut q: VecDeque<(usize, usize)> = VecDeque::from([src]);
+
+    while let Some(u) = q.pop_front() {
+        let du: usize = *distance.get(&u).unwrap();
+
+        for v in g
+            .adjacent(u)
+            .into_iter()
+            .filter(|&(i, j)| g.xss[i][j] != '#')
+        {
+            if !distance.contains_key(&(v.0, v.1)) {
+                distance.insert(v, du + 1);
+                q.push_back(v);
             }
         }
     }
 
-    println!("{result}");
+    println!("{}", distance.get(&dst).unwrap());
 }
