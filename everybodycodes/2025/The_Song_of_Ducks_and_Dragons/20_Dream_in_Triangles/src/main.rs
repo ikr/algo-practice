@@ -81,7 +81,7 @@ impl TriGrid {
         let mut xss = self.xss.clone();
 
         for (i, row) in xss.iter_mut().enumerate() {
-            for (j, cell) in row.iter_mut().enumerate() {}
+            *row = self.jth_column_reversed(i);
         }
 
         Self { xss }
@@ -94,9 +94,8 @@ fn main() {
     // let src = g.crd_of('S');
     // let dst = g.crd_of('E');
 
-    for j in 0..g.xss[0].len() {
-        eprintln!("{:?}", g.jth_column_reversed(j));
-    }
+    let g3 = g.rotate().rotate().rotate();
+    assert_eq!(g.xss, g3.xss);
 
     // let mut distance: HashMap<(usize, usize), usize> = HashMap::new();
     // distance.insert(src, 0);
