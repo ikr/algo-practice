@@ -52,20 +52,12 @@ fn main() {
         .collect();
 
     let mut dsu = Dsu::new(n);
-    let mut q = 0;
     for (i, j) in pairs {
-        //if dsu.size(i) == 1 || dsu.size(j) == 1 {
         dsu.merge(i, j);
-        q += 1;
-        if q == 1000 {
+        if dsu.size(i) == n {
+            let result = crds[i].0 * crds[j].0;
+            println!("{result}");
             break;
         }
-        //}
     }
-
-    let gs = dsu.groups();
-    let g_sizes: Vec<usize> = gs.into_iter().map(|g| g.len()).collect();
-    eprintln!("{:?}", g_sizes);
-    let result: usize = g_sizes.into_iter().k_largest(3).product();
-    println!("{result}");
 }
