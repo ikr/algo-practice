@@ -2,7 +2,7 @@ use itertools::{Either, Itertools};
 use std::{
     collections::{HashMap, VecDeque},
     io::{BufRead, stdin},
-    iter::successors,
+    iter::{once, successors},
 };
 
 #[derive(Debug)]
@@ -107,8 +107,6 @@ fn main() {
         (2, dst2.0, dst2.1),
     ];
 
-    eprintln!("{:?}", gs);
-
     let mut distance: HashMap<(usize, usize, usize), usize> = HashMap::new();
     distance.insert(src, 0);
     let mut q: VecDeque<(usize, usize, usize)> = VecDeque::from([src]);
@@ -121,6 +119,7 @@ fn main() {
         for (v_ro, v_co) in gs[kk]
             .adjacent((u_ro, u_co))
             .into_iter()
+            .chain(once((u_ro, u_co)))
             .filter(|&(i, j)| gs[kk].xss[i][j] != '#')
         {
             if !distance.contains_key(&(kk, v_ro, v_co)) {
