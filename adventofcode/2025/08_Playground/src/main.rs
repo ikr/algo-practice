@@ -1,9 +1,6 @@
 use ac_library::Dsu;
 use itertools::Itertools;
-use std::{
-    cmp::Reverse,
-    io::{BufRead, stdin},
-};
+use std::io::{BufRead, stdin};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i64, i64, i64);
@@ -56,13 +53,14 @@ fn main() {
 
     let mut dsu = Dsu::new(n);
     for (i, j) in pairs {
-        dsu.merge(i, j);
+        if dsu.size(i) == 1 || dsu.size(j) == 1 {
+            dsu.merge(i, j);
+        }
     }
 
-    let gs: Vec<Vec<usize>> = dsu
-        .groups()
-        .into_iter()
-        .sorted_by_key(|g| Reverse(g.len()))
-        .collect();
-    eprintln!("{:?}", gs);
+    let gs = dsu.groups();
+    let g_sizes: Vec<usize> = gs.into_iter().map(|g| g.len()).collect();
+    eprintln!("{:?}", g_sizes);
+    let result: usize = g_sizes.into_iter().k_largest(3).product();
+    println!("{result}");
 }
