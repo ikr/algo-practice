@@ -92,16 +92,21 @@ impl TriGrid {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let g0 = TriGrid::from_rectangular(lines);
-    let src2 = g0.crd_of('S');
-    let src = (0, src2.0, src2.1);
-    let dst2 = g0.crd_of('E');
+    let gs: Vec<TriGrid> = successors(Some(g0), |g| Some(g.rotate())).take(3).collect();
+
+    let src0 = gs[0].crd_of('S');
+    let src = (0, src0.0, src0.1);
+
+    let dst0 = gs[0].crd_of('E');
+    let dst1 = gs[1].crd_of('E');
+    let dst2 = gs[2].crd_of('E');
+
     let dsts = [
-        (0, dst2.0, dst2.1),
-        (1, dst2.0, dst2.1),
+        (0, dst0.0, dst0.1),
+        (1, dst1.0, dst1.1),
         (2, dst2.0, dst2.1),
     ];
 
-    let gs: Vec<TriGrid> = successors(Some(g0), |g| Some(g.rotate())).take(3).collect();
     eprintln!("{:?}", gs);
 
     let mut distance: HashMap<(usize, usize, usize), usize> = HashMap::new();
