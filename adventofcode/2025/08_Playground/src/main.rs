@@ -52,10 +52,15 @@ fn main() {
         .collect();
 
     let mut dsu = Dsu::new(n);
+    let mut q = 0;
     for (i, j) in pairs {
-        if dsu.size(i) == 1 || dsu.size(j) == 1 {
-            dsu.merge(i, j);
+        //if dsu.size(i) == 1 || dsu.size(j) == 1 {
+        dsu.merge(i, j);
+        q += 1;
+        if q == 1000 {
+            break;
         }
+        //}
     }
 
     let gs = dsu.groups();
