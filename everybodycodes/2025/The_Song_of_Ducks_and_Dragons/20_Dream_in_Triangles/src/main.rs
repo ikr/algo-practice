@@ -2,6 +2,7 @@ use itertools::{Either, Itertools};
 use std::{
     collections::{HashMap, VecDeque},
     io::{BufRead, stdin},
+    iter::successors,
 };
 
 #[derive(Debug)]
@@ -67,7 +68,7 @@ impl TriGrid {
     fn jth_column_reversed(&self, j: usize) -> Vec<char> {
         let n = self.xss[j].len();
         let mut result = vec![];
-        let lo = if j % 2 == 0 { 0 } else { 1 };
+        let lo = if j.is_multiple_of(2) { 0 } else { 1 };
 
         for i in (lo..lo + 2 * n).step_by(2) {
             result.push(self.xss[i][j / 2]);
@@ -90,31 +91,45 @@ impl TriGrid {
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let g = TriGrid::from_rectangular(lines);
-    // let src = g.crd_of('S');
-    // let dst = g.crd_of('E');
+    let g0 = TriGrid::from_rectangular(lines);
+    let src2 = g0.crd_of('S');
+    let src = (0, src2.0, src2.1);
+    let dst2 = g0.crd_of('E');
+    let dsts = [
+        (0, dst2.0, dst2.1),
+        (1, dst2.0, dst2.1),
+        (2, dst2.0, dst2.1),
+    ];
 
-    let g3 = g.rotate().rotate().rotate();
-    assert_eq!(g.xss, g3.xss);
+    let gs: Vec<TriGrid> = successors(Some(g0), |g| Some(g.rotate())).take(3).collect();
+    eprintln!("{:?}", gs);
 
-    // let mut distance: HashMap<(usize, usize), usize> = HashMap::new();
-    // distance.insert(src, 0);
-    // let mut q: VecDeque<(usize, usize)> = VecDeque::from([src]);
+    let mut distance: HashMap<(usize, usize, usize), usize> = HashMap::new();
+    distance.insert(src, 0);
+    let mut q: VecDeque<(usize, usize, usize)> = VecDeque::from([src]);
 
-    // while let Some(u) = q.pop_front() {
-    //     let du: usize = *distance.get(&u).unwrap();
+    while let Some(u) = q.pop_front() {
+        let du: usize = *distance.get(&u).unwrap();
+        let (k, u_ro, u_co) = u;
+        let kk = (k + 1) % gs.len();
 
-    //     for v in g
-    //         .adjacent(u)
-    //         .into_iter()
-    //         .filter(|&(i, j)| g.xss[i][j] != '#')
-    //     {
-    //         if !distance.contains_key(&(v.0, v.1)) {
-    //             distance.insert(v, du + 1);
-    //             q.push_back(v);
-    //         }
-    //     }
-    // }
+        for (v_ro, v_co) in gs[kk]
+            .adjacent((u_ro, u_co))
+            .into_iter()
+            .filter(|&(i, j)| gs[kk].xss[i][j] != '#')
+        {
+            if !distance.contains_key(&(kk, v_ro, v_co)) {
+                distance.insert((kk, v_ro, v_co), du + 1);
+                q.push_back((kk, v_ro, v_co));
+            }
+        }
+    }
 
-    // println!("{}", distance.get(&dst).unwrap());
+    let result = dsts
+        .into_iter()
+        .map(|u| distance.get(&u).unwrap_or(&usize::MAX))
+        .min()
+        .unwrap();
+
+    println!("{}", result);
 }
