@@ -97,26 +97,14 @@ impl Crd {
         let delta = self.step_direction_to(b);
         let dist = self.manhattan_dist(b);
 
-        if dist < 20 {
-            let mut result = vec![self];
-            let mut cur = self;
-
-            while cur != b {
-                cur = cur + delta;
-                result.push(cur);
-            }
-
-            result
-        } else {
-            vec![
-                self,
-                delta.mul_by(1 * dist).div_by(5),
-                delta.mul_by(2 * dist).div_by(5),
-                delta.mul_by(3 * dist).div_by(5),
-                delta.mul_by(4 * dist).div_by(5),
-                b,
-            ]
-        }
+        vec![
+            self,
+            self + delta.mul_by(1 * dist).div_by(5),
+            self + delta.mul_by(2 * dist).div_by(5),
+            self + delta.mul_by(3 * dist).div_by(5),
+            self + delta.mul_by(4 * dist).div_by(5),
+            b,
+        ]
     }
 }
 
@@ -144,20 +132,30 @@ fn main() {
         .iter()
         .tuple_combinations()
         .filter_map(|(&a, &b)| {
-            if a.0 != b.0 && a.1 != b.1 {
-                eprintln!("Rect within {:?} - {:?}:", a, b);
-            }
-
             (a.0 != b.0
                 && a.1 != b.1
                 && Crd::derive_all_rect_corners_from_two_diag(a, b)
                     .into_iter()
                     .circular_tuple_windows()
-                    .all(|(p, q)| {
-                        eprintln!("{:?}", (p, q));
-                        p.trace_to(q).into_iter().all(|u| u.in_polygon(&corners))
-                    }))
-            .then_some((b - a).area())
+                    .all(|(p, q)| p.trace_to(q).into_iter().all(|u| u.in_polygon(&corners))))
+            .then(|| {
+                eprintln!(
+                    "Found rect {:?}-{:?}: {:?}: {}",
+                    a,
+                    b,
+                    Crd::derive_all_rect_corners_from_two_diag(a, b),
+                    (b - a).area()
+                );
+
+                for (u, v) in Crd::derive_all_rect_corners_from_two_diag(a, b)
+                    .into_iter()
+                    .circular_tuple_windows()
+                {
+                    eprintln!("{:?} → {:?}: {:?}", u, v, u.trace_to(v));
+                }
+
+                (b - a).area()
+            })
         })
         .max()
         .unwrap();
