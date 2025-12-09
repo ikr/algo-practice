@@ -96,6 +96,14 @@ impl Crd {
         assert!(self.0 == b.0 || self.1 == b.1);
         let delta = self.step_direction_to(b);
         let dist = self.manhattan_dist(b);
+        let mut result = vec![self];
+        let parts = 29;
+
+        for i in 1..parts {
+            result.push(self + delta.mul_by(i * dist).div_by(parts))
+        }
+
+        result.push(b);
 
         vec![
             self,
@@ -138,24 +146,7 @@ fn main() {
                     .into_iter()
                     .circular_tuple_windows()
                     .all(|(p, q)| p.trace_to(q).into_iter().all(|u| u.in_polygon(&corners))))
-            .then(|| {
-                eprintln!(
-                    "Found rect {:?}-{:?}: {:?}: {}",
-                    a,
-                    b,
-                    Crd::derive_all_rect_corners_from_two_diag(a, b),
-                    (b - a).area()
-                );
-
-                for (u, v) in Crd::derive_all_rect_corners_from_two_diag(a, b)
-                    .into_iter()
-                    .circular_tuple_windows()
-                {
-                    eprintln!("{:?} → {:?}: {:?}", u, v, u.trace_to(v));
-                }
-
-                (b - a).area()
-            })
+            .then_some((b - a).area())
         })
         .max()
         .unwrap();
@@ -171,21 +162,6 @@ mod tests {
         assert_eq!(
             Crd::derive_all_rect_corners_from_two_diag(Crd(0, 0), Crd(3, 4)),
             vec![Crd(0, 0), Crd(3, 0), Crd(3, 4), Crd(0, 4)]
-        );
-    }
-
-    #[test]
-    fn test_line_to() {
-        assert_eq!(
-            Crd(0, 0).trace_to(Crd(0, 100)),
-            vec![
-                Crd(0, 0),
-                Crd(0, 20),
-                Crd(0, 40),
-                Crd(0, 60),
-                Crd(0, 80),
-                Crd(0, 100)
-            ]
         );
     }
 }
