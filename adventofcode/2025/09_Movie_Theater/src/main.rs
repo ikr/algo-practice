@@ -97,22 +97,14 @@ impl Crd {
         let delta = self.step_direction_to(b);
         let dist = self.manhattan_dist(b);
         let mut result = vec![self];
-        let parts = 29;
+        let parts = 47;
 
         for i in 1..parts {
             result.push(self + delta.mul_by(i * dist).div_by(parts))
         }
 
         result.push(b);
-
-        vec![
-            self,
-            self + delta.mul_by(1 * dist).div_by(5),
-            self + delta.mul_by(2 * dist).div_by(5),
-            self + delta.mul_by(3 * dist).div_by(5),
-            self + delta.mul_by(4 * dist).div_by(5),
-            b,
-        ]
+        result
     }
 }
 
