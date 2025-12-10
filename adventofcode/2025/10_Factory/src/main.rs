@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::HashMap,
     io::{BufRead, stdin},
 };
 
@@ -17,7 +17,7 @@ fn mul_by<T: std::ops::Mul<Output = T> + Copy>(xs: Vec<T>, k: T) -> Vec<T> {
 struct Machine {
     end_joltage: Vec<i16>,
     buttons: Vec<Vec<usize>>,
-    memo: BTreeMap<(u8, Vec<i16>), u16>,
+    memo: HashMap<(u8, Vec<i16>), u16>,
 }
 
 impl Machine {
@@ -50,7 +50,7 @@ impl Machine {
             .map(|&s| Self::decode_button(s))
             .collect();
 
-        let memo = BTreeMap::new();
+        let memo = HashMap::new();
 
         Self {
             end_joltage,
@@ -112,12 +112,12 @@ impl Machine {
                 self.end_joltage.clone(),
                 mul_by(self.button_bump(ib), reduction),
             );
-            self.memo = BTreeMap::new();
+            self.memo.clear();
             result = result.min(self.recur(self.buttons.len() as u8, joltage) + reduction as u16)
         }
 
         if result >= INF {
-            self.memo = BTreeMap::new();
+            self.memo.clear();
             self.recur(self.buttons.len() as u8, self.end_joltage.clone())
         } else {
             result
