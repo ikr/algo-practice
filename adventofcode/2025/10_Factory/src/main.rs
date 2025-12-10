@@ -130,7 +130,12 @@ fn main() {
     let machines: Vec<Machine> = lines.into_iter().map(|s| Machine::decode(&s)).collect();
     let min_presses: Vec<usize> = machines
         .into_iter()
-        .map(|mut m| m.min_presses() as usize)
+        .map(|mut m| {
+            let result = m.min_presses() as usize;
+            m.memo.clear();
+            eprintln!("{:?} in {result} presses", m.end_joltage);
+            result
+        })
         .collect();
 
     let result: usize = min_presses.into_iter().sum();
