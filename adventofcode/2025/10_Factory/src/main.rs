@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const INF: usize = 1_000_000_000;
+const INF: u16 = 50_000;
 
 fn sub<T: std::ops::Sub<Output = T> + Copy>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
     a.into_iter().zip(b).map(|(x, y)| x - y).collect()
@@ -13,7 +13,7 @@ fn sub<T: std::ops::Sub<Output = T> + Copy>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
 struct Machine {
     end_joltage: Vec<i16>,
     buttons: Vec<Vec<usize>>,
-    memo: HashMap<(usize, Vec<i16>), usize>,
+    memo: HashMap<(u8, Vec<i16>), u16>,
 }
 
 impl Machine {
@@ -63,33 +63,37 @@ impl Machine {
         result
     }
 
-    fn recur(&mut self, num_buttons_used: usize, joltage: Vec<i16>) -> usize {
+    fn recur(&mut self, num_buttons_used: u8, joltage: Vec<i16>) -> u16 {
+        if joltage.iter().any(|&x| x < 0) {
+            return INF;
+        }
+
+        if num_buttons_used == 0 {
+            return INF;
+        }
+
+        if joltage.iter().all(|&x| x == 0) {
+            return 0;
+        }
+
         let key = (num_buttons_used, joltage.clone());
 
         if let Some(&cached) = self.memo.get(&key) {
             cached
         } else {
-            let value: usize = if joltage.iter().any(|&x| x < 0) {
-                INF
-            } else if joltage.iter().all(|&x| x == 0) {
-                0
-            } else if num_buttons_used == 0 {
-                INF
-            } else {
-                self.recur(num_buttons_used - 1, joltage.clone()).min({
-                    let bump = self.button_bump(num_buttons_used - 1);
-                    let sub = sub(joltage, bump);
-                    1 + self.recur(num_buttons_used, sub)
-                })
-            };
+            let value: u16 = self.recur(num_buttons_used - 1, joltage.clone()).min({
+                let bump = self.button_bump((num_buttons_used - 1) as usize);
+                let sub = sub(joltage, bump);
+                1 + self.recur(num_buttons_used, sub)
+            });
 
             self.memo.insert(key, value);
             value
         }
     }
 
-    fn min_presses(&mut self) -> usize {
-        self.recur(self.buttons.len(), self.end_joltage.clone())
+    fn min_presses(&mut self) -> u16 {
+        self.recur(self.buttons.len() as u8, self.end_joltage.clone())
     }
 }
 
@@ -100,7 +104,7 @@ fn main() {
         .into_iter()
         .map(|mut m| {
             eprint!(".");
-            m.min_presses()
+            m.min_presses() as usize
         })
         .collect();
     eprintln!();
