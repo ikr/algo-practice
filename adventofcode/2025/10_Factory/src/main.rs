@@ -52,12 +52,16 @@ impl Machine {
     fn adjacent(&self, u: &[u16]) -> Vec<Vec<u16>> {
         self.bump_indices
             .iter()
-            .map(|bi| {
+            .filter_map(|bi| {
                 let mut result: Vec<u16> = u.to_vec();
-                for i in bi {
-                    result[*i] += 1;
+                for &i in bi {
+                    result[i] += 1;
+
+                    if result[i] > self.end_counts[i] {
+                        return None;
+                    }
                 }
-                result
+                Some(result)
             })
             .collect()
     }
@@ -70,6 +74,7 @@ impl Machine {
             for v in self.adjacent(&u) {
                 if !dist.contains_key(&v) {
                     if v == self.end_counts {
+                        eprint!(".");
                         return *dist.get(&u).unwrap() + 1;
                     }
 
@@ -86,8 +91,8 @@ impl Machine {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let machines: Vec<Machine> = lines.into_iter().map(|s| Machine::decode(&s)).collect();
-
     let min_presses: Vec<usize> = machines.into_iter().map(|m| m.min_presses()).collect();
+    eprintln!();
     let result: usize = min_presses.into_iter().sum();
     println!("{result}");
 }
