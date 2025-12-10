@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     io::{BufRead, stdin},
 };
 
@@ -13,7 +13,7 @@ fn sub<T: std::ops::Sub<Output = T> + Copy>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
 struct Machine {
     end_joltage: Vec<i16>,
     buttons: Vec<Vec<usize>>,
-    memo: HashMap<(u8, Vec<i16>), u16>,
+    memo: BTreeMap<(u8, Vec<i16>), u16>,
 }
 
 impl Machine {
@@ -46,7 +46,7 @@ impl Machine {
             .map(|&s| Self::decode_button(s))
             .collect();
 
-        let memo = HashMap::new();
+        let memo = BTreeMap::new();
 
         Self {
             end_joltage,
