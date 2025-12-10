@@ -3,14 +3,18 @@ use std::{
     io::{BufRead, stdin},
 };
 
+fn sub<T: std::ops::Sub<Output = T> + Copy>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
+    a.into_iter().zip(b).map(|(x, y)| x - y).collect()
+}
+
 #[derive(Clone, Debug)]
 struct Machine {
-    end_counts: Vec<u16>,
+    end_counts: Vec<i16>,
     buttons: Vec<Vec<usize>>,
 }
 
 impl Machine {
-    fn decode_end_counts(s: &str) -> Vec<u16> {
+    fn decode_end_counts(s: &str) -> Vec<i16> {
         s.strip_prefix('{')
             .and_then(|s| s.strip_suffix('}'))
             .unwrap()
@@ -45,15 +49,23 @@ impl Machine {
         }
     }
 
-    fn initial_counts(&self) -> Vec<u16> {
+    fn initial_counts(&self) -> Vec<i16> {
         vec![0; self.end_counts.len()]
     }
 
-    fn adjacent(&self, u: &[u16]) -> Vec<Vec<u16>> {
+    fn button_bump(&self, button_index: usize) -> Vec<i16> {
+        let mut result = vec![0; self.end_counts.len()];
+        for &i in &self.buttons[button_index] {
+            result[i] = 1;
+        }
+        result
+    }
+
+    fn adjacent(&self, u: &[i16]) -> Vec<Vec<i16>> {
         self.buttons
             .iter()
             .filter_map(|bi| {
-                let mut result: Vec<u16> = u.to_vec();
+                let mut result: Vec<i16> = u.to_vec();
                 for &i in bi {
                     result[i] += 1;
 
@@ -67,8 +79,8 @@ impl Machine {
     }
 
     fn min_presses(&self) -> usize {
-        let mut dist: HashMap<Vec<u16>, usize> = HashMap::from([(self.initial_counts(), 0)]);
-        let mut q: VecDeque<Vec<u16>> = VecDeque::from([self.initial_counts()]);
+        let mut dist: HashMap<Vec<i16>, usize> = HashMap::from([(self.initial_counts(), 0)]);
+        let mut q: VecDeque<Vec<i16>> = VecDeque::from([self.initial_counts()]);
 
         while let Some(u) = q.pop_front() {
             for v in self.adjacent(&u) {
