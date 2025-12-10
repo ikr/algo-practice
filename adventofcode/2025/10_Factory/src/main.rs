@@ -9,6 +9,10 @@ fn sub<T: std::ops::Sub<Output = T> + Copy>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
     a.into_iter().zip(b).map(|(x, y)| x - y).collect()
 }
 
+fn mul_by<T: std::ops::Mul<Output = T> + Copy>(xs: Vec<T>, k: T) -> Vec<T> {
+    xs.into_iter().map(|x| x * k).collect()
+}
+
 #[derive(Clone, Debug)]
 struct Machine {
     end_joltage: Vec<i16>,
@@ -68,12 +72,12 @@ impl Machine {
             return INF;
         }
 
-        if num_buttons_used == 0 {
-            return INF;
-        }
-
         if joltage.iter().all(|&x| x == 0) {
             return 0;
+        }
+
+        if num_buttons_used == 0 {
+            return INF;
         }
 
         let key = (num_buttons_used, joltage.clone());
@@ -93,7 +97,31 @@ impl Machine {
     }
 
     fn min_presses(&mut self) -> u16 {
-        self.recur(self.buttons.len() as u8, self.end_joltage.clone())
+        let hi: usize = self.buttons.iter().map(|b| b.len()).max().unwrap();
+        let mut result = INF;
+
+        for (ib, button) in self
+            .buttons
+            .clone()
+            .into_iter()
+            .enumerate()
+            .filter(|(_, b)| b.len() == hi)
+        {
+            let reduction = button.iter().map(|&i| self.end_joltage[i]).min().unwrap();
+            let joltage = sub(
+                self.end_joltage.clone(),
+                mul_by(self.button_bump(ib), reduction),
+            );
+            self.memo = BTreeMap::new();
+            result = result.min(self.recur(self.buttons.len() as u8, joltage) + reduction as u16)
+        }
+
+        if result >= INF {
+            self.memo = BTreeMap::new();
+            self.recur(self.buttons.len() as u8, self.end_joltage.clone())
+        } else {
+            result
+        }
     }
 }
 
@@ -102,12 +130,8 @@ fn main() {
     let machines: Vec<Machine> = lines.into_iter().map(|s| Machine::decode(&s)).collect();
     let min_presses: Vec<usize> = machines
         .into_iter()
-        .map(|mut m| {
-            eprint!(".");
-            m.min_presses() as usize
-        })
+        .map(|mut m| m.min_presses() as usize)
         .collect();
-    eprintln!();
 
     let result: usize = min_presses.into_iter().sum();
     println!("{result}");
