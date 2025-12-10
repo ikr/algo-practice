@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    collections::{HashMap, VecDeque},
+    io::{BufRead, stdin},
+};
 
 #[derive(Clone, Debug)]
 struct Machine {
@@ -42,10 +45,34 @@ impl Machine {
             .collect();
         Self { end_bits, toggles }
     }
+
+    fn adjacent(&self, u: u16) -> Vec<u16> {
+        self.toggles.iter().map(|x| u ^ x).collect()
+    }
+
+    fn min_presses(&self) -> usize {
+        let mut dist: HashMap<u16, usize> = HashMap::from([(0, 0)]);
+        let mut q: VecDeque<u16> = VecDeque::from([0]);
+
+        while let Some(u) = q.pop_front() {
+            for v in self.adjacent(u) {
+                if !dist.contains_key(&v) {
+                    dist.insert(v, *dist.get(&u).unwrap() + 1);
+                    q.push_back(v);
+                }
+            }
+        }
+
+        *dist.get(&self.end_bits).unwrap()
+    }
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let machines: Vec<Machine> = lines.into_iter().map(|s| Machine::decode(&s)).collect();
     eprintln!("{:?}", machines);
+    let min_presses: Vec<usize> = machines.into_iter().map(|m| m.min_presses()).collect();
+    eprintln!("{:?}", min_presses);
+    let result: usize = min_presses.into_iter().sum();
+    println!("{result}");
 }
