@@ -6,7 +6,7 @@ use std::{
 #[derive(Clone, Debug)]
 struct Machine {
     end_counts: Vec<u16>,
-    bump_indices: Vec<Vec<usize>>,
+    buttons: Vec<Vec<usize>>,
 }
 
 impl Machine {
@@ -34,14 +34,14 @@ impl Machine {
 
         let end_counts = Self::decode_end_counts(parts[n - 1]);
 
-        let bump_indices = parts[1..n - 1]
+        let buttons = parts[1..n - 1]
             .iter()
             .map(|&s| Self::decode_button(s))
             .collect();
 
         Self {
             end_counts,
-            bump_indices,
+            buttons,
         }
     }
 
@@ -50,7 +50,7 @@ impl Machine {
     }
 
     fn adjacent(&self, u: &[u16]) -> Vec<Vec<u16>> {
-        self.bump_indices
+        self.buttons
             .iter()
             .filter_map(|bi| {
                 let mut result: Vec<u16> = u.to_vec();
