@@ -70,9 +70,7 @@ impl Machine {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let machines: Vec<Machine> = lines.into_iter().map(|s| Machine::decode(&s)).collect();
-    eprintln!("{:?}", machines);
     let min_presses: Vec<usize> = machines.into_iter().map(|m| m.min_presses()).collect();
-    eprintln!("{:?}", min_presses);
     let result: usize = min_presses.into_iter().sum();
     println!("{result}");
 }
