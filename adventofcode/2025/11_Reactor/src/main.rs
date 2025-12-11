@@ -66,8 +66,8 @@ fn main() {
     let mut tab: Vec<usize> = vec![0; g.len()];
     tab[code_of("you")] = 1;
 
-    for i in 0..seq.len() {
-        for &j in &g[seq[i]] {
+    for i in seq {
+        for &j in &g[i] {
             tab[j] += tab[i];
         }
     }
