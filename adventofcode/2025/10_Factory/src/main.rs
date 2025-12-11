@@ -1,4 +1,5 @@
 use std::io::{BufRead, stdin};
+use z3::{Optimize, ast::Int};
 
 #[derive(Clone, Debug)]
 struct Machine {
@@ -42,29 +43,49 @@ impl Machine {
         }
     }
 
-    fn initial_joltage(&self) -> Vec<i16> {
-        vec![0; self.end_joltage.len()]
-    }
-
-    fn adjacent(&self, u: &[i16]) -> Vec<(Vec<i16>, u16)> {
-        self.buttons
-            .iter()
-            .filter_map(|bi| {
-                let mut result: Vec<i16> = u.to_vec();
-                for &i in bi {
-                    result[i] += 1;
-
-                    if result[i] > self.end_joltage[i] {
-                        return None;
-                    }
-                }
-                Some((result, 1))
-            })
-            .collect()
+    fn button_bump(&self, button_index: usize) -> Vec<i16> {
+        let mut result = vec![0; self.end_joltage.len()];
+        for &i in &self.buttons[button_index] {
+            result[i] = 1;
+        }
+        result
     }
 
     fn min_presses(&mut self) -> u16 {
-        todo!()
+        let opt = Optimize::new();
+        let k = self.buttons.len();
+        let vs: Vec<Vec<i16>> = (0..k).map(|i| self.button_bump(i)).collect();
+        let m = self.end_joltage.len();
+
+        let coeffs: Vec<Int> = (0..k).map(|i| Int::new_const(format!("c_{i}"))).collect();
+
+        for c in &coeffs {
+            opt.assert(&c.ge(Int::from_i64(0)));
+        }
+
+        for j in 0..m {
+            let mut terms = Vec::with_capacity(k);
+
+            for i in 0..k {
+                let vij = Int::from_i64(vs[i][j] as i64);
+                terms.push(&coeffs[i] * vij);
+            }
+
+            let sum = Int::add(&terms.iter().collect::<Vec<_>>());
+            opt.assert(&sum.eq(&Int::from_i64(self.end_joltage[j] as i64)));
+        }
+
+        let sum_coeffs = Int::add(&coeffs.iter().collect::<Vec<_>>());
+        opt.minimize(&sum_coeffs);
+        let result = opt.check(&[]);
+        assert!(result == z3::SatResult::Sat);
+
+        let model = opt.get_model().unwrap();
+        let vals: Vec<u16> = coeffs
+            .iter()
+            .map(|c| model.eval(c, true).unwrap().as_i64().unwrap() as u16)
+            .collect();
+        vals.into_iter().sum()
     }
 }
 
