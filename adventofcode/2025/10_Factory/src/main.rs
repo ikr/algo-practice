@@ -101,7 +101,7 @@ impl Machine {
             |u| heu_dist(u.to_vec(), self.end_joltage.clone()),
             |u| *u == self.end_joltage,
         )
-        .expect("Assumed the path exists")
+        .expect("Assumed path exists")
         .1
     }
 }
