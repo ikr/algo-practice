@@ -1,17 +1,5 @@
-use std::{
-    collections::HashMap,
-    io::{BufRead, stdin},
-};
-
-const INF: u16 = 50_000;
-
-fn sub<T: std::ops::Sub<Output = T> + Copy>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
-    a.into_iter().zip(b).map(|(x, y)| x - y).collect()
-}
-
-fn mul_by<T: std::ops::Mul<Output = T> + Copy>(xs: Vec<T>, k: T) -> Vec<T> {
-    xs.into_iter().map(|x| x * k).collect()
-}
+use pathfinding::prelude::astar;
+use std::io::{BufRead, stdin};
 
 fn heu_dist(mut a: Vec<i16>, mut b: Vec<i16>) -> u16 {
     assert!(
@@ -22,15 +10,22 @@ fn heu_dist(mut a: Vec<i16>, mut b: Vec<i16>) -> u16 {
         (a, b) = (b, a);
     }
 
-    let mut result = 0;
+    let mut result: u16 = 0;
 
-    while let Some((x, y)) = a
+    while let Some(delta) = a
         .iter()
         .zip(b.iter())
         .filter(|(x, y)| **x != **y)
         .min_by_key(|(x, y)| **y - **x)
+        .map(|(x, y)| y - x)
     {
-        assert!(x < y);
+        assert!(delta > 0);
+        for i in 0..a.len() {
+            if a[i] != b[i] {
+                a[i] += delta;
+            }
+        }
+        result += delta as u16;
     }
 
     result
@@ -40,7 +35,6 @@ fn heu_dist(mut a: Vec<i16>, mut b: Vec<i16>) -> u16 {
 struct Machine {
     end_joltage: Vec<i16>,
     buttons: Vec<Vec<usize>>,
-    memo: HashMap<(u8, Vec<i16>), u16>,
 }
 
 impl Machine {
@@ -73,78 +67,42 @@ impl Machine {
             .map(|&s| Self::decode_button(s))
             .collect();
 
-        let memo = HashMap::new();
-
         Self {
             end_joltage,
             buttons,
-            memo,
         }
     }
 
-    fn button_bump(&self, button_index: usize) -> Vec<i16> {
-        let mut result = vec![0; self.end_joltage.len()];
-        for &i in &self.buttons[button_index] {
-            result[i] = 1;
-        }
-        result
+    fn initial_joltage(&self) -> Vec<i16> {
+        vec![0; self.end_joltage.len()]
     }
 
-    fn recur(&mut self, num_buttons_used: u8, joltage: Vec<i16>) -> u16 {
-        if joltage.iter().any(|&x| x < 0) {
-            return INF;
-        }
+    fn adjacent(&self, u: &[i16]) -> Vec<(Vec<i16>, u16)> {
+        self.buttons
+            .iter()
+            .filter_map(|bi| {
+                let mut result: Vec<i16> = u.to_vec();
+                for &i in bi {
+                    result[i] += 1;
 
-        if joltage.iter().all(|&x| x == 0) {
-            return 0;
-        }
-
-        if num_buttons_used == 0 {
-            return INF;
-        }
-
-        let key = (num_buttons_used, joltage.clone());
-
-        if let Some(&cached) = self.memo.get(&key) {
-            cached
-        } else {
-            let value: u16 = self.recur(num_buttons_used - 1, joltage.clone()).min({
-                let bump = self.button_bump((num_buttons_used - 1) as usize);
-                let sub = sub(joltage, bump);
-                1 + self.recur(num_buttons_used, sub)
-            });
-
-            self.memo.insert(key, value);
-            value
-        }
+                    if result[i] > self.end_joltage[i] {
+                        return None;
+                    }
+                }
+                Some((result, 1))
+            })
+            .collect()
     }
 
     fn min_presses(&mut self) -> u16 {
-        let hi: usize = self.buttons.iter().map(|b| b.len()).max().unwrap();
-        let mut result = INF;
-
-        for (ib, button) in self
-            .buttons
-            .clone()
-            .into_iter()
-            .enumerate()
-            .filter(|(_, b)| b.len() == hi)
-        {
-            let reduction = button.iter().map(|&i| self.end_joltage[i]).min().unwrap();
-            let joltage = sub(
-                self.end_joltage.clone(),
-                mul_by(self.button_bump(ib), reduction),
-            );
-            self.memo.clear();
-            result = result.min(self.recur(self.buttons.len() as u8, joltage) + reduction as u16)
-        }
-
-        if result >= INF {
-            self.memo.clear();
-            self.recur(self.buttons.len() as u8, self.end_joltage.clone())
-        } else {
-            result
-        }
+        astar(
+            &self.initial_joltage(),
+            |u| self.adjacent(u),
+            |u| heu_dist(u.to_vec(), self.end_joltage.clone()),
+            |u| *u == self.end_joltage,
+        )
+        .expect("Assumed the path exists")
+        .1
     }
 }
 
@@ -155,7 +113,6 @@ fn main() {
         .into_iter()
         .map(|mut m| {
             let result = m.min_presses() as usize;
-            m.memo.clear();
             eprintln!("{:?} in {result} presses", m.end_joltage);
             result
         })
@@ -163,4 +120,19 @@ fn main() {
 
     let result: usize = min_presses.into_iter().sum();
     println!("{result}");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_heu_dist() {
+        for (a, b, expected) in [
+            (vec![1], vec![1], 0),
+            (vec![3, 5, 4, 7], vec![1, 2, 2, 0], 7),
+        ] {
+            assert_eq!(heu_dist(a, b), expected);
+        }
+    }
 }
