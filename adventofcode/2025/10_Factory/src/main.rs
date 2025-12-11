@@ -13,6 +13,29 @@ fn mul_by<T: std::ops::Mul<Output = T> + Copy>(xs: Vec<T>, k: T) -> Vec<T> {
     xs.into_iter().map(|x| x * k).collect()
 }
 
+fn heu_dist(mut a: Vec<i16>, mut b: Vec<i16>) -> u16 {
+    assert!(
+        a.iter().zip(b.iter()).all(|(x, y)| x <= y) || a.iter().zip(b.iter()).all(|(x, y)| x >= y)
+    );
+
+    if a.iter().zip(b.iter()).all(|(x, y)| x >= y) {
+        (a, b) = (b, a);
+    }
+
+    let mut result = 0;
+
+    while let Some((x, y)) = a
+        .iter()
+        .zip(b.iter())
+        .filter(|(x, y)| **x != **y)
+        .min_by_key(|(x, y)| **y - **x)
+    {
+        assert!(x < y);
+    }
+
+    result
+}
+
 #[derive(Clone, Debug)]
 struct Machine {
     end_joltage: Vec<i16>,
