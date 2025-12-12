@@ -74,6 +74,13 @@ impl Shape {
 
         result.into_iter().collect()
     }
+
+    fn area(&self) -> usize {
+        self.0
+            .iter()
+            .map(|row| row.iter().filter(|&&x| x).count())
+            .sum()
+    }
 }
 
 #[derive(Debug)]
@@ -104,6 +111,14 @@ impl RegionGoal {
             shape_counts,
         }
     }
+
+    fn total_shapes_area(&self, shapes: &[Shape]) -> usize {
+        self.shape_counts
+            .iter()
+            .zip(shapes)
+            .map(|(count, shape)| count * shape.area())
+            .sum()
+    }
 }
 
 fn main() {
@@ -118,19 +133,24 @@ fn main() {
         .collect();
 
     for shape in &shapes {
-        eprintln!("{}\n", shape.display_text());
+        eprintln!("{} -- {}\n", shape.display_text(), shape.area());
     }
 
-    let region_goals: Vec<RegionGoal> = paragraphs
+    let initial_region_goals: Vec<RegionGoal> = paragraphs
         .last()
         .unwrap()
         .split('\n')
         .map(RegionGoal::decode)
         .collect();
+    let initial_region_goals_count = initial_region_goals.len();
+    eprintln!("Initial region goals count: {}", initial_region_goals_count);
 
-    eprintln!("{:?}", region_goals);
-
-    for shape in shapes.last().unwrap().all_configurations() {
-        eprintln!("{}\n", shape.display_text());
-    }
+    let region_goals: Vec<RegionGoal> = initial_region_goals
+        .into_iter()
+        .filter(|rg| rg.total_shapes_area(&shapes) <= rg.height * rg.width)
+        .collect();
+    eprintln!(
+        "Removed {} obviously impossible goals",
+        initial_region_goals_count - region_goals.len()
+    );
 }
