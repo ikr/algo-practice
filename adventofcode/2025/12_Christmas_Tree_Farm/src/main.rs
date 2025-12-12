@@ -81,6 +81,14 @@ impl Shape {
             .map(|row| row.iter().filter(|&&x| x).count())
             .sum()
     }
+
+    fn height(&self) -> usize {
+        self.0.len()
+    }
+
+    fn width(&self) -> usize {
+        self.0[0].len()
+    }
 }
 
 #[derive(Debug)]
@@ -119,6 +127,76 @@ impl RegionGoal {
             .map(|(count, shape)| count * shape.area())
             .sum()
     }
+
+    fn empty_region(&self) -> Region {
+        Region::new(self.height, self.width)
+    }
+}
+
+#[derive(Clone, Eq, Hash, PartialEq)]
+struct Region(Vec<Vec<bool>>);
+
+impl Region {
+    fn new(height: usize, width: usize) -> Self {
+        Self(vec![vec![false; width]; height])
+    }
+
+    fn height(&self) -> usize {
+        self.0.len()
+    }
+
+    fn width(&self) -> usize {
+        self.0[0].len()
+    }
+
+    fn bit_blt(&self, shape: &Shape, ro: usize, co: usize) -> Option<Self> {
+        let (h, w) = (self.height(), self.width());
+        let (sh, sw) = (shape.height(), shape.width());
+        assert!(ro + sh <= h && co + sw <= w);
+        let mut xss = self.0.clone();
+
+        for i in 0..sh {
+            for j in 0..sw {
+                if xss[ro + i][co + j] {
+                    return None;
+                }
+                xss[ro + i][co + j] = true;
+            }
+        }
+
+        Some(Self(xss))
+    }
+}
+
+fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: &[usize]) -> bool {
+    assert_eq!(shapes.len(), unused_shapes_counts.len());
+
+    if unused_shapes_counts.iter().all(|&x| x == 0) {
+        true
+    } else {
+        (0..unused_shapes_counts.len())
+            .filter(|&k| unused_shapes_counts[k] != 0)
+            .any(|k| {
+                shapes[k].all_configurations().into_iter().any(|cfg| {
+                    let (sh, sw) = (cfg.height(), cfg.width());
+                    let (h, w) = (region.height(), region.width());
+
+                    for ro in 0..=h - sh {
+                        for co in 0..=w - sw {
+                            if let Some(next_region) = region.bit_blt(&cfg, ro, co) {
+                                let mut next_counts = unused_shapes_counts.to_vec();
+                                next_counts[k] -= 1;
+
+                                if fit_recur(shapes, next_region, &next_counts) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    false
+                })
+            })
+    }
 }
 
 fn main() {
@@ -153,4 +231,10 @@ fn main() {
         "Removed {} obviously impossible goals",
         initial_region_goals_count - region_goals.len()
     );
+
+    let result = region_goals
+        .into_iter()
+        .filter(|rg| fit_recur(&shapes, rg.empty_region(), &rg.shape_counts))
+        .count();
+    println!("{result}");
 }
