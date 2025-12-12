@@ -156,10 +156,12 @@ impl Region {
 
         for i in 0..sh {
             for j in 0..sw {
-                if xss[ro + i][co + j] {
-                    return None;
+                if shape.0[i][j] {
+                    if xss[ro + i][co + j] {
+                        return None;
+                    }
+                    xss[ro + i][co + j] = true;
                 }
-                xss[ro + i][co + j] = true;
             }
         }
 
@@ -172,34 +174,34 @@ fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: Vec<usize>)
     if unused_shapes_counts.iter().all(|&x| x == 0) {
         true
     } else {
-        let ks: Vec<usize> = (0..unused_shapes_counts.len())
+        (0..unused_shapes_counts.len())
             .filter(|&k| unused_shapes_counts[k] != 0)
-            .collect();
-        let ks_len = ks.len();
+            .flat_map(|k| {
+                shapes[k]
+                    .all_configurations()
+                    .into_iter()
+                    .map(|cfg| (k, cfg))
+                    .collect::<Vec<_>>()
+            })
+            .any(|(k, cfg)| {
+                let (sh, sw) = (cfg.height(), cfg.width());
+                let (h, w) = (region.height(), region.width());
 
-        ks.into_iter().permutations(ks_len).any(|pk| {
-            pk.into_iter().any(|k| {
-                shapes[k].all_configurations().into_iter().any(|cfg| {
-                    let (sh, sw) = (cfg.height(), cfg.width());
-                    let (h, w) = (region.height(), region.width());
+                for ro in 0..=h - sh {
+                    for co in 0..=w - sw {
+                        if let Some(next_region) = region.bit_blt(&cfg, ro, co) {
+                            let mut next_counts = unused_shapes_counts.clone();
+                            next_counts[k] -= 1;
+                            //eprintln!("{}\n", display_text('#', &next_region.0));
 
-                    for ro in 0..=h - sh {
-                        for co in 0..=w - sw {
-                            if let Some(next_region) = region.bit_blt(&cfg, ro, co) {
-                                let mut next_counts = unused_shapes_counts.clone();
-                                next_counts[k] -= 1;
-                                eprintln!("{}\n", display_text('#', &next_region.0));
-
-                                if fit_recur(shapes, next_region, next_counts) {
-                                    return true;
-                                }
+                            if fit_recur(shapes, next_region, next_counts) {
+                                return true;
                             }
                         }
                     }
-                    false
-                })
+                }
+                false
             })
-        })
     }
 }
 
@@ -240,7 +242,7 @@ fn main() {
         .into_iter()
         .filter(|rg| {
             let result = fit_recur(&shapes, rg.empty_region(), rg.shape_counts.clone());
-            eprint!(".");
+            eprint!("{}", if result { '+' } else { '-' });
             result
         })
         .count();
