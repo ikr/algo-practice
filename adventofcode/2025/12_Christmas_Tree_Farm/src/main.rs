@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use std::io::Read;
+use std::{collections::HashSet, io::Read};
 
 fn display_text(symbol: char, xss: &[Vec<bool>]) -> String {
     xss.iter()
@@ -26,7 +26,7 @@ fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
         .collect()
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 struct Shape(Vec<Vec<bool>>);
 
 impl Shape {
@@ -40,6 +40,39 @@ impl Shape {
 
     fn display_text(&self) -> String {
         display_text('#', &self.0)
+    }
+
+    fn flip(&self) -> Self {
+        let xss: Vec<Vec<bool>> = self
+            .0
+            .iter()
+            .map(|row| row.iter().rev().copied().collect())
+            .collect();
+
+        Self(xss)
+    }
+
+    fn transpose(&self) -> Self {
+        Self(transpose(self.0.clone()))
+    }
+
+    fn rotate(&self) -> Self {
+        self.transpose().flip()
+    }
+
+    fn all_configurations(&self) -> Vec<Self> {
+        let mut result: HashSet<Self> = HashSet::new();
+
+        for mut shape in [self.clone(), self.flip()] {
+            result.insert(shape.clone());
+
+            for _ in 0..3 {
+                shape = shape.rotate();
+                result.insert(shape.clone());
+            }
+        }
+
+        result.into_iter().collect()
     }
 }
 
@@ -84,7 +117,7 @@ fn main() {
         .map(|s| Shape::decode(s))
         .collect();
 
-    for shape in shapes {
+    for shape in &shapes {
         eprintln!("{}\n", shape.display_text());
     }
 
@@ -96,4 +129,8 @@ fn main() {
         .collect();
 
     eprintln!("{:?}", region_goals);
+
+    for shape in shapes.last().unwrap().all_configurations() {
+        eprintln!("{}\n", shape.display_text());
+    }
 }
