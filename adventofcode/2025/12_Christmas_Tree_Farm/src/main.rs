@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use memoize::memoize;
 use std::{collections::HashSet, io::Read};
 
 fn display_text(symbol: char, xss: &[Vec<bool>]) -> String {
@@ -150,9 +151,7 @@ impl Region {
     }
 
     fn bit_blt(&self, shape: &Shape, ro: usize, co: usize) -> Option<Self> {
-        let (h, w) = (self.height(), self.width());
         let (sh, sw) = (shape.height(), shape.width());
-        assert!(ro + sh <= h && co + sw <= w);
         let mut xss = self.0.clone();
 
         for i in 0..sh {
@@ -168,9 +167,8 @@ impl Region {
     }
 }
 
-fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: &[usize]) -> bool {
-    assert_eq!(shapes.len(), unused_shapes_counts.len());
-
+#[memoize(Ignore: shapes)]
+fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: Vec<usize>) -> bool {
     if unused_shapes_counts.iter().all(|&x| x == 0) {
         true
     } else {
@@ -184,10 +182,10 @@ fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: &[usize]) -
                     for ro in 0..=h - sh {
                         for co in 0..=w - sw {
                             if let Some(next_region) = region.bit_blt(&cfg, ro, co) {
-                                let mut next_counts = unused_shapes_counts.to_vec();
+                                let mut next_counts = unused_shapes_counts.clone();
                                 next_counts[k] -= 1;
 
-                                if fit_recur(shapes, next_region, &next_counts) {
+                                if fit_recur(shapes, next_region, next_counts) {
                                     return true;
                                 }
                             }
@@ -234,7 +232,7 @@ fn main() {
 
     let result = region_goals
         .into_iter()
-        .filter(|rg| fit_recur(&shapes, rg.empty_region(), &rg.shape_counts))
+        .filter(|rg| fit_recur(&shapes, rg.empty_region(), rg.shape_counts.clone()))
         .count();
     println!("{result}");
 }
