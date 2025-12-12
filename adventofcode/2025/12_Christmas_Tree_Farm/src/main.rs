@@ -172,9 +172,13 @@ fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: Vec<usize>)
     if unused_shapes_counts.iter().all(|&x| x == 0) {
         true
     } else {
-        (0..unused_shapes_counts.len())
+        let ks: Vec<usize> = (0..unused_shapes_counts.len())
             .filter(|&k| unused_shapes_counts[k] != 0)
-            .any(|k| {
+            .collect();
+        let ks_len = ks.len();
+
+        ks.into_iter().permutations(ks_len).any(|pk| {
+            pk.into_iter().any(|k| {
                 shapes[k].all_configurations().into_iter().any(|cfg| {
                     let (sh, sw) = (cfg.height(), cfg.width());
                     let (h, w) = (region.height(), region.width());
@@ -184,6 +188,7 @@ fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: Vec<usize>)
                             if let Some(next_region) = region.bit_blt(&cfg, ro, co) {
                                 let mut next_counts = unused_shapes_counts.clone();
                                 next_counts[k] -= 1;
+                                eprintln!("{}\n", display_text('#', &next_region.0));
 
                                 if fit_recur(shapes, next_region, next_counts) {
                                     return true;
@@ -194,6 +199,7 @@ fn fit_recur(shapes: &[Shape], region: Region, unused_shapes_counts: Vec<usize>)
                     false
                 })
             })
+        })
     }
 }
 
@@ -232,7 +238,12 @@ fn main() {
 
     let result = region_goals
         .into_iter()
-        .filter(|rg| fit_recur(&shapes, rg.empty_region(), rg.shape_counts.clone()))
+        .filter(|rg| {
+            let result = fit_recur(&shapes, rg.empty_region(), rg.shape_counts.clone());
+            eprint!(".");
+            result
+        })
         .count();
+    eprintln!();
     println!("{result}");
 }
