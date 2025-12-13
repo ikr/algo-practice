@@ -1,7 +1,7 @@
 use proconio::input;
 use proconio::marker::Bytes;
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     io::{BufWriter, Write, stdout},
 };
 
@@ -9,32 +9,33 @@ fn is_warp(x: u8) -> bool {
     b'a' <= x && x <= b'z'
 }
 
-fn warp_index(x: u8) -> usize {
-    assert!(is_warp(x));
-    (x - b'a') as usize
+fn warp_index(x: u8) -> Option<usize> {
+    is_warp(x).then(|| (x - b'a') as usize)
 }
 
-fn crds_by_warp(grid: &[Vec<u8>]) -> Vec<Vec<(usize, usize)>> {
+fn adjacent_by_warp(grid: &[Vec<u8>]) -> Vec<Vec<(usize, usize)>> {
     let (h, w) = (grid.len(), grid[0].len());
-    let mut result = vec![vec![]; 26];
+    let mut result: Vec<HashSet<(usize, usize)>> = vec![HashSet::new(); 26];
 
     for i in 0..h {
         for j in 0..w {
-            if is_warp(grid[i][j]) {
-                result[warp_index(grid[i][j])].push((i, j));
+            if let Some(wi) = warp_index(grid[i][j]) {
+                result[wi].extend(
+                    adjacent(grid, i, j)
+                        .into_iter()
+                        .filter(|&(ii, jj)| grid[ii][jj] != grid[i][j]),
+                );
             }
         }
     }
 
     result
+        .into_iter()
+        .map(|hs| hs.into_iter().collect())
+        .collect()
 }
 
-fn adjacent(
-    grid: &[Vec<u8>],
-    cbw: &[Vec<(usize, usize)>],
-    i: usize,
-    j: usize,
-) -> Vec<(usize, usize)> {
+fn adjacent(grid: &[Vec<u8>], i: usize, j: usize) -> Vec<(usize, usize)> {
     let (h, w) = (grid.len(), grid[0].len());
     let mut result = vec![];
 
@@ -54,35 +55,53 @@ fn adjacent(
         result.push((i, j - 1));
     }
 
-    if is_warp(grid[i][j]) {
-        result.extend(
-            cbw[warp_index(grid[i][j])]
-                .iter()
-                .filter(|&&sub| sub != (i, j)),
-        )
-    }
-
     result
 }
 
 fn min_steps(grid: Vec<Vec<u8>>) -> Option<usize> {
     let (h, w) = (grid.len(), grid[0].len());
-    let cbw = crds_by_warp(&grid);
+
+    if let Some(wi_start) = warp_index(grid[0][0])
+        && let Some(wi_finish) = warp_index(grid[h - 1][w - 1])
+        && wi_start == wi_finish
+    {
+        return Some(1);
+    }
+
+    let abw = adjacent_by_warp(&grid);
     let mut dist: HashMap<(usize, usize), usize> = HashMap::from([((0, 0), 0)]);
     let mut q: VecDeque<(usize, usize)> = VecDeque::from([(0, 0)]);
 
     while let Some(u) = q.pop_front() {
-        for v in adjacent(&grid, &cbw, u.0, u.1) {
-            let du = dist.get(&u).unwrap();
+        let du: usize = *dist.get(&u).unwrap();
 
-            if !dist.contains_key(&v) {
-                dist.insert(v, du + 1);
-                q.push_back(v);
+        if let Some(wi) = warp_index(grid[u.0][u.1]) {
+            if let Some(wi_finish) = warp_index(grid[h - 1][w - 1])
+                && wi_finish == wi
+            {
+                return Some(du + 1);
+            }
+
+            for &v in &abw[wi] {
+                if !dist.contains_key(&v) {
+                    dist.insert(v, du + 2);
+                    q.push_back(v);
+                }
+            }
+        } else {
+            for v in adjacent(&grid, u.0, u.1) {
+                if !dist.contains_key(&v) {
+                    if v == (h - 1, w - 1) {
+                        return Some(du + 1);
+                    }
+                    dist.insert(v, du + 1);
+                    q.push_back(v);
+                }
             }
         }
     }
 
-    dist.get(&(h - 1, w - 1)).copied()
+    None
 }
 
 fn main() {
