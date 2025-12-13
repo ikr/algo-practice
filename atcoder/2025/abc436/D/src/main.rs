@@ -83,8 +83,22 @@ fn min_steps(grid: Vec<Vec<u8>>) -> Option<usize> {
             }
 
             for &v in &abw[wi] {
+                if v == (h - 1, w - 1) {
+                    let incr = if adjacent(&grid, v.0, v.1).contains(&u) {
+                        1
+                    } else {
+                        2
+                    };
+                    return Some(du + incr);
+                }
+
                 if !dist.contains_key(&v) {
-                    dist.insert(v, du + 2);
+                    let incr = if adjacent(&grid, v.0, v.1).contains(&u) {
+                        1
+                    } else {
+                        2
+                    };
+                    dist.insert(v, du + incr);
                     q.push_back(v);
                 }
             }
