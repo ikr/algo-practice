@@ -13,6 +13,20 @@ fn warp_index(x: u8) -> Option<usize> {
     is_warp(x).then(|| (x - b'a') as usize)
 }
 
+fn crds_by_warp(grid: &[Vec<u8>]) -> Vec<Vec<(usize, usize)>> {
+    let mut result = vec![vec![]; 26];
+
+    for (i, row) in grid.iter().enumerate() {
+        for (j, cell) in row.iter().enumerate() {
+            if let Some(wi) = warp_index(*cell) {
+                result[wi].push((i, j));
+            }
+        }
+    }
+
+    result
+}
+
 fn adjacent_by_warp(grid: &[Vec<u8>]) -> Vec<Vec<(usize, usize)>> {
     let (h, w) = (grid.len(), grid[0].len());
     let mut result: Vec<HashSet<(usize, usize)>> = vec![HashSet::new(); 26];
@@ -68,6 +82,7 @@ fn min_steps(grid: Vec<Vec<u8>>) -> Option<usize> {
         return Some(1);
     }
 
+    let cbw = crds_by_warp(&grid);
     let abw = adjacent_by_warp(&grid);
     let mut dist: HashMap<(usize, usize), usize> = HashMap::from([((0, 0), 0)]);
     let mut q: VecDeque<(usize, usize)> = VecDeque::from([(0, 0)]);
@@ -98,6 +113,14 @@ fn min_steps(grid: Vec<Vec<u8>>) -> Option<usize> {
                     } else {
                         2
                     };
+                    dist.extend(cbw[wi].iter().map(|&(i, j)| {
+                        let incr = if adjacent(&grid, i, j).contains(&u) {
+                            1
+                        } else {
+                            2
+                        };
+                        ((i, j), du + incr)
+                    }));
                     dist.insert(v, du + incr);
                     q.push_back(v);
                 }
