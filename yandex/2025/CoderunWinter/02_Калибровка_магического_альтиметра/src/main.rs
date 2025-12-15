@@ -26,9 +26,30 @@ impl Scanner {
     }
 }
 
+fn bits_indices(bits: u16) -> Vec<usize> {
+    let mut result = vec![];
+    for i in 0..u16::BITS {
+        if bits & (1 << i) != 0 {
+            result.push(i as usize);
+        }
+    }
+    result
+}
+
+fn get_all(xs: &[i16], indices: Vec<usize>) -> Vec<i16> {
+    indices.into_iter().map(|i| xs[i]).collect()
+}
+
 fn min_sum(xs: Vec<i16>) -> i16 {
     let n = xs.len();
-    (1..(1 << n)).map(|bits| {})
+
+    let ss: Vec<i16> = (1u16..(1 << n))
+        .map(|bits| get_all(&xs, bits_indices(bits)).into_iter().sum::<i16>())
+        .collect();
+
+    ss.into_iter()
+        .min_by_key(|s| (s.abs_diff(100), -s))
+        .unwrap()
 }
 
 fn main() {
