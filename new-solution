@@ -14,6 +14,8 @@ parser.add_argument("-e", "--embed",
 parser.add_argument("-p", "--prefix-output",
                     help="Read STDIN & prefix K-th test case's output with `Case #K: `",
                     action="store_true")
+parser.add_argument("--rust-edition", help="The edition value to put into Cargo.toml")
+parser.add_argument("--rust-version", help="The rust-version value to put into Cargo.toml")
 parser.add_argument("name", help="The name of the problem")
 args = parser.parse_args()
 
@@ -138,9 +140,14 @@ def normalize(name):
         ans = ans.replace(x, '')
     return re.sub(r'[ &,/]+', '_', ans)
 
-os.system('cargo new {0} --name solution'.format(normalize(args.name)))
+edition_kv = " --edition {0}".format(args.rust_edition) if args.rust_edition else ""
+os.system('cargo new {0} --name solution{1}'.format(normalize(args.name), edition_kv))
+
 path = os.path.join(os.getcwd(), normalize(args.name))
 os.chdir(path)
+
+if args.rust_version:
+    os.system("""sed -i '0,/^$/s//rust-version = "{0}"\\n/' ./Cargo.toml""".format(args.rust_version))
 
 if args.atcoder:
     os.system('cargo add proconio')
