@@ -32,7 +32,9 @@ fn div_ceil(a: i64, b: i64) -> i64 {
     (a + b - 1) / b
 }
 
-fn flaws_sum(mut m: i64, xs: Vec<i64>) -> i64 {
+fn flaws_sum(mut m: i64, mut xs: Vec<i64>) -> i64 {
+    xs.sort();
+    xs.reverse();
     let total: i64 = xs.iter().sum();
     let mut result = 0;
 
