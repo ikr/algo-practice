@@ -32,20 +32,9 @@ fn div_ceil(a: i64, b: i64) -> i64 {
     (a + b - 1) / b
 }
 
-fn flaws_sum(mut m: i64, mut xs: Vec<i64>) -> i64 {
-    xs.sort();
-    xs.reverse();
-    let total: i64 = xs.iter().sum();
-    let mut result = 0;
-
-    for x in xs {
-        let d = div_ceil(x * m, total).min(m);
-        m -= d;
-        result += (x - d).pow(2);
-        result %= M;
-    }
-
-    result
+fn flaws_sum(mut m: i64, xs0: Vec<i64>) -> i64 {
+    let mut xs = xs0.clone();
+    todo!()
 }
 
 fn main() {
@@ -56,8 +45,8 @@ fn main() {
     let mut scanner = Scanner::default();
     let m: i64 = scanner.next();
     let n: usize = scanner.next();
-    let xs: Vec<i64> = scanner.next_n(n);
-    eprintln!("{:?}", xs);
+    let mut xs: Vec<i64> = scanner.next_n(n);
+    xs.sort_by(|a, b| b.cmp(a));
 
     let result = flaws_sum(m, xs);
     writeln!(writer, "{result}").unwrap();
