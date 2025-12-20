@@ -213,7 +213,7 @@ fn flaws_sum(m: i64, xs: Vec<i64>) -> i64 {
 
     xs.into_iter()
         .map(|x| {
-            let d = (total * x) / Mint::from(m);
+            let d = (Mint::from(x) * Mint::from(m)) / Mint::from(total);
             (Mint::from(x) - d).pow(2)
         })
         .fold(Mint::from(0), |acc, a| acc + Mint::from(a))
