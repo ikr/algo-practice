@@ -14,24 +14,20 @@ impl Deer {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-struct State {
-    capacity: i64,
-    riders: usize,
-}
+fn max_riders(mut deers: Vec<Deer>) -> usize {
+    let hi: i64 = deers.iter().map(|d| d.p).sum();
+    deers.sort_by_key(|d| d.w + d.p);
 
-impl State {
-    fn new(capacity: i64, riders: usize) -> Self {
-        Self { capacity, riders }
+    let mut cap = hi;
+    for (i, d) in deers.into_iter().enumerate() {
+        if cap >= d.w + d.p {
+            cap -= d.w + d.p;
+        } else {
+            return i;
+        }
     }
-}
 
-fn max_riders(deers: Vec<Deer>) -> usize {
-    let n = deers.len();
-    let mut tab: Vec<Vec<State>> = vec![vec![State::new(0, 0); 2]; n];
-    //tab[0][0] =
-
-    tab[n - 1].iter().map(|a| a.riders).max().unwrap()
+    unreachable!()
 }
 
 fn main() {
