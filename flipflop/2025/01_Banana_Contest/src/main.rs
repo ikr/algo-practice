@@ -10,7 +10,10 @@ fn main() {
 
     let tcs: Vec<usize> = lines
         .into_iter()
-        .map(|s| relevant_tokens_count(&s))
+        .filter_map(|s| {
+            let c = relevant_tokens_count(&s);
+            c.is_multiple_of(2).then_some(c)
+        })
         .collect();
 
     let result: usize = tcs.into_iter().sum();
