@@ -28,15 +28,17 @@ impl Scanner {
     }
 }
 
-fn rightmost_leveling_index(m: i64, xs: &[i64]) -> usize {
-    let ss: Vec<i64> = xs
-        .iter()
-        .scan(0, |state, x| {
-            *state += x;
+fn prefix_sums<T: Copy + std::ops::Add<Output = T> + Default>(xs: &[T]) -> Vec<T> {
+    xs.iter()
+        .scan(T::default(), |state, x| {
+            *state = *state + *x;
             Some(*state)
         })
-        .collect();
+        .collect()
+}
 
+fn rightmost_leveling_index(m: i64, xs: &[i64]) -> usize {
+    let ss: Vec<i64> = prefix_sums(xs);
     let indexed: Vec<(usize, i64)> = ss.into_iter().enumerate().collect();
     indexed.partition_point(|&(i, x)| {
         if i == 0 {
