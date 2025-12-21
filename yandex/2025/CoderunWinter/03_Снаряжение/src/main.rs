@@ -49,16 +49,37 @@ fn rightmost_leveling_index(m: i64, xs: &[i64]) -> usize {
     }) - 1
 }
 
-fn flaws_sum(m: i64, xs: Vec<i64>) -> i64 {
-    todo!()
+fn flaws_sum(mut m: i64, mut xs: Vec<i64>) -> i64 {
+    let li = rightmost_leveling_index(m, &xs);
+    let level = xs[li];
+
+    for x in xs.iter_mut().take(li + 1) {
+        m -= *x - level;
+        *x = level;
+    }
+
+    for i in (0..=li).rev() {
+        if m == 0 {
+            break;
+        }
+        xs[i] -= 1;
+        m -= 1;
+    }
+
+    xs.into_iter()
+        .map(|x| {
+            assert!(x >= 0);
+            x.pow(2)
+        })
+        .fold(0, |acc, x| (acc + x) % M)
 }
 
 fn main() {
     let stdout = stdout();
     let handle = stdout.lock();
     let mut writer = BufWriter::new(handle);
-
     let mut scanner = Scanner::default();
+
     let m: i64 = scanner.next();
     let n: usize = scanner.next();
     let mut xs: Vec<i64> = scanner.next_n(n);
