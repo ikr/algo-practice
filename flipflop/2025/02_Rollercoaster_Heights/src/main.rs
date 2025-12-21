@@ -1,3 +1,4 @@
+use memoise::memoise;
 use std::io::Read;
 
 fn run_length_encoding(s: &str) -> Vec<(char, usize)> {
@@ -13,8 +14,13 @@ fn run_length_encoding(s: &str) -> Vec<(char, usize)> {
     })
 }
 
-fn asum(k: usize) -> i32 {
-    (k * (k + 1) / 2) as i32
+#[memoise(n < 32)]
+fn fib(n: usize) -> i32 {
+    if n < 2 {
+        n as i32
+    } else {
+        fib(n - 2) + fib(n - 1)
+    }
 }
 
 fn main() {
@@ -24,8 +30,8 @@ fn main() {
     let deltas: Vec<i32> = run_length_encoding(buf.trim_end())
         .into_iter()
         .map(|(c, k)| match c {
-            '^' => asum(k),
-            'v' => -asum(k),
+            '^' => fib(k),
+            'v' => -fib(k),
             _ => unreachable!(),
         })
         .collect();
@@ -39,7 +45,7 @@ fn main() {
         .max()
         .unwrap();
 
-    eprintln!("{result}");
+    println!("{result}");
 }
 
 #[cfg(test)]
@@ -54,6 +60,10 @@ mod tests {
             (
                 "^^^v^^^^vvvvvvv",
                 vec![('^', 3), ('v', 1), ('^', 4), ('v', 7)],
+            ),
+            (
+                "^^^^^^^^^^^^vvvvvvvvv^",
+                vec![('^', 12), ('v', 9), ('^', 1)],
             ),
         ] {
             assert_eq!(run_length_encoding(xs), exp, "on {:?}", xs);
