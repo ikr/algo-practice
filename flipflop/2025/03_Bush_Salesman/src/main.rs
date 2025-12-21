@@ -45,6 +45,15 @@ impl Label {
             )
         }
     }
+
+    fn price(self) -> u16 {
+        match self {
+            Self::R => 5,
+            Self::G => 2,
+            Self::B => 4,
+            Self::Sp => 10,
+        }
+    }
 }
 
 fn decode_line(s: &str) -> (u8, u8, u8) {
@@ -58,6 +67,6 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let rgbs: Vec<_> = lines.into_iter().map(|s| decode_line(&s)).collect();
     let labels: Vec<Label> = rgbs.into_iter().map(Label::from_rgb).collect();
-    let result = labels.into_iter().filter(|&l| l == Label::G).count();
+    let result: u16 = labels.into_iter().map(|l| l.price()).sum();
     println!("{result}");
 }
