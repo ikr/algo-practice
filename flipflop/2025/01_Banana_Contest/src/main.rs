@@ -2,7 +2,11 @@ use regex::Regex;
 use std::io::{BufRead, stdin};
 
 fn relevant_tokens_count(s: &str) -> usize {
-    Regex::new(r"ba|na|ne").unwrap().find_iter(s).count()
+    if s.contains("ne") {
+        0
+    } else {
+        Regex::new(r"ba|na").unwrap().find_iter(s).count()
+    }
 }
 
 fn main() {
@@ -10,10 +14,7 @@ fn main() {
 
     let tcs: Vec<usize> = lines
         .into_iter()
-        .filter_map(|s| {
-            let c = relevant_tokens_count(&s);
-            c.is_multiple_of(2).then_some(c)
-        })
+        .map(|s| relevant_tokens_count(&s))
         .collect();
 
     let result: usize = tcs.into_iter().sum();
