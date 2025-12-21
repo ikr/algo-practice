@@ -49,7 +49,7 @@ fn rightmost_leveling_index(m: i64, xs: &[i64]) -> usize {
     }) - 1
 }
 
-fn flaws_sum(mut m: i64, mut xs: Vec<i64>) -> i64 {
+fn optimal_rests(mut m: i64, mut xs: Vec<i64>) -> Vec<i64> {
     let li = rightmost_leveling_index(m, &xs);
     if li == 0 {
         xs[li] -= m;
@@ -61,16 +61,30 @@ fn flaws_sum(mut m: i64, mut xs: Vec<i64>) -> i64 {
             *x = level;
         }
 
-        for i in (0..=li).rev() {
-            if m == 0 {
-                break;
+        let span = (li + 1) as i64;
+        let element_drop = m / span;
+
+        for x in xs.iter_mut().take(li + 1) {
+            m -= element_drop;
+            *x -= element_drop;
+        }
+
+        if m != 0 {
+            for i in (0..=li).rev() {
+                xs[i] -= 1;
+                m -= 1;
+                if m == 0 {
+                    break;
+                }
             }
-            xs[i] -= 1;
-            m -= 1;
         }
     }
+    xs
+}
 
-    xs.into_iter()
+fn flaws_sum(m: i64, xs: Vec<i64>) -> i64 {
+    optimal_rests(m, xs)
+        .into_iter()
         .map(|x| {
             assert!(x >= 0);
             x.pow(2)
@@ -115,6 +129,16 @@ mod tests {
                 "Failing on {m}, {:?}",
                 xs
             );
+        }
+    }
+
+    #[test]
+    fn test_optimal_rests() {
+        for (m, xs, expected) in [
+            (99, vec![100], vec![1]),
+            (19, vec![100, 99, 1, 1], vec![90, 90, 1, 1]),
+        ] {
+            assert_eq!(optimal_rests(m, xs), expected);
         }
     }
 }
