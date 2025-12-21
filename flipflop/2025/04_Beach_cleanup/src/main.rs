@@ -1,12 +1,36 @@
-use std::io::{BufRead, stdin};
+use itertools::Itertools;
+use std::{
+    io::{BufRead, stdin},
+    iter::once,
+};
 
-type Crd = (i32, i32);
+#[derive(Clone, Copy, Debug)]
+struct Crd(i32, i32);
 
-fn manhattan_distance(a: Crd, b: Crd) -> i32 {
-    todo!()
+impl Crd {
+    fn manhattan_distance(self, o: Crd) -> i32 {
+        (self.0.abs_diff(o.0) + self.1.abs_diff(o.1)) as i32
+    }
+
+    fn decode(s: &str) -> Self {
+        let (x, y) = s
+            .split(',')
+            .map(|sub| sub.parse().unwrap())
+            .collect_tuple()
+            .unwrap();
+
+        Self(x, y)
+    }
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    eprintln!("{:?}", lines);
+    let crds: Vec<Crd> = lines.into_iter().map(|s| Crd::decode(&s)).collect();
+
+    let result: i32 = once(Crd(0, 0))
+        .chain(crds)
+        .tuple_windows()
+        .map(|(p, q)| p.manhattan_distance(q))
+        .sum();
+    println!("{result}");
 }
