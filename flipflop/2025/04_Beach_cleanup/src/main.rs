@@ -8,6 +8,10 @@ use std::{
 struct Crd(i32, i32);
 
 impl Crd {
+    fn manhattan_distance(self, o: Crd) -> i32 {
+        (self.0.abs_diff(o.0) + self.1.abs_diff(o.1)) as i32
+    }
+
     fn chebyshev_distance(self, o: Crd) -> i32 {
         self.0.abs_diff(o.0).max(self.1.abs_diff(o.1)) as i32
     }
@@ -25,7 +29,8 @@ impl Crd {
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let crds: Vec<Crd> = lines.into_iter().map(|s| Crd::decode(&s)).collect();
+    let mut crds: Vec<Crd> = lines.into_iter().map(|s| Crd::decode(&s)).collect();
+    crds.sort_by_key(|&p| Crd(0, 0).manhattan_distance(p));
 
     let result: i32 = once(Crd(0, 0))
         .chain(crds)
