@@ -8,8 +8,8 @@ use std::{
 struct Crd(i32, i32);
 
 impl Crd {
-    fn manhattan_distance(self, o: Crd) -> i32 {
-        (self.0.abs_diff(o.0) + self.1.abs_diff(o.1)) as i32
+    fn chebyshev_distance(self, o: Crd) -> i32 {
+        self.0.abs_diff(o.0).max(self.1.abs_diff(o.1)) as i32
     }
 
     fn decode(s: &str) -> Self {
@@ -30,7 +30,7 @@ fn main() {
     let result: i32 = once(Crd(0, 0))
         .chain(crds)
         .tuple_windows()
-        .map(|(p, q)| p.manhattan_distance(q))
+        .map(|(p, q)| p.chebyshev_distance(q))
         .sum();
     println!("{result}");
 }
