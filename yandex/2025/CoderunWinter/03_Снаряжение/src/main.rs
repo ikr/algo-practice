@@ -28,12 +28,26 @@ impl Scanner {
     }
 }
 
-fn div_ceil(a: i64, b: i64) -> i64 {
-    (a + b - 1) / b
+fn rightmost_leveling_index(m: i64, xs: &[i64]) -> usize {
+    let ss: Vec<i64> = xs
+        .iter()
+        .scan(0, |state, x| {
+            *state += x;
+            Some(*state)
+        })
+        .collect();
+
+    let indexed: Vec<(usize, i64)> = ss.into_iter().enumerate().collect();
+    indexed.partition_point(|&(i, x)| {
+        if i == 0 {
+            true
+        } else {
+            x - (i as i64 + 1) * xs[i] <= m
+        }
+    }) - 1
 }
 
-fn flaws_sum(mut m: i64, xs0: Vec<i64>) -> i64 {
-    let mut xs = xs0.clone();
+fn flaws_sum(m: i64, xs: Vec<i64>) -> i64 {
     todo!()
 }
 
@@ -52,4 +66,27 @@ fn main() {
     writeln!(writer, "{result}").unwrap();
 
     writer.flush().unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rightmost_leveling_index() {
+        for (m, xs, expected) in [
+            (5, vec![3, 2, 1], 2),
+            (3, vec![5, 4, 3, 2], 2),
+            (1, vec![1], 0),
+            (1, vec![2, 2, 2, 2, 2, 2], 5),
+            (1, vec![2, 1, 1, 1, 1, 1, 0], 5),
+        ] {
+            assert_eq!(
+                rightmost_leveling_index(m, &xs),
+                expected,
+                "Failing on {m}, {:?}",
+                xs
+            );
+        }
+    }
 }
