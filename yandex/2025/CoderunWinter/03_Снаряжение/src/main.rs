@@ -51,19 +51,23 @@ fn rightmost_leveling_index(m: i64, xs: &[i64]) -> usize {
 
 fn flaws_sum(mut m: i64, mut xs: Vec<i64>) -> i64 {
     let li = rightmost_leveling_index(m, &xs);
-    let level = xs[li];
+    if li == 0 {
+        xs[li] -= m;
+    } else {
+        let level = xs[li];
 
-    for x in xs.iter_mut().take(li + 1) {
-        m -= *x - level;
-        *x = level;
-    }
-
-    for i in (0..=li).rev() {
-        if m == 0 {
-            break;
+        for x in xs.iter_mut().take(li + 1) {
+            m -= *x - level;
+            *x = level;
         }
-        xs[i] -= 1;
-        m -= 1;
+
+        for i in (0..=li).rev() {
+            if m == 0 {
+                break;
+            }
+            xs[i] -= 1;
+            m -= 1;
+        }
     }
 
     xs.into_iter()
@@ -103,6 +107,7 @@ mod tests {
             (1, vec![1], 0),
             (1, vec![2, 2, 2, 2, 2, 2], 5),
             (1, vec![2, 1, 1, 1, 1, 1, 0], 5),
+            (4, vec![5], 0),
         ] {
             assert_eq!(
                 rightmost_leveling_index(m, &xs),
