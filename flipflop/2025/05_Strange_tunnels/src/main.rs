@@ -1,9 +1,4 @@
-use itertools::Itertools;
-use std::{
-    collections::{HashMap, HashSet},
-    io::Read,
-    iter::successors,
-};
+use std::{collections::HashMap, io::Read, iter::successors};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Phase {
@@ -47,24 +42,18 @@ fn main() {
     })
     .collect();
 
-    let visited_indices: HashSet<usize> =
-        trace.into_iter().fold(HashSet::new(), |mut acc, (i, _)| {
-            acc.insert(i);
-            acc
-        });
-
-    let result: String = xs
-        .into_iter()
-        .enumerate()
-        .filter_map(|(i, x)| {
-            if visited_indices.contains(&i) {
-                None
+    let result: i32 = trace
+        .chunks(2)
+        .map(|ab| {
+            let [(i, _), (j, _)] = ab.try_into().unwrap();
+            assert_eq!(xs[i], xs[j]);
+            if xs[i].is_uppercase() {
+                -(i.abs_diff(j) as i32)
             } else {
-                Some(x)
+                i.abs_diff(j) as i32
             }
         })
-        .unique()
-        .collect();
+        .sum();
 
     println!("{result}");
 }
