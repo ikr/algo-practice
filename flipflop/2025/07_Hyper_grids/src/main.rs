@@ -1,39 +1,44 @@
 use std::io::{BufRead, stdin};
 
 #[allow(clippy::needless_range_loop)]
-fn num_ways(h: usize, w: usize) -> u32 {
-    let mut tab: Vec<Vec<u32>> = vec![vec![0; w]; h];
-    for j in 0..w {
-        tab[0][j] = 1;
+fn num_ways(a: usize, b: usize, c: usize) -> u32 {
+    let mut tab: Vec<Vec<Vec<u32>>> = vec![vec![vec![0; c]; b]; a];
+    for i in 0..a {
+        tab[i][0][0] = 1;
     }
-    for i in 0..h {
-        tab[i][0] = 1;
+    for j in 0..b {
+        tab[0][j][0] = 1;
+    }
+    for k in 0..c {
+        tab[0][0][k] = 1;
     }
 
-    for i in 1..h {
-        for j in 1..w {
-            tab[i][j] = tab[i - 1][j] + tab[i][j - 1];
+    for i in 1..a {
+        for j in 1..b {
+            tab[i][j][0] = tab[i - 1][j][0] + tab[i][j - 1][0];
         }
     }
 
-    tab[h - 1][w - 1]
+    todo!();
+
+    tab[a - 1][b - 1][c - 1]
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let dims: Vec<(usize, usize)> = lines
+    let dims: Vec<(usize, usize, usize)> = lines
         .into_iter()
         .map(|s| {
-            let [w, h] = s
+            let [a, b] = s
                 .split(' ')
                 .map(|sub| sub.parse().unwrap())
                 .collect::<Vec<_>>()
                 .try_into()
                 .unwrap();
-            (h, w)
+            (a, b, a)
         })
         .collect();
 
-    let result: u32 = dims.into_iter().map(|(h, w)| num_ways(h, w)).sum();
+    let result: u32 = dims.into_iter().map(|(a, b, c)| num_ways(a, b, c)).sum();
     println!("{result}");
 }
