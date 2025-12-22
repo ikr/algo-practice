@@ -19,7 +19,25 @@ fn num_ways(a: usize, b: usize, c: usize) -> u32 {
         }
     }
 
-    todo!();
+    for i in 1..a {
+        for k in 1..c {
+            tab[i][0][k] = tab[i - 1][0][k] + tab[i][0][k - 1];
+        }
+    }
+
+    for j in 1..b {
+        for k in 1..c {
+            tab[0][j][k] = tab[0][j - 1][k] + tab[0][j][k - 1];
+        }
+    }
+
+    for i in 1..a {
+        for j in 1..b {
+            for k in 1..c {
+                tab[i][j][k] = tab[i - 1][j][k] + tab[i][j - 1][k] + tab[i][j][k - 1]
+            }
+        }
+    }
 
     tab[a - 1][b - 1][c - 1]
 }
