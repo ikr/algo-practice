@@ -45,15 +45,22 @@ impl std::ops::Add<Crd> for Crd {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let vs: Vec<Crd> = lines.into_iter().map(|s| Crd::decode(&s)).collect();
-    let duration = 100;
+    let period = 3600;
+    let periods_num = 1000;
     let sky_side = 1000;
 
-    let flock: Vec<Crd> = vs
-        .into_iter()
-        .map(|v| v.scaled_by(duration).mod_m(sky_side))
-        .collect();
+    let mut flock = vec![Crd(0, 0); vs.len()];
+    let mut result = 0;
 
-    let result = flock.into_iter().filter(|a| a.in_frame(sky_side)).count();
+    for _ in 0..periods_num {
+        flock = vs
+            .iter()
+            .zip(flock)
+            .map(|(v, a)| (a + v.scaled_by(period).mod_m(sky_side)).mod_m(sky_side))
+            .collect();
+
+        result += flock.iter().filter(|a| a.in_frame(sky_side)).count()
+    }
     println!("{result}");
 }
 
