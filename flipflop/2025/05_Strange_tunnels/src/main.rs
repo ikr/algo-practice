@@ -22,13 +22,13 @@ fn main() {
     let xs: Vec<_> = buf.trim().chars().collect();
     let n = xs.len();
     let idx = tunnel_index(xs);
-    let mut g: Vec<Vec<usize>> = vec![vec![]; n];
 
-    for (_, uv) in idx {
+    let g: Vec<Vec<usize>> = idx.into_iter().fold(vec![vec![]; n], |mut acc, (_, uv)| {
         let [u, v] = uv.try_into().unwrap();
-        g[u].push(v);
-        g[v].push(u);
-    }
+        acc[u].push(v);
+        acc[v].push(u);
+        acc
+    });
 
     let trace: Vec<(usize, Phase)> = successors(Some((0, Phase::In)), |&(u, p)| match p {
         Phase::In => Some((g[u][0], Phase::Out)),
