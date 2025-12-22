@@ -1,62 +1,44 @@
+use itertools::Itertools;
+use memoize::memoize;
 use std::io::{BufRead, stdin};
 
-#[allow(clippy::needless_range_loop)]
-fn num_ways(a: usize, b: usize, c: usize) -> u32 {
-    let mut tab: Vec<Vec<Vec<u32>>> = vec![vec![vec![0; c]; b]; a];
-    for i in 0..a {
-        tab[i][0][0] = 1;
+#[memoize]
+fn num_ways(p: Vec<u8>) -> u64 {
+    if p.iter().all(|&x| x == 0) {
+        1
+    } else {
+        (0..p.len())
+            .filter_map(|i| {
+                if p[i] == 0 {
+                    None
+                } else {
+                    let mut q = p.clone();
+                    q[i] -= 1;
+                    Some(num_ways(q))
+                }
+            })
+            .sum()
     }
-    for j in 0..b {
-        tab[0][j][0] = 1;
-    }
-    for k in 0..c {
-        tab[0][0][k] = 1;
-    }
-
-    for i in 1..a {
-        for j in 1..b {
-            tab[i][j][0] = tab[i - 1][j][0] + tab[i][j - 1][0];
-        }
-    }
-
-    for i in 1..a {
-        for k in 1..c {
-            tab[i][0][k] = tab[i - 1][0][k] + tab[i][0][k - 1];
-        }
-    }
-
-    for j in 1..b {
-        for k in 1..c {
-            tab[0][j][k] = tab[0][j - 1][k] + tab[0][j][k - 1];
-        }
-    }
-
-    for i in 1..a {
-        for j in 1..b {
-            for k in 1..c {
-                tab[i][j][k] = tab[i - 1][j][k] + tab[i][j - 1][k] + tab[i][j][k - 1]
-            }
-        }
-    }
-
-    tab[a - 1][b - 1][c - 1]
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let dims: Vec<(usize, usize, usize)> = lines
+    let dims: Vec<(usize, u8)> = lines
         .into_iter()
         .map(|s| {
-            let [a, b] = s
+            let (n, hi) = s
                 .split(' ')
                 .map(|sub| sub.parse().unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
+                .collect_tuple()
                 .unwrap();
-            (a, b, a)
+            (n, hi as u8)
         })
         .collect();
 
-    let result: u32 = dims.into_iter().map(|(a, b, c)| num_ways(a, b, c)).sum();
+    let result: u64 = dims
+        .into_iter()
+        .map(|(n, hi)| num_ways(vec![hi - 1; n]))
+        .sum();
+
     println!("{result}");
 }
