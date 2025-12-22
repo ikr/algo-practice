@@ -1,4 +1,9 @@
-use std::{collections::HashMap, io::Read, iter::successors};
+use itertools::Itertools;
+use std::{
+    collections::{HashMap, HashSet},
+    io::Read,
+    iter::successors,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Phase {
@@ -6,7 +11,7 @@ enum Phase {
     Out,
 }
 
-fn tunnel_index(xs: Vec<char>) -> HashMap<char, Vec<usize>> {
+fn tunnel_index(xs: &[char]) -> HashMap<char, Vec<usize>> {
     xs.iter()
         .enumerate()
         .fold(HashMap::new(), |mut acc, (i, &x)| {
@@ -21,7 +26,7 @@ fn main() {
 
     let xs: Vec<_> = buf.trim().chars().collect();
     let n = xs.len();
-    let idx = tunnel_index(xs);
+    let idx = tunnel_index(&xs);
 
     let g: Vec<Vec<usize>> = idx.into_iter().fold(vec![vec![]; n], |mut acc, (_, uv)| {
         let [u, v] = uv.try_into().unwrap();
@@ -42,13 +47,24 @@ fn main() {
     })
     .collect();
 
-    let result: usize = trace
-        .chunks(2)
-        .map(|ab| {
-            let [a, b] = ab.try_into().unwrap();
-            a.0.abs_diff(b.0)
+    let visited_indices: HashSet<usize> =
+        trace.into_iter().fold(HashSet::new(), |mut acc, (i, _)| {
+            acc.insert(i);
+            acc
+        });
+
+    let result: String = xs
+        .into_iter()
+        .enumerate()
+        .filter_map(|(i, x)| {
+            if visited_indices.contains(&i) {
+                None
+            } else {
+                Some(x)
+            }
         })
-        .sum();
+        .unique()
+        .collect();
 
     println!("{result}");
 }
