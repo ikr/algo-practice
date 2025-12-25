@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::HashSet,
     io::{stdin, stdout, BufWriter, Write},
 };
 
@@ -8,24 +8,12 @@ type Fexp = Vec<u8>;
 
 const PRIMES: [u8; 15] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
-fn base_fact() -> Fact {
-    PRIMES.iter().map(|&p| (p, 0)).collect()
-}
-
 fn value_of(f: Fact) -> Option<u64> {
     f.into_iter().try_fold(1u64, |acc, (p, e)| {
         (p as u64)
             .checked_pow(e as u32)
             .and_then(|a| acc.checked_mul(a))
     })
-}
-
-fn all_artefacts() -> Vec<u64> {
-    todo!()
-}
-
-fn artefacts_count(a: u64, b: u64) -> usize {
-    todo!()
 }
 
 fn concat<T>(mut xs: Vec<T>, ys: Vec<T>) -> Vec<T> {
@@ -38,6 +26,10 @@ fn fact_of_fexp(fe: Fexp) -> Fact {
     PRIMES.iter().copied().zip(fe).collect()
 }
 
+fn divs_count(fe: Fexp) -> u64 {
+    fe.into_iter().map(|a| (a + 1) as u64).product()
+}
+
 fn gen_fexps(acc: &mut HashSet<Fexp>, u: Fexp) {
     let n = u.len();
 
@@ -46,7 +38,7 @@ fn gen_fexps(acc: &mut HashSet<Fexp>, u: Fexp) {
         .enumerate()
         .skip(1)
         .filter_map(|(i, &x)| if x < u[i - 1] { Some(i - 1) } else { None })
-        .filter_map(|i| (i + 1..n).find(|&j| u[i] - 1 >= u[j] + 1).map(|j| (i, j)))
+        .filter_map(|i| (i + 1..n).find(|&j| u[i] > u[j] + 1).map(|j| (i, j)))
         .collect();
 
     for (i, j) in ij {
@@ -59,6 +51,36 @@ fn gen_fexps(acc: &mut HashSet<Fexp>, u: Fexp) {
             gen_fexps(acc, v);
         }
     }
+}
+
+fn all_artefacts() -> Vec<u64> {
+    let mut fexps_set: HashSet<Fexp> = HashSet::new();
+    for k in 0..61 {
+        let u0 = concat(vec![k], vec![0; PRIMES.len() - 1]);
+        fexps_set.insert(u0.clone());
+        gen_fexps(&mut fexps_set, u0);
+    }
+
+    let mut fexps: Vec<Fexp> = fexps_set.into_iter().collect();
+    fexps.sort_by_key(|fexp| value_of(fact_of_fexp(fexp.clone())).unwrap());
+
+    let mut hi: u64 = 0;
+    let mut result = vec![];
+
+    for fe in fexps {
+        if divs_count(fe.clone()) > hi {
+            hi = divs_count(fe.clone());
+            result.push(value_of(fact_of_fexp(fe)).unwrap());
+        }
+    }
+
+    result
+}
+
+fn artefacts_count(aa: &[u64], a: u64, b: u64) -> usize {
+    let i = aa.partition_point(|&x| x < a);
+    let j = aa.partition_point(|&x| x <= b);
+    j - i
 }
 
 #[derive(Default)]
@@ -80,14 +102,7 @@ impl Scanner {
 }
 
 fn main() {
-    let k = 0;
-    let u0 = concat(vec![k], vec![0; PRIMES.len() - 1]);
-    let mut acc: HashSet<Fexp> = HashSet::from([u0.clone()]);
-    gen_fexps(&mut acc, u0);
-    eprintln!("{:?}", acc);
-
     let aa = all_artefacts();
-    eprintln!("{:?}", aa);
 
     let stdout = stdout();
     let handle = stdout.lock();
@@ -98,7 +113,7 @@ fn main() {
     for _ in 0..q {
         let a: u64 = scanner.next();
         let b: u64 = scanner.next();
-        let result = artefacts_count(a, b);
+        let result = artefacts_count(&aa, a, b);
         writeln!(writer, "{result}").unwrap();
     }
 
