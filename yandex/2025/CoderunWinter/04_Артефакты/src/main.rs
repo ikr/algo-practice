@@ -1,11 +1,12 @@
 use std::io::{stdin, stdout, BufWriter, Write};
 
 type Fact = Vec<(u8, u8)>;
+type Fexp = Vec<u8>;
 
 const PRIMES: [u8; 15] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
 fn base_fact() -> Fact {
-    PRIMES.into_iter().map(|p| (p, 0)).collect()
+    PRIMES.iter().map(|&p| (p, 0)).collect()
 }
 
 fn value_of(f: Fact) -> Option<u64> {
@@ -22,6 +23,27 @@ fn all_artefacts() -> Vec<u64> {
 
 fn artefacts_count(a: u64, b: u64) -> usize {
     todo!()
+}
+
+fn concat<T>(mut xs: Vec<T>, ys: Vec<T>) -> Vec<T> {
+    xs.extend(ys);
+    xs
+}
+
+fn gen_fexps(k: u8, offset: usize) -> Vec<Fexp> {
+    if k == 0 || offset == PRIMES.len() {
+        return vec![];
+    }
+
+    let mut result = vec![vec![k]];
+
+    for i in (k / 2..k).rev() {
+        for tail in gen_fexps(k - i, offset + 1) {
+            result.push(concat(vec![i], tail));
+        }
+    }
+
+    result
 }
 
 #[derive(Default)]
@@ -43,6 +65,8 @@ impl Scanner {
 }
 
 fn main() {
+    eprintln!("{:?}", gen_fexps(4, 0));
+
     let aa = all_artefacts();
     eprintln!("{:?}", aa);
 
