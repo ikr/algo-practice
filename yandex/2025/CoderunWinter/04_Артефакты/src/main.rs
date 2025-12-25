@@ -38,37 +38,27 @@ fn fact_of_fexp(fe: Fexp) -> Fact {
     PRIMES.iter().copied().zip(fe).collect()
 }
 
-fn gen_fexps(k: u8) -> Vec<Fexp> {
-    let mut result_set: HashSet<Fexp> = HashSet::new();
-    let mut q: VecDeque<Fexp> = VecDeque::from([concat(vec![k], vec![0; PRIMES.len() - 1])]);
-    let n = q[0].len();
+fn gen_fexps(acc: &mut HashSet<Fexp>, u: Fexp) {
+    let n = u.len();
 
-    while let Some(u) = q.pop_front() {
-        result_set.insert(u.clone());
+    let ij: Vec<(usize, usize)> = u
+        .iter()
+        .enumerate()
+        .skip(1)
+        .filter_map(|(i, &x)| if x < u[i - 1] { Some(i - 1) } else { None })
+        .filter_map(|i| (i + 1..n).find(|&j| u[i] - 1 >= u[j] + 1).map(|j| (i, j)))
+        .collect();
 
-        let ij: Vec<(usize, usize)> = u
-            .iter()
-            .enumerate()
-            .skip(1)
-            .filter_map(|(i, &x)| if x < u[i - 1] { Some(i - 1) } else { None })
-            .filter_map(|i| (i + 1..n).find(|&j| u[i] - 1 >= u[j] + 1).map(|j| (i, j)))
-            .collect();
+    for (i, j) in ij {
+        let mut v = u.clone();
+        v[i] -= 1;
+        v[j] += 1;
 
-        for (i, j) in ij {
-            let mut v = u.clone();
-            v[i] -= 1;
-            v[j] += 1;
-
-            if value_of(fact_of_fexp(v.clone())).is_some() {
-                q.push_back(v);
-            }
+        if !acc.contains(&v) && value_of(fact_of_fexp(v.clone())).is_some() {
+            acc.insert(v.clone());
+            gen_fexps(acc, v);
         }
     }
-
-    let mut result: Vec<_> = result_set.into_iter().collect();
-    result.sort();
-    result.reverse();
-    result
 }
 
 #[derive(Default)]
@@ -90,7 +80,11 @@ impl Scanner {
 }
 
 fn main() {
-    eprintln!("{:?}", gen_fexps(10));
+    let k = 0;
+    let u0 = concat(vec![k], vec![0; PRIMES.len() - 1]);
+    let mut acc: HashSet<Fexp> = HashSet::from([u0.clone()]);
+    gen_fexps(&mut acc, u0);
+    eprintln!("{:?}", acc);
 
     let aa = all_artefacts();
     eprintln!("{:?}", aa);
