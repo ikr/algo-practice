@@ -1,11 +1,8 @@
-use std::{
-    io::{stdin, stdout, BufWriter, Write},
-    iter::successors,
-};
+use std::io::{stdin, stdout, BufWriter, Write};
 
-type Fact = Vec<(u64, u32)>;
+type Fact = Vec<(u8, u8)>;
 
-const PRIMES: [u64; 15] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+const PRIMES: [u8; 15] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
 fn base_fact() -> Fact {
     PRIMES.into_iter().map(|p| (p, 0)).collect()
@@ -13,36 +10,18 @@ fn base_fact() -> Fact {
 
 fn value_of(f: Fact) -> Option<u64> {
     f.into_iter().try_fold(1u64, |acc, (p, e)| {
-        if let Some(a) = p.checked_pow(e) {
-            if let Some(b) = acc.checked_mul(a) {
-                Some(b)
-            } else {
-                None
-            }
-        } else {
-            None
-        }
+        (p as u64)
+            .checked_pow(e as u32)
+            .and_then(|a| acc.checked_mul(a))
     })
 }
 
-fn bumped_fact(mut f: Fact, i: usize) -> Fact {
-    f[i].1 += 1;
-    f
+fn all_artefacts() -> Vec<u64> {
+    todo!()
 }
 
-fn next_fact_bump_index(f: Fact) -> Option<usize> {
-    let n = f.len();
-
-    let ii: Vec<usize> = (0..n)
-        .filter(|&i| {
-            (i == 0 || f[i - 1].1 > f[i].1) && value_of(bumped_fact(f.clone(), i)).is_some()
-        })
-        .collect();
-
-    eprintln!("ii:{:?} for f:{:?}", ii, f);
-
-    ii.into_iter()
-        .min_by_key(|&i| value_of(bumped_fact(f.clone(), i)).unwrap())
+fn artefacts_count(a: u64, b: u64) -> usize {
+    todo!()
 }
 
 #[derive(Default)]
@@ -61,18 +40,6 @@ impl Scanner {
             self.buffer = input.split_whitespace().rev().map(String::from).collect();
         }
     }
-}
-
-fn all_artefacts() -> Vec<u64> {
-    successors(Some(base_fact()), |f| {
-        next_fact_bump_index(f.clone()).map(|i| bumped_fact(f.clone(), i))
-    })
-    .map(|f| value_of(f).unwrap())
-    .collect()
-}
-
-fn artefacts_count(a: u64, b: u64) -> usize {
-    todo!()
 }
 
 fn main() {
