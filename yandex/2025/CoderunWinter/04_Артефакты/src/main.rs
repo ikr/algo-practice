@@ -30,20 +30,33 @@ fn concat<T>(mut xs: Vec<T>, ys: Vec<T>) -> Vec<T> {
     xs
 }
 
-fn gen_fexps(k: u8, offset: usize) -> Vec<Fexp> {
-    if k == 0 || offset == PRIMES.len() {
-        return vec![];
+fn gen_fexps(memo: &mut Vec<Vec<Fexp>>, k: u8) -> Vec<Fexp> {
+    if k == 0 {
+        vec![]
+    } else if !memo[k as usize].is_empty() {
+        memo[k as usize].clone()
+    } else {
+        let result = {
+            if k == 1 {
+                vec![vec![1]]
+            } else {
+                let mut sub = vec![];
+
+                for i in (1..=k).rev() {
+                    for j in 0..=i {
+                        for tail in gen_fexps(memo, j) {
+                            sub.push(concat(vec![i], tail));
+                        }
+                    }
+                }
+
+                sub
+            }
+        };
+
+        memo[k as usize] = result.clone();
+        result
     }
-
-    let mut result = vec![vec![k]];
-
-    for i in (k / 2..k).rev() {
-        for tail in gen_fexps(k - i, offset + 1) {
-            result.push(concat(vec![i], tail));
-        }
-    }
-
-    result
 }
 
 #[derive(Default)]
@@ -65,7 +78,8 @@ impl Scanner {
 }
 
 fn main() {
-    eprintln!("{:?}", gen_fexps(4, 0));
+    let mut memo: Vec<Vec<Fexp>> = vec![vec![]; u8::MAX as usize + 1];
+    eprintln!("{:?}", gen_fexps(&mut memo, 4));
 
     let aa = all_artefacts();
     eprintln!("{:?}", aa);
