@@ -1,4 +1,8 @@
-use std::io::{stdin, stdout, BufWriter, Write};
+use std::{
+    cmp::Reverse,
+    collections::BinaryHeap,
+    io::{stdin, stdout, BufWriter, Write},
+};
 
 #[derive(Clone, Copy, Debug)]
 struct Crd([i32; 3]);
@@ -49,9 +53,78 @@ impl Scanner {
     }
 }
 
+pub struct UnionFind {
+    parent: Vec<usize>,
+    sizes: Vec<usize>,
+    size: usize,
+}
+
+impl UnionFind {
+    pub fn new(n: usize) -> UnionFind {
+        UnionFind {
+            parent: (0..n).collect::<Vec<usize>>(),
+            sizes: vec![1; n],
+            size: n,
+        }
+    }
+
+    pub fn find(&mut self, x: usize) -> usize {
+        if x == self.parent[x] {
+            x
+        } else {
+            let px = self.parent[x];
+            self.parent[x] = self.find(px);
+            self.parent[x]
+        }
+    }
+
+    pub fn unite(&mut self, x: usize, y: usize) -> bool {
+        let parent_x = self.find(x);
+        let parent_y = self.find(y);
+        if parent_x == parent_y {
+            return false;
+        }
+
+        let (large, small) = if self.sizes[parent_x] < self.sizes[parent_y] {
+            (parent_y, parent_x)
+        } else {
+            (parent_x, parent_y)
+        };
+
+        self.parent[small] = large;
+        self.sizes[large] += self.sizes[small];
+        self.sizes[small] = 0;
+        self.size -= 1;
+        true
+    }
+}
+
 fn min_total_effort(ps: Vec<Crd>) -> u64 {
-    eprintln!("{:?}", ps);
-    todo!()
+    let n = ps.len();
+    let mut idx: Vec<Vec<usize>> = vec![(0..n).collect::<Vec<_>>(); 3];
+    for (k, sub) in idx.iter_mut().enumerate() {
+        sub.sort_by_key(|&i| ps[i].0[k])
+    }
+
+    let mut q: BinaryHeap<(Reverse<u32>, usize, usize)> = BinaryHeap::new();
+    for (k, sub) in idx.iter().enumerate() {
+        for ij in sub.windows(2) {
+            let [i, j] = ij.try_into().unwrap();
+            q.push((Reverse(ps[i].0[k].abs_diff(ps[j].0[k])), i, j));
+        }
+    }
+
+    let mut result = 0;
+    let mut dsu = UnionFind::new(n);
+
+    while let Some((_, i, j)) = q.pop() {
+        if dsu.find(i) != dsu.find(j) {
+            result += ps[i].effort_to(ps[j]) as u64;
+            dsu.unite(i, j);
+        }
+    }
+
+    result
 }
 
 fn main() {
