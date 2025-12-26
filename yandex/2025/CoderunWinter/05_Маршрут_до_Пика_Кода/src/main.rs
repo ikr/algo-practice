@@ -53,6 +53,7 @@ impl Scanner {
     }
 }
 
+// https://github.com/kenkoooo/competitive-programming-rs/blob/master/src/data_structure/union_find.rs
 pub struct UnionFind {
     parent: Vec<usize>,
     sizes: Vec<usize>,
