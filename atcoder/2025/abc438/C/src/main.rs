@@ -1,8 +1,5 @@
 use proconio::input;
-use std::{
-    collections::HashSet,
-    io::{BufWriter, Write, stdout},
-};
+use std::io::{BufWriter, Write, stdout};
 
 fn run_length_encoding(xs: Vec<u32>) -> Vec<(u32, usize)> {
     xs.into_iter().fold(vec![], |mut acc, x| {
@@ -26,9 +23,23 @@ fn min_terminal_length(xs: Vec<u32>) -> usize {
         }
     });
 
-    let mut cuts: HashSet<usize> = HashSet::new();
+    let mut st: Vec<(u32, usize)> = vec![];
 
-    todo!()
+    for (x0, mut k0) in rle {
+        while let Some(&(x, k)) = st.last()
+            && x0 == x
+        {
+            st.pop();
+            k0 += k;
+            k0 %= 4;
+        }
+
+        if k0 != 0 {
+            st.push((x0, k0));
+        }
+    }
+
+    st.into_iter().map(|(_, k)| k).sum()
 }
 
 fn main() {
