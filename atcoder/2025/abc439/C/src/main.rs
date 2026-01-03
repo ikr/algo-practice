@@ -1,22 +1,19 @@
 use itertools::Itertools;
 use proconio::input;
-use std::{
-    collections::BTreeSet,
-    io::{BufWriter, Write, stdout},
-};
+use std::io::{BufWriter, Write, stdout};
 
 fn good_not_exceeding(hi: u64) -> Vec<u64> {
-    let squares: Vec<u64> = (1..=hi).map(|x| x * x).collect();
-
-    squares
-        .into_iter()
+    (1..=hi)
+        .take_while(|x| x * x <= hi)
         .tuple_combinations()
-        .filter_map(|(x, y)| {
-            let a = x * x + y * y;
-            if a <= hi { Some(x) } else { None }
+        .filter_map(|(a, b)| {
+            let y = a * a + b * b;
+            if y <= hi { Some(y) } else { None }
         })
-        .collect::<BTreeSet<_>>()
+        .counts()
         .into_iter()
+        .filter_map(|(x, f)| (f == 1).then_some(x))
+        .sorted()
         .collect()
 }
 
