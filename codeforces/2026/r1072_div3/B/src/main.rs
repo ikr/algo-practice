@@ -30,7 +30,7 @@ fn drain_time_after_vadim_left(s: i32, k: i32, m: i32) -> i32 {
     if s <= k {
         (s - (m % k)).max(0)
     } else {
-        let sand = if (s / k) % 2 == 1 { s } else { k };
+        let sand = if (m / k) % 2 == 0 { s } else { k };
         (sand - (m % k)).max(0)
     }
 }
