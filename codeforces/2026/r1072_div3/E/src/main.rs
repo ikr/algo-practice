@@ -51,6 +51,16 @@ fn exquisite_interval_counts_by_k(xs: Vec<u32>) -> Vec<usize> {
         let m = monostack.len() + 1;
         result[u as usize] += num_pairs(m + 1);
     }
+
+    result.reverse();
+    result = result
+        .into_iter()
+        .scan(0, |acc, x| {
+            *acc += x;
+            Some(*acc)
+        })
+        .collect();
+    result.reverse();
     result
 }
 
