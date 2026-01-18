@@ -26,9 +26,27 @@ impl Scanner {
     }
 }
 
-fn apply_all_ops(h: u64, xs: Vec<u64>, ops: Vec<(usize, u64)>) -> Vec<u64> {
-    eprintln!("h:{h} xs:{:?} ops:{:?}", xs, ops);
-    todo!()
+fn apply_all_ops(h: u64, xs0: Vec<u64>, ops: Vec<(usize, u64)>) -> Vec<u64> {
+    let n = xs0.len();
+    let mut crash_op_indices: Vec<Option<usize>> = vec![None; n];
+    let mut xs = xs0.clone();
+
+    for (oi, &(i, c)) in ops.iter().enumerate() {
+        xs[i] += c;
+        if xs[i] > h {
+            crash_op_indices[i] = Some(oi);
+            xs[i] = xs0[i];
+        }
+    }
+
+    let mb_oi0 = crash_op_indices.into_iter().flatten().max();
+    let i0 = mb_oi0.map(|i| i + 1).unwrap_or(0);
+    xs = xs0.clone();
+
+    for &(i, c) in &ops[i0..] {
+        xs[i] += c;
+    }
+    xs
 }
 
 fn main() {
