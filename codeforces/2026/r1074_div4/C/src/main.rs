@@ -27,23 +27,33 @@ impl Scanner {
 }
 
 fn streak_lengths(xs: Vec<i64>) -> Vec<usize> {
+    let n = xs.len();
     let mut i0: usize = 0;
     let mut result = vec![];
+
+    while i0 < n {
+        let mb_i = xs[i0..]
+            .windows(2)
+            .map(|ab| (ab[0], ab[1]))
+            .position(|(a, b)| a + 1 != b);
+
+        if let Some(i) = mb_i {
+            result.push(i + 1);
+            i0 += i + 1;
+        } else {
+            result.push(n - i0);
+            i0 = n;
+        }
+    }
 
     result
 }
 
-fn max_post_adjustment_mex(mut xs: Vec<i64>) -> i64 {
+fn max_post_adjustment_mex(mut xs: Vec<i64>) -> usize {
     xs.sort();
     xs.dedup();
-    let ps: Vec<_> = xs.windows(2).map(|ab| (ab[0], ab[1])).collect();
-    let mb_i0 = ps.into_iter().position(|(a, b)| a + 1 != b);
-
-    if let Some(i0) = mb_i0 {
-        (i0 + 1) as i64
-    } else {
-        xs.len() as i64
-    }
+    let ls = streak_lengths(xs);
+    ls.into_iter().max().unwrap()
 }
 
 fn main() {
@@ -63,4 +73,22 @@ fn main() {
     }
 
     writer.flush().unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_streak_lengths() {
+        for (arg, res) in [
+            (vec![1], vec![1]),
+            (vec![1, 2, 3], vec![3]),
+            (vec![1, 2, 3, 1], vec![3, 1]),
+            (vec![1, 2, 3, 1, 2, 3], vec![3, 3]),
+            (vec![-1, 1, 2, 3, 5, 6], vec![1, 3, 2]),
+        ] {
+            assert_eq!(streak_lengths(arg.clone()), res, "Failing on {:?}", arg);
+        }
+    }
 }
