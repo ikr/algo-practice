@@ -21,9 +21,13 @@ fn min_cups_to_drink(
     let lo_sake_mls: u64 = xs[..sake_cups_count].iter().sum();
 
     (lo_sake_mls >= wanted_sake_mls).then(|| {
+        xs = xs[..water_cups_count].to_vec();
         xs.reverse();
-        let i0 = index_when_sum_reaches_y(&xs, wanted_sake_mls).unwrap();
-        water_cups_count + i0 + 1
+        if let Some(i0) = index_when_sum_reaches_y(&xs, wanted_sake_mls) {
+            water_cups_count + i0 + 1
+        } else {
+            n
+        }
     })
 }
 
