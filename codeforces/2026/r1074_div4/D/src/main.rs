@@ -27,25 +27,31 @@ impl Scanner {
 }
 
 fn apply_all_ops(h: u64, xs0: Vec<u64>, ops: Vec<(usize, u64)>) -> Vec<u64> {
-    let n = xs0.len();
-    let mut crash_op_indices: Vec<Option<usize>> = vec![None; n];
     let mut xs = xs0.clone();
+    let mut handled_crash_ois: Vec<Option<usize>> = vec![None; xs.len()];
+    let mut latest_crash_oi: Option<usize> = None;
 
     for (oi, &(i, c)) in ops.iter().enumerate() {
+        if handled_crash_ois[i] != latest_crash_oi {
+            xs[i] = xs0[i];
+            handled_crash_ois[i] = latest_crash_oi;
+        }
+
         xs[i] += c;
+
         if xs[i] > h {
-            crash_op_indices[i] = Some(oi);
+            handled_crash_ois[i] = Some(oi);
+            latest_crash_oi = Some(oi);
             xs[i] = xs0[i];
         }
     }
 
-    let mb_oi0 = crash_op_indices.into_iter().flatten().max();
-    let i0 = mb_oi0.map(|i| i + 1).unwrap_or(0);
-    xs = xs0.clone();
-
-    for &(i, c) in &ops[i0..] {
-        xs[i] += c;
+    for (i, mb_oi) in handled_crash_ois.into_iter().enumerate() {
+        if mb_oi != latest_crash_oi {
+            xs[i] = xs0[i];
+        }
     }
+
     xs
 }
 
