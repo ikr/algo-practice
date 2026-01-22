@@ -17,18 +17,9 @@ fn min_cups_to_drink(
 ) -> Option<usize> {
     let n = xs.len();
     let water_cups_count = n - sake_cups_count;
-    xs.sort();
-    let lo_sake_mls: u64 = xs[..sake_cups_count].iter().sum();
-
-    (lo_sake_mls >= wanted_sake_mls).then(|| {
-        xs = xs[..water_cups_count].to_vec();
-        xs.reverse();
-        if let Some(i0) = index_when_sum_reaches_y(&xs, wanted_sake_mls) {
-            water_cups_count + i0 + 1
-        } else {
-            n
-        }
-    })
+    xs.sort_by(|a, b| b.cmp(a));
+    index_when_sum_reaches_y(&xs[water_cups_count..], wanted_sake_mls)
+        .map(|i0| water_cups_count + i0 + 1)
 }
 
 fn main() {
