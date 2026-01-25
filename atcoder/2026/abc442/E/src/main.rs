@@ -56,7 +56,7 @@ fn main() {
     let mut sweep: Vec<usize> = (0..n).collect();
     sweep.sort_by(|&i, &j| angles[j].cmp(angles[i]));
 
-    let mut idx: Vec<usize> = sweep
+    let idx: Vec<usize> = sweep
         .iter()
         .enumerate()
         .fold(vec![0; n], |mut acc, (seq, &i)| {
@@ -64,14 +64,19 @@ fn main() {
             acc
         });
 
+    let mut lmost_idx: Vec<usize> = idx.clone();
+    let mut rmost_idx: Vec<usize> = idx.clone();
+
     for seq in 1..n {
         if angles[sweep[seq]].cmp(angles[sweep[seq - 1]]) == Ordering::Equal {
-            idx[sweep[seq]] = idx[sweep[seq - 1]];
+            lmost_idx[sweep[seq]] = lmost_idx[sweep[seq - 1]];
         }
     }
 
-    if angles[sweep[0]].cmp(angles[sweep[n - 1]]) == Ordering::Equal {
-        idx[sweep[0]] = idx[sweep[n - 1]];
+    for seq in (0..n - 1).rev() {
+        if angles[sweep[seq]].cmp(angles[sweep[seq + 1]]) == Ordering::Equal {
+            rmost_idx[sweep[seq]] = rmost_idx[sweep[seq + 1]];
+        }
     }
 
     for (i, j) in ij {
