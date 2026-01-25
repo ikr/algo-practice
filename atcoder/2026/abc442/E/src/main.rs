@@ -84,9 +84,9 @@ fn main() {
         let jj = idx[j];
 
         let result = if ii <= jj {
-            jj - ii + 1
+            rmost_idx[j] - lmost_idx[i] + 1
         } else {
-            n - ii + jj + 1
+            n - lmost_idx[i] + rmost_idx[j] + 1
         };
         writeln!(writer, "{result}").unwrap();
     }
