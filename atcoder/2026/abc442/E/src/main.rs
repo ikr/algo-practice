@@ -52,16 +52,27 @@ fn main() {
         ij: [(Usize1, Usize1); q],
     }
 
+    let angles: Vec<Angle> = ps.into_iter().map(Angle::from).collect();
     let mut sweep: Vec<usize> = (0..n).collect();
-    sweep.sort_by(|&i, &j| Angle::from(ps[j]).cmp(Angle::from(ps[i])));
+    sweep.sort_by(|&i, &j| angles[j].cmp(angles[i]));
 
-    let idx: Vec<usize> = sweep
-        .into_iter()
+    let mut idx: Vec<usize> = sweep
+        .iter()
         .enumerate()
-        .fold(vec![0; n], |mut acc, (seq, i)| {
+        .fold(vec![0; n], |mut acc, (seq, &i)| {
             acc[i] = seq;
             acc
         });
+
+    for seq in 1..n {
+        if angles[sweep[seq]].cmp(angles[sweep[seq - 1]]) == Ordering::Equal {
+            idx[sweep[seq]] = idx[sweep[seq - 1]];
+        }
+    }
+
+    if angles[sweep[0]].cmp(angles[sweep[n - 1]]) == Ordering::Equal {
+        idx[sweep[0]] = idx[sweep[n - 1]];
+    }
 
     for (i, j) in ij {
         let ii = idx[i];
