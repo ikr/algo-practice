@@ -79,6 +79,11 @@ fn main() {
         }
     }
 
+    eprintln!(
+        "sweep:{:?} idx:{:?} lmost:{:?} rmost:{:?}",
+        sweep, idx, lmost_idx, rmost_idx
+    );
+
     for (i, j) in ij {
         let ii = idx[i];
         let jj = idx[j];
