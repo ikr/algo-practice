@@ -1,3 +1,5 @@
+use ac_library::Dsu;
+use itertools::Itertools;
 use proconio::{input, marker::Usize1};
 use std::cmp::Ordering;
 use std::io::{BufWriter, Write, stdout};
@@ -52,46 +54,55 @@ fn main() {
         ij: [(Usize1, Usize1); q],
     }
 
-    let angles: Vec<Angle> = ps.into_iter().map(Angle::from).collect();
-    let mut sweep: Vec<usize> = (0..n).collect();
-    sweep.sort_by(|&i, &j| angles[j].cmp(angles[i]));
+    let mut angles: Vec<Angle> = ps.into_iter().map(Angle::from).collect();
+    angles.sort_by(|&a, &b| b.cmp(a));
 
-    let idx: Vec<usize> = sweep
-        .iter()
-        .enumerate()
-        .fold(vec![0; n], |mut acc, (seq, &i)| {
-            acc[i] = seq;
-            acc
-        });
+    let mut eq_classes: Dsu =
+        (0..n)
+            .tuple_windows::<(_, _)>()
+            .fold(Dsu::new(angles.len()), |mut acc, (i, j)| {
+                if angles[i].cmp(angles[j]) == Ordering::Equal {
+                    acc.merge(i, j);
+                }
+                acc
+            });
 
-    let mut lmost_idx: Vec<usize> = idx.clone();
-    let mut rmost_idx: Vec<usize> = idx.clone();
+    let mut groups: Vec<Vec<usize>> = eq_classes.groups();
+    groups.sort_by(|g, h| angles[h[0]].cmp(angles[g[0]]));
 
-    for seq in 1..n {
-        if angles[sweep[seq]].cmp(angles[sweep[seq - 1]]) == Ordering::Equal {
-            lmost_idx[sweep[seq]] = lmost_idx[sweep[seq - 1]];
+    let group_index_by_angle_index: Vec<usize> = {
+        let mut result = vec![usize::MAX; n];
+
+        for (gi, ais) in groups.iter().enumerate() {
+            for ai in ais {
+                result[*ai] = gi;
+            }
         }
-    }
 
-    for seq in (0..n - 1).rev() {
-        if angles[sweep[seq]].cmp(angles[sweep[seq + 1]]) == Ordering::Equal {
-            rmost_idx[sweep[seq]] = rmost_idx[sweep[seq + 1]];
-        }
-    }
+        result
+    };
 
-    eprintln!(
-        "sweep:{:?} idx:{:?} lmost:{:?} rmost:{:?}",
-        sweep, idx, lmost_idx, rmost_idx
-    );
+    let m = groups.len();
+    let group_sizes_cumsum: Vec<usize> = groups
+        .into_iter()
+        .scan(0, |acc, g| {
+            *acc += g.len();
+            Some(*acc)
+        })
+        .collect();
+
+    let inc_range_sum = |i: usize, j: usize| -> usize {
+        group_sizes_cumsum[j] - if i == 0 { 0 } else { group_sizes_cumsum[i - 1] }
+    };
 
     for (i, j) in ij {
-        let ii = idx[i];
-        let jj = idx[j];
+        let gi = group_index_by_angle_index[i];
+        let gj = group_index_by_angle_index[j];
 
-        let result = if ii <= jj {
-            rmost_idx[j] - lmost_idx[i] + 1
+        let result = if gi <= gj {
+            inc_range_sum(gi, gj)
         } else {
-            n - lmost_idx[i] + rmost_idx[j] + 1
+            inc_range_sum(gi, m - 1) + group_sizes_cumsum[gj]
         };
         writeln!(writer, "{result}").unwrap();
     }
