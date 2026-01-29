@@ -54,18 +54,21 @@ fn main() {
         ij: [(Usize1, Usize1); q],
     }
 
-    let mut angles: Vec<Angle> = ps.into_iter().map(Angle::from).collect();
-    angles.sort_by(|&a, &b| b.cmp(a));
+    let angles: Vec<Angle> = ps.into_iter().map(Angle::from).collect();
 
-    let mut eq_classes: Dsu =
+    let mut eq_classes: Dsu = {
+        let mut sweep: Vec<usize> = (0..n).collect();
+        sweep.sort_by(|&i, &j| angles[j].cmp(angles[i]));
+
         (0..n)
             .tuple_windows::<(_, _)>()
             .fold(Dsu::new(angles.len()), |mut acc, (i, j)| {
-                if angles[i].cmp(angles[j]) == Ordering::Equal {
-                    acc.merge(i, j);
+                if angles[sweep[i]].cmp(angles[sweep[j]]) == Ordering::Equal {
+                    acc.merge(sweep[i], sweep[j]);
                 }
                 acc
-            });
+            })
+    };
 
     let mut groups: Vec<Vec<usize>> = eq_classes.groups();
     groups.sort_by(|g, h| angles[h[0]].cmp(angles[g[0]]));
