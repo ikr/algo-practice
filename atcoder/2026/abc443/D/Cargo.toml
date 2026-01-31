@@ -5,4 +5,5 @@ edition = "2024"
 rust-version = "1.89.0"
 
 [dependencies]
+itertools = "0.14.0"
 proconio = "0.5.0"
