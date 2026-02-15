@@ -29,10 +29,6 @@ impl Scanner {
 fn is_possible_to_sort(mut xs: Vec<usize>) -> bool {
     let n = xs.len();
 
-    if !n.is_multiple_of(2) && xs[n / 2] != n / 2 + 1 {
-        return false;
-    }
-
     for p in 1..=n / 2 {
         let i = p - 1;
         let j = p * 2 - 1;
