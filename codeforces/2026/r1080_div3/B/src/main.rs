@@ -26,19 +26,45 @@ impl Scanner {
     }
 }
 
-fn is_possible_to_sort(mut xs: Vec<usize>) -> bool {
-    let n = xs.len();
+fn kth_slice_positions(skip: &[bool], k: usize) -> Vec<usize> {
+    let n = skip.len() - 1;
+    assert!(!skip[k]);
+    let mut result = vec![k];
 
-    for p in 1..=n / 2 {
-        let i = p - 1;
-        let j = p * 2 - 1;
-
-        if xs[i] > xs[j] {
-            xs.swap(i, j);
+    while let Some(&p) = result.last()
+        && p * 2 <= n
+    {
+        if !skip[p * 2] {
+            result.push(p * 2);
         }
     }
 
-    xs.is_sorted()
+    result
+}
+
+fn is_possible_to_sort(xs: Vec<usize>) -> bool {
+    let n = xs.len();
+    let mut skip: Vec<bool> = vec![false; n + 1];
+
+    for k in 1..=n / 2 {
+        if skip[k] {
+            continue;
+        }
+
+        let pp = kth_slice_positions(&skip, k);
+        let mut ys: Vec<usize> = pp.iter().map(|&p| xs[p - 1]).collect();
+        ys.sort();
+
+        if pp != ys {
+            return false;
+        }
+
+        for p in pp {
+            skip[p] = true;
+        }
+    }
+
+    true
 }
 
 fn main() {
