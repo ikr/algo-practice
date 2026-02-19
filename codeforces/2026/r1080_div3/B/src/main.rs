@@ -42,7 +42,7 @@ fn kth_slice_positions(skip: &[bool], k: usize) -> Vec<usize> {
     result
 }
 
-fn is_possible_to_sort(xs: Vec<usize>) -> bool {
+fn is_possible_to_sort(mut xs: Vec<usize>) -> bool {
     let n = xs.len();
     let mut skip: Vec<bool> = vec![false; n + 1];
 
@@ -55,8 +55,8 @@ fn is_possible_to_sort(xs: Vec<usize>) -> bool {
         let mut ys: Vec<usize> = pp.iter().map(|&p| xs[p - 1]).collect();
         ys.sort();
 
-        if pp != ys {
-            return false;
+        for (&p, y) in pp.iter().zip(ys) {
+            xs[p - 1] = y;
         }
 
         for p in pp {
@@ -64,7 +64,7 @@ fn is_possible_to_sort(xs: Vec<usize>) -> bool {
         }
     }
 
-    true
+    (1..=n).collect::<Vec<_>>() == xs
 }
 
 fn main() {
