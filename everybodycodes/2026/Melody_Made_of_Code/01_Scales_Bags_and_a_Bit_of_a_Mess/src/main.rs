@@ -87,5 +87,14 @@ fn main() {
         .filter_map(|tri| tri.group().map(|g| (g, tri.id)))
         .collect();
 
-    eprintln!("{:?}", gs);
+    eprintln!("{:?}", ts);
+
+    let cs: Vec<Vec<u32>> = ts
+        .into_iter()
+        .chunk_by(|&(g, _)| g)
+        .into_iter()
+        .map(|(_, gids)| gids.into_iter().map(|(_, id)| id).collect::<Vec<_>>())
+        .collect();
+
+    eprintln!("{:?}", cs);
 }
