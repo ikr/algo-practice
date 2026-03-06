@@ -1,7 +1,10 @@
 use itertools::Itertools;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashMap,
+    io::{BufRead, stdin},
+};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum Kind {
     Matte,
     Shiny,
@@ -19,7 +22,7 @@ impl Kind {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 struct Group {
     k: Kind,
     c: char,
@@ -82,19 +85,26 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let tris: Vec<Tri> = lines.into_iter().map(Tri::parse).collect();
 
-    let ts: Vec<_> = tris
+    let group_and_id_pairs: Vec<_> = tris
         .into_iter()
         .filter_map(|tri| tri.group().map(|g| (g, tri.id)))
         .collect();
 
-    eprintln!("{:?}", ts);
+    let ids_by_group: HashMap<Group, Vec<u32>> =
+        group_and_id_pairs
+            .into_iter()
+            .fold(HashMap::new(), |mut acc, (g, id)| {
+                acc.entry(g)
+                    .and_modify(|ids| ids.push(id))
+                    .or_insert(vec![id]);
+                acc
+            });
 
-    let cs: Vec<Vec<u32>> = ts
-        .into_iter()
-        .chunk_by(|&(g, _)| g)
-        .into_iter()
-        .map(|(_, gids)| gids.into_iter().map(|(_, id)| id).collect::<Vec<_>>())
-        .collect();
+    let result_group_ids: Vec<u32> = ids_by_group
+        .into_values()
+        .max_by_key(|ids| ids.len())
+        .unwrap();
 
-    eprintln!("{:?}", cs);
+    let result: u32 = result_group_ids.into_iter().sum();
+    println!("{}", result);
 }
