@@ -57,32 +57,25 @@ fn main() {
 
     let source = crd_of(&grid, '@').unwrap();
     let sink = crd_of(&grid, '#').unwrap();
-    let mut coverage: HashSet<Crd> = HashSet::new();
+    let mut coverage: HashSet<Crd> = HashSet::from([source]);
     let mut u: Crd = source;
-    let dirs_count = Dir::all().len();
-    let mut dir_index: usize = dirs_count - 1;
+    let dirs = Dir::all();
+    let n = dirs.len();
+    let mut dir_index: usize = 0;
 
     while u != sink {
-        //for _ in 0..13 {
-        dir_index += 1;
-        dir_index %= dirs_count;
+        while coverage.contains(&(u + dirs[dir_index].delta())) {
+            dir_index += 1;
+            dir_index %= n;
+        }
 
-        let mut dirs = Dir::all();
-        dirs.rotate_left(dir_index);
-
-        let (offset, v) = dirs
-            .into_iter()
-            .enumerate()
-            .map(|(i, dir)| (i, u + dir.delta()))
-            .find(|(_, v)| !coverage.contains(&v))
-            .unwrap();
-
+        let v = u + dirs[dir_index].delta();
         coverage.insert(v);
         u = v;
-        dir_index += offset;
-        dir_index %= dirs_count;
-        eprintln!("dir_index: {dir_index}, u: {:?}", u);
+
+        dir_index += 1;
+        dir_index %= n;
     }
 
-    println!("{}", coverage.len());
+    println!("{}", coverage.len() - 1);
 }
