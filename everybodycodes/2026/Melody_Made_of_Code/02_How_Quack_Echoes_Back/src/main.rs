@@ -91,27 +91,29 @@ fn main() {
 
     let source = crd_of(&grid, '@').unwrap();
     let sink = crd_of(&grid, '#').unwrap();
-    let mut coverage: HashSet<Crd> = HashSet::from([source]);
+    let mut walls: HashSet<Crd> = HashSet::from([source]);
     let mut u: Crd = source;
     let dirs = Dir::all();
     let n = dirs.len();
     let mut dir_index: usize = 0;
+    let mut steps = 0;
 
     while u != sink {
-        while coverage.contains(&(u + dirs[dir_index].delta())) {
+        while walls.contains(&(u + dirs[dir_index].delta())) {
             dir_index += 1;
             dir_index %= n;
         }
 
         let v = u + dirs[dir_index].delta();
-        coverage.insert(v);
+        walls.insert(v);
         u = v;
 
         dir_index += 1;
         dir_index %= n;
+        steps += 1;
     }
 
-    println!("{}", coverage.len() - 1);
+    println!("{steps}");
 }
 
 #[cfg(test)]
