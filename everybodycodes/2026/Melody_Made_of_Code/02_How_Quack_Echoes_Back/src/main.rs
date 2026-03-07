@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const FILL_LIMIT: usize = 1000;
+const FILL_LIMIT: usize = 256;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -157,7 +157,7 @@ fn main() {
 
     let mut lo = 0;
     assert!(!simulate_k_steps_confirm_all_surrounded(source, &sinks, lo));
-    let mut hi = 2000;
+    let mut hi = 10_000;
     assert!(simulate_k_steps_confirm_all_surrounded(source, &sinks, hi));
 
     while lo + 1 != hi {
