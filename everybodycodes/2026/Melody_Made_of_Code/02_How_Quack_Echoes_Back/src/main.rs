@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const FILL_LIMIT: usize = 2000;
+const FILL_LIMIT: usize = 1000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -140,7 +140,20 @@ fn main() {
         .collect();
 
     let source = crds_of(&grid, '@')[0];
-    let sinks = crds_of(&grid, '#');
+    let mut sinks: Vec<Crd> = crds_of(&grid, '#');
+    let mut sinks_set: HashSet<Crd> = sinks.iter().copied().collect();
+
+    for &sink in &sinks {
+        for dir in Dir::all() {
+            let v = sink + dir.delta();
+            if !sinks_set.contains(&v)
+                && let Some(cluster) = bound_flood_fill(&sinks_set, HashSet::from([v]), v)
+            {
+                sinks_set.extend(cluster);
+            }
+        }
+    }
+    sinks = sinks_set.into_iter().collect();
 
     let mut lo = 0;
     assert!(!simulate_k_steps_confirm_all_surrounded(source, &sinks, lo));
