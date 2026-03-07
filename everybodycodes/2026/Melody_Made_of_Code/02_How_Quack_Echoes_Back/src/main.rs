@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const FILL_LIMIT: usize = 1_000;
+const FILL_LIMIT: usize = 2000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -94,16 +94,7 @@ fn are_all_surrounded(sinks: &[Crd], walls: &HashSet<Crd>) -> bool {
     sinks.iter().all(|&sink| is_surrounded(sink, walls))
 }
 
-fn main() {
-    let grid: Vec<Vec<char>> = stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().chars().collect())
-        .collect();
-
-    let source = crds_of(&grid, '@')[0];
-    let sinks = crds_of(&grid, '#');
-
+fn simulate_k_steps_confirm_all_surrounded(source: Crd, sinks: &[Crd], k: usize) -> bool {
     let mut walls: HashSet<Crd> = HashSet::from([source]);
     walls.extend(sinks.iter());
 
@@ -115,10 +106,8 @@ fn main() {
 
     let n = dirs.len();
     let mut dir_index: usize = 0;
-    let mut steps = 0;
 
-    //while !are_all_surrounded(&sinks, &walls) {
-    for _ in 0..1600 {
+    for _ in 0..k {
         while walls.contains(&(u + dirs[dir_index].delta())) {
             dir_index += 1;
             dir_index %= n;
@@ -130,7 +119,6 @@ fn main() {
 
         dir_index += 1;
         dir_index %= n;
-        steps += 1;
 
         for v in dirs.iter().map(|dir| u + dir.delta()) {
             if !walls.contains(&v)
@@ -141,7 +129,34 @@ fn main() {
         }
     }
 
-    println!("{steps}");
+    are_all_surrounded(sinks, &walls)
+}
+
+fn main() {
+    let grid: Vec<Vec<char>> = stdin()
+        .lock()
+        .lines()
+        .map(|line| line.unwrap().chars().collect())
+        .collect();
+
+    let source = crds_of(&grid, '@')[0];
+    let sinks = crds_of(&grid, '#');
+
+    let mut lo = 0;
+    assert!(!simulate_k_steps_confirm_all_surrounded(source, &sinks, lo));
+    let mut hi = 2000;
+    assert!(simulate_k_steps_confirm_all_surrounded(source, &sinks, hi));
+
+    while lo + 1 != hi {
+        let mid = lo + (hi - lo) / 2;
+        if simulate_k_steps_confirm_all_surrounded(source, &sinks, mid) {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
+    }
+
+    println!("{hi}");
 }
 
 #[cfg(test)]
