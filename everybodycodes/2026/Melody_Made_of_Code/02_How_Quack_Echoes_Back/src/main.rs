@@ -108,12 +108,17 @@ fn main() {
     walls.extend(sinks.iter());
 
     let mut u: Crd = source;
-    let dirs = Dir::all();
+    let dirs: Vec<_> = Dir::all()
+        .into_iter()
+        .flat_map(|dir| vec![dir; 3])
+        .collect();
+
     let n = dirs.len();
     let mut dir_index: usize = 0;
     let mut steps = 0;
 
-    while !are_all_surrounded(&sinks, &walls) {
+    //while !are_all_surrounded(&sinks, &walls) {
+    for _ in 0..1600 {
         while walls.contains(&(u + dirs[dir_index].delta())) {
             dir_index += 1;
             dir_index %= n;
