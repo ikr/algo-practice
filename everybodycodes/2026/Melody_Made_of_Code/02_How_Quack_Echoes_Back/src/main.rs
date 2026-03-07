@@ -39,15 +39,16 @@ impl Dir {
     }
 }
 
-fn crd_of(grid: &[Vec<char>], x: char) -> Option<Crd> {
+fn crds_of(grid: &[Vec<char>], x: char) -> Vec<Crd> {
+    let mut result = vec![];
     for (i, row) in grid.iter().enumerate() {
         for (j, &cell) in row.iter().enumerate() {
             if cell == x {
-                return Some(Crd(i as i32, j as i32));
+                result.push(Crd(i as i32, j as i32));
             }
         }
     }
-    None
+    result
 }
 
 fn bound_flood_fill(
@@ -82,6 +83,17 @@ fn bound_flood_fill(
     Some(covered)
 }
 
+fn is_surrounded(sink: Crd, walls: &HashSet<Crd>) -> bool {
+    Dir::all().into_iter().all(|dir| {
+        let v = sink + dir.delta();
+        walls.contains(&v)
+    })
+}
+
+fn are_all_surrounded(sinks: &[Crd], walls: &HashSet<Crd>) -> bool {
+    sinks.iter().all(|&sink| is_surrounded(sink, walls))
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = stdin()
         .lock()
@@ -89,19 +101,19 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    let source = crd_of(&grid, '@').unwrap();
-    let sink = crd_of(&grid, '#').unwrap();
-    let mut walls: HashSet<Crd> = HashSet::from([source, sink]);
+    let source = crds_of(&grid, '@')[0];
+    let sinks = crds_of(&grid, '#');
+
+    let mut walls: HashSet<Crd> = HashSet::from([source]);
+    walls.extend(sinks.iter());
+
     let mut u: Crd = source;
     let dirs = Dir::all();
     let n = dirs.len();
     let mut dir_index: usize = 0;
     let mut steps = 0;
 
-    while dirs.iter().any(|dir| {
-        let v = sink + dir.delta();
-        !walls.contains(&v)
-    }) {
+    while !are_all_surrounded(&sinks, &walls) {
         while walls.contains(&(u + dirs[dir_index].delta())) {
             dir_index += 1;
             dir_index %= n;
