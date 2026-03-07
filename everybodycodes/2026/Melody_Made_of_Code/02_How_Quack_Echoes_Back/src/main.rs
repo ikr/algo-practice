@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const FILL_LIMIT: usize = 3_000;
+const FILL_LIMIT: usize = 1_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -91,14 +91,17 @@ fn main() {
 
     let source = crd_of(&grid, '@').unwrap();
     let sink = crd_of(&grid, '#').unwrap();
-    let mut walls: HashSet<Crd> = HashSet::from([source]);
+    let mut walls: HashSet<Crd> = HashSet::from([source, sink]);
     let mut u: Crd = source;
     let dirs = Dir::all();
     let n = dirs.len();
     let mut dir_index: usize = 0;
     let mut steps = 0;
 
-    while u != sink {
+    while dirs.iter().any(|dir| {
+        let v = sink + dir.delta();
+        !walls.contains(&v)
+    }) {
         while walls.contains(&(u + dirs[dir_index].delta())) {
             dir_index += 1;
             dir_index %= n;
@@ -111,6 +114,14 @@ fn main() {
         dir_index += 1;
         dir_index %= n;
         steps += 1;
+
+        for v in dirs.iter().map(|dir| u + dir.delta()) {
+            if !walls.contains(&v)
+                && let Some(cluster) = bound_flood_fill(&walls, HashSet::from([v]), v)
+            {
+                walls.extend(cluster);
+            }
+        }
     }
 
     println!("{steps}");
