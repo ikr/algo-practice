@@ -30,6 +30,28 @@ impl NodeSource {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Node {
+    left: Option<usize>,
+    right: Option<usize>,
+}
+
+#[derive(Debug)]
+struct NodeIndex {
+    shapes: Vec<String>,
+}
+
+impl NodeIndex {
+    fn new(nss: &[NodeSource]) -> Self {
+        let shapes = nss.iter().map(|ns| ns.plug.clone()).collect();
+        Self { shapes }
+    }
+
+    fn index_of(&self, key: &str) -> usize {
+        self.shapes.iter().position(|x| x == key).unwrap()
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let nss: Vec<NodeSource> = lines.into_iter().map(NodeSource::parse).collect();
