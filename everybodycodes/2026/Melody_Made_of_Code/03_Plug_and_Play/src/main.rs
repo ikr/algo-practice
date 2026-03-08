@@ -45,22 +45,6 @@ impl Node {
     }
 }
 
-#[derive(Debug)]
-struct NodeIndex {
-    shapes: Vec<String>,
-}
-
-impl NodeIndex {
-    fn new(nss: &[NodeSource]) -> Self {
-        let shapes = nss.iter().map(|ns| ns.plug.clone()).collect();
-        Self { shapes }
-    }
-
-    fn index_of(&self, key: &str) -> usize {
-        self.shapes.iter().position(|x| x == key).unwrap()
-    }
-}
-
 #[derive(Clone, Copy, Debug)]
 enum Branch {
     L,
@@ -119,11 +103,43 @@ impl Graph {
 
         Self { nodes }
     }
+
+    fn in_order_traversal(&self, i_root: usize) -> Vec<usize> {
+        let mut result = if let Some(i_left) = self.nodes[i_root].left {
+            self.in_order_traversal(i_left)
+        } else {
+            vec![]
+        };
+
+        result.push(i_root);
+
+        let suff = if let Some(i_right) = self.nodes[i_root].right {
+            self.in_order_traversal(i_right)
+        } else {
+            vec![]
+        };
+
+        result.extend(suff);
+        result
+    }
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let nss: Vec<NodeSource> = lines.into_iter().map(NodeSource::parse).collect();
     let g = Graph::new(nss);
-    eprintln!("{:?}", g);
+
+    let traversed_ids = g
+        .in_order_traversal(0)
+        .into_iter()
+        .map(|i| i + 1)
+        .collect::<Vec<_>>();
+
+    let result: usize = traversed_ids
+        .into_iter()
+        .enumerate()
+        .map(|(i, id)| id * (i + 1))
+        .sum();
+
+    println!("{result}");
 }
