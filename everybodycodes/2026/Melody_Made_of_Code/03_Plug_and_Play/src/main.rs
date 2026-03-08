@@ -77,24 +77,21 @@ impl Graph {
         fn connection_socket(
             nss: &[NodeSource],
             nodes: &[Node],
-            root: &NodeSource,
-            orphan: &NodeSource,
+            i_root: usize,
+            i_orphan: usize,
         ) -> Option<(usize, Branch)> {
-            eprintln!("{:?}", root);
-            let nidx = NodeIndex::new(nss);
-            let root_index = nidx.index_of(&root.plug);
-            let root_node = nodes[root_index];
+            let root_node = nodes[i_root];
 
-            if root_node.left.is_none() && root.left_socket == orphan.plug {
-                Some((root_index, Branch::L))
-            } else if let Some(li) = root_node.left
-                && let Some(left_subtree_result) = connection_socket(nss, nodes, &nss[li], orphan)
+            if root_node.left.is_none() && nss[i_root].left_socket == nss[i_orphan].plug {
+                Some((i_root, Branch::L))
+            } else if let Some(i_left) = root_node.left
+                && let Some(left_subtree_result) = connection_socket(nss, nodes, i_left, i_orphan)
             {
                 Some(left_subtree_result)
-            } else if root_node.right.is_none() && root.right_socket == orphan.plug {
-                Some((root_index, Branch::R))
-            } else if let Some(ri) = root_node.right
-                && let Some(right_subtree_result) = connection_socket(nss, nodes, &nss[ri], orphan)
+            } else if root_node.right.is_none() && nss[i_root].right_socket == nss[i_orphan].plug {
+                Some((i_root, Branch::R))
+            } else if let Some(i_right) = root_node.right
+                && let Some(right_subtree_result) = connection_socket(nss, nodes, i_right, i_orphan)
             {
                 Some(right_subtree_result)
             } else {
@@ -102,10 +99,11 @@ impl Graph {
             }
         }
 
-        let mut nodes = vec![Node::new(); nss.len()];
+        let n = nss.len();
+        let mut nodes = vec![Node::new(); n];
 
-        for (i, ns) in nss.iter().enumerate().skip(1) {
-            let (u, branch) = connection_socket(&nss, &nodes, &nss[0], ns).unwrap();
+        for i in 1..n {
+            let (u, branch) = connection_socket(&nss, &nodes, 0, i).unwrap();
 
             match branch {
                 Branch::L => {
