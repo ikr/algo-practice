@@ -80,21 +80,25 @@ impl Graph {
             root: &NodeSource,
             orphan: &NodeSource,
         ) -> Option<(usize, Branch)> {
-            eprintln!("{:?}", nodes);
+            eprintln!("{:?}", root);
             let nidx = NodeIndex::new(nss);
             let root_index = nidx.index_of(&root.plug);
             let root_node = nodes[root_index];
 
             if root_node.left.is_none() && root.left_socket == orphan.plug {
                 Some((root_index, Branch::L))
-            } else if let Some(left_subtree_result) =
-                connection_socket(nss, nodes, &nss[nidx.index_of(&root.left_socket)], orphan)
+            } else if let Some(li) = root_node.left
+                && let Some(left_subtree_result) = connection_socket(nss, nodes, &nss[li], orphan)
             {
                 Some(left_subtree_result)
             } else if root_node.right.is_none() && root.right_socket == orphan.plug {
                 Some((root_index, Branch::R))
+            } else if let Some(ri) = root_node.right
+                && let Some(right_subtree_result) = connection_socket(nss, nodes, &nss[ri], orphan)
+            {
+                Some(right_subtree_result)
             } else {
-                connection_socket(nss, nodes, &nss[nidx.index_of(&root.right_socket)], orphan)
+                None
             }
         }
 
