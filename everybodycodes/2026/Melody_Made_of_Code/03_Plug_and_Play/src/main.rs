@@ -36,6 +36,15 @@ struct Node {
     right: Option<usize>,
 }
 
+impl Node {
+    fn new() -> Self {
+        Self {
+            left: None,
+            right: None,
+        }
+    }
+}
+
 #[derive(Debug)]
 struct NodeIndex {
     shapes: Vec<String>,
@@ -52,8 +61,67 @@ impl NodeIndex {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+enum Branch {
+    L,
+    R,
+}
+
+#[derive(Debug)]
+struct Graph {
+    nodes: Vec<Node>,
+}
+
+impl Graph {
+    fn new(nss: Vec<NodeSource>) -> Self {
+        fn connection_socket(
+            nss: &[NodeSource],
+            nodes: &[Node],
+            root: &NodeSource,
+            orphan: &NodeSource,
+        ) -> Option<(usize, Branch)> {
+            eprintln!("{:?}", nodes);
+            let nidx = NodeIndex::new(nss);
+            let root_index = nidx.index_of(&root.plug);
+            let root_node = nodes[root_index];
+
+            if root_node.left.is_none() && root.left_socket == orphan.plug {
+                Some((root_index, Branch::L))
+            } else if let Some(left_subtree_result) =
+                connection_socket(nss, nodes, &nss[nidx.index_of(&root.left_socket)], orphan)
+            {
+                Some(left_subtree_result)
+            } else if root_node.right.is_none() && root.right_socket == orphan.plug {
+                Some((root_index, Branch::R))
+            } else {
+                connection_socket(nss, nodes, &nss[nidx.index_of(&root.right_socket)], orphan)
+            }
+        }
+
+        let mut nodes = vec![Node::new(); nss.len()];
+
+        for (i, ns) in nss.iter().enumerate().skip(1) {
+            let (u, branch) = connection_socket(&nss, &nodes, &nss[0], ns).unwrap();
+
+            match branch {
+                Branch::L => {
+                    assert!(nodes[u].left.is_none());
+                    nodes[u].left = Some(i);
+                }
+                Branch::R => {
+                    assert!(nodes[u].right.is_none());
+                    nodes[u].right = Some(i);
+                }
+            }
+        }
+
+        Self { nodes }
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let nss: Vec<NodeSource> = lines.into_iter().map(NodeSource::parse).collect();
-    eprintln!("{:?}", nss);
+    let g = Graph::new(nss);
+    eprintln!("{:?}", g);
 }
