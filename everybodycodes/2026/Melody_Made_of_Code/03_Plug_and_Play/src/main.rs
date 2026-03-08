@@ -58,6 +58,12 @@ struct Graph {
 
 impl Graph {
     fn new(nss: Vec<NodeSource>) -> Self {
+        fn can_bond(shape_a: &str, shape_b: &str) -> bool {
+            let (a, b) = shape_a.split(' ').collect_tuple().unwrap();
+            let (p, q) = shape_b.split(' ').collect_tuple().unwrap();
+            a == p || b == q
+        }
+
         fn connection_socket(
             nss: &[NodeSource],
             nodes: &[Node],
@@ -66,13 +72,15 @@ impl Graph {
         ) -> Option<(usize, Branch)> {
             let root_node = nodes[i_root];
 
-            if root_node.left.is_none() && nss[i_root].left_socket == nss[i_orphan].plug {
+            if root_node.left.is_none() && can_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) {
                 Some((i_root, Branch::L))
             } else if let Some(i_left) = root_node.left
                 && let Some(left_subtree_result) = connection_socket(nss, nodes, i_left, i_orphan)
             {
                 Some(left_subtree_result)
-            } else if root_node.right.is_none() && nss[i_root].right_socket == nss[i_orphan].plug {
+            } else if root_node.right.is_none()
+                && can_bond(&nss[i_root].right_socket, &nss[i_orphan].plug)
+            {
                 Some((i_root, Branch::R))
             } else if let Some(i_right) = root_node.right
                 && let Some(right_subtree_result) = connection_socket(nss, nodes, i_right, i_orphan)
