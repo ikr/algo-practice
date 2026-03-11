@@ -57,45 +57,47 @@ struct Graph {
 }
 
 impl Graph {
+    fn can_bond(shape_a: &str, shape_b: &str) -> bool {
+        let (a, b) = shape_a.split(' ').collect_tuple().unwrap();
+        let (p, q) = shape_b.split(' ').collect_tuple().unwrap();
+        a == p || b == q
+    }
+
+    fn connection_socket(
+        nss: &[NodeSource],
+        nodes: &[Node],
+        i_root: usize,
+        i_orphan: usize,
+    ) -> Option<(usize, Branch)> {
+        let root_node = nodes[i_root];
+
+        if root_node.left.is_none() && Self::can_bond(&nss[i_root].left_socket, &nss[i_orphan].plug)
+        {
+            Some((i_root, Branch::L))
+        } else if let Some(i_left) = root_node.left
+            && let Some(left_subtree_result) = Self::connection_socket(nss, nodes, i_left, i_orphan)
+        {
+            Some(left_subtree_result)
+        } else if root_node.right.is_none()
+            && Self::can_bond(&nss[i_root].right_socket, &nss[i_orphan].plug)
+        {
+            Some((i_root, Branch::R))
+        } else if let Some(i_right) = root_node.right
+            && let Some(right_subtree_result) =
+                Self::connection_socket(nss, nodes, i_right, i_orphan)
+        {
+            Some(right_subtree_result)
+        } else {
+            None
+        }
+    }
+
     fn new(nss: Vec<NodeSource>) -> Self {
-        fn can_bond(shape_a: &str, shape_b: &str) -> bool {
-            let (a, b) = shape_a.split(' ').collect_tuple().unwrap();
-            let (p, q) = shape_b.split(' ').collect_tuple().unwrap();
-            a == p || b == q
-        }
-
-        fn connection_socket(
-            nss: &[NodeSource],
-            nodes: &[Node],
-            i_root: usize,
-            i_orphan: usize,
-        ) -> Option<(usize, Branch)> {
-            let root_node = nodes[i_root];
-
-            if root_node.left.is_none() && can_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) {
-                Some((i_root, Branch::L))
-            } else if let Some(i_left) = root_node.left
-                && let Some(left_subtree_result) = connection_socket(nss, nodes, i_left, i_orphan)
-            {
-                Some(left_subtree_result)
-            } else if root_node.right.is_none()
-                && can_bond(&nss[i_root].right_socket, &nss[i_orphan].plug)
-            {
-                Some((i_root, Branch::R))
-            } else if let Some(i_right) = root_node.right
-                && let Some(right_subtree_result) = connection_socket(nss, nodes, i_right, i_orphan)
-            {
-                Some(right_subtree_result)
-            } else {
-                None
-            }
-        }
-
         let n = nss.len();
         let mut nodes = vec![Node::new(); n];
 
         for i in 1..n {
-            let (u, branch) = connection_socket(&nss, &nodes, 0, i).unwrap();
+            let (u, branch) = Self::connection_socket(&nss, &nodes, 0, i).unwrap();
 
             match branch {
                 Branch::L => {
