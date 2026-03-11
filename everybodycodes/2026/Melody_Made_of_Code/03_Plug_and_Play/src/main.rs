@@ -57,6 +57,20 @@ struct Graph {
 }
 
 impl Graph {
+    fn strong_bond(shape_a: &str, shape_b: &str) -> bool {
+        shape_a == shape_b
+    }
+
+    fn weak_bond(shape_a: &str, shape_b: &str) -> bool {
+        let (a, b) = shape_a.split(' ').collect_tuple().unwrap();
+        let (p, q) = shape_b.split(' ').collect_tuple().unwrap();
+        a == p || b == q
+    }
+
+    fn strictly_weak_bond(shape_a: &str, shape_b: &str) -> bool {
+        Self::weak_bond(shape_a, shape_b) && !Self::strong_bond(shape_a, shape_b)
+    }
+
     fn can_bond(shape_a: &str, shape_b: &str) -> bool {
         let (a, b) = shape_a.split(' ').collect_tuple().unwrap();
         let (p, q) = shape_b.split(' ').collect_tuple().unwrap();
