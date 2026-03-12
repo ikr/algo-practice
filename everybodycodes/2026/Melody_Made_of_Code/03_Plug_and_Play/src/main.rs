@@ -102,10 +102,24 @@ impl Graph {
                 self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
                 true
             }
+            (Some(i_left), _)
+                if Self::strictly_weak_bond(&nss[i_root].left_socket, &nss[i_left].plug)
+                    && Self::strong_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) =>
+            {
+                self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
+                self.adopt(nss, i_root, i_left)
+            }
             (Some(i_left), _) if self.adopt(nss, i_left, i_orphan) => true,
             (_, None) if Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) => {
                 self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
                 true
+            }
+            (_, Some(i_right))
+                if Self::strictly_weak_bond(&nss[i_root].right_socket, &nss[i_right].plug)
+                    && Self::strong_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) =>
+            {
+                self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
+                self.adopt(nss, i_root, i_right)
             }
             (_, Some(i_right)) if self.adopt(nss, i_right, i_orphan) => true,
             _ => false,
