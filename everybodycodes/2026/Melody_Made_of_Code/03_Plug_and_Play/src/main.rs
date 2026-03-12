@@ -94,32 +94,29 @@ impl Graph {
         }
     }
 
-    fn connection_socket(
-        &self,
-        nss: &[NodeSource],
-        i_root: usize,
-        i_orphan: usize,
-    ) -> Option<SocketPointer> {
+    fn adopt(&mut self, nss: &[NodeSource], i_root: usize, i_orphan: usize) -> bool {
         let root_node = self.nodes[i_root];
 
         if root_node.left.is_none()
             && Self::weak_bond(&nss[i_root].left_socket, &nss[i_orphan].plug)
         {
-            Some(SocketPointer::new(i_root, Branch::L))
+            self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
+            true
         } else if let Some(i_left) = root_node.left
-            && let Some(left_subtree_result) = self.connection_socket(nss, i_left, i_orphan)
+            && self.adopt(nss, i_left, i_orphan)
         {
-            Some(left_subtree_result)
+            true
         } else if root_node.right.is_none()
             && Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug)
         {
-            Some(SocketPointer::new(i_root, Branch::R))
+            self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
+            true
         } else if let Some(i_right) = root_node.right
-            && let Some(right_subtree_result) = self.connection_socket(nss, i_right, i_orphan)
+            && self.adopt(nss, i_right, i_orphan)
         {
-            Some(right_subtree_result)
+            true
         } else {
-            None
+            false
         }
     }
 
@@ -130,11 +127,8 @@ impl Graph {
     }
 
     fn build_from_source(&mut self, nss: Vec<NodeSource>) {
-        let n = nss.len();
-
-        for i in 1..n {
-            let ptr = self.connection_socket(&nss, 0, i).unwrap();
-            self.plug_into(ptr, i);
+        for i in 1..nss.len() {
+            assert!(self.adopt(&nss, 0, i));
         }
     }
 
