@@ -97,26 +97,18 @@ impl Graph {
     fn adopt(&mut self, nss: &[NodeSource], i_root: usize, i_orphan: usize) -> bool {
         let root_node = self.nodes[i_root];
 
-        if root_node.left.is_none()
-            && Self::weak_bond(&nss[i_root].left_socket, &nss[i_orphan].plug)
-        {
-            self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
-            true
-        } else if let Some(i_left) = root_node.left
-            && self.adopt(nss, i_left, i_orphan)
-        {
-            true
-        } else if root_node.right.is_none()
-            && Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug)
-        {
-            self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
-            true
-        } else if let Some(i_right) = root_node.right
-            && self.adopt(nss, i_right, i_orphan)
-        {
-            true
-        } else {
-            false
+        match (root_node.left, root_node.right) {
+            (None, _) if Self::weak_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) => {
+                self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
+                true
+            }
+            (Some(i_left), _) if self.adopt(nss, i_left, i_orphan) => true,
+            (_, None) if Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) => {
+                self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
+                true
+            }
+            (_, Some(i_right)) if self.adopt(nss, i_right, i_orphan) => true,
+            _ => false,
         }
     }
 
