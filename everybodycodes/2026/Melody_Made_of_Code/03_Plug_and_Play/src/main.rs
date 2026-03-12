@@ -83,6 +83,17 @@ impl Graph {
         Self::weak_bond(shape_a, shape_b) && !Self::strong_bond(shape_a, shape_b)
     }
 
+    fn plug_into(&mut self, ptr: SocketPointer, node_index: usize) {
+        match ptr.branch {
+            Branch::L => {
+                self.nodes[ptr.node_index].left = Some(node_index);
+            }
+            Branch::R => {
+                self.nodes[ptr.node_index].right = Some(node_index);
+            }
+        }
+    }
+
     fn connection_socket(
         nss: &[NodeSource],
         nodes: &[Node],
@@ -113,26 +124,19 @@ impl Graph {
         }
     }
 
-    fn new(nss: Vec<NodeSource>) -> Self {
+    fn new(n: usize) -> Self {
+        Self {
+            nodes: vec![Node::new(); n],
+        }
+    }
+
+    fn build_from_source(&mut self, nss: Vec<NodeSource>) {
         let n = nss.len();
-        let mut nodes = vec![Node::new(); n];
 
         for i in 1..n {
-            let ptr = Self::connection_socket(&nss, &nodes, 0, i).unwrap();
-
-            match ptr.branch {
-                Branch::L => {
-                    assert!(nodes[ptr.node_index].left.is_none());
-                    nodes[ptr.node_index].left = Some(i);
-                }
-                Branch::R => {
-                    assert!(nodes[ptr.node_index].right.is_none());
-                    nodes[ptr.node_index].right = Some(i);
-                }
-            }
+            let ptr = Self::connection_socket(&nss, &self.nodes, 0, i).unwrap();
+            self.plug_into(ptr, i);
         }
-
-        Self { nodes }
     }
 
     fn in_order_traversal(&self, i_root: usize) -> Vec<usize> {
@@ -158,7 +162,8 @@ impl Graph {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let nss: Vec<NodeSource> = lines.into_iter().map(NodeSource::parse).collect();
-    let g = Graph::new(nss);
+    let mut g = Graph::new(nss.len());
+    g.build_from_source(nss);
 
     let traversed_ids = g
         .in_order_traversal(0)
