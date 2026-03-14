@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use regex::Regex;
+use std::fmt::{Display, Formatter, Result};
 use std::io::{BufRead, stdin};
 
 #[derive(Debug)]
@@ -45,6 +46,17 @@ impl Node {
     }
 }
 
+impl Display for Node {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match (self.left, self.right) {
+            (None, None) => write!(f, "(- -)"),
+            (None, Some(r)) => write!(f, "(- {})", r + 1),
+            (Some(l), None) => write!(f, "({} -)", l + 1),
+            (Some(l), Some(r)) => write!(f, "({} {})", l + 1, r + 1),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 enum Branch {
     L,
@@ -66,6 +78,7 @@ impl SocketPointer {
 #[derive(Debug)]
 struct Graph {
     nodes: Vec<Node>,
+    orphan: Option<usize>,
 }
 
 impl Graph {
@@ -94,47 +107,51 @@ impl Graph {
         }
     }
 
-    fn adopt(&mut self, nss: &[NodeSource], i_root: usize, i_orphan: usize) -> bool {
-        let root_node = self.nodes[i_root];
+    fn adopt(&mut self, nss: &[NodeSource], i_root: usize) {
+        if let Some(i_orphan) = self.orphan {
+            let root_node = self.nodes[i_root];
 
-        match (root_node.left, root_node.right) {
-            (None, _) if Self::weak_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) => {
-                self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
-                true
+            match (root_node.left, root_node.right) {
+                (None, _) if Self::weak_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) => {
+                    self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
+                    self.orphan = None;
+                }
+                (Some(i_left), _)
+                    if Self::strictly_weak_bond(&nss[i_root].left_socket, &nss[i_left].plug)
+                        && Self::strong_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) =>
+                {
+                    self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
+                    self.orphan = Some(i_left);
+                }
+                (Some(i_left), _) => self.adopt(nss, i_left),
+                (_, None) if Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) => {
+                    self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
+                    self.orphan = None;
+                }
+                (_, Some(i_right))
+                    if Self::strictly_weak_bond(&nss[i_root].right_socket, &nss[i_right].plug)
+                        && Self::strong_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) =>
+                {
+                    self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
+                    self.orphan = Some(i_right);
+                }
+                (_, Some(i_right)) => self.adopt(nss, i_right),
+                _ => {}
             }
-            (Some(i_left), _)
-                if Self::strictly_weak_bond(&nss[i_root].left_socket, &nss[i_left].plug)
-                    && Self::strong_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) =>
-            {
-                self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
-                self.adopt(nss, i_root, i_left)
-            }
-            (Some(i_left), _) if self.adopt(nss, i_left, i_orphan) => true,
-            (_, None) if Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) => {
-                self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
-                true
-            }
-            (_, Some(i_right))
-                if Self::strictly_weak_bond(&nss[i_root].right_socket, &nss[i_right].plug)
-                    && Self::strong_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) =>
-            {
-                self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
-                self.adopt(nss, i_root, i_right)
-            }
-            (_, Some(i_right)) if self.adopt(nss, i_right, i_orphan) => true,
-            _ => false,
         }
     }
 
     fn new(n: usize) -> Self {
         Self {
             nodes: vec![Node::new(); n],
+            orphan: None,
         }
     }
 
     fn build_from_source(&mut self, nss: Vec<NodeSource>) {
         for i in 1..nss.len() {
-            assert!(self.adopt(&nss, 0, i));
+            self.orphan = Some(i);
+            self.adopt(&nss, 0);
         }
     }
 
@@ -158,11 +175,19 @@ impl Graph {
     }
 }
 
+fn represent_nodes(nodes: &[Node]) -> String {
+    nodes
+        .iter()
+        .map(|node| format!("{}", node).to_string())
+        .join(" ")
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let nss: Vec<NodeSource> = lines.into_iter().map(NodeSource::parse).collect();
     let mut g = Graph::new(nss.len());
     g.build_from_source(nss);
+    eprintln!("{} {:?}", represent_nodes(&g.nodes), g.orphan);
 
     let traversed_ids = g
         .in_order_traversal(0)
