@@ -108,34 +108,39 @@ impl Graph {
     }
 
     fn adopt(&mut self, nss: &[NodeSource], i_root: usize) {
+        let root_node = self.nodes[i_root];
         if let Some(i_orphan) = self.orphan {
-            let root_node = self.nodes[i_root];
-
-            match (root_node.left, root_node.right) {
-                (None, _) if Self::weak_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) => {
+            match root_node.left {
+                None if Self::weak_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) => {
                     self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
                     self.orphan = None;
                 }
-                (Some(i_left), _)
+                Some(i_left)
                     if Self::strictly_weak_bond(&nss[i_root].left_socket, &nss[i_left].plug)
                         && Self::strong_bond(&nss[i_root].left_socket, &nss[i_orphan].plug) =>
                 {
                     self.plug_into(SocketPointer::new(i_root, Branch::L), i_orphan);
                     self.orphan = Some(i_left);
                 }
-                (Some(i_left), _) => self.adopt(nss, i_left),
-                (_, None) if Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) => {
+                Some(i_left) => self.adopt(nss, i_left),
+                _ => {}
+            }
+        }
+
+        if let Some(i_orphan) = self.orphan {
+            match root_node.right {
+                None if Self::weak_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) => {
                     self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
                     self.orphan = None;
                 }
-                (_, Some(i_right))
+                Some(i_right)
                     if Self::strictly_weak_bond(&nss[i_root].right_socket, &nss[i_right].plug)
                         && Self::strong_bond(&nss[i_root].right_socket, &nss[i_orphan].plug) =>
                 {
                     self.plug_into(SocketPointer::new(i_root, Branch::R), i_orphan);
                     self.orphan = Some(i_right);
                 }
-                (_, Some(i_right)) => self.adopt(nss, i_right),
+                Some(i_right) => self.adopt(nss, i_right),
                 _ => {}
             }
         }
@@ -152,6 +157,7 @@ impl Graph {
         for i in 1..nss.len() {
             self.orphan = Some(i);
             self.adopt(&nss, 0);
+            assert!(self.orphan.is_none());
         }
     }
 
