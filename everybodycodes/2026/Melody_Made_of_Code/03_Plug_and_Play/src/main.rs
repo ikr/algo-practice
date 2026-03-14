@@ -1,9 +1,7 @@
 use itertools::Itertools;
 use regex::Regex;
-use std::fmt::{Display, Formatter, Result};
 use std::io::{BufRead, stdin};
 
-#[derive(Debug)]
 struct NodeSource {
     plug: String,
     left_socket: String,
@@ -31,7 +29,7 @@ impl NodeSource {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 struct Node {
     left: Option<usize>,
     right: Option<usize>,
@@ -46,24 +44,13 @@ impl Node {
     }
 }
 
-impl Display for Node {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match (self.left, self.right) {
-            (None, None) => write!(f, "(- -)"),
-            (None, Some(r)) => write!(f, "(- {})", r + 1),
-            (Some(l), None) => write!(f, "({} -)", l + 1),
-            (Some(l), Some(r)) => write!(f, "({} {})", l + 1, r + 1),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 enum Branch {
     L,
     R,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 struct SocketPointer {
     node_index: usize,
     branch: Branch,
@@ -75,7 +62,6 @@ impl SocketPointer {
     }
 }
 
-#[derive(Debug)]
 struct Graph {
     nodes: Vec<Node>,
     orphan: Option<usize>,
@@ -182,13 +168,6 @@ impl Graph {
         result
     }
 }
-
-// fn represent_nodes(nodes: &[Node]) -> String {
-//     nodes
-//         .iter()
-//         .map(|node| format!("{}", node).to_string())
-//         .join(" ")
-// }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
