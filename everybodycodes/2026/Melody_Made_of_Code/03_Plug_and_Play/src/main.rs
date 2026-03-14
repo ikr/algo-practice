@@ -156,8 +156,10 @@ impl Graph {
     fn build_from_source(&mut self, nss: Vec<NodeSource>) {
         for i in 1..nss.len() {
             self.orphan = Some(i);
-            self.adopt(&nss, 0);
-            assert!(self.orphan.is_none());
+
+            while self.orphan.is_some() {
+                self.adopt(&nss, 0);
+            }
         }
     }
 
@@ -181,19 +183,18 @@ impl Graph {
     }
 }
 
-fn represent_nodes(nodes: &[Node]) -> String {
-    nodes
-        .iter()
-        .map(|node| format!("{}", node).to_string())
-        .join(" ")
-}
+// fn represent_nodes(nodes: &[Node]) -> String {
+//     nodes
+//         .iter()
+//         .map(|node| format!("{}", node).to_string())
+//         .join(" ")
+// }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let nss: Vec<NodeSource> = lines.into_iter().map(NodeSource::parse).collect();
     let mut g = Graph::new(nss.len());
     g.build_from_source(nss);
-    eprintln!("{} {:?}", represent_nodes(&g.nodes), g.orphan);
 
     let traversed_ids = g
         .in_order_traversal(0)
