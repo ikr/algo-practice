@@ -23,14 +23,14 @@ fn lit_concat(a: u64, b: u64) -> u64 {
 }
 
 fn kth_smallest_good_inteter(k: usize) -> u64 {
-    let mut xss: Vec<HashSet<u64>> = vec![HashSet::new(); 30];
+    let mut xss: Vec<HashSet<u64>> = vec![HashSet::new(); 10];
 
     for e in 0..30 {
         let x = 2u64.pow(e);
         xss[lit_len(x) as usize].insert(x);
     }
 
-    for l in 2..30 {
+    for l in 2..10 {
         for l1 in 1..l {
             let l2 = l - l1;
             assert_ne!(l2, 0);
@@ -55,7 +55,8 @@ fn kth_smallest_good_inteter(k: usize) -> u64 {
     for ys in xss {
         xs.extend(ys);
     }
-    xs[k + 1]
+    xs.sort();
+    xs[k - 1]
 }
 
 fn main() {
