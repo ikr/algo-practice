@@ -1,0 +1,47 @@
+use proconio::input;
+use proconio::marker::Bytes;
+use std::io::{BufWriter, Write, stdout};
+
+fn num_substings_with_given_subeq(xs: Vec<u8>, pat: Vec<u8>) -> usize {
+    let n = xs.len();
+    let m = pat.len();
+
+    // dp[i][j] is the number of sub-strings of xs ending at xs[i],
+    // having pat[0..=j] as a sub-sequence.
+    //
+    let mut dp: Vec<Vec<usize>> = vec![vec![0; m]; n];
+
+    for i in 0..n {
+        if xs[i] == pat[0] {
+            dp[i][0] = 1;
+        }
+    }
+
+    for i in 1..n {
+        for j in 1..m {
+            dp[i][j] = dp[i - 1][j];
+
+            if xs[i] == pat[j] {
+                dp[i][j] += dp[i - 1][j - 1];
+            }
+        }
+    }
+
+    dp.into_iter().map(|ys| ys[m - 1]).sum()
+}
+
+fn main() {
+    let stdout = stdout();
+    let handle = stdout.lock();
+    let mut writer = BufWriter::new(handle);
+
+    input! {
+        s: Bytes,
+        t: Bytes,
+    }
+
+    let n = s.len();
+    let result = n * (n + 1) / 2 - num_substings_with_given_subeq(s, t);
+    writeln!(writer, "{result}").unwrap();
+    writer.flush().unwrap();
+}
