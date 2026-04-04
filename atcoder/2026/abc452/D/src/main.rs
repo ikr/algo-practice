@@ -13,7 +13,7 @@ fn num_substings_with_given_subeq(xs: Vec<u8>, pat: Vec<u8>) -> usize {
 
     for i in 0..n {
         if xs[i] == pat[0] {
-            dp[i][0] = 1;
+            dp[i][0] = i + 1;
         }
     }
 
@@ -41,7 +41,9 @@ fn main() {
     }
 
     let n = s.len();
-    let result = n * (n + 1) / 2 - num_substings_with_given_subeq(s, t);
+    let negs = num_substings_with_given_subeq(s, t);
+    eprintln!("negs:{negs}");
+    let result = n * (n + 1) / 2 - negs;
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
