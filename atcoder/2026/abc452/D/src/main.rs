@@ -10,10 +10,15 @@ fn num_substings_with_given_subeq(xs: Vec<u8>, pat: Vec<u8>) -> usize {
     // having pat[0..=j] as a sub-sequence.
     //
     let mut dp: Vec<Vec<usize>> = vec![vec![0; m]; n];
+    if xs[0] == pat[0] {
+        dp[0][0] = 1;
+    }
 
-    for i in 0..n {
+    for i in 1..n {
+        dp[i][0] = dp[i - 1][0];
+
         if xs[i] == pat[0] {
-            dp[i][0] = i + 1;
+            dp[i][0] += 1;
         }
     }
 
@@ -22,7 +27,7 @@ fn num_substings_with_given_subeq(xs: Vec<u8>, pat: Vec<u8>) -> usize {
             dp[i][j] = dp[i - 1][j];
 
             if xs[i] == pat[j] {
-                dp[i][j] += dp[i - 1][j - 1];
+                dp[i][j] += 1
             }
         }
     }
