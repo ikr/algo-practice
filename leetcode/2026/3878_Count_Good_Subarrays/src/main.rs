@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 // Source:
 // https://github.com/kenkoooo/competitive-programming-rs/blob/master/src/data_structure/segment_tree.rs
 //
@@ -202,6 +204,21 @@ impl Solution {
 // Return the number of good sub-arrays in xs.
 struct Solution {}
 
+fn count_good_subarrays_brute_force(xs: Vec<i32>) -> usize {
+    fn bitwise_or(ys: &[i32]) -> i32 {
+        ys.iter().fold(0, |acc, &y| acc | y)
+    }
+
+    (0..xs.len())
+        .combinations_with_replacement(2)
+        .filter(|ij| {
+            let (i, j) = (ij[0], ij[1]);
+            let o = bitwise_or(&xs[i..=j]);
+            xs[i..=j].contains(&o)
+        })
+        .count()
+}
+
 fn main() {
     println!("Does nothing; please run the tests.");
 }
@@ -211,19 +228,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn problem_statement_example_1() {
+    fn solution_for_problem_statement_example_1() {
         assert_eq!(Solution::count_good_subarrays(vec![4, 2, 3]), 4);
     }
 
     #[test]
-    fn problem_statement_example_2() {
+    fn solution_for_problem_statement_example_2() {
         assert_eq!(Solution::count_good_subarrays(vec![1, 3, 1]), 6);
     }
 
     #[test]
-    fn other_test_cases() {
+    fn solution_for_other_test_cases() {
         for (arg, res) in vec![(vec![6, 6], 3)] {
             assert_eq!(Solution::count_good_subarrays(arg), res);
+        }
+    }
+
+    #[test]
+    fn test_count_good_subarrays_brute_force() {
+        for (arg, res) in vec![(vec![4, 2, 3], 4), (vec![1, 3, 1], 6), (vec![6, 6], 3)] {
+            assert_eq!(count_good_subarrays_brute_force(arg), res);
         }
     }
 }
