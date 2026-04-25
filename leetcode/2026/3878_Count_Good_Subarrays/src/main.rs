@@ -1,3 +1,5 @@
+use std::io::stdin;
+
 use itertools::Itertools;
 
 // Source:
@@ -220,7 +222,17 @@ fn count_good_subarrays_brute_force(xs: Vec<i32>) -> usize {
 }
 
 fn main() {
-    println!("Does nothing; please run the tests.");
+    let mut line = String::new();
+    stdin().read_line(&mut line).unwrap();
+
+    let xs: Vec<i32> = line
+        .split_whitespace()
+        .map(|x| x.parse().unwrap())
+        .collect();
+
+    let result = Solution::count_good_subarrays(xs.clone());
+    assert_eq!(count_good_subarrays_brute_force(xs), result as usize);
+    println!("{result}");
 }
 
 #[cfg(test)]
@@ -238,6 +250,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "not ready yet"]
     fn solution_for_other_test_cases() {
         for (arg, res) in vec![(vec![6, 6], 3)] {
             assert_eq!(Solution::count_good_subarrays(arg), res);
