@@ -2,17 +2,39 @@ use itertools::Itertools;
 use proconio::{input, marker::Usize1};
 use std::io::{BufWriter, Write, stdout};
 
-fn stack_heights(n: usize, ops: Vec<(usize, usize)>) -> Vec<usize> {
-    let mut g: Vec<Vec<usize>> = vec![vec![]; 2 * n];
+const INF: usize = 1_000_000_000;
 
-    for u in 0..n {
-        g[u].push(n + u);
-        g[n + u].push(u);
+fn path_length_from(g: &[usize], u0: usize) -> usize {
+    let mut result = 0;
+    let mut u = u0;
+
+    while u != INF {
+        u = g[u];
+        result += 1;
     }
 
-    for (c, p) in ops {}
+    result - 1
+}
 
-    todo!()
+fn stack_heights(n: usize, ops: Vec<(usize, usize)>) -> Vec<usize> {
+    let mut g: Vec<usize> = vec![INF; 2 * n];
+    let mut h: Vec<usize> = vec![INF; 2 * n];
+
+    for u in 0..n {
+        g[n + u] = u;
+        h[u] = n + u;
+    }
+
+    for (c, p) in ops {
+        assert_eq!(g[p], INF);
+        g[p] = c;
+
+        assert_eq!(g[h[c]], c);
+        g[h[c]] = INF;
+        h[c] = p;
+    }
+
+    (n..2 * n).map(|u| path_length_from(&g, u)).collect()
 }
 
 fn main() {
