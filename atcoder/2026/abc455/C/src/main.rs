@@ -5,23 +5,19 @@ use std::{
     io::{BufWriter, Write, stdout},
 };
 
-fn min_sum(xs: Vec<u64>, mut k: usize) -> u64 {
-    let mut pq: BinaryHeap<(u64, usize)> = xs.into_iter().counts().into_iter().collect();
+fn min_sum(xs: Vec<u64>, k: usize) -> u64 {
+    let mut pq: BinaryHeap<u64> = xs
+        .into_iter()
+        .counts()
+        .into_iter()
+        .map(|(x, f)| x * (f as u64))
+        .collect();
 
-    while let Some((x, f)) = pq.pop()
-        && k != 0
-    {
-        let delta = f.min(k);
-        k -= delta;
-
-        if delta < f {
-            pq.push((x, f - delta));
-        } else {
-            assert_eq!(delta, f);
-        }
+    for _ in 0..k {
+        pq.pop();
     }
 
-    todo!()
+    pq.into_iter().sum()
 }
 
 fn main() {
