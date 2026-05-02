@@ -6,4 +6,5 @@ rust-version = "1.89.0"
 
 [dependencies]
 ac-library-rs = "0.2.0"
+itertools = "0.14.0"
 proconio = "0.5.0"
