@@ -30,7 +30,7 @@ fn num_good_substrings(xs: Vec<u8>) -> Mint {
 
         if k != 1 {
             result += num_substrings_for_length(l);
-            result += num_substrings_for_length(k - 2);
+            result += k - 2;
             l = 1;
         }
     }
