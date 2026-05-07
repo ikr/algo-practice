@@ -1,5 +1,4 @@
 use ac_library::ModInt998244353 as Mint;
-use ac_library::fenwicktree::FenwickTree;
 use itertools::Itertools;
 use proconio::input;
 use proconio::marker::Bytes;
@@ -10,27 +9,23 @@ fn other_than_k(xs: Vec<usize>, k: usize) -> Vec<usize> {
 }
 
 fn num_good_subsequences(xs: Vec<usize>) -> Mint {
-    let n = xs.len();
+    // dp[i] is the number of good sub-sequences ending with i, exactly at the "current" index
+    let mut dp = [Mint::new(0); 3];
+    let mut result = Mint::new(1);
+    dp[xs[0]] = Mint::new(1);
 
-    // dp[i][j] is the number of good sub-sequences ending with i, exactly at the index j
-    let mut dp: Vec<FenwickTree<Mint>> = vec![FenwickTree::new(n, Mint::new(0)); 3];
-    dp[xs[0]].add(0, Mint::new(1));
-
-    for j in 1..n {
-        let i = xs[j];
-
+    for &i in &xs[1..] {
         let (i1, i2) = other_than_k(vec![0, 1, 2], i)
             .into_iter()
             .collect_tuple()
             .unwrap();
 
-        let sub = Mint::new(1) + dp[i1].sum(0..j) + dp[i2].sum(0..j);
-        dp[i].add(j, sub);
+        let sub = Mint::new(1) + dp[i1] + dp[i2];
+        dp[i] += sub;
+        result += sub;
     }
 
-    dp.into_iter()
-        .map(|row| row.sum(0..n))
-        .fold(Mint::new(0), |acc, x| acc + x)
+    result
 }
 
 fn main() {
