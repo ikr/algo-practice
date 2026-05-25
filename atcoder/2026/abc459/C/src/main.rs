@@ -29,12 +29,13 @@ impl DroppedFreqs {
         self.xs[i] += 1;
         self.freqs.add(cur + 1, 1);
 
-        todo!();
+        if self.freqs.sum(..=self.drops) == 0 {
+            self.drops += 1;
+        }
     }
 
-    fn num_cells_at_least_k(&self, k: usize) -> i64 {
-        let level = (k + self.drops).min(UB);
-        self.freqs.sum(level..)
+    fn num_cells_at_least_k(&self, k: usize) -> usize {
+        self.xs.iter().filter(|&x| *x >= k + self.drops).count()
     }
 }
 
