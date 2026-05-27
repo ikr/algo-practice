@@ -1,6 +1,7 @@
-use proconio::{input, marker::Usize1};
+use proconio::input;
 use std::io::{BufWriter, Write, stdout};
 
+#[derive(Debug)]
 struct DroppedFreqs {
     xs: Vec<usize>,
     fq: Vec<usize>,
@@ -9,9 +10,12 @@ struct DroppedFreqs {
 
 impl DroppedFreqs {
     fn new(n: usize, q: usize) -> Self {
+        let mut fq = vec![0; q + 1];
+        fq[0] = n;
+
         Self {
             xs: vec![0; n],
-            fq: vec![0; q + 1],
+            fq,
             lo: 0,
         }
     }
@@ -42,14 +46,14 @@ fn main() {
     input! {
         n: usize,
         q: usize,
-        queries:[(u8, Usize1); q],
+        queries:[(u8, usize); q],
     }
 
     let mut dfs = DroppedFreqs::new(n, q);
 
     for (t, k) in queries {
         if t == 1 {
-            dfs.inc_at(k);
+            dfs.inc_at(k - 1);
         } else {
             assert_eq!(t, 2);
             let result = dfs.num_cells_at_least_k(k);
