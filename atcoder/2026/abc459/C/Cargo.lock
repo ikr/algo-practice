@@ -3,12 +3,6 @@
 version = 4
 
 [[package]]
-name = "ac-library-rs"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f224825847080e387f2f23822f307f5b0e41f3f9d70076ea0452c7b032d603c9"
-
-[[package]]
 name = "proconio"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -18,6 +12,5 @@ checksum = "c10091de86d0dc939b37a115d74597cbe83af470032a1729d50c98ccee043cb0"
 name = "solution"
 version = "0.1.0"
 dependencies = [
- "ac-library-rs",
  "proconio",
 ]
