@@ -1,41 +1,36 @@
-use ac_library::fenwicktree::FenwickTree;
 use proconio::{input, marker::Usize1};
 use std::io::{BufWriter, Write, stdout};
 
-const UB: usize = 300_001;
-
 struct DroppedFreqs {
     xs: Vec<usize>,
-    drops: usize,
-    freqs: FenwickTree<i64>,
+    fq: Vec<usize>,
+    lo: usize,
 }
 
 impl DroppedFreqs {
-    fn new(n: usize) -> Self {
-        let mut freqs = FenwickTree::new(UB, 0);
-        freqs.add(0, n as i64);
-
+    fn new(n: usize, q: usize) -> Self {
         Self {
             xs: vec![0; n],
-            drops: 0,
-            freqs,
+            fq: vec![0; q + 1],
+            lo: 0,
         }
     }
 
     fn inc_at(&mut self, i: usize) {
-        let cur = self.xs[i];
-        self.freqs.add(cur, -1);
-
         self.xs[i] += 1;
-        self.freqs.add(cur + 1, 1);
+        self.fq[self.xs[i]] += 1;
 
-        if self.freqs.sum(..=self.drops) == 0 {
-            self.drops += 1;
+        if self.fq[self.xs[i]] == self.xs.len() {
+            self.lo = self.xs[i];
         }
     }
 
     fn num_cells_at_least_k(&self, k: usize) -> usize {
-        self.xs.iter().filter(|&x| *x >= k + self.drops).count()
+        if k + self.lo >= self.fq.len() {
+            0
+        } else {
+            self.fq[k + self.lo]
+        }
     }
 }
 
@@ -50,14 +45,14 @@ fn main() {
         queries:[(u8, Usize1); q],
     }
 
-    let mut dfs = DroppedFreqs::new(n);
+    let mut dfs = DroppedFreqs::new(n, q);
 
-    for (t, x) in queries {
+    for (t, k) in queries {
         if t == 1 {
-            dfs.inc_at(x);
+            dfs.inc_at(k);
         } else {
             assert_eq!(t, 2);
-            let result = dfs.num_cells_at_least_k(x);
+            let result = dfs.num_cells_at_least_k(k);
             writeln!(writer, "{result}").unwrap();
         }
     }
