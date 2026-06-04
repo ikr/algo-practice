@@ -83,6 +83,26 @@ where
     }
 }
 
+/// NEW PLAN (no code changes towards it just yet!)
+///
+/// Suppose xs has n elements. Let's move the "current" index i from 0 to `n - 1`. We'll count all
+/// the good sub-arrays ending exactly at i. For that, while scanning through xs (with `i`), we'll
+/// maintain two pieces of state:
+///
+/// A) The "current" array of pairs (L1, V1), (L2, V2), ... where Lj is the leftmost index such that
+/// a bitwise OR of xs' values within indices interval [a, i] equals Vj, for any `a` within [Lj,
+/// L{j+1} - 1]. Here, if a < b, then La < Lb, and also (Va & Vb) == Vb -- only new bits can appear
+/// as we keep OR-ing from index i to the left. All the Vj-s are distinct.
+///
+/// B) For every value x from xs, what's its largest index so far? We'll name that index Rx.
+///
+/// An important property of the (Lj, Vj) pairs array is that its size is limited (for every i) by
+/// the number of bits each of the xs values has, which is 32.
+///
+/// Then, having the (Lj, Vj) array, and the x -> Rx map, we can compute the number of good
+/// sub-arrays ending exactly at index i. It's the sum of Mj values over all j such that Vj is
+/// present as a key in the x -> Rx map, and Lj <= R{Vj}; Mj = min(L{j+1}, R{Vj}) - Lj.
+///
 fn count_good_subarrays_impl(xs: Vec<i32>) -> usize {
     let n = xs.len();
     let ii: Vec<usize> = (0..n).collect();
