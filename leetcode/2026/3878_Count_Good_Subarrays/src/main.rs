@@ -1,9 +1,37 @@
-use std::io::stdin;
+use std::{collections::HashMap, io::stdin};
 
 use itertools::Itertools;
 
-/// NEW PLAN (no code changes towards it just yet!)
-///
+struct LeftmostOrs {
+    ivs: Vec<(usize, i32)>,
+}
+
+impl LeftmostOrs {
+    fn new() -> Self {
+        Self { ivs: vec![] }
+    }
+
+    fn next(&mut self, i: usize, x: i32) {
+        let min_idx_by_val: HashMap<i32, usize> = self.ivs.iter().map(|&(l, v)| (l, v | x)).fold(
+            HashMap::from([(x, i)]),
+            |mut agg, (l, v)| {
+                agg.entry(v)
+                    .and_modify(|a| {
+                        *a = l.min(*a);
+                    })
+                    .or_insert(l);
+                agg
+            },
+        );
+
+        self.ivs = min_idx_by_val.into_iter().map(|(v, l)| (l, v)).collect();
+        assert_eq!(
+            self.ivs.len(),
+            self.ivs.iter().map(|(l, _)| *l).unique().count()
+        );
+    }
+}
+
 /// Suppose xs has n elements. Let's move the "current" index i from 0 to `n - 1`. We'll count all
 /// the good sub-arrays ending exactly at i. For that, while scanning through xs (with `i`), we'll
 /// maintain two pieces of state:
