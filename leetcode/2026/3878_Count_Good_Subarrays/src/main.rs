@@ -25,6 +25,8 @@ impl LeftmostOrs {
         );
 
         self.ivs = min_idx_by_val.into_iter().map(|(v, l)| (l, v)).collect();
+        self.ivs.sort();
+
         assert_eq!(
             self.ivs.len(),
             self.ivs.iter().map(|(l, _)| *l).unique().count()
