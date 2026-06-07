@@ -3,17 +3,23 @@ use std::{collections::HashMap, io::stdin};
 use itertools::Itertools;
 
 struct LeftmostOrs {
+    xs_len: usize,
     ivs: Vec<(usize, i32)>,
 }
 
 impl LeftmostOrs {
-    fn new() -> Self {
-        Self { ivs: vec![] }
+    fn new(xs_len: usize) -> Self {
+        Self {
+            xs_len,
+            ivs: vec![],
+        }
     }
 
-    fn next(&mut self, i: usize, x: i32) {
+    fn next(&mut self, xs_index: usize, x: i32) {
+        assert!(xs_index >= self.ivs.len());
+
         let min_idx_by_val: HashMap<i32, usize> = self.ivs.iter().map(|&(l, v)| (l, v | x)).fold(
-            HashMap::from([(x, i)]),
+            HashMap::from([(x, xs_index)]),
             |mut agg, (l, v)| {
                 agg.entry(v)
                     .and_modify(|a| {
@@ -31,6 +37,25 @@ impl LeftmostOrs {
             self.ivs.len(),
             self.ivs.iter().map(|(l, _)| *l).unique().count()
         );
+    }
+
+    fn good_interval_size(&self, iv_index: usize, xs_right_index: usize) -> usize {
+        assert!(iv_index < self.ivs.len());
+        assert!(xs_right_index < self.xs_len);
+
+        let l = self.ivs[iv_index].0;
+        assert!(
+            l <= xs_right_index,
+            "Interval's highest right must be to the right of its 'left'"
+        );
+
+        let l_prime = if iv_index == self.ivs.len() - 1 {
+            self.xs_len
+        } else {
+            self.ivs[iv_index + 1].0
+        };
+
+        (l_prime - 1).min(xs_right_index) - l + 1
     }
 }
 
