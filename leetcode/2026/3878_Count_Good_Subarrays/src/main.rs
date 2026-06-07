@@ -166,6 +166,21 @@ mod tests {
     }
 
     #[test]
+    fn solution_matches_brute_force_on_random_inputs() {
+        use rand::{RngExt, SeedableRng, rngs::SmallRng};
+        let mut rng = SmallRng::seed_from_u64(42);
+        for _ in 0..200 {
+            let len = rng.random_range(1..=200);
+            let xs: Vec<i32> = (0..len).map(|_| rng.random_range(1..=16000)).collect();
+            assert_eq!(
+                Solution::count_good_subarrays(xs.clone()),
+                i64::try_from(count_good_subarrays_brute_force(&xs)).unwrap(),
+                "mismatch for xs = {xs:?}"
+            );
+        }
+    }
+
+    #[test]
     fn test_count_good_subarrays_brute_force() {
         for (arg, res) in vec![(vec![4, 2, 3], 4), (vec![1, 3, 1], 6), (vec![6, 6], 3)] {
             assert_eq!(count_good_subarrays_brute_force(&arg), res);
