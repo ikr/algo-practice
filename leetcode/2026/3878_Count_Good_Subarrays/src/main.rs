@@ -31,7 +31,7 @@ impl LeftmostOrs {
         );
 
         self.ivs = min_idx_by_val.into_iter().map(|(v, l)| (l, v)).collect();
-        self.ivs.sort();
+        self.ivs.sort_unstable();
 
         assert_eq!(
             self.ivs.len(),
@@ -78,12 +78,29 @@ impl LeftmostOrs {
 /// present as a key in the x -> Rx map, and Lj <= R{Vj}; Mj = min(L{j+1} - 1, R{Vj}) - Lj + 1.
 ///
 fn count_good_subarrays_impl(xs: Vec<i32>) -> usize {
-    todo!()
+    let mut lors = LeftmostOrs::new(xs.len());
+    let mut right: HashMap<i32, usize> = HashMap::new();
+    let mut result = 0;
+
+    for (i, x) in xs.into_iter().enumerate() {
+        lors.next(i, x);
+        right.insert(x, i);
+
+        for (j, &(l, v)) in lors.ivs.iter().enumerate() {
+            if let Some(&r) = right.get(&v)
+                && l <= r
+            {
+                result += lors.good_interval_size(j, r);
+            }
+        }
+    }
+
+    result
 }
 
 impl Solution {
     pub fn count_good_subarrays(xs: Vec<i32>) -> i64 {
-        count_good_subarrays_impl(xs) as i64
+        i64::try_from(count_good_subarrays_impl(xs)).unwrap()
     }
 }
 
@@ -95,7 +112,7 @@ impl Solution {
 // Return the number of good sub-arrays in xs.
 struct Solution {}
 
-fn count_good_subarrays_brute_force(xs: Vec<i32>) -> usize {
+fn count_good_subarrays_brute_force(xs: &[i32]) -> usize {
     fn bitwise_or(ys: &[i32]) -> i32 {
         ys.iter().fold(0, |acc, &y| acc | y)
     }
@@ -120,7 +137,10 @@ fn main() {
         .collect();
 
     let result = Solution::count_good_subarrays(xs.clone());
-    assert_eq!(count_good_subarrays_brute_force(xs), result as usize);
+    assert_eq!(
+        count_good_subarrays_brute_force(&xs),
+        usize::try_from(result).unwrap()
+    );
     println!("{result}");
 }
 
@@ -139,7 +159,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "not ready yet"]
     fn solution_for_other_test_cases() {
         for (arg, res) in vec![(vec![6, 6], 3)] {
             assert_eq!(Solution::count_good_subarrays(arg), res);
@@ -149,7 +168,7 @@ mod tests {
     #[test]
     fn test_count_good_subarrays_brute_force() {
         for (arg, res) in vec![(vec![4, 2, 3], 4), (vec![1, 3, 1], 6), (vec![6, 6], 3)] {
-            assert_eq!(count_good_subarrays_brute_force(arg), res);
+            assert_eq!(count_good_subarrays_brute_force(&arg), res);
         }
     }
 }
