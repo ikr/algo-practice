@@ -1,4 +1,3 @@
-use ac_library::Dsu;
 use proconio::input;
 use std::{
     io::{BufWriter, Write, stdout},
@@ -6,30 +5,7 @@ use std::{
 };
 
 fn lowest_k_gap(lrs: Vec<(u32, u32)>, k: usize) -> Option<u32> {
-    let n = lrs.len();
-    let mut dsu = Dsu::new(n);
-
-    let mut by_l_desc: Vec<usize> = (0..n).collect();
-    by_l_desc.sort_by(|&i, &j| lrs[j].0.cmp(&lrs[i].0));
-
-    let mut by_r_asc: Vec<usize> = (0..n).collect();
-    by_r_asc.sort_by(|&i, &j| lrs[i].1.cmp(&lrs[j].1));
-
-    let mut edges_count: usize = 0;
-    let mut result: u32 = u32::MAX;
-
-    for ri in by_r_asc {
-        while let Some(li) = by_l_desc.pop() {
-            if lrs[ri].1 < lrs[li].0 && !dsu.same(ri, li) {
-                edges_count += 1;
-                dsu.merge(ri, li);
-                result = result.min(lrs[li].0 - lrs[ri].1);
-                break;
-            }
-        }
-    }
-
-    (edges_count == k).then_some(result)
+    todo!()
 }
 
 fn main() {
