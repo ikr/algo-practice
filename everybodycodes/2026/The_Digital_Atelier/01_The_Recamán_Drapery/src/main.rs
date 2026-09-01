@@ -1,14 +1,7 @@
-#![warn(clippy::all)]
-#![warn(clippy::pedantic)]
-#![warn(clippy::nursery)]
-#![warn(clippy::cargo)]
-
 use std::{
     collections::HashSet,
     fmt::Debug,
-    hash::Hash,
     io::{self, BufRead},
-    iter::successors,
     str::FromStr,
 };
 
@@ -26,15 +19,6 @@ where
     T::Err: Debug,
 {
     src.split(',').map(|a| decode(a)).collect()
-}
-
-fn split_last<T>(mut xs: Vec<T>) -> Option<(T, Vec<T>)> {
-    xs.pop().map(|x| (x, xs))
-}
-
-fn with<T: Eq + Hash>(mut xs: HashSet<T>, x: T) -> HashSet<T> {
-    xs.insert(x);
-    xs
 }
 
 type Int = u16;
@@ -55,29 +39,24 @@ impl State {
         }
     }
 
-    fn next(self) -> Option<Self> {
-        split_last(self.jump_lengths_stack).map(|(delta, jump_lengths_stack)| {
-            let current = if self.current > delta && !self.visited.contains(&(self.current - delta))
-            {
-                self.current - delta
-            } else {
-                self.current + delta
-            };
+    fn next(&mut self) {
+        if let Some(delta) = self.jump_lengths_stack.pop() {
+            self.current =
+                if self.current > delta && !self.visited.contains(&(self.current - delta)) {
+                    self.current - delta
+                } else {
+                    self.current + delta
+                };
 
-            let visited = with(self.visited, current);
-            Self {
-                visited,
-                jump_lengths_stack,
-                current,
-            }
-        })
+            self.visited.insert(self.current);
+        }
     }
 }
 
 fn simulate_return_final_point(jump_lengths: Vec<Int>) -> Int {
     let mut s = State::new(jump_lengths);
-    while let Some(t) = s.next() {
-        s = t
+    while !s.jump_lengths_stack.is_empty() {
+        s.next();
     }
     s.current
 }
@@ -85,5 +64,6 @@ fn simulate_return_final_point(jump_lengths: Vec<Int>) -> Int {
 fn main() {
     let lines: Vec<String> = io::stdin().lock().lines().map(|x| x.unwrap()).collect();
     let xss: Vec<Vec<u16>> = lines.into_iter().map(|line| decode_csv(&line)).collect();
-    eprintln!("{xss:?}");
+    let rs: Vec<u16> = xss.into_iter().map(simulate_return_final_point).collect();
+    println!("{}", rs.into_iter().sum::<u16>());
 }
