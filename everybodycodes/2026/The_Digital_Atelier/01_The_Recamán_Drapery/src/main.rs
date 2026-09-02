@@ -45,11 +45,12 @@ impl State {
                 self.current -= delta;
             } else {
                 self.current += delta;
+
+                while self.visited.contains(&(self.current)) {
+                    self.current += 1;
+                }
             }
 
-            // while self.visited.contains(&(self.current)) {
-            //     self.current += 1;
-            // }
             self.visited.insert(self.current);
         }
     }
