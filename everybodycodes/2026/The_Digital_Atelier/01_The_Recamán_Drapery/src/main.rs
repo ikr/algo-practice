@@ -41,15 +41,15 @@ impl State {
 
     fn next(&mut self) {
         if let Some(delta) = self.jump_lengths_stack.pop() {
-            self.current = if self.current > delta {
-                self.current - delta
+            if self.current > delta && !self.visited.contains(&(self.current - delta)) {
+                self.current -= delta;
             } else {
-                self.current + delta
-            };
-
-            while self.visited.contains(&(self.current)) {
-                self.current += 1;
+                self.current += delta;
             }
+
+            // while self.visited.contains(&(self.current)) {
+            //     self.current += 1;
+            // }
             self.visited.insert(self.current);
         }
     }
