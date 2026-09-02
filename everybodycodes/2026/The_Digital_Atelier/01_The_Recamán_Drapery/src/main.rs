@@ -40,17 +40,16 @@ impl State {
     }
 
     fn next(&mut self) {
-        if let Some(mut delta) = self.jump_lengths_stack.pop() {
-            self.current =
-                if self.current > delta && !self.visited.contains(&(self.current - delta)) {
-                    self.current - delta
-                } else {
-                    while self.visited.contains(&(self.current + delta)) {
-                        delta += 1;
-                    }
-                    self.current + delta
-                };
+        if let Some(delta) = self.jump_lengths_stack.pop() {
+            self.current = if self.current > delta {
+                self.current - delta
+            } else {
+                self.current + delta
+            };
 
+            while self.visited.contains(&(self.current)) {
+                self.current += 1;
+            }
             self.visited.insert(self.current);
         }
     }
@@ -68,5 +67,6 @@ fn main() {
     let lines: Vec<String> = io::stdin().lock().lines().map(|x| x.unwrap()).collect();
     let xss: Vec<Vec<Int>> = lines.into_iter().map(|line| decode_csv(&line)).collect();
     let rs: Vec<Int> = xss.into_iter().map(simulate_return_final_point).collect();
+    eprintln!("{rs:?}");
     println!("{}", rs.into_iter().sum::<Int>());
 }
