@@ -21,7 +21,7 @@ where
     src.split(',').map(|a| decode(a)).collect()
 }
 
-type Int = u16;
+type Int = u32;
 
 struct State {
     visited: HashSet<Int>,
@@ -40,11 +40,14 @@ impl State {
     }
 
     fn next(&mut self) {
-        if let Some(delta) = self.jump_lengths_stack.pop() {
+        if let Some(mut delta) = self.jump_lengths_stack.pop() {
             self.current =
                 if self.current > delta && !self.visited.contains(&(self.current - delta)) {
                     self.current - delta
                 } else {
+                    while self.visited.contains(&(self.current + delta)) {
+                        delta += 1;
+                    }
                     self.current + delta
                 };
 
@@ -63,7 +66,7 @@ fn simulate_return_final_point(jump_lengths: Vec<Int>) -> Int {
 
 fn main() {
     let lines: Vec<String> = io::stdin().lock().lines().map(|x| x.unwrap()).collect();
-    let xss: Vec<Vec<u16>> = lines.into_iter().map(|line| decode_csv(&line)).collect();
-    let rs: Vec<u16> = xss.into_iter().map(simulate_return_final_point).collect();
-    println!("{}", rs.into_iter().sum::<u16>());
+    let xss: Vec<Vec<Int>> = lines.into_iter().map(|line| decode_csv(&line)).collect();
+    let rs: Vec<Int> = xss.into_iter().map(simulate_return_final_point).collect();
+    println!("{}", rs.into_iter().sum::<Int>());
 }
