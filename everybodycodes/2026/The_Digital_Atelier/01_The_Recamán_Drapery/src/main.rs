@@ -39,7 +39,7 @@ impl State {
                 [row0, [false; LIM]]
             },
             jump_lengths_stack: jump_lengths,
-            phase: 0,
+            phase: 1,
             current: 0,
         }
     }
@@ -66,6 +66,7 @@ impl State {
                 self.visited[self.phase][i] = true;
             }
         }
+        eprintln!("{}:{}", self.phase, self.current);
     }
 }
 
