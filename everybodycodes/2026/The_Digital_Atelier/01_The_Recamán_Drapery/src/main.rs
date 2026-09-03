@@ -21,16 +21,14 @@ where
     src.split(',').map(|a| decode(a)).collect()
 }
 
-type Int = u32;
-
 struct State {
-    visited: HashSet<Int>,
-    jump_lengths_stack: Vec<Int>,
-    current: Int,
+    visited: HashSet<u32>,
+    jump_lengths_stack: Vec<u32>,
+    current: u32,
 }
 
 impl State {
-    fn new(mut jump_lengths: Vec<Int>) -> Self {
+    fn new(mut jump_lengths: Vec<u32>) -> Self {
         jump_lengths.reverse();
         Self {
             visited: HashSet::new(),
@@ -56,7 +54,7 @@ impl State {
     }
 }
 
-fn simulate_return_final_point(jump_lengths: Vec<Int>) -> Int {
+fn simulate_return_final_point(jump_lengths: Vec<u32>) -> u32 {
     let mut s = State::new(jump_lengths);
     while !s.jump_lengths_stack.is_empty() {
         s.next();
@@ -66,7 +64,7 @@ fn simulate_return_final_point(jump_lengths: Vec<Int>) -> Int {
 
 fn main() {
     let lines: Vec<String> = io::stdin().lock().lines().map(|x| x.unwrap()).collect();
-    let xss: Vec<Vec<Int>> = lines.into_iter().map(|line| decode_csv(&line)).collect();
-    let rs: Vec<Int> = xss.into_iter().map(simulate_return_final_point).collect();
-    println!("{}", rs.into_iter().sum::<Int>());
+    let xss: Vec<Vec<u32>> = lines.into_iter().map(|line| decode_csv(&line)).collect();
+    let rs: Vec<u32> = xss.into_iter().map(simulate_return_final_point).collect();
+    println!("{}", rs.into_iter().sum::<u32>());
 }
