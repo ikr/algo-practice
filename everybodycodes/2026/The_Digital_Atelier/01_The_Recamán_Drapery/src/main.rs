@@ -4,8 +4,6 @@ use std::{
     str::FromStr,
 };
 
-const LIM: usize = 10_000;
-
 fn decode<T>(src: &str) -> T
 where
     T: FromStr,
@@ -22,51 +20,87 @@ where
     src.split(',').map(|a| decode(a)).collect()
 }
 
+#[derive(Clone, Copy)]
+struct Itvl {
+    a: usize,
+    b: usize,
+}
+
+impl Itvl {
+    fn new(a: usize, b: usize) -> Self {
+        assert!(a < b);
+        Self { a, b }
+    }
+
+    fn is_edge(self, x: usize) -> bool {
+        self.a == x || self.b == x
+    }
+
+    fn is_disjoing_with(self, other: Self) -> bool {
+        (self.b < other.a) || (other.b < self.a)
+    }
+
+    fn is_congruent_with(self, other: Self) -> bool {
+        (other.a < self.a && self.b < other.b) || (self.a < other.a && other.b < self.b)
+    }
+}
+
 struct State {
-    visited: [[bool; LIM]; 2],
+    arcs: Vec<Vec<Itvl>>,
     jump_lengths_stack: Vec<usize>,
     phase: usize,
-    current: usize,
+    point: usize,
 }
 
 impl State {
     fn new(mut jump_lengths: Vec<usize>) -> Self {
         jump_lengths.reverse();
+
         Self {
-            visited: {
-                let mut row0 = [false; LIM];
-                row0[0] = true;
-                [row0, [false; LIM]]
-            },
+            arcs: vec![vec![]; 2],
             jump_lengths_stack: jump_lengths,
             phase: 1,
-            current: 0,
+            point: 0,
         }
+    }
+
+    fn is_visited(&self, x: usize) -> bool {
+        self.arcs
+            .iter()
+            .any(|ivs| ivs.iter().any(|iv| iv.is_edge(x)))
+    }
+
+    fn is_possible(&self, iv: Itvl) -> bool {
+        self.arcs[self.phase]
+            .iter()
+            .all(|ab| ab.is_disjoing_with(iv) || ab.is_congruent_with(iv))
     }
 
     fn next(&mut self) {
         if let Some(delta) = self.jump_lengths_stack.pop() {
             self.phase = (self.phase + 1) % 2;
-            let previous = self.current;
+            let previous = self.point;
 
-            if self.current > delta && !self.visited[self.phase][self.current - delta] {
-                self.current -= delta;
+            if self.point > delta
+                && !self.is_visited(self.point - delta)
+                && self.is_possible(Itvl::new(self.point - delta, self.point))
+            {
+                self.point -= delta;
             } else {
-                self.current += delta;
+                self.point += delta;
 
-                while self.visited[self.phase][self.current] {
-                    self.current += 1;
+                while self.is_visited(self.point)
+                    || !self.is_possible(Itvl::new(previous, self.point))
+                {
+                    self.point += 1;
                 }
             }
 
-            assert_ne!(previous, self.current);
-            let (lo, hi) = (previous.min(self.current), previous.max(self.current));
-
-            for i in lo..=hi {
-                self.visited[self.phase][i] = true;
-            }
+            assert_ne!(previous, self.point);
+            let (lo, hi) = (previous.min(self.point), previous.max(self.point));
+            self.arcs[self.phase].push(Itvl::new(lo, hi));
         }
-        eprintln!("{}:{}", self.phase, self.current);
+        eprintln!("{}:{}", self.phase, self.point);
     }
 }
 
@@ -75,7 +109,7 @@ fn simulate_return_final_point(jump_lengths: Vec<usize>) -> usize {
     while !s.jump_lengths_stack.is_empty() {
         s.next();
     }
-    s.current
+    s.point
 }
 
 fn main() {
