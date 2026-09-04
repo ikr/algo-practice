@@ -4,6 +4,8 @@ use std::{
     str::FromStr,
 };
 
+const INF: usize = 10_000;
+
 fn decode<T>(src: &str) -> T
 where
     T: FromStr,
@@ -76,10 +78,14 @@ impl State {
             .all(|ab| ab.is_disjoing_with(iv) || ab.is_congruent_with(iv))
     }
 
+    fn flip_phase(&mut self) {
+        self.phase = (self.phase + 1) % 2;
+    }
+
     fn next(&mut self) {
         if let Some(delta) = self.jump_lengths_stack.pop() {
-            self.phase = (self.phase + 1) % 2;
             let previous = self.point;
+            self.flip_phase();
 
             if self.point > delta
                 && !self.is_visited(self.point - delta)
@@ -89,10 +95,17 @@ impl State {
             } else {
                 self.point += delta;
 
-                while self.is_visited(self.point)
-                    || !self.is_possible(Itvl::new(previous, self.point))
+                while self.point < INF
+                    && (self.is_visited(self.point)
+                        || !self.is_possible(Itvl::new(previous, self.point)))
                 {
                     self.point += 1;
+                }
+
+                if self.point == INF {
+                    self.point = previous;
+                    self.flip_phase();
+                    return;
                 }
             }
 
@@ -100,7 +113,6 @@ impl State {
             let (lo, hi) = (previous.min(self.point), previous.max(self.point));
             self.arcs[self.phase].push(Itvl::new(lo, hi));
         }
-        eprintln!("{}:{}", self.phase, self.point);
     }
 }
 
@@ -116,6 +128,5 @@ fn main() {
     let lines: Vec<String> = io::stdin().lock().lines().map(|x| x.unwrap()).collect();
     let xss: Vec<Vec<usize>> = lines.into_iter().map(|line| decode_csv(&line)).collect();
     let rs: Vec<usize> = xss.into_iter().map(simulate_return_final_point).collect();
-    eprintln!("{rs:?}");
     println!("{}", rs.into_iter().sum::<usize>());
 }
