@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-const INF: usize = 10_000;
+const INF: usize = 2_000;
 
 fn decode<T>(src: &str) -> T
 where
