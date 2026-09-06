@@ -9,6 +9,15 @@ impl Crd {
     fn halfway_to(self, dst: Crd) -> Crd {
         Crd((self.0 + dst.0) / 2, (self.1 + dst.1) / 2)
     }
+
+    fn adjacent(self) -> Vec<Crd> {
+        vec![
+            Crd(self.0, self.1 + 1),
+            Crd(self.0 + 1, self.1),
+            Crd(self.0, self.1 - 1),
+            Crd(self.0 - 1, self.1),
+        ]
+    }
 }
 
 fn decode_input_line_crd(line: &str) -> Crd {
@@ -48,14 +57,18 @@ fn main() {
 
     let moves = decode_input_line_moves(lines.last().unwrap());
 
-    let (illuminated, _) =
-        moves
-            .into_iter()
-            .fold((HashSet::from([start]), start), |(mut ps, p), i| {
-                let q = p.halfway_to(beacons[i]);
-                ps.insert(q);
-                (ps, q)
-            });
+    let (gen0, _) = moves
+        .into_iter()
+        .fold((HashSet::from([start]), start), |(mut ps, p), i| {
+            let q = p.halfway_to(beacons[i]);
+            ps.insert(q);
+            (ps, q)
+        });
 
-    println!("{}", illuminated.len());
+    let gen1: HashSet<Crd> = gen0
+        .iter()
+        .flat_map(|p| p.adjacent().into_iter().filter(|q| !gen0.contains(q)))
+        .collect();
+
+    println!("{}", gen1.len());
 }
