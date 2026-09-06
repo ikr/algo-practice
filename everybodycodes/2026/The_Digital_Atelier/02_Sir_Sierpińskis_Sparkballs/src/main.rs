@@ -39,20 +39,14 @@ fn main() {
         .map(|line| line.unwrap())
         .collect();
 
-    eprintln!("{lines:?}");
-
     let start = decode_input_line_crd(&lines[0]);
-    eprintln!("start: {start:?}");
 
     let beacons: Vec<Crd> = lines[1..lines.len() - 1]
         .iter()
         .map(|line| decode_input_line_crd(line))
         .collect();
 
-    eprintln!("beacons: {beacons:?}");
-
     let moves = decode_input_line_moves(lines.last().unwrap());
-    eprintln!("{moves:?}");
 
     let (illuminated, _) =
         moves
@@ -63,6 +57,5 @@ fn main() {
                 (ps, q)
             });
 
-    eprintln!("{illuminated:?}");
     println!("{}", illuminated.len());
 }
