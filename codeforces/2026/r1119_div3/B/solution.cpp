@@ -24,7 +24,7 @@ int main() {
 
             if (x % 2) {
                 ++odds;
-            } else if ((x % 2) % 2) {
+            } else if ((x / 2) % 2) {
                 ++odd_of_evens;
             } else {
                 ++even_of_evens;
