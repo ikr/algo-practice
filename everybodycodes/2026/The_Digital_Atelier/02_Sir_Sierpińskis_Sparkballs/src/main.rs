@@ -18,6 +18,14 @@ fn decode_input_line_crd(line: &str) -> Crd {
     Crd(x, y)
 }
 
+fn decode_input_line_moves(line: &str) -> Vec<usize> {
+    line.strip_prefix("MOVES=")
+        .unwrap()
+        .bytes()
+        .map(|b| (b - b'A') as usize)
+        .collect()
+}
+
 fn main() {
     let lines: Vec<String> = std::io::stdin()
         .lock()
@@ -36,4 +44,7 @@ fn main() {
         .collect();
 
     eprintln!("beacons: {beacons:?}");
+
+    let moves = decode_input_line_moves(lines.last().unwrap());
+    eprintln!("{moves:?}");
 }
