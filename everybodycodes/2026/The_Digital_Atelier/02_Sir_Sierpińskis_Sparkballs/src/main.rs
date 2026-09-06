@@ -1,9 +1,15 @@
-use std::io::BufRead;
+use std::{collections::HashSet, io::BufRead};
 
 use itertools::Itertools;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
+
+impl Crd {
+    fn halfway_to(self, dst: Crd) -> Crd {
+        Crd((self.0 + dst.0) / 2, (self.1 + dst.1) / 2)
+    }
+}
 
 fn decode_input_line_crd(line: &str) -> Crd {
     let i = line.find('[').unwrap();
@@ -47,4 +53,16 @@ fn main() {
 
     let moves = decode_input_line_moves(lines.last().unwrap());
     eprintln!("{moves:?}");
+
+    let (illuminated, _) =
+        moves
+            .into_iter()
+            .fold((HashSet::from([start]), start), |(mut ps, p), i| {
+                let q = p.halfway_to(beacons[i]);
+                ps.insert(q);
+                (ps, q)
+            });
+
+    eprintln!("{illuminated:?}");
+    println!("{}", illuminated.len());
 }
