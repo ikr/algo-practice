@@ -10,13 +10,21 @@ impl Crd {
         Crd((self.0 + dst.0) / 2, (self.1 + dst.1) / 2)
     }
 
-    fn adjacent(self) -> Vec<Crd> {
+    fn neighs(self) -> Vec<Crd> {
         vec![
             Crd(self.0, self.1 + 1),
             Crd(self.0 + 1, self.1),
             Crd(self.0, self.1 - 1),
             Crd(self.0 - 1, self.1),
         ]
+    }
+
+    fn adjacent_wrt(self, beacons: &[Crd]) -> Vec<Crd> {
+        beacons
+            .iter()
+            .map(|b| self.halfway_to(*b))
+            .unique()
+            .collect()
     }
 }
 
@@ -33,14 +41,6 @@ fn decode_input_line_crd(line: &str) -> Crd {
     Crd(x, y)
 }
 
-fn decode_input_line_moves(line: &str) -> Vec<usize> {
-    line.strip_prefix("MOVES=")
-        .unwrap()
-        .bytes()
-        .map(|b| (b - b'A') as usize)
-        .collect()
-}
-
 fn main() {
     let lines: Vec<String> = std::io::stdin()
         .lock()
@@ -50,24 +50,16 @@ fn main() {
 
     let start = decode_input_line_crd(&lines[0]);
 
-    let beacons: Vec<Crd> = lines[1..lines.len() - 1]
+    let beacons: Vec<Crd> = lines[1..]
         .iter()
         .map(|line| decode_input_line_crd(line))
         .collect();
 
-    let moves = decode_input_line_moves(lines.last().unwrap());
-
-    let (gen0, _) = moves
-        .into_iter()
-        .fold((HashSet::from([start]), start), |(mut ps, p), i| {
-            let q = p.halfway_to(beacons[i]);
-            ps.insert(q);
-            (ps, q)
-        });
+    let gen0: HashSet<Crd> = todo!();
 
     let gen1: HashSet<Crd> = gen0
         .iter()
-        .flat_map(|p| p.adjacent().into_iter().filter(|q| !gen0.contains(q)))
+        .flat_map(|p| p.neighs().into_iter().filter(|q| !gen0.contains(q)))
         .collect();
 
     println!("{}", gen1.len());
