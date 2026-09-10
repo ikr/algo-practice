@@ -14,28 +14,39 @@ fn decode_line_flags(prefix: &str, line: String) -> Vec<usize> {
         .collect()
 }
 
+#[derive(Clone, Copy, Debug)]
+enum Dir {
+    N,
+    E,
+    S,
+    W,
+}
+
+impl Dir {
+    fn all() -> [Dir; 4] {
+        [Self::N, Self::E, Self::S, Self::W]
+    }
+}
+
 struct Grid {
     row_offsets: Vec<usize>,
     column_offsets: Vec<usize>,
 }
 
 impl Grid {
-    fn has_north_border(&self, row: usize, column: usize) -> bool {
-        let rm = self.row_offsets.len();
-        column % 2 == self.row_offsets[row % rm]
-    }
-
-    fn has_south_border(&self, row: usize, column: usize) -> bool {
-        self.has_north_border(row + 1, column)
-    }
-
-    fn has_west_border(&self, row: usize, column: usize) -> bool {
-        let cm = self.column_offsets.len();
-        row % 2 == self.column_offsets[column % cm]
-    }
-
-    fn has_east_border(&self, row: usize, column: usize) -> bool {
-        self.has_west_border(row, column + 1)
+    fn has_border(&self, row: usize, column: usize, dir: Dir) -> bool {
+        match dir {
+            Dir::N => {
+                let rm = self.row_offsets.len();
+                column % 2 == self.row_offsets[row % rm]
+            }
+            Dir::E => self.has_border(row, column + 1, Dir::W),
+            Dir::S => self.has_border(row + 1, column, Dir::N),
+            Dir::W => {
+                let cm = self.column_offsets.len();
+                row % 2 == self.column_offsets[column % cm]
+            }
+        }
     }
 }
 
@@ -61,12 +72,7 @@ fn main() {
 
     let result = (0..height)
         .cartesian_product(0..width)
-        .filter(|&(ro, co)| {
-            g.has_north_border(ro, co)
-                && g.has_east_border(ro, co)
-                && g.has_south_border(ro, co)
-                && g.has_west_border(ro, co)
-        })
+        .filter(|&(ro, co)| Dir::all().into_iter().all(|dir| g.has_border(ro, co, dir)))
         .count();
 
     println!("{result}");
