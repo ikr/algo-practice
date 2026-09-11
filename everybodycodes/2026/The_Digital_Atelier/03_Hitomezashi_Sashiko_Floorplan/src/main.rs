@@ -1,3 +1,4 @@
+use ac_library::Dsu;
 use std::io::{BufRead, stdin};
 
 use itertools::Itertools;
@@ -26,12 +27,19 @@ impl std::ops::Add<Crd> for Crd {
 }
 
 impl Crd {
-    fn from_indices(row: usize, column: usize) -> Self {
+    fn from_grid(row: usize, column: usize) -> Self {
         Self(row as i16, column as i16)
     }
 
-    fn to_indices(self) -> (usize, usize) {
+    fn to_grid(self) -> (usize, usize) {
         (self.0 as usize, self.1 as usize)
+    }
+
+    fn is_in_bounds(self, grid_height: usize, grid_width: usize) -> bool {
+        0 <= self.0
+            && (self.0 as usize) < grid_height
+            && 0 <= self.1
+            && (self.1 as usize) < grid_width
     }
 
     fn flat_index(self, grid_width: usize) -> usize {
@@ -71,19 +79,13 @@ struct Grid {
 
 impl Grid {
     fn has_border(&self, crd: Crd, dir: Dir) -> bool {
+        let (ro, co) = crd.to_grid();
+
         match dir {
-            Dir::N => {
-                let (row, column) = crd.to_indices();
-                let rm = self.row_offsets.len();
-                column % 2 == self.row_offsets[row % rm]
-            }
+            Dir::N => co % 2 == self.row_offsets[ro % self.row_offsets.len()],
             Dir::E => self.has_border(crd + Dir::E.delta(), Dir::W),
             Dir::S => self.has_border(crd + Dir::S.delta(), Dir::N),
-            Dir::W => {
-                let (row, column) = crd.to_indices();
-                let cm = self.column_offsets.len();
-                row % 2 == self.column_offsets[column % cm]
-            }
+            Dir::W => ro % 2 == self.column_offsets[co % self.column_offsets.len()],
         }
     }
 }
@@ -108,12 +110,26 @@ fn main() {
         column_offsets,
     };
 
+    let mut dsu = Dsu::new(height * width);
+    for ro in 0..height {
+        for co in 0..width {
+            let p = Crd::from_grid(ro, co);
+
+            for dir in Dir::all() {
+                let q = p + dir.delta();
+                if q.is_in_bounds(height, width) && !g.has_border(p, dir) {
+                    dsu.merge(p.flat_index(width), q.flat_index(width));
+                }
+            }
+        }
+    }
+
     let result = (0..height)
         .cartesian_product(0..width)
         .filter(|&(ro, co)| {
             Dir::all()
                 .into_iter()
-                .all(|dir| g.has_border(Crd::from_indices(ro, co), dir))
+                .all(|dir| g.has_border(Crd::from_grid(ro, co), dir))
         })
         .count();
 
