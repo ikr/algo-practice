@@ -237,14 +237,32 @@ fn main() {
     coloring.apply();
     eprintln!("{:?}", coloring.colors);
 
-    let result = (0..height)
+    let isolated_tile_colors: Vec<Color> = (0..height)
         .cartesian_product(0..width)
-        .filter(|&(ro, co)| {
+        .filter_map(|(ro, co)| {
             Dir::all()
                 .into_iter()
                 .all(|dir| g.has_border(Crd::from_grid(ro, co), dir))
+                .then(|| {
+                    let p = Crd::from_grid(ro, co);
+                    let fi = p.flat_index(width);
+                    let ci = component_index_by_flat_index[fi];
+                    coloring.colors[ci]
+                })
         })
+        .collect();
+
+    let a = isolated_tile_colors
+        .iter()
+        .filter(|&&c| c == Color::A)
         .count();
 
+    let b = isolated_tile_colors
+        .iter()
+        .filter(|&&c| c == Color::B)
+        .count();
+
+    assert_eq!(a + b, isolated_tile_colors.len());
+    let result = a.max(b);
     println!("{result}");
 }
