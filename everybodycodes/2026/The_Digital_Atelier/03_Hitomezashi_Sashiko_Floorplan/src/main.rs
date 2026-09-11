@@ -1,5 +1,8 @@
 use ac_library::Dsu;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashSet,
+    io::{BufRead, stdin},
+};
 
 use itertools::Itertools;
 
@@ -123,6 +126,41 @@ fn main() {
             }
         }
     }
+
+    let components = dsu.groups();
+    let components_num = components.len();
+    let mut component_index_by_flat_index: Vec<usize> = vec![usize::MAX; height * width];
+
+    for (ci, fii) in components.into_iter().enumerate() {
+        for fi in fii {
+            component_index_by_flat_index[fi] = ci;
+        }
+    }
+    eprintln!("{component_index_by_flat_index:?}");
+
+    let mut component_adjacency_edges: HashSet<(usize, usize)> = HashSet::new();
+
+    for ro in 0..height {
+        for co in 0..width {
+            let p = Crd::from_grid(ro, co);
+
+            for dir in Dir::all() {
+                let q = p + dir.delta();
+
+                if q.is_in_bounds(height, width) && g.has_border(p, dir) {
+                    let qi = q.flat_index(width);
+                    let pi = p.flat_index(width);
+
+                    if !dsu.same(pi, qi) {
+                        let u = component_index_by_flat_index[pi];
+                        let v = component_index_by_flat_index[qi];
+                        component_adjacency_edges.insert((u.min(v), u.max(v)));
+                    }
+                }
+            }
+        }
+    }
+    eprintln!("{component_adjacency_edges:?}");
 
     let result = (0..height)
         .cartesian_product(0..width)
