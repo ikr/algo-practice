@@ -93,6 +93,19 @@ impl Grid {
     }
 }
 
+fn adjacency_list_from_edges(
+    vertices_num: usize,
+    edges: HashSet<(usize, usize)>,
+) -> Vec<Vec<usize>> {
+    edges
+        .into_iter()
+        .fold(vec![vec![]; vertices_num], |mut g, (u, v)| {
+            g[u].push(v);
+            g[v].push(u);
+            g
+        })
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
@@ -161,6 +174,9 @@ fn main() {
         }
     }
     eprintln!("{component_adjacency_edges:?}");
+
+    let component_adjacency = adjacency_list_from_edges(components_num, component_adjacency_edges);
+    eprintln!("{component_adjacency:?}");
 
     let result = (0..height)
         .cartesian_product(0..width)
