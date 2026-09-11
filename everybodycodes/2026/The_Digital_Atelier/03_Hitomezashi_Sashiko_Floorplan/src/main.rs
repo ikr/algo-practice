@@ -204,7 +204,6 @@ fn main() {
             component_index_by_flat_index[fi] = ci;
         }
     }
-    eprintln!("{component_index_by_flat_index:?}");
 
     let mut component_adjacency_edges: HashSet<(usize, usize)> = HashSet::new();
 
@@ -228,27 +227,23 @@ fn main() {
             }
         }
     }
-    eprintln!("{component_adjacency_edges:?}");
 
     let component_adjacency = adjacency_list_from_edges(components_num, component_adjacency_edges);
-    eprintln!("{component_adjacency:?}");
-
     let mut coloring = Coloring::new(component_adjacency);
     coloring.apply();
-    eprintln!("{:?}", coloring.colors);
 
     let isolated_tile_colors: Vec<Color> = (0..height)
         .cartesian_product(0..width)
-        .filter_map(|(ro, co)| {
+        .filter(|&(ro, co)| {
             Dir::all()
                 .into_iter()
                 .all(|dir| g.has_border(Crd::from_grid(ro, co), dir))
-                .then(|| {
-                    let p = Crd::from_grid(ro, co);
-                    let fi = p.flat_index(width);
-                    let ci = component_index_by_flat_index[fi];
-                    coloring.colors[ci]
-                })
+        })
+        .map(|(ro, co)| {
+            let p = Crd::from_grid(ro, co);
+            let fi = p.flat_index(width);
+            let ci = component_index_by_flat_index[fi];
+            coloring.colors[ci]
         })
         .collect();
 
