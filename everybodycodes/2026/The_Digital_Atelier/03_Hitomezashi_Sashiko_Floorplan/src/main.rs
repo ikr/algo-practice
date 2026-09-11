@@ -106,6 +106,61 @@ fn adjacency_list_from_edges(
         })
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Color {
+    None,
+    A,
+    B,
+}
+
+impl Color {
+    fn opposite(self) -> Self {
+        match self {
+            Self::A => Self::B,
+            Self::B => Self::A,
+            Self::None => unreachable!(),
+        }
+    }
+}
+
+struct Coloring {
+    g: Vec<Vec<usize>>,
+    colors: Vec<Color>,
+}
+
+impl Coloring {
+    fn new(g: Vec<Vec<usize>>) -> Self {
+        let n = g.len();
+
+        Self {
+            g,
+            colors: vec![Color::None; n],
+        }
+    }
+
+    fn recur(&mut self, u: usize) {
+        assert!(u < self.g.len());
+        assert_ne!(self.colors[u], Color::None);
+
+        for v in self.g[u].clone() {
+            assert_ne!(self.colors[v], self.colors[u]);
+            if self.colors[v] == Color::None {
+                self.colors[v] = self.colors[u].opposite();
+                self.recur(v);
+            }
+        }
+    }
+
+    fn apply(&mut self) {
+        for u in 0..self.g.len() {
+            if self.colors[u] == Color::None {
+                self.colors[u] = Color::A;
+                self.recur(u);
+            }
+        }
+    }
+}
+
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
 
@@ -177,6 +232,10 @@ fn main() {
 
     let component_adjacency = adjacency_list_from_edges(components_num, component_adjacency_edges);
     eprintln!("{component_adjacency:?}");
+
+    let mut coloring = Coloring::new(component_adjacency);
+    coloring.apply();
+    eprintln!("{:?}", coloring.colors);
 
     let result = (0..height)
         .cartesian_product(0..width)
