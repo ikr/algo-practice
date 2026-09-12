@@ -3,22 +3,6 @@ using namespace std;
 
 using ll = long long;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -46,7 +30,16 @@ int main() {
         dist[i] = dist[i - 1] + aa[i - 1];
     }
 
-    cerr << dist << '\n';
+    int result = 0;
 
+    for (int i = s; i >= 0; --i) {
+        for (int j = s; j <= n - 1; ++j) {
+            if (dist[i] * 2 + dist[j] <= l || 2 * dist[j] + dist[i] <= l) {
+                result = max(result, s - i + j - s + 1);
+            }
+        }
+    }
+
+    cout << result << '\n';
     return 0;
 }
