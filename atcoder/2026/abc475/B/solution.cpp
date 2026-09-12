@@ -1,12 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
-
 using tri = tuple<int, int, int>;
 
 tri operator+(const tri &a, const tri &b) {
@@ -34,7 +28,10 @@ int main() {
     for (int i = 0; i != n; ++i) {
         int x;
         cin >> x;
-        coins = coins + change(1000 - (x % 1000));
+
+        if (x % 1000) {
+            coins = coins + change(1000 - (x % 1000));
+        }
     }
 
     const auto [a, b, c] = coins;
