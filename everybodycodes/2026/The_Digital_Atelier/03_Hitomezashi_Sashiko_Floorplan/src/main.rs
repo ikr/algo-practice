@@ -1,8 +1,4 @@
-use ac_library::Dsu;
-use std::{
-    collections::HashSet,
-    io::{BufRead, stdin},
-};
+use std::io::{BufRead, stdin};
 
 use itertools::Itertools;
 
@@ -37,19 +33,6 @@ impl Crd {
     fn to_grid(self) -> (usize, usize) {
         (self.0 as usize, self.1 as usize)
     }
-
-    fn is_in_bounds(self, grid_height: usize, grid_width: usize) -> bool {
-        0 <= self.0
-            && (self.0 as usize) < grid_height
-            && 0 <= self.1
-            && (self.1 as usize) < grid_width
-    }
-
-    fn flat_index(self, grid_width: usize) -> usize {
-        let ro = self.0 as usize;
-        let co = self.1 as usize;
-        grid_width * ro + co
-    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -75,12 +58,12 @@ impl Dir {
     }
 }
 
-struct Grid {
+struct PatternGrid {
     row_offsets: Vec<usize>,
     column_offsets: Vec<usize>,
 }
 
-impl Grid {
+impl PatternGrid {
     fn has_border(&self, crd: Crd, dir: Dir) -> bool {
         let (ro, co) = crd.to_grid();
 
@@ -93,22 +76,8 @@ impl Grid {
     }
 }
 
-fn adjacency_list_from_edges(
-    vertices_num: usize,
-    edges: HashSet<(usize, usize)>,
-) -> Vec<Vec<usize>> {
-    edges
-        .into_iter()
-        .fold(vec![vec![]; vertices_num], |mut g, (u, v)| {
-            g[u].push(v);
-            g[v].push(u);
-            g
-        })
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Color {
-    None,
     A,
     B,
 }
@@ -118,46 +87,84 @@ impl Color {
         match self {
             Self::A => Self::B,
             Self::B => Self::A,
-            Self::None => unreachable!(),
         }
     }
 }
 
 struct Coloring {
-    g: Vec<Vec<usize>>,
-    colors: Vec<Color>,
+    pg: PatternGrid,
+    colors: Vec<Vec<Option<Color>>>,
 }
 
 impl Coloring {
-    fn new(g: Vec<Vec<usize>>) -> Self {
-        let n = g.len();
-
+    fn new(height: usize, width: usize, pg: PatternGrid) -> Self {
         Self {
-            g,
-            colors: vec![Color::None; n],
+            pg,
+            colors: vec![vec![None; width]; height],
         }
     }
 
-    fn recur(&mut self, u: usize) {
-        assert!(u < self.g.len());
-        assert_ne!(self.colors[u], Color::None);
+    fn height(&self) -> usize {
+        self.colors.len()
+    }
 
-        for v in self.g[u].clone() {
-            assert_ne!(self.colors[v], self.colors[u]);
-            if self.colors[v] == Color::None {
-                self.colors[v] = self.colors[u].opposite();
-                self.recur(v);
+    fn width(&self) -> usize {
+        self.colors[0].len()
+    }
+
+    fn at(&self, p: Crd) -> Option<Color> {
+        let (ro, co) = p.to_grid();
+        self.colors[ro][co]
+    }
+
+    fn set(&mut self, p: Crd, c: Color) {
+        let (ro, co) = p.to_grid();
+        self.colors[ro][co] = Some(c);
+    }
+
+    fn is_in_bounds(&self, p: Crd) -> bool {
+        0 <= p.0 && (p.0 as usize) < self.height() && 0 <= p.1 && (p.1 as usize) < self.width()
+    }
+
+    fn recur(&mut self, u: Crd) {
+        assert!(self.is_in_bounds(u));
+
+        if let Some(uc) = self.at(u) {
+            for dir in Dir::all() {
+                let v = u + dir.delta();
+
+                if self.is_in_bounds(v) && self.at(v).is_none() {
+                    let c = if self.pg.has_border(u, dir) {
+                        uc.opposite()
+                    } else {
+                        uc
+                    };
+
+                    self.set(v, c);
+                    self.recur(v);
+                }
             }
+        } else {
+            panic!("Recurring at a no-color {:?}", u);
         }
     }
 
-    fn apply(&mut self) {
-        for u in 0..self.g.len() {
-            if self.colors[u] == Color::None {
-                self.colors[u] = Color::A;
-                self.recur(u);
+    fn apply(&mut self) -> Vec<Vec<Color>> {
+        for ro in 0..self.height() {
+            for co in 0..self.width() {
+                let p = Crd::from_grid(ro, co);
+
+                if self.at(p).is_none() {
+                    self.set(p, Color::A);
+                    self.recur(p);
+                }
             }
         }
+
+        self.colors
+            .iter()
+            .map(|row| row.iter().map(|mbc| mbc.unwrap()).collect())
+            .collect()
     }
 }
 
@@ -176,88 +183,11 @@ fn main() {
     let row_offsets = decode_line_flags("horizontal-offsets=", row_offsets_line);
     let column_offsets = decode_line_flags("vertical-offsets=", column_offsets_line);
 
-    let g = Grid {
+    let pg = PatternGrid {
         row_offsets,
         column_offsets,
     };
 
-    let mut dsu = Dsu::new(height * width);
-    for ro in 0..height {
-        for co in 0..width {
-            let p = Crd::from_grid(ro, co);
-
-            for dir in Dir::all() {
-                let q = p + dir.delta();
-                if q.is_in_bounds(height, width) && !g.has_border(p, dir) {
-                    dsu.merge(p.flat_index(width), q.flat_index(width));
-                }
-            }
-        }
-    }
-
-    let components = dsu.groups();
-    let components_num = components.len();
-    let mut component_index_by_flat_index: Vec<usize> = vec![usize::MAX; height * width];
-
-    for (ci, fii) in components.into_iter().enumerate() {
-        for fi in fii {
-            component_index_by_flat_index[fi] = ci;
-        }
-    }
-
-    let mut component_adjacency_edges: HashSet<(usize, usize)> = HashSet::new();
-
-    for ro in 0..height {
-        for co in 0..width {
-            let p = Crd::from_grid(ro, co);
-
-            for dir in Dir::all() {
-                let q = p + dir.delta();
-
-                if q.is_in_bounds(height, width) && g.has_border(p, dir) {
-                    let qi = q.flat_index(width);
-                    let pi = p.flat_index(width);
-
-                    if !dsu.same(pi, qi) {
-                        let u = component_index_by_flat_index[pi];
-                        let v = component_index_by_flat_index[qi];
-                        component_adjacency_edges.insert((u.min(v), u.max(v)));
-                    }
-                }
-            }
-        }
-    }
-
-    let component_adjacency = adjacency_list_from_edges(components_num, component_adjacency_edges);
-    let mut coloring = Coloring::new(component_adjacency);
-    coloring.apply();
-
-    let isolated_tile_colors: Vec<Color> = (0..height)
-        .cartesian_product(0..width)
-        .filter(|&(ro, co)| {
-            Dir::all()
-                .into_iter()
-                .all(|dir| g.has_border(Crd::from_grid(ro, co), dir))
-        })
-        .map(|(ro, co)| {
-            let p = Crd::from_grid(ro, co);
-            let fi = p.flat_index(width);
-            let ci = component_index_by_flat_index[fi];
-            coloring.colors[ci]
-        })
-        .collect();
-
-    let a = isolated_tile_colors
-        .iter()
-        .filter(|&&c| c == Color::A)
-        .count();
-
-    let b = isolated_tile_colors
-        .iter()
-        .filter(|&&c| c == Color::B)
-        .count();
-
-    assert_eq!(a + b, isolated_tile_colors.len());
-    let result = a.max(b);
-    println!("{result}");
+    let mut coloring = Coloring::new(height, width, pg);
+    let colors = coloring.apply();
 }
