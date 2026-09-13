@@ -22,7 +22,7 @@ using pii = pair<int, int>;
 
 #define rep(i, a, b) for (int i = a; i < (b); ++i)
 
-constexpr int LIM = 1e2;
+constexpr int LIM = 1e7;
 constexpr int S =
     static_cast<int>(std::round(std::sqrt(static_cast<double>(LIM))));
 
@@ -66,6 +66,12 @@ template <typename T> vector<int> digits(T n) {
     return ans;
 }
 
+struct PairHash {
+    std::size_t operator()(const std::pair<int, int> &p) const noexcept {
+        return std::hash<int>{}(p.first) ^ (std::hash<int>{}(p.second) << 1);
+    }
+};
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
@@ -73,19 +79,26 @@ int main() {
     string s;
     cin >> s;
 
+    const int n = sz(s);
+
     const auto primes = eratosthenes();
-    cerr << primes << '\n';
 
     vector<vector<int>> idx(26, vector<int>{});
     for (int i = 0; i != sz(s); ++i) {
         idx[s[i] - 'a'].push_back(i);
     }
 
-    vector<vector<int>> g(sz(s), vector<int>{});
-    for (int i = 0; i != sz(idx); ++i) {
-    }
+    unordered_set<pii, PairHash> eq;
+    unordered_set<pii, PairHash> ne;
 
-    cerr << idx << '\n';
+    for (const auto &ii : idx) {
+        if (!ii.empty()) {
+            for (int a = 0; a < sz(ii); ++a) {
+                for (int b = a + 1; b < sz(ii); b++) {
+                }
+            }
+        }
+    }
 
     return 0;
 }
