@@ -58,6 +58,7 @@ impl Dir {
     }
 }
 
+#[derive(Clone)]
 struct PatternGrid {
     row_offsets: Vec<usize>,
     column_offsets: Vec<usize>,
@@ -188,6 +189,30 @@ fn main() {
         column_offsets,
     };
 
-    let mut coloring = Coloring::new(height, width, pg);
+    let mut coloring = Coloring::new(height, width, pg.clone());
     let colors = coloring.apply();
+
+    let isolated_tile_colors: Vec<Color> = (0..height)
+        .cartesian_product(0..width)
+        .filter(|&(ro, co)| {
+            Dir::all()
+                .into_iter()
+                .all(|dir| pg.has_border(Crd::from_grid(ro, co), dir))
+        })
+        .map(|(ro, co)| colors[ro][co])
+        .collect();
+
+    let a = isolated_tile_colors
+        .iter()
+        .filter(|&&c| c == Color::A)
+        .count();
+
+    let b = isolated_tile_colors
+        .iter()
+        .filter(|&&c| c == Color::B)
+        .count();
+
+    assert_eq!(a + b, isolated_tile_colors.len());
+    let result = a.max(b);
+    println!("{result}");
 }
