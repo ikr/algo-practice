@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    io::{BufRead, stdin},
+    thread,
+};
 
 use itertools::Itertools;
 
@@ -189,8 +192,16 @@ fn main() {
         column_offsets,
     };
 
-    let mut coloring = Coloring::new(height, width, pg.clone());
-    let colors = coloring.apply();
+    let pg_clone = pg.clone();
+    let child_thread = thread::Builder::new()
+        .stack_size(64 * 1024 * 1024)
+        .spawn(move || {
+            let mut coloring = Coloring::new(height, width, pg_clone);
+            coloring.apply()
+        })
+        .unwrap();
+
+    let colors: Vec<Vec<Color>> = child_thread.join().unwrap();
 
     let isolated_tile_colors: Vec<Color> = (0..height)
         .cartesian_product(0..width)
