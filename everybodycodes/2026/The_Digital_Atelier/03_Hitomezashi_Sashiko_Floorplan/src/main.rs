@@ -1,9 +1,5 @@
-use std::{
-    io::{BufRead, stdin},
-    thread,
-};
-
 use itertools::Itertools;
+use std::io::{BufRead, stdin};
 
 fn decode_line_int(prefix: &str, line: String) -> usize {
     line.strip_prefix(prefix).unwrap().parse().unwrap()
@@ -182,26 +178,21 @@ fn main() {
         column_offsets_line,
     ] = lines.try_into().unwrap();
 
-    let width = decode_line_int("width=", width_line);
-    let height = decode_line_int("height=", height_line);
+    let total_width = decode_line_int("width=", width_line);
+    let total_height = decode_line_int("height=", height_line);
     let row_offsets = decode_line_flags("horizontal-offsets=", row_offsets_line);
     let column_offsets = decode_line_flags("vertical-offsets=", column_offsets_line);
+
+    let height = row_offsets.len();
+    let width = column_offsets.len();
 
     let pg = PatternGrid {
         row_offsets,
         column_offsets,
     };
 
-    let pg_clone = pg.clone();
-    let child_thread = thread::Builder::new()
-        .stack_size(64 * 1024 * 1024)
-        .spawn(move || {
-            let mut coloring = Coloring::new(height, width, pg_clone);
-            coloring.apply()
-        })
-        .unwrap();
-
-    let colors: Vec<Vec<Color>> = child_thread.join().unwrap();
+    let mut coloring = Coloring::new(height, width, pg.clone());
+    let colors = coloring.apply();
 
     let isolated_tile_colors: Vec<Color> = (0..height)
         .cartesian_product(0..width)
@@ -223,6 +214,7 @@ fn main() {
         .filter(|&&c| c == Color::B)
         .count();
 
+    eprintln!("a:{a} b:{b}");
     assert_eq!(a + b, isolated_tile_colors.len());
     let result = a.max(b);
     println!("{result}");
