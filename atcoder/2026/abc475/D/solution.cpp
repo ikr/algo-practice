@@ -7,17 +7,8 @@ template <typename T> constexpr int inof(const T x) {
 
 template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &xs) {
-    os << '[';
-    for (auto i = xs.cbegin(); i != xs.cend(); ++i) {
-        if (i != xs.cbegin()) os << ' ';
-        os << *i;
-    }
-    os << ']';
-    return os;
-}
-
 using vi = vector<int>;
+using vii = vector<vi>;
 using pii = pair<int, int>;
 
 #define rep(i, a, b) for (int i = a; i < (b); ++i)
@@ -66,11 +57,13 @@ template <typename T> vector<int> digits(T n) {
     return ans;
 }
 
-struct PairHash {
-    std::size_t operator()(const std::pair<int, int> &p) const noexcept {
-        return std::hash<int>{}(p.first) ^ (std::hash<int>{}(p.second) << 1);
-    }
-};
+vii eq_classes(const vii &idx) {
+    vii result{};
+    ranges::copy_if(idx, back_inserter(result),
+                    [](const vi &ii) { return !ii.empty(); });
+    ranges::sort(result);
+    return result;
+}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -78,26 +71,31 @@ int main() {
 
     string s;
     cin >> s;
-
-    const int n = sz(s);
-
     const auto primes = eratosthenes();
 
-    vector<vector<int>> idx(26, vector<int>{});
+    vector<vector<int>> idx_alpha(26, vector<int>{});
+
     for (int i = 0; i != sz(s); ++i) {
-        idx[s[i] - 'a'].push_back(i);
+        idx_alpha[s[i] - 'a'].push_back(i);
     }
 
-    unordered_set<pii, PairHash> eq;
-    unordered_set<pii, PairHash> ne;
+    const auto target = eq_classes(idx_alpha);
 
-    for (const auto &ii : idx) {
-        if (!ii.empty()) {
-            for (int a = 0; a < sz(ii); ++a) {
-                for (int b = a + 1; b < sz(ii); b++) {
-                }
-            }
+    const auto match_it = ranges::find_if(primes, [&target](const int p) {
+        const auto ds = digits(p);
+        vector<vector<int>> idx_digit(10, vector<int>{});
+
+        for (int i = 0; i != sz(ds); ++i) {
+            idx_digit[ds[i]].push_back(i);
         }
+
+        return target == eq_classes(idx_digit);
+    });
+
+    if (match_it == primes.end()) {
+        cout << -1 << '\n';
+    } else {
+        cout << *match_it << '\n';
     }
 
     return 0;
