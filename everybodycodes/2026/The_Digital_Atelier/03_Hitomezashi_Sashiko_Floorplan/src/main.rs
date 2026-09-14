@@ -183,8 +183,8 @@ fn main() {
     let row_offsets = decode_line_flags("horizontal-offsets=", row_offsets_line);
     let column_offsets = decode_line_flags("vertical-offsets=", column_offsets_line);
 
-    let height = row_offsets.len() * 4;
-    let width = column_offsets.len() * 4;
+    let height = row_offsets.len() * 2;
+    let width = column_offsets.len() * 2;
     eprintln!("{height} x {width}");
 
     let pg = PatternGrid {
@@ -203,47 +203,52 @@ fn main() {
 
     let colors: Vec<Vec<Color>> = child_thread.join().unwrap();
 
-    let isolated_tiles: Vec<(usize, usize, Color)> = (0..height)
-        .cartesian_product(0..width)
-        .filter(|&(ro, co)| {
-            Dir::all()
-                .into_iter()
-                .all(|dir| pg.has_border(Crd::from_grid(ro, co), dir))
-        })
-        .map(|(ro, co)| (ro, co, colors[ro][co]))
-        .collect();
+    let tile_loners: Vec<(usize, usize)> = {
+        let isolated_tiles: Vec<(usize, usize, Color)> = (0..height)
+            .cartesian_product(0..width)
+            .filter(|&(ro, co)| {
+                Dir::all()
+                    .into_iter()
+                    .all(|dir| pg.has_border(Crd::from_grid(ro, co), dir))
+            })
+            .map(|(ro, co)| (ro, co, colors[ro][co]))
+            .collect();
 
-    let aa: Vec<(usize, usize, Color)> = isolated_tiles
+        let (aa, bb): (Vec<_>, Vec<_>) = isolated_tiles
+            .into_iter()
+            .partition(|&(_, _, c)| c == Color::A);
+
+        if aa.len() > bb.len() {
+            aa
+        } else if bb.len() > aa.len() {
+            bb
+        } else {
+            unreachable!()
+        }
+        .into_iter()
+        .map(|(ro, co, _)| (ro, co))
+        .collect()
+    };
+
+    let n = total_height / height;
+    let h = total_height % height;
+    let m = total_width / width;
+    let w = total_width % width;
+    eprintln!("n:{n} h:{h} m:{m} w:{w}");
+
+    let h_loners = tile_loners.iter().filter(|&&(ro, _)| ro < h).count();
+    let w_loners = tile_loners.iter().filter(|&&(_, co)| co < w).count();
+
+    let hw_loners = tile_loners
         .iter()
-        .cloned()
-        .filter(|&(_, _, c)| c == Color::A)
-        .collect();
+        .filter(|&&(ro, co)| ro < h && co < w)
+        .count();
 
-    let bb: Vec<(usize, usize, Color)> = isolated_tiles
-        .iter()
-        .cloned()
-        .filter(|&(_, _, c)| c == Color::B)
-        .collect();
+    eprintln!(
+        "tile_loners:{} h_loners:{h_loners} w_loners:{w_loners} hw_loners:{hw_loners}",
+        tile_loners.len()
+    );
 
-    eprintln!("a:{} b:{}", aa.len(), bb.len());
-    assert_eq!(aa.len() + bb.len(), isolated_tiles.len());
-    let result = aa.len().max(bb.len());
+    let result = n * m * tile_loners.len() + n * w_loners + m * h_loners + hw_loners;
     println!("{result}");
-
-    // let loners = if aa.len() > bb.len() {
-    //     aa.clone()
-    // } else if bb.len() > aa.len() {
-    //     bb.clone()
-    // } else {
-    //     unreachable!()
-    // };
-
-    // let mut raster: Vec<Vec<char>> = vec![vec!['.'; width]; height];
-    // for (ro, co, _) in loners {
-    //     raster[ro][co] = '#';
-    // }
-
-    // for row in raster {
-    //     eprintln!("{}", row.into_iter().collect::<String>());
-    // }
 }
