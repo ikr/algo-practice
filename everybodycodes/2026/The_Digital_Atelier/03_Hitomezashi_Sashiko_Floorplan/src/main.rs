@@ -183,16 +183,24 @@ fn main() {
     let row_offsets = decode_line_flags("horizontal-offsets=", row_offsets_line);
     let column_offsets = decode_line_flags("vertical-offsets=", column_offsets_line);
 
-    let height = row_offsets.len();
-    let width = column_offsets.len();
+    let height = row_offsets.len() * 2;
+    let width = column_offsets.len() * 2;
 
     let pg = PatternGrid {
         row_offsets,
         column_offsets,
     };
 
-    let mut coloring = Coloring::new(height, width, pg.clone());
-    let colors = coloring.apply();
+    let pg_clone = pg.clone();
+    let child_thread = std::thread::Builder::new()
+        .stack_size(64 * 1024 * 1024)
+        .spawn(move || {
+            let mut coloring = Coloring::new(height, width, pg_clone);
+            coloring.apply()
+        })
+        .unwrap();
+
+    let colors: Vec<Vec<Color>> = child_thread.join().unwrap();
 
     let isolated_tile_colors: Vec<Color> = (0..height)
         .cartesian_product(0..width)
