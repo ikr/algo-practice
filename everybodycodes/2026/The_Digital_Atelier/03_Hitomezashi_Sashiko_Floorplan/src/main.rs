@@ -183,8 +183,9 @@ fn main() {
     let row_offsets = decode_line_flags("horizontal-offsets=", row_offsets_line);
     let column_offsets = decode_line_flags("vertical-offsets=", column_offsets_line);
 
-    let height = row_offsets.len() * 2;
-    let width = column_offsets.len() * 2;
+    let height = row_offsets.len() * 4;
+    let width = column_offsets.len() * 4;
+    eprintln!("{height} x {width}");
 
     let pg = PatternGrid {
         row_offsets,
@@ -202,28 +203,47 @@ fn main() {
 
     let colors: Vec<Vec<Color>> = child_thread.join().unwrap();
 
-    let isolated_tile_colors: Vec<Color> = (0..height)
+    let isolated_tiles: Vec<(usize, usize, Color)> = (0..height)
         .cartesian_product(0..width)
         .filter(|&(ro, co)| {
             Dir::all()
                 .into_iter()
                 .all(|dir| pg.has_border(Crd::from_grid(ro, co), dir))
         })
-        .map(|(ro, co)| colors[ro][co])
+        .map(|(ro, co)| (ro, co, colors[ro][co]))
         .collect();
 
-    let a = isolated_tile_colors
+    let aa: Vec<(usize, usize, Color)> = isolated_tiles
         .iter()
-        .filter(|&&c| c == Color::A)
-        .count();
+        .cloned()
+        .filter(|&(_, _, c)| c == Color::A)
+        .collect();
 
-    let b = isolated_tile_colors
+    let bb: Vec<(usize, usize, Color)> = isolated_tiles
         .iter()
-        .filter(|&&c| c == Color::B)
-        .count();
+        .cloned()
+        .filter(|&(_, _, c)| c == Color::B)
+        .collect();
 
-    eprintln!("a:{a} b:{b}");
-    assert_eq!(a + b, isolated_tile_colors.len());
-    let result = a.max(b);
+    eprintln!("a:{} b:{}", aa.len(), bb.len());
+    assert_eq!(aa.len() + bb.len(), isolated_tiles.len());
+    let result = aa.len().max(bb.len());
     println!("{result}");
+
+    // let loners = if aa.len() > bb.len() {
+    //     aa.clone()
+    // } else if bb.len() > aa.len() {
+    //     bb.clone()
+    // } else {
+    //     unreachable!()
+    // };
+
+    // let mut raster: Vec<Vec<char>> = vec![vec!['.'; width]; height];
+    // for (ro, co, _) in loners {
+    //     raster[ro][co] = '#';
+    // }
+
+    // for row in raster {
+    //     eprintln!("{}", row.into_iter().collect::<String>());
+    // }
 }
