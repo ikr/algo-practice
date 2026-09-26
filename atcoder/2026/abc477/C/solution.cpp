@@ -89,6 +89,23 @@ int main() {
         range_queries.emplace_back(l - 1, r);
     }
 
-    cerr << build_index(s, t) << '\n';
+    const auto idx = build_index(s, t);
+
+    for (const auto &[a, b] : range_queries) {
+        const auto it =
+            ranges::partition_point(idx, [a](const int x) { return x < a; });
+
+        if (it != cend(idx)) {
+            const int i = inof(distance(cbegin(idx), it));
+
+            if (idx[i] + sz(t) <= b) {
+                cout << "Yes\n";
+                continue;
+            }
+        }
+
+        cout << "No\n";
+    }
+
     return 0;
 }
