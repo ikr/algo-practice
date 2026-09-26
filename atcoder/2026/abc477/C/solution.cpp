@@ -57,10 +57,10 @@ vector<int> build_index(const string &haystack, const string &needle) {
     }
 
     for (int shift = 1; shift + m <= n; ++shift) {
-        const auto sub = q * llof(haystack[shift - 1] - '`');
+        const auto sub = llof(haystack[shift - 1] - '`') * q;
         cur -= sub;
         cur *= K;
-        cur += llof(haystack[shift + m - 1]);
+        cur += llof(haystack[shift + m - 1] - '`');
 
         if (cur == target) {
             result.push_back(shift);
