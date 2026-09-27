@@ -17,7 +17,7 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         })
         .collect();
 
-    let (last_coloring_time, _) = *timed_colors.last().unwrap();
+    let (last_coloring_time, last_color) = *timed_colors.last().unwrap();
     let mut block_spans: Vec<(usize, usize)> = vec![(0, 1); n];
     let mut opening_times: Vec<Option<usize>> = vec![Some(1); n];
 
@@ -39,7 +39,18 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         }
     }
 
-    todo!()
+    let mut result: Vec<char> = vec![last_color; n];
+
+    for (i, (a, _)) in block_spans
+        .into_iter()
+        .enumerate()
+        .filter(|(i, _)| opening_times[*i].is_none())
+    {
+        let j = timed_colors.partition_point(|(t, _)| *t < a);
+        result[i] = timed_colors[j].1;
+    }
+
+    result.into_iter().collect()
 }
 
 fn main() {
@@ -70,7 +81,6 @@ fn main() {
     }
 
     let result = final_colors(n, commands);
-    assert_eq!(result.len(), n);
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
