@@ -7,7 +7,16 @@ enum Command {
     Color(char),
 }
 
-fn final_colors(commands: Vec<Command>) -> String {
+fn final_colors(n: usize, commands: Vec<Command>) -> String {
+    let timed_colors: Vec<(usize, char)> = commands
+        .iter()
+        .enumerate()
+        .filter_map(|(i, &command)| match command {
+            Command::FlipTile(_) => None,
+            Command::Color(c) => Some((i, c)),
+        })
+        .collect();
+
     todo!()
 }
 
@@ -17,9 +26,7 @@ fn main() {
     let mut writer = BufWriter::new(handle);
 
     input! { n: usize, q: usize, }
-
-    let mut commands: Vec<Command> = vec![];
-    commands.reserve(q);
+    let mut commands: Vec<Command> = Vec::with_capacity(q);
 
     for _ in 0..q {
         input! { opcode: u8 }
@@ -37,9 +44,8 @@ fn main() {
         }
     }
 
-    eprintln!("{commands:?}");
-
-    let result = final_colors(commands);
+    let result = final_colors(n, commands);
+    assert_eq!(result.len(), n);
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
