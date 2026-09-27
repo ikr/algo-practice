@@ -41,13 +41,13 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
 
     let mut result: Vec<char> = vec![last_color; n];
 
-    for (i, (a, _)) in block_spans
+    for (i, (_, b)) in block_spans
         .into_iter()
         .enumerate()
         .filter(|(i, _)| opening_times[*i].is_none())
     {
-        let j = timed_colors.partition_point(|(t, _)| *t < a);
-        result[i] = timed_colors[j].1;
+        let j = timed_colors.partition_point(|(t, _)| *t < b);
+        result[i] = timed_colors[j - 1].1;
     }
 
     result.into_iter().collect()
