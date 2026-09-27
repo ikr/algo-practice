@@ -17,6 +17,28 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         })
         .collect();
 
+    let (last_coloring_time, _) = *timed_colors.last().unwrap();
+    let mut block_spans: Vec<(usize, usize)> = vec![(0, 1); n];
+    let mut opening_times: Vec<Option<usize>> = vec![Some(1); n];
+
+    for (j, command) in commands
+        .into_iter()
+        .enumerate()
+        .filter(|&(i, _)| i < last_coloring_time)
+    {
+        match command {
+            Command::FlipTile(t) => {
+                if let Some(i) = opening_times[t] {
+                    block_spans[t] = (i, j);
+                    opening_times[t] = None;
+                } else {
+                    opening_times[t] = Some(j);
+                }
+            }
+            Command::Color(_) => {}
+        }
+    }
+
     todo!()
 }
 
@@ -26,7 +48,10 @@ fn main() {
     let mut writer = BufWriter::new(handle);
 
     input! { n: usize, q: usize, }
-    let mut commands: Vec<Command> = Vec::with_capacity(q);
+    let mut commands: Vec<Command> = Vec::with_capacity(q + 2);
+    for _ in 0..2 {
+        commands.push(Command::Color('a'));
+    }
 
     for _ in 0..q {
         input! { opcode: u8 }
