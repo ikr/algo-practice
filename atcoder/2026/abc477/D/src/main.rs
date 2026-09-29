@@ -53,6 +53,26 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
     result.into_iter().collect()
 }
 
+fn brute_force_final_colors(n: usize, commands: Vec<Command>) -> String {
+    let mut blocked: Vec<bool> = vec![false; n];
+    let mut result: Vec<char> = vec!['.'; n];
+
+    for command in commands {
+        match command {
+            Command::FlipTile(i) => blocked[i] = !blocked[i],
+            Command::Color(c) => {
+                for (i, x) in result.iter_mut().enumerate() {
+                    if !blocked[i] {
+                        *x = c;
+                    }
+                }
+            }
+        }
+    }
+
+    result.into_iter().collect()
+}
+
 fn main() {
     let stdout = stdout();
     let handle = stdout.lock();
@@ -80,7 +100,10 @@ fn main() {
         }
     }
 
+    let expected_result = brute_force_final_colors(n, commands.clone());
     let result = final_colors(n, commands);
+    assert_eq!(result, expected_result);
+
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
 }
