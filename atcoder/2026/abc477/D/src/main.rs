@@ -18,7 +18,7 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         .collect();
 
     let (last_coloring_time, last_color) = *timed_colors.last().unwrap();
-    let mut block_spans: Vec<(usize, usize)> = vec![(0, 1); n];
+    let mut indexed_block_spans: Vec<(usize, usize, usize)> = (0..n).map(|i| (i, 0, 1)).collect();
     let mut opening_times: Vec<Option<usize>> = vec![Some(1); n];
 
     for (j, command) in commands
@@ -29,7 +29,7 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         match command {
             Command::FlipTile(t) => {
                 if let Some(i) = opening_times[t] {
-                    block_spans[t] = (i, j);
+                    indexed_block_spans[t] = (t, i, j);
                     opening_times[t] = None;
                 } else {
                     opening_times[t] = Some(j);
@@ -39,12 +39,12 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         }
     }
 
+    indexed_block_spans.sort_by_key(|(_, _, b)| *b);
     let mut result: Vec<char> = vec![last_color; n];
 
-    for (i, (_, b)) in block_spans
+    for (i, _, b) in indexed_block_spans
         .into_iter()
-        .enumerate()
-        .filter(|(i, _)| opening_times[*i].is_none())
+        .filter(|(i, _, _)| opening_times[*i].is_none())
     {
         let j = timed_colors.partition_point(|(t, _)| *t < b);
         result[i] = timed_colors[j - 1].1;
