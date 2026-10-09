@@ -1,6 +1,8 @@
 use proconio::{input, marker::Usize1};
 use std::io::{BufWriter, Write, stdout};
 
+const T_INF: usize = 9_999_999;
+
 #[derive(Clone, Copy, Debug)]
 enum Command {
     FlipTile(usize),
@@ -17,37 +19,42 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         })
         .collect();
 
-    let (last_coloring_time, last_color) = *timed_colors.last().unwrap();
-    let mut final_block_times: Vec<usize> = vec![0; n];
-    let mut opening_times: Vec<Option<usize>> = vec![Some(1); n];
+    // Exposures for every tile. Each exposure is a time interval [a, b]: tile opened at `a` and
+    // then closed at `b`.
+    let mut exposures: Vec<Vec<(usize, usize)>> = vec![vec![(0, T_INF)]; n];
 
-    for (j, command) in commands
-        .into_iter()
-        .enumerate()
-        .filter(|&(i, _)| i < last_coloring_time)
-    {
+    for (j, command) in commands.into_iter().enumerate() {
         match command {
             Command::FlipTile(t) => {
-                if opening_times[t].is_some() {
-                    final_block_times[t] = j;
-                    opening_times[t] = None;
+                let last_exporure: (usize, usize) = *exposures[t].last().unwrap();
+                let (le_a, le_b) = last_exporure;
+
+                if le_b == T_INF {
+                    *exposures[t].last_mut().unwrap() = (le_a, j);
                 } else {
-                    opening_times[t] = Some(j);
+                    exposures[t].push((j, T_INF))
                 }
             }
             Command::Color(_) => {}
         }
     }
 
-    let mut result: Vec<char> = vec![last_color; n];
+    eprintln!("{exposures:?}");
 
-    for (i, b) in final_block_times
-        .into_iter()
-        .enumerate()
-        .filter(|(i, _)| opening_times[*i].is_none())
-    {
-        let j = timed_colors.partition_point(|(t, _)| *t < b);
-        result[i] = timed_colors[j - 1].1;
+    let mut result: Vec<char> = vec![' '; n];
+
+    for (i, exps) in exposures.into_iter().enumerate() {
+        for (a, b) in exps {
+            let j = timed_colors.partition_point(|(t, _)| *t <= a);
+
+            if let Some(&(tc, c)) = timed_colors.get(j)
+                && tc < b
+            {
+                assert!(a < tc && tc < b);
+                result[i] = c;
+                eprintln!("{result:?}");
+            }
+        }
     }
 
     result.into_iter().collect()
@@ -100,9 +107,9 @@ fn main() {
         }
     }
 
-    let expected_result = brute_force_final_colors(n, commands.clone());
+    //let expected_result = brute_force_final_colors(n, commands.clone());
     let result = final_colors(n, commands);
-    assert_eq!(result, expected_result);
+    //assert_eq!(result, expected_result);
 
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
