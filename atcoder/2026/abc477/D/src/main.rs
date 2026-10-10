@@ -39,40 +39,15 @@ fn final_colors(n: usize, commands: Vec<Command>) -> String {
         }
     }
 
-    eprintln!("{exposures:?}");
-
     let mut result: Vec<char> = vec![' '; n];
 
     for (i, exps) in exposures.into_iter().enumerate() {
         for (a, b) in exps {
-            let j = timed_colors.partition_point(|(t, _)| *t <= a);
+            let j = timed_colors.partition_point(|(t, _)| *t < b);
+            let (tc, c) = timed_colors[j - 1];
 
-            if let Some(&(tc, c)) = timed_colors.get(j)
-                && tc < b
-            {
-                assert!(a < tc && tc < b);
+            if a < tc {
                 result[i] = c;
-                eprintln!("{result:?}");
-            }
-        }
-    }
-
-    result.into_iter().collect()
-}
-
-fn brute_force_final_colors(n: usize, commands: Vec<Command>) -> String {
-    let mut blocked: Vec<bool> = vec![false; n];
-    let mut result: Vec<char> = vec!['.'; n];
-
-    for command in commands {
-        match command {
-            Command::FlipTile(i) => blocked[i] = !blocked[i],
-            Command::Color(c) => {
-                for (i, x) in result.iter_mut().enumerate() {
-                    if !blocked[i] {
-                        *x = c;
-                    }
-                }
             }
         }
     }
@@ -107,60 +82,7 @@ fn main() {
         }
     }
 
-    //let expected_result = brute_force_final_colors(n, commands.clone());
     let result = final_colors(n, commands);
-    //assert_eq!(result, expected_result);
-
     writeln!(writer, "{result}").unwrap();
     writer.flush().unwrap();
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use rand::Rng;
-
-    fn random_input() -> (usize, usize, Vec<Command>) {
-        let mut rng = rand::thread_rng();
-        let n = rng.gen_range(1..=2);
-        let q = rng.gen_range(1..=6);
-        let mut commands = Vec::with_capacity(q);
-        for _ in 0..q {
-            if rng.gen_bool(0.5) {
-                let i = rng.gen_range(0..n);
-                commands.push(Command::FlipTile(i));
-            } else {
-                let c = rng.gen_range('a'..='z');
-                commands.push(Command::Color(c));
-            }
-        }
-        (n, q, commands)
-    }
-
-    fn print_input(n: usize, q: usize, commands: &[Command]) {
-        eprintln!("{n} {q}");
-        for cmd in commands {
-            match cmd {
-                Command::FlipTile(i) => eprintln!("1 {}", i + 1),
-                Command::Color(c) => eprintln!("2 {c}"),
-            }
-        }
-    }
-
-    #[test]
-    fn test_final_colors_against_brute_force() {
-        for _ in 0..1000 {
-            let (n, q, base_commands) = random_input();
-            let mut all_commands = Vec::with_capacity(base_commands.len() + 2);
-            all_commands.push(Command::Color('a'));
-            all_commands.push(Command::Color('a'));
-            all_commands.extend_from_slice(&base_commands);
-            let result = final_colors(n, all_commands.clone());
-            let expected = brute_force_final_colors(n, all_commands.clone());
-            if result != expected {
-                print_input(n, q, &base_commands);
-                panic!("final_colors ({result}) != brute_force_final_colors ({expected})");
-            }
-        }
-    }
 }
