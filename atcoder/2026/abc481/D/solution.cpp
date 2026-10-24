@@ -40,9 +40,10 @@ int main() {
 
         for (int i = 0; i < sz(g[u]); ++i) {
             const int v = g[u][i];
+            const int candidate_d = d[u] + (i != 0);
 
-            if (d[v] == -1) {
-                d[v] = d[u] + (i != 0);
+            if (d[v] == -1 || candidate_d < d[v]) {
+                d[v] = candidate_d;
 
                 if (i == 0) {
                     q.push_front(v);
