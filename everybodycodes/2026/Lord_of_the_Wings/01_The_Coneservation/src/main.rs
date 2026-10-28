@@ -1,8 +1,9 @@
 use std::io::{Read, stdin};
 
-fn first_exceeding_perimeter(a: u32) -> u32 {
+fn first_exceeding_donut(a: u32) -> u32 {
     (3..10_000)
-        .map(|x| x * x - (x - 2) * (x - 2))
+        .step_by(2)
+        .map(|x| x * x - 1)
         .find(|&x| x >= a)
         .unwrap()
 }
@@ -17,9 +18,6 @@ fn main() {
         .map(|s| s.parse().unwrap())
         .collect();
 
-    let result: u32 = xs
-        .into_iter()
-        .map(|a| first_exceeding_perimeter(a) - a)
-        .sum();
+    let result: u32 = xs.into_iter().map(|a| first_exceeding_donut(a) - a).sum();
     println!("{result}");
 }
