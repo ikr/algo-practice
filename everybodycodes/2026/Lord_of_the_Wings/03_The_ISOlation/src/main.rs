@@ -1,33 +1,34 @@
 use std::io::{BufRead, stdin};
 
-fn decode_digits_from_line(line: &str) -> Vec<u32> {
-    line.split(' ')
-        .last()
-        .unwrap()
-        .bytes()
-        .map(|x| (x - b'0') as u32)
-        .collect()
+use itertools::Itertools;
+
+fn digits(s: &str) -> Vec<u32> {
+    s.bytes().map(|x| (x - b'0') as u32).collect()
 }
 
-fn vote_value(digits: Vec<u32>) -> u32 {
-    let base = digits[0];
+fn decode_line(line: &str) -> (Vec<u32>, Vec<u32>) {
+    let (a, b) = line.split(' ').collect_tuple().unwrap();
+    (digits(a.strip_prefix("ISO-").unwrap()), digits(b))
+}
 
-    digits
+fn vote_value(standard: Vec<u32>, vote: Vec<u32>) -> u32 {
+    standard
         .into_iter()
-        .skip(1)
         .rev()
-        .fold((0, 1), |(s, m), d| (s + m * d, m * base))
-        .0
+        .enumerate()
+        .zip(vote.into_iter().rev())
+        .map(|((exp, base), k)| k * base.pow(exp as u32))
+        .sum()
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
+    let line_decoded: Vec<_> = lines.into_iter().map(|line| decode_line(&line)).collect();
 
-    let line_digits: Vec<_> = lines
+    let vote_values: Vec<_> = line_decoded
         .into_iter()
-        .map(|line| decode_digits_from_line(&line))
+        .map(|(a, b)| vote_value(a, b))
         .collect();
 
-    let vote_values: Vec<_> = line_digits.into_iter().map(vote_value).collect();
-    eprintln!("{vote_values:?}");
+    println!("{}", vote_values.into_iter().sum::<u32>());
 }
