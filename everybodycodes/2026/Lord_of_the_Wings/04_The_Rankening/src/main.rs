@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use std::{
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     io::{BufRead, stdin},
 };
 
@@ -32,13 +32,23 @@ fn decode_record(s: String) -> Record {
     }
 }
 
-fn points_by_id(max_points: i32, mut ids_and_times: Vec<(i32, i32)>) -> HashMap<i32, i32> {
+fn points_by_id(max_points: i32, ids_and_times: Vec<(i32, i32)>) -> HashMap<i32, i32> {
+    let id_groups_by_time: BTreeMap<i32, Vec<i32>> =
+        ids_and_times
+            .iter()
+            .fold(BTreeMap::new(), |mut agg, &(id, time)| {
+                agg.entry(time)
+                    .and_modify(|ids| ids.push(id))
+                    .or_insert(vec![id]);
+
+                agg
+            });
+
     let ps: Vec<i32> = (1..=max_points).rev().collect();
-    ids_and_times.sort_by_key(|&(_, time)| time);
 
     ps.into_iter()
-        .zip(ids_and_times)
-        .map(|(p, (id, _))| (id, p))
+        .zip(id_groups_by_time)
+        .flat_map(|(p, (_, ids))| ids.into_iter().map(|id| (id, p)).collect::<Vec<_>>())
         .collect()
 }
 
@@ -62,6 +72,7 @@ fn main() {
                     .then_some((r.id, r.time))
                 })
                 .collect();
+
             ids_and_times.sort();
 
             ids_and_times.dedup_by(|cur, prev| {
@@ -73,7 +84,10 @@ fn main() {
                 }
             });
 
-            eprintln!("quest:{quest} part:{part} ids_and_times:{ids_and_times:?}");
+            eprintln!(
+                "quest:{quest} part:{part} ids_and_times:{ids_and_times:?} points_by_id:{:?}",
+                points_by_id(part * 50, ids_and_times.clone())
+            );
 
             for (id, p) in points_by_id(part * 50, ids_and_times) {
                 agg[(id - 1) as usize] += p;
