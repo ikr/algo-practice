@@ -51,10 +51,29 @@ fn main() {
     let mut total_points: Vec<i32> = (1..=max_quest).cartesian_product(1..=3).fold(
         vec![0; max_id as usize],
         |mut agg, (quest, part)| {
-            let ids_and_times: Vec<(i32, i32)> = records
+            let mut ids_and_times: Vec<(i32, i32)> = records
                 .iter()
-                .filter_map(|r| (r.quest == quest && r.part == part).then_some((r.id, r.time)))
+                .filter_map(|r| {
+                    (r.quest == quest
+                        && r.part <= part
+                        && records
+                            .iter()
+                            .any(|rr| rr.id == r.id && rr.quest == quest && rr.part == part))
+                    .then_some((r.id, r.time))
+                })
                 .collect();
+            ids_and_times.sort();
+
+            ids_and_times.dedup_by(|cur, prev| {
+                if cur.0 == prev.0 {
+                    prev.1 += cur.1;
+                    true
+                } else {
+                    false
+                }
+            });
+
+            eprintln!("quest:{quest} part:{part} ids_and_times:{ids_and_times:?}");
 
             for (id, p) in points_by_id(part * 50, ids_and_times) {
                 agg[(id - 1) as usize] += p;
