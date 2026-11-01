@@ -44,12 +44,17 @@ fn points_by_id(max_points: i32, ids_and_times: Vec<(i32, i32)>) -> HashMap<i32,
                 agg
             });
 
-    let ps: Vec<i32> = (1..=max_points).rev().collect();
-
-    ps.into_iter()
-        .zip(id_groups_by_time)
-        .flat_map(|(p, (_, ids))| ids.into_iter().map(|id| (id, p)).collect::<Vec<_>>())
-        .collect()
+    id_groups_by_time
+        .into_iter()
+        .fold(
+            (max_points, HashMap::new()),
+            |(hi, mut result), (_, ids)| {
+                let n = ids.len() as i32;
+                result.extend(ids.into_iter().map(|id| (id, hi)));
+                (0.max(hi - n), result)
+            },
+        )
+        .1
 }
 
 fn main() {
