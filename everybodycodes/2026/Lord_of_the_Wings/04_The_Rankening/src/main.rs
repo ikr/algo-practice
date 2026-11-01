@@ -31,22 +31,30 @@ fn decode_record(s: String) -> Record {
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let records: Vec<_> = lines.into_iter().map(decode_record).collect();
+    let record_ids: Vec<_> = records.iter().map(|r| r.id).collect();
+    let fqs_by_id = record_ids.into_iter().counts();
+
     let max_id = records.iter().map(|r| r.id).max().unwrap();
 
-    let mut total_times_by_index: Vec<i32> =
-        records
-            .into_iter()
-            .fold(vec![0; max_id as usize], |mut agg, r| {
-                agg[r.id as usize - 1] += r.time;
-                agg
-            });
+    let mut ids_and_total_times: Vec<(i32, i32)> = records.into_iter().fold(
+        (1..=max_id).map(|id| (id, 0)).collect::<Vec<_>>(),
+        |mut agg, r| {
+            let i = (r.id - 1) as usize;
+            let (_, tt) = agg[i];
+            agg[i] = (r.id, tt + r.time);
+            agg
+        },
+    );
 
-    total_times_by_index.sort();
+    ids_and_total_times.sort_by_key(|&(id, tt)| {
+        let fq: i32 = *fqs_by_id.get(&id).unwrap() as i32;
+        (-fq, tt)
+    });
 
-    let result: i32 = total_times_by_index
+    let result: i32 = ids_and_total_times
         .into_iter()
         .enumerate()
-        .map(|(i, tt)| ((i + 1) as i32) * tt)
+        .map(|(i, (_, tt))| ((i + 1) as i32) * tt)
         .sum();
 
     println!("{result}");
