@@ -5,7 +5,7 @@ use std::{
 };
 
 fn digits_reversed(x: u64) -> Vec<u64> {
-    successors(Some(x), |&n| (n >= 10).then_some(n / 10))
+    successors(Some(x), |&n| (n > 9).then_some(n / 10))
         .map(|n| n % 10)
         .collect()
 }
@@ -32,12 +32,19 @@ fn grow_by_repeating<T: Copy>(s: Vec<T>, target_length: usize) -> Vec<T> {
     }
 }
 
-fn vote_value(standard: Vec<u64>, vote: Vec<u64>) -> u64 {
-    let n = vote.len();
+fn vote_value(standard: u64, vote: u64) -> u64 {
+    let vote_digits = digits(vote);
+    let n = vote_digits.len();
 
-    vote.into_iter()
+    vote_digits
+        .into_iter()
         .rev()
-        .zip(grow_by_repeating(standard, n).into_iter().rev().enumerate())
+        .zip(
+            grow_by_repeating(digits(standard), n)
+                .into_iter()
+                .rev()
+                .enumerate(),
+        )
         .map(|(k, (exp, base))| k * base.pow(exp as u32))
         .sum()
 }
@@ -50,7 +57,7 @@ fn number(digits: &[u64]) -> u64 {
         .0
 }
 
-//fn min_votes_by_value()
+//fn min_votes_by_value() ->
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
@@ -58,7 +65,7 @@ fn main() {
 
     let vote_values: Vec<_> = line_decoded
         .into_iter()
-        .map(|(a, b)| vote_value(digits(a), digits(b)))
+        .map(|(a, b)| vote_value(a, b))
         .collect();
 
     eprintln!("{vote_values:?}");
