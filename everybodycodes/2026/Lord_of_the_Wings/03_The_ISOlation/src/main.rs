@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use std::{
+    collections::HashMap,
     io::{BufRead, stdin},
     iter::successors,
 };
@@ -49,23 +50,38 @@ fn vote_value(standard: u64, vote: u64) -> u64 {
         .sum()
 }
 
-fn number(digits: &[u64]) -> u64 {
-    digits
-        .iter()
-        .rev()
-        .fold((0, 1), |(s, m), d| (s + m * d, m * 10))
-        .0
+fn min_votes_by_value(standard: u64) -> HashMap<u64, u64> {
+    (0..100_000).fold(HashMap::new(), |mut agg, vote| {
+        agg.entry(vote_value(standard, vote)).or_insert(vote);
+        agg
+    })
 }
-
-//fn min_votes_by_value() ->
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let line_decoded: Vec<_> = lines.into_iter().map(|line| decode_line(&line)).collect();
+    let lines_decoded: Vec<_> = lines.into_iter().map(|line| decode_line(&line)).collect();
 
-    let vote_values: Vec<_> = line_decoded
+    let min_votes_by_value_by_standard: HashMap<u64, HashMap<u64, u64>> = lines_decoded
+        .iter()
+        .map(|(standard, _)| *standard)
+        .unique()
+        .fold(HashMap::new(), |mut agg, standard| {
+            agg.entry(standard).or_insert(min_votes_by_value(standard));
+            agg
+        });
+
+    let vote_values: Vec<_> = lines_decoded
         .into_iter()
-        .map(|(a, b)| vote_value(a, b))
+        .map(|(standard, vote)| {
+            let vv = vote_value(standard, vote);
+
+            let min_vote = *min_votes_by_value_by_standard
+                .get(&standard)
+                .and_then(|mvbv| mvbv.get(&vv))
+                .unwrap();
+
+            if min_vote == vote { vv } else { 0 }
+        })
         .collect();
 
     eprintln!("{vote_values:?}");
