@@ -1,11 +1,14 @@
 use itertools::Itertools;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashMap,
+    io::{BufRead, stdin},
+};
 
 #[derive(Clone, Copy, Debug)]
 struct Record {
     id: i32,
-    _quest: i32,
-    _part: i32,
+    quest: i32,
+    part: i32,
     time: i32,
 }
 
@@ -18,14 +21,25 @@ fn decode_record(s: String) -> Record {
     let id = decode_prefixed_number(id_source, "id=");
     let quest = decode_prefixed_number(quest_source, "quest=");
     let part = decode_prefixed_number(part_source, "part=");
+    assert!(matches!(part, 1..=3));
     let time = decode_prefixed_number(time_source, "time=");
 
     Record {
         id,
-        _quest: quest,
-        _part: part,
+        quest,
+        part,
         time,
     }
+}
+
+fn points_by_id(max_points: i32, mut ids_and_times: Vec<(i32, i32)>) -> HashMap<i32, i32> {
+    let ps: Vec<i32> = (1..=max_points).rev().collect();
+    ids_and_times.sort_by_key(|&(_, time)| time);
+
+    ps.into_iter()
+        .zip(ids_and_times)
+        .map(|(p, (id, _))| (id, p))
+        .collect()
 }
 
 fn main() {
