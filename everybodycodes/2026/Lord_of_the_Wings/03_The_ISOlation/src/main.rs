@@ -51,7 +51,7 @@ fn vote_value(standard: u64, vote: u64) -> u64 {
 }
 
 fn min_votes_by_value(standard: u64) -> HashMap<u64, u64> {
-    (0..100_000).fold(HashMap::new(), |mut agg, vote| {
+    (0..1_000_000).fold(HashMap::new(), |mut agg, vote| {
         agg.entry(vote_value(standard, vote)).or_insert(vote);
         agg
     })
@@ -84,6 +84,5 @@ fn main() {
         })
         .collect();
 
-    eprintln!("{vote_values:?}");
     println!("{}", vote_values.into_iter().sum::<u64>());
 }
