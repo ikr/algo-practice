@@ -45,30 +45,32 @@ fn points_by_id(max_points: i32, mut ids_and_times: Vec<(i32, i32)>) -> HashMap<
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let records: Vec<_> = lines.into_iter().map(decode_record).collect();
-    let record_ids: Vec<_> = records.iter().map(|r| r.id).collect();
-    let fqs_by_id = record_ids.into_iter().counts();
-
     let max_id = records.iter().map(|r| r.id).max().unwrap();
+    let max_quest = records.iter().map(|r| r.quest).max().unwrap();
 
-    let mut ids_and_total_times: Vec<(i32, i32)> = records.into_iter().fold(
-        (1..=max_id).map(|id| (id, 0)).collect::<Vec<_>>(),
-        |mut agg, r| {
-            let i = (r.id - 1) as usize;
-            let (_, tt) = agg[i];
-            agg[i] = (r.id, tt + r.time);
+    let mut total_points: Vec<i32> = (1..=max_quest).cartesian_product(1..=3).fold(
+        vec![0; max_id as usize],
+        |mut agg, (quest, part)| {
+            let ids_and_times: Vec<(i32, i32)> = records
+                .iter()
+                .filter_map(|r| (r.quest == quest && r.part == part).then_some((r.id, r.time)))
+                .collect();
+
+            for (id, p) in points_by_id(part * 50, ids_and_times) {
+                agg[(id - 1) as usize] += p;
+            }
+
             agg
         },
     );
 
-    ids_and_total_times.sort_by_key(|&(id, tt)| {
-        let fq: i32 = *fqs_by_id.get(&id).unwrap() as i32;
-        (-fq, tt)
-    });
+    total_points.sort_by(|a, b| b.cmp(a));
+    eprintln!("{total_points:?}");
 
-    let result: i32 = ids_and_total_times
+    let result: i32 = total_points
         .into_iter()
         .enumerate()
-        .map(|(i, (_, tt))| ((i + 1) as i32) * tt)
+        .map(|(i, p)| ((i + 1) as i32) * p)
         .sum();
 
     println!("{result}");
