@@ -89,11 +89,6 @@ fn main() {
                 }
             });
 
-            eprintln!(
-                "quest:{quest} part:{part} ids_and_times:{ids_and_times:?} points_by_id:{:?}",
-                points_by_id(part * 50, ids_and_times.clone())
-            );
-
             for (id, p) in points_by_id(part * 50, ids_and_times) {
                 agg[(id - 1) as usize] += p;
             }
@@ -103,13 +98,14 @@ fn main() {
     );
 
     total_points.sort_by(|a, b| b.cmp(a));
-    eprintln!("{total_points:?}");
 
     let result: i32 = total_points
-        .into_iter()
-        .enumerate()
-        .map(|(i, p)| ((i + 1) as i32) * p)
-        .sum();
+        .chunk_by(|a, b| a == b)
+        .fold((1, 0), |(rank, s), ps| {
+            let n = ps.len() as i32;
+            (rank + n, s + ps.iter().map(|p| p * rank).sum::<i32>())
+        })
+        .1;
 
     println!("{result}");
 }
