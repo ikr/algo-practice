@@ -1,9 +1,8 @@
+use itertools::Itertools;
 use std::{
     collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
 };
-
-use itertools::Itertools;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -46,7 +45,6 @@ fn main() {
         .collect();
 
     let center = Crd(height / 2, width / 2);
-    assert!(dark_cells.contains(&center));
 
     let mut land: HashSet<Crd> = HashSet::from([center]);
     let mut q: VecDeque<Crd> = VecDeque::from([center]);
@@ -70,5 +68,29 @@ fn main() {
         }
     }
 
-    println!("{}", land.len());
+    let initial_sand: Vec<Crd> = land
+        .iter()
+        .cloned()
+        .filter(|&a| a.adjacent().into_iter().any(|b| !land.contains(&b)))
+        .collect();
+
+    let mut sand: HashSet<Crd> = initial_sand.iter().cloned().collect();
+    q.extend(initial_sand);
+
+    while let Some(u) = q.pop_front() {
+        for v in u.adjacent().into_iter().filter(|a| land.contains(a)) {
+            if !sand.contains(&v)
+                && v.adjacent()
+                    .into_iter()
+                    .filter(|a| sand.contains(a))
+                    .count()
+                    >= 5
+            {
+                sand.insert(v);
+                q.push_back(v);
+            }
+        }
+    }
+
+    println!("{}", sand.len());
 }
