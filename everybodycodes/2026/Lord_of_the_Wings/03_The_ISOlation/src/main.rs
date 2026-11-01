@@ -5,27 +5,27 @@ use std::{
     iter::successors,
 };
 
-fn digits_reversed(x: u64) -> Vec<u64> {
+fn digits_reversed(x: u32) -> Vec<u32> {
     successors(Some(x), |&n| (n > 9).then_some(n / 10))
         .map(|n| n % 10)
         .collect()
 }
 
-fn digits(x: u64) -> Vec<u64> {
+fn digits(x: u32) -> Vec<u32> {
     let mut result = digits_reversed(x);
     result.reverse();
     result
 }
 
-fn decode_line(line: &str) -> (u64, u64) {
+fn decode_line(line: &str) -> (u32, u32) {
     let i_dash = line.bytes().position(|x| x == b'-').unwrap();
     let (a, b) = line[i_dash + 1..].split(' ').collect_tuple().unwrap();
     (a.parse().unwrap(), b.parse().unwrap())
 }
 
-fn grow_by_repeating<T: Copy>(s: Vec<T>, target_length: usize) -> Vec<T> {
+fn grow_by_repeating<T: Copy>(s: &[T], target_length: usize) -> Vec<T> {
     if s.is_empty() || s.len() >= target_length {
-        s
+        s.to_vec()
     } else {
         let q = target_length / s.len();
         let r = target_length % s.len();
@@ -33,7 +33,7 @@ fn grow_by_repeating<T: Copy>(s: Vec<T>, target_length: usize) -> Vec<T> {
     }
 }
 
-fn vote_value(standard: u64, vote: u64) -> u64 {
+fn vote_value(standard_digits: &[u32], vote: u32) -> u64 {
     let vote_digits = digits(vote);
     let n = vote_digits.len();
 
@@ -41,18 +41,21 @@ fn vote_value(standard: u64, vote: u64) -> u64 {
         .into_iter()
         .rev()
         .zip(
-            grow_by_repeating(digits(standard), n)
+            grow_by_repeating(standard_digits, n)
                 .into_iter()
                 .rev()
                 .enumerate(),
         )
-        .map(|(k, (exp, base))| k * base.pow(exp as u32))
+        .map(|(k, (exp, base))| (k as u64) * (base as u64).pow(exp as u32))
         .sum()
 }
 
-fn min_votes_by_value(standard: u64) -> HashMap<u64, u64> {
-    (0..1_000_000).fold(HashMap::new(), |mut agg, vote| {
-        agg.entry(vote_value(standard, vote)).or_insert(vote);
+fn min_votes_by_value(standard: u32) -> HashMap<u64, u32> {
+    let standard_digits = digits(standard);
+
+    (1..1_000_000).fold(HashMap::new(), |mut agg, vote| {
+        agg.entry(vote_value(&standard_digits, vote))
+            .or_insert(vote);
         agg
     })
 }
@@ -61,7 +64,7 @@ fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
     let lines_decoded: Vec<_> = lines.into_iter().map(|line| decode_line(&line)).collect();
 
-    let min_votes_by_value_by_standard: HashMap<u64, HashMap<u64, u64>> = lines_decoded
+    let min_votes_by_value_by_standard: HashMap<u32, HashMap<u64, u32>> = lines_decoded
         .iter()
         .map(|(standard, _)| *standard)
         .unique()
@@ -73,7 +76,7 @@ fn main() {
     let vote_values: Vec<_> = lines_decoded
         .into_iter()
         .map(|(standard, vote)| {
-            let vv = vote_value(standard, vote);
+            let vv = vote_value(&digits(standard), vote);
 
             let min_vote = *min_votes_by_value_by_standard
                 .get(&standard)
