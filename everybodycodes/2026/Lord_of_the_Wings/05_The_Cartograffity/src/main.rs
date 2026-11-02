@@ -23,6 +23,16 @@ impl Crd {
             .collect()
     }
 
+    fn tree_neighs(self) -> Vec<Self> {
+        let excluded_deltas: HashSet<(i32, i32)> =
+            HashSet::from([(0, 0), (-2, -2), (-2, 2), (2, -2), (2, 2)]);
+
+        (-2..=2)
+            .cartesian_product(-2..=2)
+            .filter_map(|(i, j)| (!excluded_deltas.contains(&(i, j))).then_some(self + Crd(i, j)))
+            .collect()
+    }
+
     fn is_in_grid(self, height: i32, width: i32) -> bool {
         0 <= self.0 && self.0 < height && 0 <= self.1 && self.1 < width
     }
@@ -92,5 +102,16 @@ fn main() {
         }
     }
 
-    println!("{}", sand.len());
+    let initial_trees: Vec<Crd> = land
+        .iter()
+        .cloned()
+        .filter(|a| !sand.contains(a))
+        .filter(|a| {
+            a.tree_neighs()
+                .into_iter()
+                .all(|b| land.contains(&b) && !sand.contains(&b))
+        })
+        .collect();
+
+    eprintln!("number of initial_trees: {}", initial_trees.len());
 }
