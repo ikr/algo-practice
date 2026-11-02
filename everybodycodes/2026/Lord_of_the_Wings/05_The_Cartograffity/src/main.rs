@@ -102,7 +102,7 @@ fn main() {
         }
     }
 
-    let initial_trees: Vec<Crd> = land
+    let mut trees: HashSet<Crd> = land
         .iter()
         .cloned()
         .filter(|a| !sand.contains(a))
@@ -113,5 +113,23 @@ fn main() {
         })
         .collect();
 
-    eprintln!("number of initial_trees: {}", initial_trees.len());
+    for _ in 0..2 {
+        let new_trees: HashSet<Crd> = land
+            .iter()
+            .cloned()
+            .filter(|a| !sand.contains(a) && !trees.contains(a))
+            .filter(|a| {
+                a.adjacent()
+                    .into_iter()
+                    .filter(|b| trees.contains(b))
+                    .count()
+                    >= 4
+                    && !a.adjacent().into_iter().any(|b| sand.contains(&b))
+            })
+            .collect();
+
+        trees.extend(new_trees);
+    }
+
+    println!("{}", trees.len());
 }
