@@ -24,7 +24,18 @@ fn dfs(g: &HashMap<String, Vec<String>>, visited: &mut HashSet<String>, u: &str)
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let g: HashMap<String, Vec<String>> = lines.into_iter().map(decode_edges_source).collect();
+    let g_inv: Vec<(String, Vec<String>)> = lines.into_iter().map(decode_edges_source).collect();
+
+    let g: HashMap<String, Vec<String>> =
+        g_inv.into_iter().fold(HashMap::new(), |mut agg, (u, vs)| {
+            for v in vs {
+                agg.entry(v)
+                    .and_modify(|us| us.push(u.clone()))
+                    .or_insert(vec![u.clone()]);
+            }
+            agg
+        });
+
     let mut visited: HashSet<String> = HashSet::new();
     dfs(&g, &mut visited, "NULL");
 
