@@ -40,28 +40,16 @@ fn main() {
         .unwrap()
         .0;
 
-    e[i_source] = 10;
+    e[i_source] = 0;
     let mut q: VecDeque<(usize, u64)> = VecDeque::from([(i_source, 10)]);
-    let mut exploded: HashSet<usize> = HashSet::new();
+    //let mut exploded: HashSet<usize> = HashSet::new();
 
     while let Some((u, x)) = q.pop_front() {
-        if exploded.contains(&u) {
-            continue;
-        }
+        assert_ne!(x, 0);
+        e[u] += x;
 
-        for &v in &g[u] {
-            if exploded.contains(&v) {
-                continue;
-            }
-
-            e[v] += x - 1;
-            if e[v] >= HI {
-                e[v] = 0;
-                exploded.insert(v);
-                for &w in &g[v] {
-                    q.push_back((w, 10));
-                }
-            } else if x - 1 > 1 {
+        if x > 1 {
+            for &v in &g[u] {
                 q.push_back((v, x - 1));
             }
         }
