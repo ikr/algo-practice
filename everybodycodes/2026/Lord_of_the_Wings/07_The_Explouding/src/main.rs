@@ -1,9 +1,10 @@
+use itertools::Itertools;
 use std::{
-    collections::VecDeque,
+    collections::{HashSet, VecDeque},
     io::{BufRead, stdin},
 };
 
-use itertools::Itertools;
+const HI: u64 = 100; //1_000_000;
 
 fn decode_line(s: String) -> (u64, Vec<usize>) {
     let (_, energy_src, connections_src) = s
@@ -41,11 +42,26 @@ fn main() {
 
     e[i_source] = 10;
     let mut q: VecDeque<(usize, u64)> = VecDeque::from([(i_source, 10)]);
+    let mut exploded: HashSet<usize> = HashSet::new();
 
     while let Some((u, x)) = q.pop_front() {
+        if exploded.contains(&u) {
+            continue;
+        }
+
         for &v in &g[u] {
+            if exploded.contains(&v) {
+                continue;
+            }
+
             e[v] += x - 1;
-            if x - 1 > 1 {
+            if e[v] >= HI {
+                e[v] = 0;
+                exploded.insert(v);
+                for &w in &g[v] {
+                    q.push_back((w, 10));
+                }
+            } else if x - 1 > 1 {
                 q.push_back((v, x - 1));
             }
         }
