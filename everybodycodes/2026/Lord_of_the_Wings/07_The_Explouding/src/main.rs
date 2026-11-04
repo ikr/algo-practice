@@ -4,7 +4,9 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const HI: u32 = 100; //1_000_000;
+const ENERGY_THRESHOLD: u32 = 100; //1_000_000;
+const EXPLOSION_IMPULSE: u32 = 10;
+const INITIAL_IMPULSE: u32 = 10;
 
 fn decode_line(s: String) -> (u32, Vec<usize>) {
     let (_, energy_src, connections_src) = s
@@ -25,6 +27,39 @@ fn decode_line(s: String) -> (u32, Vec<usize>) {
     (e, vs)
 }
 
+fn propagate_explosion(
+    g: &[Vec<usize>],
+    e: &mut Vec<u32>,
+    exploded: &mut HashSet<usize>,
+    u: usize,
+    impulse: u32,
+) {
+    assert!(!exploded.contains(&u));
+    e[u] += impulse;
+
+    if e[u] >= ENERGY_THRESHOLD {
+        explode(g, e, exploded, u);
+    } else if impulse > 1 {
+        for &v in &g[u] {
+            if !exploded.contains(&v) {
+                propagate_explosion(g, e, exploded, v, impulse - 1);
+            }
+        }
+    }
+}
+
+fn explode(g: &[Vec<usize>], e: &mut Vec<u32>, exploded: &mut HashSet<usize>, u: usize) {
+    assert!(!exploded.contains(&u));
+    e[u] = 0;
+    exploded.insert(u);
+
+    for &v in &g[u] {
+        if !exploded.contains(&v) {
+            propagate_explosion(g, e, exploded, v, EXPLOSION_IMPULSE);
+        }
+    }
+}
+
 fn simulate_clouds_return_energy(
     g: &[Vec<usize>],
     i_source: usize,
@@ -34,8 +69,6 @@ fn simulate_clouds_return_energy(
     let mut q: VecDeque<(usize, u32)> = VecDeque::from([(i_source, initial_impulse)]);
 
     while let Some((u, x)) = q.pop_front() {
-        assert_ne!(x, 0);
-
         e[u] += x;
 
         if x > 1 {
@@ -54,13 +87,14 @@ fn main() {
     let g: Vec<Vec<usize>> = decoded_lines.iter().map(|(_, vs)| vs.clone()).collect();
     let e0: Vec<u32> = decoded_lines.into_iter().map(|(x, _)| x).collect();
 
-    let i_source: usize = g
-        .iter()
-        .enumerate()
-        .map(|(i, vs)| (i, vs.len()))
-        .max_by_key(|(_, m)| *m)
-        .unwrap()
-        .0;
+    // let i_source: usize = g
+    //     .iter()
+    //     .enumerate()
+    //     .map(|(i, vs)| (i, vs.len()))
+    //     .max_by_key(|(_, m)| *m)
+    //     .unwrap()
+    //     .0;
+    let i_source: usize = 1;
 
     let e = simulate_clouds_return_energy(&g, i_source, 10);
 
