@@ -67,18 +67,31 @@ fn simulate_clouds_return_energy_and_all_exploded(
 ) -> (Vec<u32>, HashSet<usize>) {
     let mut e: Vec<u32> = vec![0; g.len()];
     let mut q: VecDeque<(usize, u32)> = VecDeque::from([(i_source, initial_impulse)]);
+    let mut exploded: HashSet<usize> = HashSet::new();
 
     while let Some((u, x)) = q.pop_front() {
+        if exploded.contains(&u) {
+            continue;
+        }
+
         e[u] += x;
 
-        if x > 1 {
+        if e[u] >= ENERGY_THRESHOLD {
+            explode(g, &mut e, &mut exploded, u);
+        } else if x > 1 {
             for &v in &g[u] {
-                q.push_back((v, x - 1));
+                if !exploded.contains(&v) {
+                    q.push_back((v, x - 1));
+                }
             }
         }
     }
 
-    (e, HashSet::new())
+    for &u in &exploded {
+        assert_eq!(e[u], 0);
+    }
+
+    (e, exploded)
 }
 
 fn main() {
@@ -87,16 +100,12 @@ fn main() {
     let g: Vec<Vec<usize>> = decoded_lines.iter().map(|(_, vs)| vs.clone()).collect();
     let e0: Vec<u32> = decoded_lines.into_iter().map(|(x, _)| x).collect();
 
-    // let i_source: usize = g
-    //     .iter()
-    //     .enumerate()
-    //     .map(|(i, vs)| (i, vs.len()))
-    //     .max_by_key(|(_, m)| *m)
-    //     .unwrap()
-    //     .0;
-    let i_source: usize = 0;
+    let i_source: usize = 1;
 
-    let (e, exploded) = simulate_clouds_return_energy_and_all_exploded(&g, i_source, 10);
+    let (e, exploded) =
+        simulate_clouds_return_energy_and_all_exploded(&g, i_source, INITIAL_IMPULSE);
+
+    eprintln!("e:{e:?} exploded:{exploded:?}");
 
     println!(
         "{}",
