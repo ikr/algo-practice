@@ -1,4 +1,7 @@
-use std::io::{BufRead, stdin};
+use std::{
+    collections::VecDeque,
+    io::{BufRead, stdin},
+};
 
 fn decode_line_connections(s: String) -> Vec<usize> {
     s.split(", ")
@@ -7,13 +10,6 @@ fn decode_line_connections(s: String) -> Vec<usize> {
         .unwrap()
         .split(',')
         .map(|a| a.parse::<usize>().unwrap() - 1)
-        .collect()
-}
-
-fn vertices_with_potential(g: &[Vec<usize>], e: &[u16]) -> Vec<usize> {
-    e.iter()
-        .enumerate()
-        .filter_map(|(i, x)| (*x > 1 && !g[i].is_empty()).then_some(i))
         .collect()
 }
 
@@ -31,23 +27,19 @@ fn main() {
         .0;
 
     e[i_source] = 5;
+    let mut q: VecDeque<(usize, u16)> = VecDeque::from([(i_source, 5)]);
 
-    loop {
-        let ps = vertices_with_potential(&g, &e);
-        if ps.is_empty() {
-            break;
-        }
+    while let Some((u, x)) = q.pop_front() {
+        assert!(x > 1);
 
-        let mut ee = e.clone();
-
-        for p in ps {
-            for &q in &g[p] {
-                ee[q] += e[p] - 1;
+        for &v in &g[u] {
+            e[v] += x - 1;
+            if x - 1 > 1 {
+                q.push_back((v, x - 1));
             }
         }
-
-        e = ee;
     }
 
+    eprintln!("{e:?}");
     println!("{}", e.into_iter().sum::<u16>())
 }
