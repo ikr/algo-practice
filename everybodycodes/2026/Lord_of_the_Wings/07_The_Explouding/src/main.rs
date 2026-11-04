@@ -3,20 +3,33 @@ use std::{
     io::{BufRead, stdin},
 };
 
-fn decode_line_connections(s: String) -> Vec<usize> {
-    s.split(", ")
-        .last()
-        .and_then(|a| a.strip_prefix("connections="))
+use itertools::Itertools;
+
+fn decode_line(s: String) -> (u64, Vec<usize>) {
+    let (_, energy_src, connections_src) = s
+        .split(", ")
+        .map(|x| x.to_string())
+        .collect_tuple()
+        .unwrap();
+
+    let e: u64 = energy_src.strip_prefix("energy=").unwrap().parse().unwrap();
+
+    let vs: Vec<usize> = connections_src
+        .strip_prefix("connections=")
         .unwrap()
         .split(',')
         .map(|a| a.parse::<usize>().unwrap() - 1)
-        .collect()
+        .collect();
+
+    (e, vs)
 }
 
 fn main() {
     let lines: Vec<String> = stdin().lock().lines().map(|line| line.unwrap()).collect();
-    let g: Vec<Vec<usize>> = lines.into_iter().map(decode_line_connections).collect();
-    let mut e: Vec<u16> = vec![0; g.len()];
+    let decoded_lines: Vec<_> = lines.into_iter().map(decode_line).collect();
+    let g: Vec<Vec<usize>> = decoded_lines.iter().map(|(_, vs)| vs.clone()).collect();
+    let e0: Vec<u64> = decoded_lines.into_iter().map(|(x, _)| x).collect();
+    let mut e: Vec<u64> = vec![0; g.len()];
 
     let i_source: usize = g
         .iter()
@@ -26,12 +39,10 @@ fn main() {
         .unwrap()
         .0;
 
-    e[i_source] = 5;
-    let mut q: VecDeque<(usize, u16)> = VecDeque::from([(i_source, 5)]);
+    e[i_source] = 10;
+    let mut q: VecDeque<(usize, u64)> = VecDeque::from([(i_source, 10)]);
 
     while let Some((u, x)) = q.pop_front() {
-        assert!(x > 1);
-
         for &v in &g[u] {
             e[v] += x - 1;
             if x - 1 > 1 {
@@ -40,6 +51,8 @@ fn main() {
         }
     }
 
-    eprintln!("{e:?}");
-    println!("{}", e.into_iter().sum::<u16>())
+    println!(
+        "{}",
+        e0.into_iter().zip(e).map(|(x0, x)| x0 + x).sum::<u64>()
+    )
 }
