@@ -60,12 +60,12 @@ fn explode(g: &[Vec<usize>], e: &mut Vec<u32>, exploded: &mut HashSet<usize>, u:
     }
 }
 
-fn simulate_clouds_return_energy_and_all_exploded(
+fn simulate_clouds_return_energy(
     g: &[Vec<usize>],
     e0: &[u32],
     i_source: usize,
     initial_impulse: u32,
-) -> (Vec<u32>, HashSet<usize>) {
+) -> Vec<u32> {
     let mut e = e0.to_vec();
     let mut q: VecDeque<(usize, u32)> = VecDeque::from([(i_source, initial_impulse)]);
     let mut exploded: HashSet<usize> = HashSet::new();
@@ -92,7 +92,7 @@ fn simulate_clouds_return_energy_and_all_exploded(
         assert_eq!(e[u], 0);
     }
 
-    (e, exploded)
+    e
 }
 
 fn main() {
@@ -101,18 +101,9 @@ fn main() {
     let g: Vec<Vec<usize>> = decoded_lines.iter().map(|(_, vs)| vs.clone()).collect();
     let e0: Vec<u32> = decoded_lines.into_iter().map(|(x, _)| x).collect();
 
-    let i_source: usize = 0;
+    let i_source: usize = 1;
+    let e = simulate_clouds_return_energy(&g, &e0, i_source, INITIAL_IMPULSE);
 
-    let (e, exploded) =
-        simulate_clouds_return_energy_and_all_exploded(&g, &e0, i_source, INITIAL_IMPULSE);
-
-    eprintln!("e:{e:?} exploded:{exploded:?}");
-
-    println!(
-        "{}",
-        e.into_iter()
-            .enumerate()
-            .filter_map(|(i, x)| (!exploded.contains(&i)).then_some(x))
-            .sum::<u32>()
-    )
+    eprintln!("{e:?}");
+    println!("{}", e.into_iter().sum::<u32>())
 }
