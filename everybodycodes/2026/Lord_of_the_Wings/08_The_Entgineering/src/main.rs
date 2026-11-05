@@ -3,23 +3,12 @@ use std::{
     iter::successors,
 };
 
-fn transpose<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    let h = grid[0].len();
-    let mut iters: Vec<_> = grid.into_iter().map(|n| n.into_iter()).collect();
-    (0..h)
-        .map(|_| {
-            iters
-                .iter_mut()
-                .map(|n| n.next().unwrap())
-                .collect::<Vec<T>>()
-        })
-        .collect()
-}
-
-fn rotate_90_cc<T>(grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    let mut result = transpose(grid);
-    result.reverse();
-    result
+fn double_reverse<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    for row in &mut grid {
+        row.reverse();
+    }
+    grid.reverse();
+    grid
 }
 
 fn diag_alley(grid: &[Vec<u8>], head: (usize, usize)) -> Vec<u8> {
@@ -70,7 +59,7 @@ fn main() {
         })
         .collect();
 
-    let grid1 = rotate_90_cc(grid0.clone());
+    let grid1 = double_reverse(grid0.clone());
     let mut result: usize = 0;
 
     for g in [&grid0, &grid1] {
