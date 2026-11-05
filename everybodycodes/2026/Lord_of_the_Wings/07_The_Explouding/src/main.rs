@@ -1,5 +1,8 @@
 use itertools::Itertools;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::HashMap,
+    io::{BufRead, stdin},
+};
 
 //const ENERGY_THRESHOLD: u32 = u32::MAX; //100; //1_000_000;
 //const EXPLOSION_IMPULSE: u32 = 10;
@@ -30,28 +33,34 @@ fn simulate_clouds_return_energy(
     i_source: usize,
     initial_impulse: u32,
 ) -> Vec<u32> {
-    let mut impulse_counts: Vec<u32> = vec![0; g.len()];
-    impulse_counts[i_source] = 1;
-    let mut strength: u32 = initial_impulse;
+    let mut impulse_counts_by_strength: Vec<HashMap<u32, u32>> = vec![HashMap::new(); g.len()];
+    impulse_counts_by_strength[i_source].insert(initial_impulse, 1);
     let mut e = e0.to_vec();
 
     loop {
-        let mut new_impulse_counts: Vec<u32> = vec![0; g.len()];
-        eprintln!("strength:{strength} impulse_counts:{impulse_counts:?}");
+        let mut new_counts_by_strength: Vec<HashMap<u32, u32>> = vec![HashMap::new(); g.len()];
+        eprintln!("impulse_counts_by_strength:{impulse_counts_by_strength:?}");
 
-        for (u, &m) in impulse_counts.iter().enumerate() {
-            e[u] += m * strength;
+        for u in 0..g.len() {
+            for (strength, m) in &impulse_counts_by_strength[u] {
+                e[u] += m * strength;
+            }
 
             for &v in &g[u] {
-                new_impulse_counts[v] += m;
+                for (&strength, &m) in &impulse_counts_by_strength[u] {
+                    if strength != 0 {
+                        new_counts_by_strength[v]
+                            .entry(strength - 1)
+                            .and_modify(|k| *k += m)
+                            .or_insert(m);
+                    }
+                }
             }
         }
 
-        impulse_counts = new_impulse_counts;
+        impulse_counts_by_strength = new_counts_by_strength;
 
-        strength -= 1;
-
-        if strength == 0 {
+        if impulse_counts_by_strength.iter().all(|cbs| cbs.is_empty()) {
             break;
         }
     }
