@@ -4,7 +4,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const ENERGY_THRESHOLD: u32 = 100; //1_000_000;
+const ENERGY_THRESHOLD: u32 = u32::MAX; //100; //1_000_000;
 const EXPLOSION_IMPULSE: u32 = 10;
 const INITIAL_IMPULSE: u32 = 10;
 
@@ -27,39 +27,6 @@ fn decode_line(s: String) -> (u32, Vec<usize>) {
     (e, vs)
 }
 
-fn propagate_explosion(
-    g: &[Vec<usize>],
-    e: &mut Vec<u32>,
-    exploded: &mut HashSet<usize>,
-    u: usize,
-    impulse: u32,
-) {
-    assert!(!exploded.contains(&u));
-    e[u] += impulse;
-
-    if e[u] >= ENERGY_THRESHOLD {
-        explode(g, e, exploded, u);
-    } else if impulse > 1 {
-        for &v in &g[u] {
-            if !exploded.contains(&v) {
-                propagate_explosion(g, e, exploded, v, impulse - 1);
-            }
-        }
-    }
-}
-
-fn explode(g: &[Vec<usize>], e: &mut Vec<u32>, exploded: &mut HashSet<usize>, u: usize) {
-    assert!(!exploded.contains(&u));
-    e[u] = 0;
-    exploded.insert(u);
-
-    for &v in &g[u] {
-        if !exploded.contains(&v) {
-            propagate_explosion(g, e, exploded, v, EXPLOSION_IMPULSE);
-        }
-    }
-}
-
 fn simulate_clouds_return_energy(
     g: &[Vec<usize>],
     e0: &[u32],
@@ -78,12 +45,15 @@ fn simulate_clouds_return_energy(
         e[u] += x;
 
         if e[u] >= ENERGY_THRESHOLD {
-            explode(g, &mut e, &mut exploded, u);
+            e[u] = 0;
+            exploded.insert(u);
+
+            for &v in &g[u] {
+                q.push_back((v, EXPLOSION_IMPULSE));
+            }
         } else if x > 1 {
             for &v in &g[u] {
-                if !exploded.contains(&v) {
-                    q.push_back((v, x - 1));
-                }
+                q.push_back((v, x - 1));
             }
         }
     }
