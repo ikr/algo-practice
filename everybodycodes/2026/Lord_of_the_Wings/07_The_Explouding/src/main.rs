@@ -65,9 +65,9 @@ fn main() {
     let g: Vec<Vec<usize>> = decoded_lines.iter().map(|(_, vs)| vs.clone()).collect();
     let e0: Vec<u32> = decoded_lines.into_iter().map(|(x, _)| x).collect();
 
-    let i_source: usize = 1;
-    let e = simulate_clouds_return_energy(&g, &e0, i_source, INITIAL_IMPULSE);
-
-    eprintln!("{e:?}");
-    println!("{}", e.into_iter().sum::<u32>())
+    for i_source in 0..2 {
+        let e = simulate_clouds_return_energy(&g, &e0, i_source, INITIAL_IMPULSE);
+        eprintln!("{e:?}");
+        println!("{}", e.into_iter().sum::<u32>())
+    }
 }
