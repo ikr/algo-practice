@@ -1,11 +1,8 @@
 use itertools::Itertools;
-use std::{
-    collections::{HashSet, VecDeque},
-    io::{BufRead, stdin},
-};
+use std::io::{BufRead, stdin};
 
-const ENERGY_THRESHOLD: u32 = u32::MAX; //100; //1_000_000;
-const EXPLOSION_IMPULSE: u32 = 10;
+//const ENERGY_THRESHOLD: u32 = u32::MAX; //100; //1_000_000;
+//const EXPLOSION_IMPULSE: u32 = 10;
 const INITIAL_IMPULSE: u32 = 10;
 
 fn decode_line(s: String) -> (u32, Vec<usize>) {
@@ -33,33 +30,30 @@ fn simulate_clouds_return_energy(
     i_source: usize,
     initial_impulse: u32,
 ) -> Vec<u32> {
+    let mut impulse_counts: Vec<u32> = vec![0; g.len()];
+    impulse_counts[i_source] = 1;
+    let mut strength: u32 = initial_impulse;
     let mut e = e0.to_vec();
-    let mut q: VecDeque<(usize, u32)> = VecDeque::from([(i_source, initial_impulse)]);
-    let mut exploded: HashSet<usize> = HashSet::new();
 
-    while let Some((u, x)) = q.pop_front() {
-        if exploded.contains(&u) {
-            continue;
-        }
+    loop {
+        let mut new_impulse_counts: Vec<u32> = vec![0; g.len()];
+        eprintln!("strength:{strength} impulse_counts:{impulse_counts:?}");
 
-        e[u] += x;
-
-        if e[u] >= ENERGY_THRESHOLD {
-            e[u] = 0;
-            exploded.insert(u);
+        for (u, &m) in impulse_counts.iter().enumerate() {
+            e[u] += m * strength;
 
             for &v in &g[u] {
-                q.push_back((v, EXPLOSION_IMPULSE));
-            }
-        } else if x > 1 {
-            for &v in &g[u] {
-                q.push_back((v, x - 1));
+                new_impulse_counts[v] += m;
             }
         }
-    }
 
-    for &u in &exploded {
-        assert_eq!(e[u], 0);
+        impulse_counts = new_impulse_counts;
+
+        strength -= 1;
+
+        if strength == 0 {
+            break;
+        }
     }
 
     e
