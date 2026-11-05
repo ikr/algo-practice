@@ -1,4 +1,29 @@
-use std::io::{BufRead, stdin};
+use std::{
+    io::{BufRead, stdin},
+    iter::successors,
+};
+
+fn alley(grid: &[Vec<u8>], head: (usize, usize)) -> Vec<u8> {
+    let height = grid.len();
+    let width = grid[0].len();
+
+    successors(Some(head), |(i, j)| {
+        (i + 1 < height && j + 1 < width).then_some((i + 1, j + 1))
+    })
+    .map(|(i, j)| grid[i][j])
+    .collect()
+}
+
+fn lit_count(xs: Vec<u8>) -> usize {
+    xs.into_iter()
+        .fold((0, 0u8), |(r, hi), x| {
+            (
+                if x > hi { r + 1 } else { r },
+                (hi.saturating_sub(1).max(x.saturating_sub(1))),
+            )
+        })
+        .0
+}
 
 fn main() {
     let grid: Vec<Vec<u8>> = stdin()
@@ -22,5 +47,11 @@ fn main() {
         .chain((1..=left_row).map(|i| (i, left_top_column - i)))
         .collect();
 
-    eprintln!("{heads:?}");
+    let result: Vec<_> = heads
+        .into_iter()
+        .map(|h| alley(&grid, h))
+        .map(lit_count)
+        .collect();
+
+    println!("{}", result.into_iter().sum::<usize>());
 }
