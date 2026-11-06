@@ -9,6 +9,7 @@ type Ray = Vec<(usize, usize)>;
 type Alley = Vec<i8>;
 
 const EMPTY: i8 = i8::MIN;
+const TARGET_YIELD: usize = 100_000;
 
 fn reverse_rows<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     for row in &mut grid {
@@ -122,13 +123,13 @@ fn tick_return_yield(mut grid: Grid, lit: HashSet<(usize, usize)>) -> (Grid, usi
 
     for (i, row) in grid.iter_mut().enumerate() {
         for (j, x) in row.iter_mut().enumerate() {
-            if *x != EMPTY {
-                if *x <= 0 {
-                    *x += 1;
-                } else if lit.contains(&(i, j)) {
-                    *x += 1;
-                    yld += 1;
-                }
+            if *x != EMPTY && (*x <= 0 || lit.contains(&(i, j))) {
+                *x += 1;
+            }
+
+            if *x == 10 {
+                *x = -2;
+                yld += 1;
             }
         }
     }
@@ -137,7 +138,7 @@ fn tick_return_yield(mut grid: Grid, lit: HashSet<(usize, usize)>) -> (Grid, usi
 }
 
 fn main() {
-    let grid: Grid = stdin()
+    let mut grid: Grid = stdin()
         .lock()
         .lines()
         .map(|line| {
@@ -148,26 +149,22 @@ fn main() {
         })
         .collect();
 
-    let a_ray_sets = all_ray_sets(grid.clone());
+    let ray_sets = all_ray_sets(grid.clone());
+    let mut yld: usize = 0;
+    let mut nrg: usize = 0;
 
-    let a_aly_sets: Vec<Vec<Vec<i8>>> = a_ray_sets
-        .into_iter()
-        .map(|xss| {
-            xss.into_iter()
-                .map(|xs| xs.into_iter().map(|(i, j)| grid[i][j]).collect::<Vec<_>>())
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
+    for t in 0..100_000_000 {
+        let lit = lit_locs(&grid, &ray_sets[t % ray_sets.len()]);
+        nrg += lit.len();
 
-    let a_lit_counts: Vec<usize> = a_aly_sets
-        .into_iter()
-        .map(|xss| {
-            xss.into_iter()
-                .map(|xs| lit_indices(xs).len())
-                .sum::<usize>()
-        })
-        .collect();
+        let (new_grid, delta) = tick_return_yield(grid, lit);
+        yld += delta;
+        grid = new_grid;
 
-    eprintln!("{a_lit_counts:?}");
-    println!("{}", a_lit_counts.into_iter().sum::<usize>());
+        if yld >= TARGET_YIELD {
+            break;
+        }
+    }
+
+    println!("{nrg}");
 }
