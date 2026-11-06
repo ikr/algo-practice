@@ -62,8 +62,18 @@ fn lit_count(xs: Vec<i8>) -> usize {
         .0
 }
 
-fn all_alley_sets(grid: &[Vec<i8>]) -> Vec<AlleySet> {
-    todo!()
+fn all_alleys(grid0: Vec<Vec<i8>>) -> Vec<Vec<Vec<i8>>> {
+    let south_east = all_diag_alleys(&grid0);
+    let north_west = reverse_rows(south_east.clone());
+
+    let grid1 = reverse_rows(grid0.clone());
+    let south_west = all_diag_alleys(&grid1);
+    let north_east = reverse_rows(south_west.clone());
+
+    let east = all_horz_alleys(&grid0);
+    let west = reverse_rows(east.clone());
+
+    vec![south_east, south_west, west, north_west, north_east, east]
 }
 
 fn main() {
@@ -78,18 +88,10 @@ fn main() {
         })
         .collect();
 
-    let grid1 = reverse_rows(grid0.clone());
-    let mut result: usize = 0;
-
-    for g in [&grid0, &grid1] {
-        let xss = all_diag_alleys(g);
-        result += xss.clone().into_iter().map(lit_count).sum::<usize>();
-        result += reverse_rows(xss).into_iter().map(lit_count).sum::<usize>();
-    }
-
-    let xss = all_horz_alleys(&grid0);
-    result += xss.clone().into_iter().map(lit_count).sum::<usize>();
-    result += reverse_rows(xss).into_iter().map(lit_count).sum::<usize>();
+    let result: usize = all_alleys(grid0)
+        .into_iter()
+        .map(|xss| xss.into_iter().map(lit_count).sum::<usize>())
+        .sum();
 
     println!("{result}");
 }
