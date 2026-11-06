@@ -4,6 +4,7 @@ use std::{
     iter::successors,
 };
 
+type Grid = Vec<Vec<i8>>;
 type Ray = Vec<(usize, usize)>;
 type Alley = Vec<i8>;
 
@@ -82,7 +83,7 @@ fn lit_indices(xs: Alley) -> Vec<usize> {
         .0
 }
 
-fn all_ray_sets(grid: Vec<Vec<i8>>) -> Vec<Vec<Ray>> {
+fn all_ray_sets(grid: Grid) -> Vec<Vec<Ray>> {
     let south_east = all_diag_alley_ps(&grid);
     let north_west = reverse_rows(south_east.clone());
 
@@ -116,8 +117,27 @@ fn lit_locs(grid: &[Vec<i8>], rays: &[Ray]) -> HashSet<(usize, usize)> {
         .collect()
 }
 
+fn tick_return_yield(mut grid: Grid, lit: HashSet<(usize, usize)>) -> (Grid, usize) {
+    let mut yld = 0;
+
+    for (i, row) in grid.iter_mut().enumerate() {
+        for (j, x) in row.iter_mut().enumerate() {
+            if *x != EMPTY {
+                if *x <= 0 {
+                    *x += 1;
+                } else if lit.contains(&(i, j)) {
+                    *x += 1;
+                    yld += 1;
+                }
+            }
+        }
+    }
+
+    (grid, yld)
+}
+
 fn main() {
-    let grid: Vec<Vec<i8>> = stdin()
+    let grid: Grid = stdin()
         .lock()
         .lines()
         .map(|line| {
