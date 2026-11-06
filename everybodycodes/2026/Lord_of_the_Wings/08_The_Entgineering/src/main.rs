@@ -30,7 +30,7 @@ fn meta_grid<T>(grid: &[Vec<T>]) -> Vec<Vec<(usize, usize)>> {
         .collect()
 }
 
-fn diag_alley_ps(grid: &[Vec<i8>], head: (usize, usize)) -> Ray {
+fn diag_ray(grid: &[Vec<i8>], head: (usize, usize)) -> Ray {
     let height = grid.len();
     let width = grid[0].len();
 
@@ -44,7 +44,7 @@ fn diag_alley_ps(grid: &[Vec<i8>], head: (usize, usize)) -> Ray {
     .collect()
 }
 
-fn all_diag_alley_ps(grid: &[Vec<i8>]) -> Vec<Ray> {
+fn all_diag_rays(grid: &[Vec<i8>]) -> Vec<Ray> {
     let left_top_column: usize = grid[0].iter().position(|&x| x != EMPTY).unwrap();
     let left_row = left_top_column;
     let right_top_column: usize = grid[0].iter().rposition(|&x| x != EMPTY).unwrap();
@@ -55,10 +55,10 @@ fn all_diag_alley_ps(grid: &[Vec<i8>]) -> Vec<Ray> {
         .chain((1..=left_row).map(|i| (i, left_top_column - i)))
         .collect();
 
-    heads.into_iter().map(|h| diag_alley_ps(grid, h)).collect()
+    heads.into_iter().map(|h| diag_ray(grid, h)).collect()
 }
 
-fn all_horz_alley_ps(grid: &[Vec<i8>]) -> Vec<Ray> {
+fn all_horz_rays(grid: &[Vec<i8>]) -> Vec<Ray> {
     grid.iter()
         .enumerate()
         .map(|(i, row)| {
@@ -85,7 +85,7 @@ fn lit_indices(xs: Alley) -> Vec<usize> {
 }
 
 fn all_ray_sets(grid: Grid) -> Vec<Vec<Ray>> {
-    let south_east = all_diag_alley_ps(&grid);
+    let south_east = all_diag_rays(&grid);
     let north_west = reverse_rows(south_east.clone());
 
     let idx = reverse_rows(meta_grid(&grid));
@@ -102,7 +102,7 @@ fn all_ray_sets(grid: Grid) -> Vec<Vec<Ray>> {
         .map(|ps| ps.into_iter().map(|(i, j)| idx[i][j]).collect())
         .collect();
 
-    let east = all_horz_alley_ps(&grid);
+    let east = all_horz_rays(&grid);
     let west = reverse_rows(east.clone());
 
     vec![south_east, south_west, west, north_west, north_east, east]
@@ -153,7 +153,7 @@ fn main() {
     let mut yld: usize = 0;
     let mut nrg: usize = 0;
 
-    for t in 0..100_000_000 {
+    for t in 0..1_000_000 {
         let lit = lit_locs(&grid, &ray_sets[t % ray_sets.len()]);
         nrg += lit.len();
 
