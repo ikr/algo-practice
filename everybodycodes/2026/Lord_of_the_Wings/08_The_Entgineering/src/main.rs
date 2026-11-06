@@ -10,7 +10,7 @@ fn reverse_rows<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     grid
 }
 
-fn diag_alley(grid: &[Vec<u8>], head: (usize, usize)) -> Vec<u8> {
+fn diag_alley<T: Copy>(grid: &[Vec<T>], head: (usize, usize)) -> Vec<T> {
     let height = grid.len();
     let width = grid[0].len();
 
@@ -32,7 +32,13 @@ fn all_diag_alleys(grid: &[Vec<u8>]) -> Vec<Vec<u8>> {
         .chain((1..=left_row).map(|i| (i, left_top_column - i)))
         .collect();
 
-    heads.into_iter().map(|h| diag_alley(&grid, h)).collect()
+    heads.into_iter().map(|h| diag_alley(grid, h)).collect()
+}
+
+fn all_horz_alleys(grid: &[Vec<u8>]) -> Vec<Vec<u8>> {
+    grid.iter()
+        .map(|row| row.iter().copied().filter(|&x| x != 0).collect::<Vec<_>>())
+        .collect()
 }
 
 fn lit_count(xs: Vec<u8>) -> usize {
@@ -63,40 +69,13 @@ fn main() {
 
     for g in [&grid0, &grid1] {
         let xss = all_diag_alleys(g);
-
-        let yss: Vec<Vec<u8>> = xss
-            .iter()
-            .cloned()
-            .map(|xs| xs.into_iter().rev().collect())
-            .collect();
-
-        let one = xss.into_iter().map(lit_count).sum::<usize>();
-        let two = yss.into_iter().map(lit_count).sum::<usize>();
-        eprintln!("one:{one} two:{two}");
-
-        result += one;
-        result += two;
+        result += xss.clone().into_iter().map(lit_count).sum::<usize>();
+        result += reverse_rows(xss).into_iter().map(lit_count).sum::<usize>();
     }
 
-    {
-        let xss: Vec<Vec<_>> = grid0
-            .into_iter()
-            .map(|row| row.into_iter().filter(|&x| x != 0).collect::<Vec<_>>())
-            .collect();
-
-        let yss: Vec<Vec<u8>> = xss
-            .iter()
-            .cloned()
-            .map(|xs| xs.into_iter().rev().collect())
-            .collect();
-
-        let one = xss.into_iter().map(lit_count).sum::<usize>();
-        let two = yss.into_iter().map(lit_count).sum::<usize>();
-        eprintln!("one:{one} two:{two}");
-
-        result += one;
-        result += two;
-    }
+    let xss = all_horz_alleys(&grid0);
+    result += xss.clone().into_iter().map(lit_count).sum::<usize>();
+    result += reverse_rows(xss).into_iter().map(lit_count).sum::<usize>();
 
     println!("{result}");
 }
