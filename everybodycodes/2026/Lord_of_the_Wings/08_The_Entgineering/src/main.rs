@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     io::{BufRead, stdin},
     iter::successors,
 };
@@ -105,6 +106,16 @@ fn all_ray_sets(grid: Vec<Vec<i8>>) -> Vec<Vec<Ray>> {
     vec![south_east, south_west, west, north_west, north_east, east]
 }
 
+fn lit_locs(grid: &[Vec<i8>], rays: &[Ray]) -> HashSet<(usize, usize)> {
+    rays.iter()
+        .flat_map(|ray| {
+            let alley: Alley = ray.iter().map(|&(i, j)| grid[i][j]).collect();
+            let idx = lit_indices(alley);
+            idx.into_iter().map(|k| ray[k])
+        })
+        .collect()
+}
+
 fn main() {
     let grid: Vec<Vec<i8>> = stdin()
         .lock()
@@ -132,7 +143,7 @@ fn main() {
         .into_iter()
         .map(|xss| {
             xss.into_iter()
-                .map(|xs| lit_indices(xs).into_iter().count())
+                .map(|xs| lit_indices(xs).len())
                 .sum::<usize>()
         })
         .collect();
