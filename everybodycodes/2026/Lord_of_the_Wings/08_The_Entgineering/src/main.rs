@@ -4,7 +4,7 @@ use std::{
 };
 
 type AlleyPs = Vec<(usize, usize)>;
-type AlleySet = Vec<AlleyPs>;
+type AlleyPsSet = Vec<AlleyPs>;
 
 const EMPTY: i8 = i8::MIN;
 
@@ -15,7 +15,19 @@ fn reverse_rows<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     grid
 }
 
-fn diag_alley(grid: &[Vec<i8>], head: (usize, usize)) -> Vec<i8> {
+fn meta_grid<T>(grid: &[Vec<T>]) -> Vec<Vec<(usize, usize)>> {
+    grid.iter()
+        .enumerate()
+        .map(|(i, row)| {
+            row.iter()
+                .enumerate()
+                .map(|(j, _)| (i, j))
+                .collect::<Vec<_>>()
+        })
+        .collect()
+}
+
+fn diag_alley_ps(grid: &[Vec<i8>], head: (usize, usize)) -> AlleyPs {
     let height = grid.len();
     let width = grid[0].len();
 
@@ -24,12 +36,12 @@ fn diag_alley(grid: &[Vec<i8>], head: (usize, usize)) -> Vec<i8> {
     })
     .filter_map(|(i, j)| {
         let x = grid[i][j];
-        (x != EMPTY).then_some(x)
+        (x != EMPTY).then_some((i, j))
     })
     .collect()
 }
 
-fn all_diag_alleys(grid: &[Vec<i8>]) -> Vec<Vec<i8>> {
+fn all_diag_alley_ps(grid: &[Vec<i8>]) -> AlleyPsSet {
     let left_top_column: usize = grid[0].iter().position(|&x| x != EMPTY).unwrap();
     let left_row = left_top_column;
     let right_top_column: usize = grid[0].iter().rposition(|&x| x != EMPTY).unwrap();
@@ -40,15 +52,17 @@ fn all_diag_alleys(grid: &[Vec<i8>]) -> Vec<Vec<i8>> {
         .chain((1..=left_row).map(|i| (i, left_top_column - i)))
         .collect();
 
-    heads.into_iter().map(|h| diag_alley(grid, h)).collect()
+    heads.into_iter().map(|h| diag_alley_ps(grid, h)).collect()
 }
 
-fn all_horz_alleys(grid: &[Vec<i8>]) -> Vec<Vec<i8>> {
+fn all_horz_alley_ps(grid: &[Vec<i8>]) -> AlleyPsSet {
     grid.iter()
-        .map(|row| {
+        .enumerate()
+        .map(|(i, row)| {
             row.iter()
                 .copied()
-                .filter(|&x| x != EMPTY)
+                .enumerate()
+                .filter_map(|(j, x)| (x != EMPTY).then_some((i, j)))
                 .collect::<Vec<_>>()
         })
         .collect()
@@ -62,22 +76,31 @@ fn lit_count(xs: Vec<i8>) -> usize {
         .0
 }
 
-fn all_alleys(grid0: Vec<Vec<i8>>) -> Vec<Vec<Vec<i8>>> {
-    let south_east = all_diag_alleys(&grid0);
+fn all_alley_point_sets(grid: Vec<Vec<i8>>) -> Vec<AlleyPsSet> {
+    let south_east = all_diag_alley_ps(&grid);
     let north_west = reverse_rows(south_east.clone());
 
-    let grid1 = reverse_rows(grid0.clone());
-    let south_west = all_diag_alleys(&grid1);
-    let north_east = reverse_rows(south_west.clone());
+    let idx = reverse_rows(meta_grid(&grid));
+    let south_west: AlleyPsSet = south_east
+        .iter()
+        .cloned()
+        .map(|ps| ps.into_iter().map(|(i, j)| idx[i][j]).collect())
+        .collect();
 
-    let east = all_horz_alleys(&grid0);
+    let north_east = north_west
+        .iter()
+        .cloned()
+        .map(|ps| ps.into_iter().map(|(i, j)| idx[i][j]).collect())
+        .collect();
+
+    let east = all_horz_alley_ps(&grid);
     let west = reverse_rows(east.clone());
 
     vec![south_east, south_west, west, north_west, north_east, east]
 }
 
 fn main() {
-    let grid0: Vec<Vec<i8>> = stdin()
+    let grid: Vec<Vec<i8>> = stdin()
         .lock()
         .lines()
         .map(|line| {
@@ -88,10 +111,22 @@ fn main() {
         })
         .collect();
 
-    let result: usize = all_alleys(grid0)
+    let a_alp_sets = all_alley_point_sets(grid.clone());
+
+    let a_al_sets: Vec<Vec<Vec<i8>>> = a_alp_sets
+        .into_iter()
+        .map(|xss| {
+            xss.into_iter()
+                .map(|xs| xs.into_iter().map(|(i, j)| grid[i][j]).collect::<Vec<_>>())
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
+    let a_lit_counts: Vec<usize> = a_al_sets
         .into_iter()
         .map(|xss| xss.into_iter().map(lit_count).sum::<usize>())
-        .sum();
+        .collect();
 
-    println!("{result}");
+    eprintln!("{a_lit_counts:?}");
+    println!("{}", a_lit_counts.into_iter().sum::<usize>());
 }
