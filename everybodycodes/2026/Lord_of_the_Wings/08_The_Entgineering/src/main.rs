@@ -3,6 +3,11 @@ use std::{
     iter::successors,
 };
 
+type AlleyPs = Vec<(usize, usize)>;
+type AlleySet = Vec<AlleyPs>;
+
+const EMPTY: i8 = i8::MIN;
+
 fn reverse_rows<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     for row in &mut grid {
         row.reverse();
@@ -10,21 +15,24 @@ fn reverse_rows<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     grid
 }
 
-fn diag_alley<T: Copy>(grid: &[Vec<T>], head: (usize, usize)) -> Vec<T> {
+fn diag_alley(grid: &[Vec<i8>], head: (usize, usize)) -> Vec<i8> {
     let height = grid.len();
     let width = grid[0].len();
 
     successors(Some(head), |(i, j)| {
         (i + 1 < height && j + 1 < width).then_some((i + 1, j + 1))
     })
-    .map(|(i, j)| grid[i][j])
+    .filter_map(|(i, j)| {
+        let x = grid[i][j];
+        (x != EMPTY).then_some(x)
+    })
     .collect()
 }
 
-fn all_diag_alleys(grid: &[Vec<u8>]) -> Vec<Vec<u8>> {
-    let left_top_column: usize = grid[0].iter().position(|&x| x != 0).unwrap();
+fn all_diag_alleys(grid: &[Vec<i8>]) -> Vec<Vec<i8>> {
+    let left_top_column: usize = grid[0].iter().position(|&x| x != EMPTY).unwrap();
     let left_row = left_top_column;
-    let right_top_column: usize = grid[0].iter().rposition(|&x| x != 0).unwrap();
+    let right_top_column: usize = grid[0].iter().rposition(|&x| x != EMPTY).unwrap();
 
     let heads: Vec<(usize, usize)> = (left_top_column..=right_top_column)
         .step_by(2)
@@ -35,31 +43,37 @@ fn all_diag_alleys(grid: &[Vec<u8>]) -> Vec<Vec<u8>> {
     heads.into_iter().map(|h| diag_alley(grid, h)).collect()
 }
 
-fn all_horz_alleys(grid: &[Vec<u8>]) -> Vec<Vec<u8>> {
+fn all_horz_alleys(grid: &[Vec<i8>]) -> Vec<Vec<i8>> {
     grid.iter()
-        .map(|row| row.iter().copied().filter(|&x| x != 0).collect::<Vec<_>>())
+        .map(|row| {
+            row.iter()
+                .copied()
+                .filter(|&x| x != EMPTY)
+                .collect::<Vec<_>>()
+        })
         .collect()
 }
 
-fn lit_count(xs: Vec<u8>) -> usize {
+fn lit_count(xs: Vec<i8>) -> usize {
     xs.into_iter()
-        .fold((0, 0u8), |(r, hi), x| {
-            (
-                if x > hi { r + 1 } else { r },
-                (hi.saturating_sub(1).max(x.saturating_sub(1))),
-            )
+        .fold((0, 0i8), |(r, hi), x| {
+            (if x > hi { r + 1 } else { r }, ((hi - 1).max(0).max(x - 1)))
         })
         .0
 }
 
+fn all_alley_sets(grid: &[Vec<i8>]) -> Vec<AlleySet> {
+    todo!()
+}
+
 fn main() {
-    let grid0: Vec<Vec<u8>> = stdin()
+    let grid0: Vec<Vec<i8>> = stdin()
         .lock()
         .lines()
         .map(|line| {
             line.unwrap()
                 .bytes()
-                .map(|x| if x == b'.' { 0 } else { x - b'0' })
+                .map(|x| if x == b'.' { EMPTY } else { (x - b'0') as i8 })
                 .collect()
         })
         .collect();
