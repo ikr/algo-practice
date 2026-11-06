@@ -3,11 +3,10 @@ use std::{
     iter::successors,
 };
 
-fn double_reverse<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
+fn reverse_rows<T>(mut grid: Vec<Vec<T>>) -> Vec<Vec<T>> {
     for row in &mut grid {
         row.reverse();
     }
-    grid.reverse();
     grid
 }
 
@@ -59,7 +58,7 @@ fn main() {
         })
         .collect();
 
-    let grid1 = double_reverse(grid0.clone());
+    let grid1 = reverse_rows(grid0.clone());
     let mut result: usize = 0;
 
     for g in [&grid0, &grid1] {
