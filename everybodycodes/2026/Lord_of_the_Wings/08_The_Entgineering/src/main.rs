@@ -68,10 +68,15 @@ fn all_horz_alley_ps(grid: &[Vec<i8>]) -> AlleyPsSet {
         .collect()
 }
 
-fn lit_count(xs: Vec<i8>) -> usize {
+fn lit_indices(xs: Vec<i8>) -> Vec<usize> {
     xs.into_iter()
-        .fold((0, 0i8), |(r, hi), x| {
-            (if x > hi { r + 1 } else { r }, ((hi - 1).max(0).max(x - 1)))
+        .enumerate()
+        .fold((vec![], 0i8), |(mut r, hi), (i, x)| {
+            if x > hi {
+                r.push(i);
+            }
+
+            (r, ((hi - 1).max(0).max(x - 1)))
         })
         .0
 }
@@ -81,6 +86,7 @@ fn all_alley_point_sets(grid: Vec<Vec<i8>>) -> Vec<AlleyPsSet> {
     let north_west = reverse_rows(south_east.clone());
 
     let idx = reverse_rows(meta_grid(&grid));
+
     let south_west: AlleyPsSet = south_east
         .iter()
         .cloned()
@@ -124,7 +130,11 @@ fn main() {
 
     let a_lit_counts: Vec<usize> = a_al_sets
         .into_iter()
-        .map(|xss| xss.into_iter().map(lit_count).sum::<usize>())
+        .map(|xss| {
+            xss.into_iter()
+                .map(|xs| lit_indices(xs).into_iter().count())
+                .sum::<usize>()
+        })
         .collect();
 
     eprintln!("{a_lit_counts:?}");
