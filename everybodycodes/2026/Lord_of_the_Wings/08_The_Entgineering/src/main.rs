@@ -157,9 +157,9 @@ fn main() {
         let lit = lit_locs(&grid, &ray_sets[t % ray_sets.len()]);
         nrg += lit.len();
 
-        let (new_grid, delta) = tick_return_yield(grid, lit);
+        let delta;
+        (grid, delta) = tick_return_yield(grid, lit);
         yld += delta;
-        grid = new_grid;
 
         if yld >= TARGET_YIELD {
             break;
