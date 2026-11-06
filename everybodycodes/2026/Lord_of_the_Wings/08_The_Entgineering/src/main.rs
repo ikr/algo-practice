@@ -3,8 +3,8 @@ use std::{
     iter::successors,
 };
 
-type AlleyPs = Vec<(usize, usize)>;
-type AlleyPsSet = Vec<AlleyPs>;
+type Ray = Vec<(usize, usize)>;
+type Alley = Vec<i8>;
 
 const EMPTY: i8 = i8::MIN;
 
@@ -27,7 +27,7 @@ fn meta_grid<T>(grid: &[Vec<T>]) -> Vec<Vec<(usize, usize)>> {
         .collect()
 }
 
-fn diag_alley_ps(grid: &[Vec<i8>], head: (usize, usize)) -> AlleyPs {
+fn diag_alley_ps(grid: &[Vec<i8>], head: (usize, usize)) -> Ray {
     let height = grid.len();
     let width = grid[0].len();
 
@@ -41,7 +41,7 @@ fn diag_alley_ps(grid: &[Vec<i8>], head: (usize, usize)) -> AlleyPs {
     .collect()
 }
 
-fn all_diag_alley_ps(grid: &[Vec<i8>]) -> AlleyPsSet {
+fn all_diag_alley_ps(grid: &[Vec<i8>]) -> Vec<Ray> {
     let left_top_column: usize = grid[0].iter().position(|&x| x != EMPTY).unwrap();
     let left_row = left_top_column;
     let right_top_column: usize = grid[0].iter().rposition(|&x| x != EMPTY).unwrap();
@@ -55,7 +55,7 @@ fn all_diag_alley_ps(grid: &[Vec<i8>]) -> AlleyPsSet {
     heads.into_iter().map(|h| diag_alley_ps(grid, h)).collect()
 }
 
-fn all_horz_alley_ps(grid: &[Vec<i8>]) -> AlleyPsSet {
+fn all_horz_alley_ps(grid: &[Vec<i8>]) -> Vec<Ray> {
     grid.iter()
         .enumerate()
         .map(|(i, row)| {
@@ -68,7 +68,7 @@ fn all_horz_alley_ps(grid: &[Vec<i8>]) -> AlleyPsSet {
         .collect()
 }
 
-fn lit_indices(xs: Vec<i8>) -> Vec<usize> {
+fn lit_indices(xs: Alley) -> Vec<usize> {
     xs.into_iter()
         .enumerate()
         .fold((vec![], 0i8), |(mut r, hi), (i, x)| {
@@ -81,13 +81,13 @@ fn lit_indices(xs: Vec<i8>) -> Vec<usize> {
         .0
 }
 
-fn all_alley_point_sets(grid: Vec<Vec<i8>>) -> Vec<AlleyPsSet> {
+fn all_ray_sets(grid: Vec<Vec<i8>>) -> Vec<Vec<Ray>> {
     let south_east = all_diag_alley_ps(&grid);
     let north_west = reverse_rows(south_east.clone());
 
     let idx = reverse_rows(meta_grid(&grid));
 
-    let south_west: AlleyPsSet = south_east
+    let south_west: Vec<Ray> = south_east
         .iter()
         .cloned()
         .map(|ps| ps.into_iter().map(|(i, j)| idx[i][j]).collect())
@@ -117,9 +117,9 @@ fn main() {
         })
         .collect();
 
-    let a_alp_sets = all_alley_point_sets(grid.clone());
+    let a_ray_sets = all_ray_sets(grid.clone());
 
-    let a_al_sets: Vec<Vec<Vec<i8>>> = a_alp_sets
+    let a_aly_sets: Vec<Vec<Vec<i8>>> = a_ray_sets
         .into_iter()
         .map(|xss| {
             xss.into_iter()
@@ -128,7 +128,7 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let a_lit_counts: Vec<usize> = a_al_sets
+    let a_lit_counts: Vec<usize> = a_aly_sets
         .into_iter()
         .map(|xss| {
             xss.into_iter()
