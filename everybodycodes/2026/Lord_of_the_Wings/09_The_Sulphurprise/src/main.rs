@@ -13,6 +13,23 @@ struct Plant {
     limit: usize,
 }
 
+impl Plant {
+    fn grow_return_fqs(self, branch: usize) -> Vec<usize> {
+        assert_eq!(self.growth % 2, 1);
+        assert!(branch < self.growth);
+        let mut result: Vec<usize> = vec![0; self.growth];
+
+        if branch + 1 == self.growth {
+            result[self.growth / 2] = 2;
+            result[1] = 1;
+        } else {
+            result[branch + 1] = 1;
+        }
+
+        result
+    }
+}
+
 fn vjoin<T: Add<Output = T>>(xs: Vec<T>, ys: Vec<T>) -> Vec<T> {
     xs.into_iter()
         .zip_longest(ys)
