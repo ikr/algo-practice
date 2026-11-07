@@ -37,11 +37,15 @@ impl Plant {
     }
 
     fn simulate_return_growth_time(self) -> usize {
+        eprintln!();
+
         successors(Some(vec![1usize]), |fqs0| {
             let fqs = self.growth_tick(fqs0.to_vec());
             let joints_count: usize = fqs.iter().sum::<usize>() - 1;
             let total_branches_length: usize = fqs.iter().enumerate().map(|(b, f)| b * f).sum();
-            (total_branches_length + joints_count < self.limit).then_some(fqs)
+            let m = total_branches_length + joints_count;
+            eprintln!("m:{m}");
+            (m < self.limit).then_some(fqs)
         })
         .count()
     }
