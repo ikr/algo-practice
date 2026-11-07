@@ -1,11 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T> constexpr int inof(const T x) {
-    return static_cast<int>(x);
-}
-
-template <typename T> constexpr int sz(const T &xs) { return inof(xs.size()); }
+using pii = pair<int, int>;
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
@@ -25,19 +21,31 @@ int main() {
         backup_indices[a - 1].push_back(b - 1);
     }
 
-    vector<int> idx(n);
-    ranges::iota(idx, 0);
+    set<pii> pq;
+    for (int i = 0; i < n; ++i) {
+        pq.emplace(-votes[i], i);
+    }
 
     for (int i0 = 0; i0 != n; ++i0) {
         const auto origninal_i0_votes = votes[i0];
-        votes[i0] = -1;
+        pq.erase(pii{-origninal_i0_votes, i0});
 
-        votes[i0] = origninal_i0_votes;
+        for (const auto j : backup_indices[i0]) {
+            pq.erase(pii{-votes[j], j});
+            votes[j] += 1;
+            pq.emplace(-votes[j], j);
+        }
+
+        cout << cbegin(pq)->second + 1 << '\n';
+
+        for (const auto j : backup_indices[i0]) {
+            pq.erase(pii{-votes[j], j});
+            votes[j] -= 1;
+            pq.emplace(-votes[j], j);
+        }
+
+        pq.emplace(-origninal_i0_votes, i0);
     }
-
-    stable_sort(begin(idx), end(idx), [&votes](const int i, const int j) {
-        return votes[i] > votes[j];
-    });
 
     return 0;
 }
