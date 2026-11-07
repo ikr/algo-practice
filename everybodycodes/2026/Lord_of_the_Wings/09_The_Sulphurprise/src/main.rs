@@ -22,7 +22,7 @@ impl Plant {
 
         if branch + 1 == self.growth {
             result[self.growth / 2] = 2;
-            result[1] = 1;
+            result[1] += 1;
         } else {
             result[branch + 1] = 1;
         }
