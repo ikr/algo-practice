@@ -1,32 +1,28 @@
-use itertools::{
-    EitherOrBoth::{Both, Left, Right},
-    Itertools,
-};
+use itertools::Itertools;
 use std::{
+    collections::BTreeMap,
     io::{BufRead, stdin},
-    ops::{Add, Mul},
+    ops::{AddAssign, Mul},
 };
 
-fn vmerge<T: Add<Output = T>>(xs: Vec<T>, ys: Vec<T>) -> Vec<T> {
-    xs.into_iter()
-        .zip_longest(ys)
-        .map(|xy| match xy {
-            Both(x, y) => x + y,
-            Left(a) | Right(a) => a,
-        })
-        .collect()
+type Freqs = BTreeMap<usize, usize>;
+
+fn mmerge<T: AddAssign + Copy + Ord>(xs: BTreeMap<T, T>, ys: BTreeMap<T, T>) -> BTreeMap<T, T> {
+    xs.into_iter().fold(ys, |mut agg, (i, x)| {
+        agg.entry(i).and_modify(|y| *y += x).or_insert(x);
+        agg
+    })
 }
 
-fn vscale<T: Mul<Output = T> + Copy>(xs: Vec<T>, k: T) -> Vec<T> {
-    xs.into_iter().map(|x| x * k).collect()
+fn mscale<T: Mul<Output = T> + Copy + Ord>(xs: BTreeMap<T, T>, k: T) -> BTreeMap<T, T> {
+    xs.into_iter().map(|(i, x)| (i, x * k)).collect()
 }
 
-#[derive(Debug)]
 struct Plant {
     growth: usize,
     limit: usize,
-    branch_fqs: Vec<usize>,
-    leaf_fqs: Vec<usize>,
+    branch_fqs: Freqs,
+    leaf_fqs: Freqs,
 }
 
 impl Plant {
@@ -36,67 +32,66 @@ impl Plant {
         Self {
             growth,
             limit,
-            branch_fqs: vec![],
-            leaf_fqs: vec![1],
+            branch_fqs: BTreeMap::new(),
+            leaf_fqs: BTreeMap::from([(0, 1)]),
         }
     }
 
-    fn growth_tick_leaf_return_fqs(&self, leaf: usize) -> (Vec<usize>, Vec<usize>) {
+    fn growth_tick_leaf_return_fqs(&self, leaf: usize) -> (Freqs, Freqs) {
         assert!(leaf < self.growth);
 
-        let mut branch_fqs: Vec<usize> = vec![0; self.growth];
-        let mut leaf_fqs: Vec<usize> = vec![0; self.growth];
+        let mut branch_fqs = Freqs::new();
+        let mut leaf_fqs = Freqs::new();
 
         if leaf + 1 == self.growth {
-            branch_fqs[self.growth / 2] = 1;
-            leaf_fqs[self.growth / 2] = 1;
-            leaf_fqs[1] += 1;
+            branch_fqs.insert(self.growth / 2, 1);
+            leaf_fqs.insert(self.growth / 2, 1);
+            leaf_fqs.entry(1).and_modify(|f| *f += 1).or_insert(1);
         } else {
-            leaf_fqs[leaf + 1] = 1;
+            leaf_fqs.insert(leaf + 1, 1);
         }
 
         (branch_fqs, leaf_fqs)
     }
 
-    fn growth_tick_branch_return_fqs(&self, branch: usize) -> (Vec<usize>, Vec<usize>) {
+    fn growth_tick_branch_return_fqs(&self, branch: usize) -> (Freqs, Freqs) {
         assert!(branch < self.growth);
 
-        let mut branch_fqs: Vec<usize> = vec![0; self.growth];
-        let mut leaf_fqs: Vec<usize> = vec![0; self.growth];
+        let mut branch_fqs = Freqs::new();
+        let mut leaf_fqs = Freqs::new();
 
         if branch + 1 == self.growth {
-            branch_fqs[self.growth / 2] = 2;
-            leaf_fqs[1] = 1;
+            branch_fqs.insert(self.growth / 2, 2);
+            leaf_fqs.insert(1, 1);
         } else {
-            branch_fqs[branch + 1] = 1;
+            branch_fqs.insert(branch + 1, 1);
         }
 
         (branch_fqs, leaf_fqs)
     }
 
     fn growth_tick(&mut self) {
-        let leaf_branch_fqs: Vec<usize>;
+        let leaf_branch_fqs: Freqs;
         (leaf_branch_fqs, self.leaf_fqs) =
             self.leaf_fqs
                 .iter()
-                .enumerate()
-                .fold((vec![], vec![]), |(bfqs, lfqs), (l, &f)| {
+                .fold((Freqs::new(), Freqs::new()), |(bfqs, lfqs), (&l, &f)| {
                     let (new_bfqs, new_lfqs) = self.growth_tick_leaf_return_fqs(l);
 
                     (
-                        vmerge(bfqs, vscale(new_bfqs, f)),
-                        vmerge(lfqs, vscale(new_lfqs, f)),
+                        mmerge(bfqs, mscale(new_bfqs, f)),
+                        mmerge(lfqs, mscale(new_lfqs, f)),
                     )
                 });
 
-        (self.branch_fqs, self.leaf_fqs) = self.branch_fqs.iter().enumerate().fold(
+        (self.branch_fqs, self.leaf_fqs) = self.branch_fqs.iter().fold(
             (leaf_branch_fqs, self.leaf_fqs.clone()),
-            |(bfqs, lfqs), (b, &f)| {
+            |(bfqs, lfqs), (&b, &f)| {
                 let (new_bfqs, new_lfqs) = self.growth_tick_branch_return_fqs(b);
 
                 (
-                    vmerge(bfqs, vscale(new_bfqs, f)),
-                    vmerge(lfqs, vscale(new_lfqs, f)),
+                    mmerge(bfqs, mscale(new_bfqs, f)),
+                    mmerge(lfqs, mscale(new_lfqs, f)),
                 )
             },
         )
@@ -116,7 +111,7 @@ impl Plant {
     }
 
     fn leaf_num(&self) -> usize {
-        self.leaf_fqs.iter().copied().sum()
+        self.leaf_fqs.values().sum()
     }
 }
 
