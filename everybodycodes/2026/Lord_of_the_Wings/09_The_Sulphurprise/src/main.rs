@@ -65,21 +65,25 @@ impl Plant {
         (branch_fqs, leaf_fqs, joints)
     }
 
-    fn growth_tick_branch_return_fqs_and_joints(&self, branch: usize) -> (Vec<usize>, usize) {
+    fn growth_tick_branch_return_fqs_and_joints(
+        &self,
+        branch: usize,
+    ) -> (Vec<usize>, Vec<usize>, usize) {
         assert!(branch < self.growth);
 
-        let mut fqs: Vec<usize> = vec![0; self.growth];
+        let mut branch_fqs: Vec<usize> = vec![0; self.growth];
+        let mut leaf_fqs: Vec<usize> = vec![0; self.growth];
         let mut joints = 0;
 
         if branch + 1 == self.growth {
-            fqs[self.growth / 2] = 2;
-            fqs[1] += 1;
+            branch_fqs[self.growth / 2] = 2;
+            leaf_fqs[1] = 1;
             joints = 1;
         } else {
-            fqs[branch + 1] = 1;
+            branch_fqs[branch + 1] = 1;
         }
 
-        (fqs, joints)
+        (branch_fqs, leaf_fqs, joints)
     }
 
     fn growth_tick(&mut self) {
@@ -98,22 +102,27 @@ impl Plant {
             },
         );
 
-        (self.branch_fqs, self.joints) = self.branch_fqs.iter().enumerate().fold(
-            (leaf_branch_fqs, self.joints),
-            |(fqs, joints), (b, &f)| {
-                let (new_fqs, new_joints) = self.growth_tick_branch_return_fqs_and_joints(b);
+        (self.branch_fqs, self.leaf_fqs, self.joints) = self.branch_fqs.iter().enumerate().fold(
+            (leaf_branch_fqs, self.leaf_fqs.clone(), self.joints),
+            |(bfqs, lfqs, joints), (b, &f)| {
+                let (new_bfqs, new_lfqs, new_joints) =
+                    self.growth_tick_branch_return_fqs_and_joints(b);
 
-                (vjoin(fqs, vscale(new_fqs, f)), joints + new_joints * f)
+                (
+                    vjoin(bfqs, vscale(new_bfqs, f)),
+                    vjoin(lfqs, vscale(new_lfqs, f)),
+                    joints + new_joints * f,
+                )
             },
         )
     }
 
     fn simulate_return_growth_time(&mut self) -> usize {
-        eprintln!("t:0 {self:?}");
+        //eprintln!("t:0 {self:?}");
 
         for t in 1..100_000 {
             self.growth_tick();
-            eprintln!("t:{t} {self:?}");
+            //eprintln!("t:{t} {self:?}");
 
             if self.leaf_fqs.iter().copied().sum::<usize>() >= self.limit {
                 return t;
