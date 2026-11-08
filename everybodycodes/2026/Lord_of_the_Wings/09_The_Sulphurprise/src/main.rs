@@ -2,7 +2,7 @@ use itertools::Itertools;
 use std::{
     collections::BTreeMap,
     io::{BufRead, stdin},
-    ops::{AddAssign, Mul},
+    ops::{AddAssign, MulAssign},
 };
 
 type Freqs = BTreeMap<usize, usize>;
@@ -14,8 +14,11 @@ fn mmerge<T: AddAssign + Copy + Ord>(xs: BTreeMap<T, T>, ys: BTreeMap<T, T>) -> 
     })
 }
 
-fn mscale<T: Mul<Output = T> + Copy + Ord>(xs: BTreeMap<T, T>, k: T) -> BTreeMap<T, T> {
-    xs.into_iter().map(|(i, x)| (i, x * k)).collect()
+fn mscale<T: MulAssign + Copy + Ord>(mut xs: BTreeMap<T, T>, k: T) -> BTreeMap<T, T> {
+    for x in xs.values_mut() {
+        *x *= k;
+    }
+    xs
 }
 
 struct Plant {
