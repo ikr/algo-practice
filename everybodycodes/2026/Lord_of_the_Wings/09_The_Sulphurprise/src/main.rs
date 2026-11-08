@@ -103,15 +103,20 @@ impl Plant {
     }
 
     fn simulate_return_growth_time(&mut self) -> usize {
-        for t in 1..100_000 {
+        for t in 1..1_000_000 {
             self.growth_tick();
 
-            if self.leaf_fqs.iter().copied().sum::<usize>() >= self.limit {
+            if self.leaf_num() >= self.limit {
+                eprint!(".");
                 return t;
             }
         }
 
         unreachable!()
+    }
+
+    fn leaf_num(&self) -> usize {
+        self.leaf_fqs.iter().copied().sum()
     }
 }
 
@@ -137,6 +142,6 @@ fn main() {
         .map(|mut p| p.simulate_return_growth_time())
         .collect();
 
-    eprintln!("{result:?}");
+    eprintln!("\n{result:?}");
     println!("{}", result.into_iter().sum::<usize>());
 }
