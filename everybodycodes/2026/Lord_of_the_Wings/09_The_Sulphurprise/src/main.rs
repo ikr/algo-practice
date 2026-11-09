@@ -2,7 +2,7 @@ use itertools::Itertools;
 use std::{
     collections::BTreeMap,
     io::{BufRead, stdin},
-    ops::{AddAssign, MulAssign},
+    ops::{Add, AddAssign, MulAssign},
 };
 
 type Freqs = BTreeMap<usize, usize>;
@@ -21,17 +21,18 @@ fn mscale<K: Ord, V: MulAssign + Copy>(mut xs: BTreeMap<K, V>, factor: V) -> BTr
     xs
 }
 
-fn mbump<K: Ord, V: AddAssign + Copy>(mut xs: BTreeMap<K, V>, delta: V) -> BTreeMap<K, V> {
-    for x in xs.values_mut() {
-        *x += delta;
-    }
-    xs
+fn mbump<K: Ord + Add<Output = K> + Copy, V: Copy>(
+    xs: &BTreeMap<K, V>,
+    delta: K,
+) -> BTreeMap<K, V> {
+    xs.iter().map(|(&k, &v)| (k + delta, v)).collect()
 }
 
 fn max_key<K: Copy + Default + Ord, V>(xs: &BTreeMap<K, V>) -> K {
     xs.last_key_value().map(|(k, _)| *k).unwrap_or_default()
 }
 
+#[derive(Debug)]
 struct Plant {
     growth: usize,
     limit: usize,
@@ -117,21 +118,36 @@ impl Plant {
 
     fn idling_time(&self) -> usize {
         let hi = max_key(&self.leaf_fqs).max(max_key(&self.branch_fqs));
-        assert!(hi < self.limit);
-        self.limit - hi - 1
+        assert!(hi < self.growth);
+        self.growth - hi - 1
     }
 
     fn simulate_return_growth_time(&mut self) -> usize {
-        for t in 1..1_000_000 {
-            self.growth_tick();
+        let mut t = 1;
 
-            if self.leaf_num() >= self.limit {
-                eprint!(".");
-                return t;
-            }
+        if self.leaf_num() >= self.limit {
+            eprint!(".");
+            return t;
         }
 
-        unreachable!()
+        loop {
+            let it = self.idling_time();
+
+            if it == 0 {
+                self.growth_tick();
+
+                if self.leaf_num() >= self.limit {
+                    eprint!(".");
+                    return t;
+                }
+
+                t += 1;
+            } else {
+                self.branch_fqs = mbump(&self.branch_fqs, it);
+                self.leaf_fqs = mbump(&self.leaf_fqs, it);
+                t += it;
+            }
+        }
     }
 }
 
