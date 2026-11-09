@@ -1,9 +1,10 @@
+use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet},
     io::{BufRead, stdin},
 };
 
-use itertools::Itertools;
+const GHOST_HPS: usize = 10_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i32, i32);
@@ -70,7 +71,7 @@ fn main() {
     let width = grid[0].len();
 
     let (walls, mut ghosts) = (0..height).cartesian_product(0..width).fold(
-        (HashSet::<Crd>::new(), Vec::<(Crd, Dir)>::new()),
+        (HashSet::<Crd>::new(), Vec::<(Crd, Dir, usize)>::new()),
         |(mut ws, mut gs), (i, j)| {
             let crd = Crd::from_grid(i, j);
 
@@ -78,10 +79,10 @@ fn main() {
                 '#' => {
                     ws.insert(crd);
                 }
-                '^' => gs.push((crd, Dir::N)),
-                '>' => gs.push((crd, Dir::E)),
-                'v' => gs.push((crd, Dir::S)),
-                '<' => gs.push((crd, Dir::W)),
+                '^' => gs.push((crd, Dir::N, GHOST_HPS)),
+                '>' => gs.push((crd, Dir::E, GHOST_HPS)),
+                'v' => gs.push((crd, Dir::S, GHOST_HPS)),
+                '<' => gs.push((crd, Dir::W, GHOST_HPS)),
                 '.' => {}
                 _ => unreachable!(),
             };
@@ -90,39 +91,41 @@ fn main() {
         },
     );
 
-    let mut collisions: usize = 0;
-
-    for _ in 0..10 {
+    for t in 1..=1_000_000 {
         for g in ghosts.iter_mut() {
-            let (crd0, dir0) = *g;
+            let (crd0, dir0, hp0) = *g;
             let crd1 = crd0 + dir0.delta();
 
             *g = if walls.contains(&crd1) {
-                collisions += 1;
-                (crd0, dir0.turn_clockwise())
+                (crd0, dir0.turn_clockwise(), hp0 - 1)
             } else {
-                (crd1, dir0)
+                (crd1, dir0, hp0)
             }
         }
 
+        ghosts.retain(|(_, _, hp)| *hp != 0);
+
         let fqs: HashMap<Crd, usize> = ghosts
             .iter()
-            .map(|&(crd, _)| crd)
+            .map(|&(crd, _, _)| crd)
             .counts()
             .into_iter()
             .filter(|&(_, f)| f > 1)
             .collect();
 
-        collisions += fqs.values().sum::<usize>();
-
         for g in ghosts.iter_mut() {
-            let (crd0, dir0) = *g;
+            let (crd0, dir0, hp0) = *g;
 
             if fqs.contains_key(&crd0) {
-                *g = (crd0, dir0.reverse())
+                *g = (crd0, dir0.reverse(), hp0 - 1);
             }
         }
-    }
 
-    println!("{collisions}");
+        ghosts.retain(|(_, _, hp)| *hp != 0);
+
+        if ghosts.is_empty() {
+            println!("{t}");
+            break;
+        }
+    }
 }
