@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     io::{BufRead, stdin},
 };
 
@@ -69,18 +69,20 @@ fn main() {
     let height = grid.len();
     let width = grid[0].len();
 
-    let (walls, ghosts) = (0..height).cartesian_product(0..width).fold(
-        (HashSet::<Crd>::new(), HashSet::<(Crd, Dir)>::new()),
+    let (walls, mut ghosts) = (0..height).cartesian_product(0..width).fold(
+        (HashSet::<Crd>::new(), Vec::<(Crd, Dir)>::new()),
         |(mut ws, mut gs), (i, j)| {
             let crd = Crd::from_grid(i, j);
 
             match grid[i][j] {
-                '#' => ws.insert(crd),
-                '^' => gs.insert((crd, Dir::N)),
-                '>' => gs.insert((crd, Dir::E)),
-                'v' => gs.insert((crd, Dir::S)),
-                '<' => gs.insert((crd, Dir::W)),
-                '.' => false,
+                '#' => {
+                    ws.insert(crd);
+                }
+                '^' => gs.push((crd, Dir::N)),
+                '>' => gs.push((crd, Dir::E)),
+                'v' => gs.push((crd, Dir::S)),
+                '<' => gs.push((crd, Dir::W)),
+                '.' => {}
                 _ => unreachable!(),
             };
 
@@ -88,5 +90,39 @@ fn main() {
         },
     );
 
-    eprintln!("{ghosts:?}");
+    let mut collisions: usize = 0;
+
+    for _ in 0..10 {
+        for g in ghosts.iter_mut() {
+            let (crd0, dir0) = *g;
+            let crd1 = crd0 + dir0.delta();
+
+            *g = if walls.contains(&crd1) {
+                collisions += 1;
+                (crd0, dir0.turn_clockwise())
+            } else {
+                (crd1, dir0)
+            }
+        }
+
+        let fqs: HashMap<Crd, usize> = ghosts
+            .iter()
+            .map(|&(crd, _)| crd)
+            .counts()
+            .into_iter()
+            .filter(|&(_, f)| f > 1)
+            .collect();
+
+        collisions += fqs.values().sum::<usize>();
+
+        for g in ghosts.iter_mut() {
+            let (crd0, dir0) = *g;
+
+            if fqs.contains_key(&crd0) {
+                *g = (crd0, dir0.reverse())
+            }
+        }
+    }
+
+    println!("{collisions}");
 }
