@@ -118,17 +118,12 @@ impl Plant {
 
     fn idling_time(&self) -> usize {
         let hi = max_key(&self.leaf_fqs).max(max_key(&self.branch_fqs));
-        assert!(hi < self.growth);
-        self.growth - hi - 1
+        assert!(hi < self.growth.min(self.limit));
+        self.growth.min(self.limit) - hi - 1
     }
 
     fn simulate_return_growth_time(&mut self) -> usize {
         let mut t = 1;
-
-        if self.leaf_num() >= self.limit {
-            eprint!(".");
-            return t;
-        }
 
         loop {
             let it = self.idling_time();
@@ -137,7 +132,6 @@ impl Plant {
                 self.growth_tick();
 
                 if self.leaf_num() >= self.limit {
-                    eprint!(".");
                     return t;
                 }
 
@@ -173,6 +167,5 @@ fn main() {
         .map(|mut p| p.simulate_return_growth_time())
         .collect();
 
-    eprintln!("\n{result:?}");
     println!("{}", result.into_iter().sum::<usize>());
 }
