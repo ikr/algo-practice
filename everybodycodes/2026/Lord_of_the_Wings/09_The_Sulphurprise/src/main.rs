@@ -7,18 +7,29 @@ use std::{
 
 type Freqs = BTreeMap<usize, usize>;
 
-fn mmerge<T: AddAssign + Copy + Ord>(xs: BTreeMap<T, T>, ys: BTreeMap<T, T>) -> BTreeMap<T, T> {
+fn mmerge<K: Ord, V: AddAssign + Copy>(xs: BTreeMap<K, V>, ys: BTreeMap<K, V>) -> BTreeMap<K, V> {
     xs.into_iter().fold(ys, |mut agg, (i, x)| {
         agg.entry(i).and_modify(|y| *y += x).or_insert(x);
         agg
     })
 }
 
-fn mscale<T: MulAssign + Copy + Ord>(mut xs: BTreeMap<T, T>, k: T) -> BTreeMap<T, T> {
+fn mscale<K: Ord, V: MulAssign + Copy>(mut xs: BTreeMap<K, V>, factor: V) -> BTreeMap<K, V> {
     for x in xs.values_mut() {
-        *x *= k;
+        *x *= factor;
     }
     xs
+}
+
+fn mbump<K: Ord, V: AddAssign + Copy>(mut xs: BTreeMap<K, V>, delta: V) -> BTreeMap<K, V> {
+    for x in xs.values_mut() {
+        *x += delta;
+    }
+    xs
+}
+
+fn max_key<K: Copy + Default + Ord, V>(xs: &BTreeMap<K, V>) -> K {
+    xs.last_key_value().map(|(k, _)| *k).unwrap_or_default()
 }
 
 struct Plant {
@@ -100,6 +111,16 @@ impl Plant {
         )
     }
 
+    fn leaf_num(&self) -> usize {
+        self.leaf_fqs.values().sum()
+    }
+
+    fn idling_time(&self) -> usize {
+        let hi = max_key(&self.leaf_fqs).max(max_key(&self.branch_fqs));
+        assert!(hi < self.limit);
+        self.limit - hi - 1
+    }
+
     fn simulate_return_growth_time(&mut self) -> usize {
         for t in 1..1_000_000 {
             self.growth_tick();
@@ -111,10 +132,6 @@ impl Plant {
         }
 
         unreachable!()
-    }
-
-    fn leaf_num(&self) -> usize {
-        self.leaf_fqs.values().sum()
     }
 }
 
