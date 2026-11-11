@@ -7,7 +7,7 @@ use std::{
 const GHOST_HPS: usize = 10_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Crd(i32, i32);
+struct Crd(i8, i8);
 
 impl std::ops::Add<Crd> for Crd {
     type Output = Crd;
@@ -19,7 +19,7 @@ impl std::ops::Add<Crd> for Crd {
 
 impl Crd {
     fn from_grid(i: usize, j: usize) -> Crd {
-        Crd(i as i32, j as i32)
+        Crd(i as i8, j as i8)
     }
 }
 
