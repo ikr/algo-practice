@@ -144,25 +144,13 @@ fn exhaust_the_weakest_return_rounds(
 
     rounds += stabilization_allowance;
 
-    if health_state(ghosts).into_iter().min().unwrap() < stabilization_allowance {
-        for t in 1..=stabilization_allowance * 4 {
-            play_one_round(walls, ghosts);
-
-            if ghosts.len() != n0 {
-                return rounds + t;
-            }
-        }
-
-        unreachable!()
-    }
-
     let (period, hp_deltas) = play_till_repeat_return_rounds_and_hp_deltas(walls, ghosts);
     rounds += period;
 
     let q: usize = health_state(ghosts)
         .into_iter()
         .enumerate()
-        .map(|(i, hp)| hp / hp_deltas[i] - 1)
+        .map(|(i, hp)| hp / hp_deltas[i])
         .min()
         .unwrap();
 
@@ -172,7 +160,7 @@ fn exhaust_the_weakest_return_rounds(
 
     rounds += q * period;
 
-    for t in 1..=stabilization_allowance * 4 {
+    for t in 1..=stabilization_allowance * 2 {
         play_one_round(walls, ghosts);
 
         if ghosts.len() != n0 {
