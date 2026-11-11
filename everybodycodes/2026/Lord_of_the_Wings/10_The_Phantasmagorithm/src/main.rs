@@ -4,7 +4,7 @@ use std::{
     io::{BufRead, stdin},
 };
 
-const GHOST_HPS: usize = 10_000;
+const GHOST_HPS: usize = 1_000_000_000_000;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
@@ -93,6 +93,38 @@ fn play_one_round(walls: &HashSet<Crd>, ghosts: &mut Vec<(Crd, Dir, usize)>) {
     ghosts.retain(|(_, _, hp)| *hp != 0);
 }
 
+fn spacial_state(ghosts: &[(Crd, Dir, usize)]) -> Vec<(Crd, Dir)> {
+    ghosts.iter().map(|(crd, dir, _)| (*crd, *dir)).collect()
+}
+
+fn health_state(ghosts: &[(Crd, Dir, usize)]) -> Vec<usize> {
+    ghosts.iter().map(|(_, _, hp)| *hp).collect()
+}
+
+fn play_till_repeat_return_rounds_and_hp_deltas(
+    walls: &HashSet<Crd>,
+    ghosts: &mut Vec<(Crd, Dir, usize)>,
+) -> (usize, Vec<usize>) {
+    let ss = spacial_state(ghosts);
+    let hs = health_state(ghosts);
+
+    for t in 1..=1_000_000 {
+        play_one_round(walls, ghosts);
+
+        if spacial_state(ghosts) == ss {
+            let hp_deltas: Vec<usize> = health_state(ghosts)
+                .into_iter()
+                .enumerate()
+                .map(|(i, hp)| hs[i] - hp)
+                .collect();
+
+            return (t, hp_deltas);
+        }
+    }
+
+    unreachable!()
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = stdin()
         .lock()
@@ -124,12 +156,10 @@ fn main() {
         },
     );
 
-    for t in 1..=1_000_000 {
+    for t in 1..=10_000 {
         play_one_round(&walls, &mut ghosts);
-
-        if ghosts.is_empty() {
-            println!("{t}");
-            break;
-        }
     }
+
+    let (period, hp_deltas) = play_till_repeat_return_rounds_and_hp_deltas(&walls, &mut ghosts);
+    eprintln!("period:{period} {hp_deltas:?}");
 }
