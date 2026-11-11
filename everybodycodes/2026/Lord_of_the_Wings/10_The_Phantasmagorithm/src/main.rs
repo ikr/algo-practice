@@ -125,6 +125,64 @@ fn play_till_repeat_return_rounds_and_hp_deltas(
     unreachable!()
 }
 
+fn exhaust_the_weakest_return_rounds(
+    walls: &HashSet<Crd>,
+    ghosts: &mut Vec<(Crd, Dir, usize)>,
+) -> usize {
+    let n0 = ghosts.len();
+    let mut rounds: usize = 0;
+    let stabilization_allowance: usize = 4096;
+
+    for t in 1..=stabilization_allowance {
+        play_one_round(walls, ghosts);
+        assert!(ghosts.len() <= n0);
+
+        if ghosts.len() != n0 {
+            return t;
+        }
+    }
+
+    rounds += stabilization_allowance;
+
+    if health_state(ghosts).into_iter().min().unwrap() < stabilization_allowance {
+        for t in 1..=stabilization_allowance * 4 {
+            play_one_round(walls, ghosts);
+
+            if ghosts.len() != n0 {
+                return rounds + t;
+            }
+        }
+
+        unreachable!()
+    }
+
+    let (period, hp_deltas) = play_till_repeat_return_rounds_and_hp_deltas(walls, ghosts);
+    rounds += period;
+
+    let q: usize = health_state(ghosts)
+        .into_iter()
+        .enumerate()
+        .map(|(i, hp)| hp / hp_deltas[i] - 1)
+        .min()
+        .unwrap();
+
+    for (i, ghost) in ghosts.iter_mut().enumerate() {
+        ghost.2 -= hp_deltas[i] * q;
+    }
+
+    rounds += q * period;
+
+    for t in 1..=stabilization_allowance * 4 {
+        play_one_round(walls, ghosts);
+
+        if ghosts.len() != n0 {
+            return rounds + t;
+        }
+    }
+
+    unreachable!()
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = stdin()
         .lock()
@@ -156,10 +214,11 @@ fn main() {
         },
     );
 
-    for t in 1..=10_000 {
-        play_one_round(&walls, &mut ghosts);
+    let mut rounds: usize = 0;
+
+    while !ghosts.is_empty() {
+        rounds += exhaust_the_weakest_return_rounds(&walls, &mut ghosts);
     }
 
-    let (period, hp_deltas) = play_till_repeat_return_rounds_and_hp_deltas(&walls, &mut ghosts);
-    eprintln!("period:{period} {hp_deltas:?}");
+    println!("{rounds}");
 }
