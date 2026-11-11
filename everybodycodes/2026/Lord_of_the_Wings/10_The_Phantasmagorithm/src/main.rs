@@ -60,6 +60,39 @@ impl Dir {
     }
 }
 
+fn play_one_round(walls: &HashSet<Crd>, ghosts: &mut Vec<(Crd, Dir, usize)>) {
+    for g in ghosts.iter_mut() {
+        let (crd0, dir0, hp0) = *g;
+        let crd1 = crd0 + dir0.delta();
+
+        *g = if walls.contains(&crd1) {
+            (crd0, dir0.turn_clockwise(), hp0 - 1)
+        } else {
+            (crd1, dir0, hp0)
+        }
+    }
+
+    ghosts.retain(|(_, _, hp)| *hp != 0);
+
+    let fqs: HashMap<Crd, usize> = ghosts
+        .iter()
+        .map(|&(crd, _, _)| crd)
+        .counts()
+        .into_iter()
+        .filter(|&(_, f)| f > 1)
+        .collect();
+
+    for g in ghosts.iter_mut() {
+        let (crd0, dir0, hp0) = *g;
+
+        if fqs.contains_key(&crd0) {
+            *g = (crd0, dir0.reverse(), hp0 - 1);
+        }
+    }
+
+    ghosts.retain(|(_, _, hp)| *hp != 0);
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = stdin()
         .lock()
@@ -92,36 +125,7 @@ fn main() {
     );
 
     for t in 1..=1_000_000 {
-        for g in ghosts.iter_mut() {
-            let (crd0, dir0, hp0) = *g;
-            let crd1 = crd0 + dir0.delta();
-
-            *g = if walls.contains(&crd1) {
-                (crd0, dir0.turn_clockwise(), hp0 - 1)
-            } else {
-                (crd1, dir0, hp0)
-            }
-        }
-
-        ghosts.retain(|(_, _, hp)| *hp != 0);
-
-        let fqs: HashMap<Crd, usize> = ghosts
-            .iter()
-            .map(|&(crd, _, _)| crd)
-            .counts()
-            .into_iter()
-            .filter(|&(_, f)| f > 1)
-            .collect();
-
-        for g in ghosts.iter_mut() {
-            let (crd0, dir0, hp0) = *g;
-
-            if fqs.contains_key(&crd0) {
-                *g = (crd0, dir0.reverse(), hp0 - 1);
-            }
-        }
-
-        ghosts.retain(|(_, _, hp)| *hp != 0);
+        play_one_round(&walls, &mut ghosts);
 
         if ghosts.is_empty() {
             println!("{t}");
