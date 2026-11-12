@@ -26,6 +26,7 @@ fn solve(xs: Vec<usize>) -> usize {
 
     let mut seq: Vec<usize> = (0..n / 2).into_iter().collect();
     seq.sort_by_key(|&i| front[i].max(back[i]));
+    seq.reverse();
 
     let mut levels: Vec<usize> = (0..26).into_iter().collect();
     let mut result = 0;
