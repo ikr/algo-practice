@@ -1,7 +1,5 @@
-use std::collections::VecDeque;
-
-use itertools::Itertools;
 use proconio::{input, is_stdin_empty, marker::Usize1};
+use std::collections::VecDeque;
 
 const INF: usize = 1_000_000_007;
 
@@ -37,6 +35,30 @@ fn graph_strain(g: &[Vec<usize>]) -> usize {
     d_sums.into_iter().sum()
 }
 
+fn all_matching_variants<T: Copy + PartialEq>(xs: Vec<T>) -> Vec<Vec<(T, T)>> {
+    assert_eq!(xs.len() % 2, 0);
+
+    if let [a, b] = xs[..] {
+        return vec![vec![(a, b)]];
+    }
+
+    let mut result: Vec<Vec<(T, T)>> = vec![];
+    let a = xs[0];
+
+    for &b in &xs[1..] {
+        let ys: Vec<T> = xs[1..].iter().copied().filter(|&x| x != b).collect();
+        let mut sub = all_matching_variants(ys);
+
+        for matching in &mut sub {
+            matching.push((a, b));
+        }
+
+        result.extend(sub);
+    }
+
+    result
+}
+
 fn main() {
     input! {
         _: String,
@@ -64,13 +86,23 @@ fn main() {
     let ring = graph_from_edges(n, &ring_edges);
     let ring_strain = graph_strain(&ring);
     let full_graph = graph_from_edges(n, &ring_edges.into_iter().chain(edges).collect::<Vec<_>>());
+    let tuning_offset = n / 8;
 
     let lo: usize = (0..n)
-        .array_combinations()
-        .map(|[u, v]| {
+        .map(|u| {
+            (0..8)
+                .map(|i| (u + i * tuning_offset) % n)
+                .collect::<Vec<usize>>()
+        })
+        .flat_map(all_matching_variants)
+        .map(|edges| {
             let mut g = full_graph.clone();
-            g[u].push(v);
-            g[v].push(u);
+
+            for (u, v) in edges {
+                g[u].push(v);
+                g[v].push(u);
+            }
+
             graph_strain(&g)
         })
         .min()
