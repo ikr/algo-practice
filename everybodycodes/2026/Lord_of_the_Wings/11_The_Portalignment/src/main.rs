@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
-use proconio::{input, marker::Usize1};
+use itertools::Itertools;
+use proconio::{input, is_stdin_empty, marker::Usize1};
 
 const INF: usize = 1_000_000_007;
 
@@ -29,27 +30,51 @@ fn graph_from_edges(n: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
     })
 }
 
+fn graph_strain(g: &[Vec<usize>]) -> usize {
+    let d_sums: Vec<usize> = (0..g.len())
+        .map(|u| all_ditstances(g, u).into_iter().sum::<usize>())
+        .collect();
+    d_sums.into_iter().sum()
+}
+
 fn main() {
     input! {
         _: String,
         n: usize,
-        edges: [(Usize1, Usize1); 2]
     }
 
-    let ring_edges: Vec<(usize, usize)> = (0..n).map(|u| (u, (u + 1) % n)).collect();
-    let ring = graph_from_edges(n, &ring_edges);
-    let full_graph = graph_from_edges(n, &ring_edges.into_iter().chain(edges).collect::<Vec<_>>());
+    let mut edges: Vec<(usize, usize)> = vec![];
+    while !is_stdin_empty() {
+        input! {
+            u: Usize1,
+            v: Usize1,
+        }
 
-    let ab: Vec<usize> = [ring, full_graph]
-        .into_iter()
-        .map(|g| {
-            let d_sums: Vec<usize> = (0..n)
-                .map(|u| all_ditstances(&g, u).into_iter().sum::<usize>())
-                .collect();
-            d_sums.into_iter().sum()
+        edges.push((u, v));
+    }
+
+    let ring_edges: Vec<(usize, usize)> = (0..n)
+        .flat_map(|u| {
+            (1..=3)
+                .map(|delta| (u, (u + delta) % n))
+                .collect::<Vec<_>>()
         })
         .collect();
 
-    let result = ab[0] - ab[1];
-    println!("{result}");
+    let ring = graph_from_edges(n, &ring_edges);
+    let ring_strain = graph_strain(&ring);
+    let full_graph = graph_from_edges(n, &ring_edges.into_iter().chain(edges).collect::<Vec<_>>());
+
+    let lo: usize = (0..n)
+        .array_combinations()
+        .map(|[u, v]| {
+            let mut g = full_graph.clone();
+            g[u].push(v);
+            g[v].push(u);
+            graph_strain(&g)
+        })
+        .min()
+        .unwrap();
+
+    println!("{}", ring_strain - lo);
 }
