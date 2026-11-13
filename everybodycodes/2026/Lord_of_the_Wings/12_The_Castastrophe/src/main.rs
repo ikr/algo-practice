@@ -1,4 +1,8 @@
 use ac_library::Dsu;
+use itertools::{
+    Itertools,
+    MinMaxResult::{MinMax, NoElements, OneElement},
+};
 use std::io::{BufRead, stdin};
 
 fn adjacent(ij: (usize, usize)) -> Vec<(usize, usize)> {
@@ -16,15 +20,23 @@ fn adjacent(ij: (usize, usize)) -> Vec<(usize, usize)> {
     result
 }
 
-fn left_top(ps: &[(usize, usize)]) -> (usize, usize) {
-    *ps.iter().min().unwrap()
+fn top_bottom(ps: &[(usize, usize)]) -> (usize, usize) {
+    match ps.iter().map(|(ro, _)| *ro).minmax() {
+        MinMax(a, b) => (a, b),
+        OneElement(a) => (a, a),
+        NoElements => panic!(),
+    }
 }
 
-fn right_bottom(ps: &[(usize, usize)]) -> (usize, usize) {
-    *ps.iter().max().unwrap()
+fn left_right(ps: &[(usize, usize)]) -> (usize, usize) {
+    match ps.iter().map(|(_, co)| *co).minmax() {
+        MinMax(a, b) => (a, b),
+        OneElement(a) => (a, a),
+        NoElements => panic!(),
+    }
 }
 
-fn clusters(ps: &[(usize, usize)]) -> Vec<Vec<(usize, usize)>> {
+fn clusters(ps: Vec<(usize, usize)>) -> Vec<Vec<(usize, usize)>> {
     let mut dsu: Dsu = ps
         .iter()
         .enumerate()
@@ -41,6 +53,18 @@ fn clusters(ps: &[(usize, usize)]) -> Vec<Vec<(usize, usize)>> {
         .into_iter()
         .map(|group| group.into_iter().map(|i| ps[i]).collect())
         .collect()
+}
+
+fn l_cluster_ray_coverage_size(cluster: Vec<(usize, usize)>) -> usize {
+    let (top, bottom) = top_bottom(&cluster);
+    let (left, right) = left_right(&cluster);
+    let corners = [(top, left), (top, right), (bottom, right), (bottom, left)];
+
+    if let Some(i_empty_point) = corners.iter().find(|p| !cluster.contains(p)) {
+        todo!()
+    } else {
+        (bottom - top).min(right - left) + 1
+    }
 }
 
 fn main() {
@@ -60,16 +84,7 @@ fn main() {
         })
         .collect();
 
-    let cs = clusters(&magma);
-
-    let result: usize = cs
-        .into_iter()
-        .map(|ctr| {
-            let (left, top) = left_top(&ctr);
-            let (right, bottom) = right_bottom(&ctr);
-            (right - left).min(bottom - top) + 1
-        })
-        .sum();
-
+    let cs = clusters(magma);
+    let result: usize = cs.into_iter().map(l_cluster_ray_coverage_size).sum();
     println!("{result}");
 }
