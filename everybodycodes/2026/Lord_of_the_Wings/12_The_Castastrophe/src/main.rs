@@ -24,17 +24,23 @@ fn right_bottom(ps: &[(usize, usize)]) -> (usize, usize) {
     *ps.iter().max().unwrap()
 }
 
-fn clusters(ps: &[(usize, usize)]) -> Vec<Vec<usize, usize>> {
-    let n = ps.len();
-    let g: Vec<Vec<usize>> = ps
+fn clusters(ps: &[(usize, usize)]) -> Vec<Vec<(usize, usize)>> {
+    let mut dsu: Dsu = ps
         .iter()
-        .map(|&ij| {
-            adjacent(ij)
-                .into_iter()
-                .filter_map(|pq| ps.iter().position(|&uv| uv == pq))
-                .collect()
-        })
-        .collect();
+        .enumerate()
+        .fold(Dsu::new(ps.len()), |mut agg, (u, &roco)| {
+            for pq in adjacent(roco) {
+                if let Some(v) = ps.iter().position(|&xy| xy == pq) {
+                    agg.merge(u, v);
+                }
+            }
+            agg
+        });
+
+    dsu.groups()
+        .into_iter()
+        .map(|group| group.into_iter().map(|i| ps[i]).collect())
+        .collect()
 }
 
 fn main() {
@@ -54,5 +60,16 @@ fn main() {
         })
         .collect();
 
-    eprintln!("{magma:?}");
+    let cs = clusters(&magma);
+
+    let result: usize = cs
+        .into_iter()
+        .map(|ctr| {
+            let (left, top) = left_top(&ctr);
+            let (right, bottom) = right_bottom(&ctr);
+            (right - left).min(bottom - top) + 1
+        })
+        .sum();
+
+    println!("{result}");
 }
