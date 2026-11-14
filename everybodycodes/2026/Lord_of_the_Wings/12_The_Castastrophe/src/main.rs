@@ -123,15 +123,22 @@ fn tor_cluster_ray_coverage_size(cluster: &[Crd]) -> Option<i16> {
         .cartesian_product(left..right)
         .find(|&(ro, co)| !cluster.contains(&Crd(ro, co)))
         .map(|(e_ro, e_co)| {
-            let inner_space = flood_fill(&cluster, Crd(e_ro, e_co));
+            let inner_space = flood_fill(cluster, Crd(e_ro, e_co));
             let (inner_top, inner_bottom) = top_bottom(&inner_space);
             let (inner_left, inner_right) = left_right(&inner_space);
+
             let [a, b, c, d] = [
                 inner_top - top,
                 right - inner_right,
                 bottom - inner_bottom,
                 inner_left - left,
             ];
+
+            let height = bottom - top + 1;
+            let width = right - left + 1;
+            let o1 = a.min(width) + b.min(height - a - c) + c.min(width) + d.min(height - a - c);
+            let o2 = a.min(width - b - d) + b.min(height) + c.min(width - b - d) + d.min(height);
+            o1.min(o2)
         })
 }
 
