@@ -3,7 +3,10 @@ use itertools::{
     Itertools,
     MinMaxResult::{MinMax, NoElements, OneElement},
 };
-use std::io::{BufRead, stdin};
+use std::{
+    collections::VecDeque,
+    io::{BufRead, stdin},
+};
 
 #[derive(Clone, Copy, PartialEq)]
 struct Crd(i16, i16);
@@ -56,12 +59,6 @@ fn left_right(ps: &[Crd]) -> (i16, i16) {
     }
 }
 
-fn rectangular_cluster_ray_coverage_size(cluster: &[Crd]) -> i16 {
-    let (top, bottom) = top_bottom(cluster);
-    let (left, right) = left_right(cluster);
-    (bottom - top).min(right - left) + 1
-}
-
 fn l_shaped_cluster_ray_coverage_size(cluster: &[Crd]) -> Option<i16> {
     let (top, bottom) = top_bottom(cluster);
     let (left, right) = left_right(cluster);
@@ -102,6 +99,54 @@ fn l_shaped_cluster_ray_coverage_size(cluster: &[Crd]) -> Option<i16> {
         })
 }
 
+fn flood_fill(walls: &[Crd], source: Crd) -> Vec<Crd> {
+    let mut result = vec![source];
+    let mut q = VecDeque::from([source]);
+
+    while let Some(u) = q.pop_front() {
+        for v in u.adjacent() {
+            if !result.contains(&v) && !walls.contains(&v) {
+                result.push(v);
+                q.push_back(v);
+            }
+        }
+    }
+
+    result
+}
+
+fn tor_cluster_ray_coverage_size(cluster: &[Crd]) -> Option<i16> {
+    let (top, bottom) = top_bottom(cluster);
+    let (left, right) = left_right(cluster);
+
+    (top..bottom)
+        .cartesian_product(left..right)
+        .find(|&(ro, co)| !cluster.contains(&Crd(ro, co)))
+        .map(|(e_ro, e_co)| {
+            let inner_space = flood_fill(&cluster, Crd(e_ro, e_co));
+            let (inner_top, inner_bottom) = top_bottom(&inner_space);
+            let (inner_left, inner_right) = left_right(&inner_space);
+            let abcd = [
+                inner_top - top,
+                right - inner_right,
+                bottom - inner_bottom,
+                inner_left - left,
+            ];
+            assert!(abcd.iter().all(|&x| x > 0));
+
+            abcd.into_iter()
+                .sum::<i16>()
+                .min(bottom - top + 1)
+                .min(right - left + 1)
+        })
+}
+
+fn rect_cluster_ray_coverage_size(cluster: &[Crd]) -> i16 {
+    let (top, bottom) = top_bottom(cluster);
+    let (left, right) = left_right(cluster);
+    (bottom - top).min(right - left) + 1
+}
+
 fn main() {
     let grid: Vec<Vec<u8>> = stdin()
         .lock()
@@ -124,7 +169,8 @@ fn main() {
         .into_iter()
         .map(|ctr| {
             l_shaped_cluster_ray_coverage_size(&ctr)
-                .unwrap_or(rectangular_cluster_ray_coverage_size(&ctr))
+                .or_else(|| tor_cluster_ray_coverage_size(&ctr))
+                .unwrap_or_else(|| rect_cluster_ray_coverage_size(&ctr))
         })
         .sum();
     println!("{result}");
