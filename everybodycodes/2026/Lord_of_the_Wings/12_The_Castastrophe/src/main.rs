@@ -5,7 +5,7 @@ use itertools::{
 };
 use std::io::{BufRead, stdin};
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 struct Crd(i16, i16);
 
 impl Crd {
@@ -56,9 +56,15 @@ fn left_right(ps: &[Crd]) -> (i16, i16) {
     }
 }
 
-fn l_cluster_ray_coverage_size(cluster: Vec<Crd>) -> i16 {
-    let (top, bottom) = top_bottom(&cluster);
-    let (left, right) = left_right(&cluster);
+fn rectangular_cluster_ray_coverage_size(cluster: &[Crd]) -> i16 {
+    let (top, bottom) = top_bottom(cluster);
+    let (left, right) = left_right(cluster);
+    (bottom - top).min(right - left) + 1
+}
+
+fn l_shaped_cluster_ray_coverage_size(cluster: &[Crd]) -> Option<i16> {
+    let (top, bottom) = top_bottom(cluster);
+    let (left, right) = left_right(cluster);
 
     let corners = [
         Crd(top, left),
@@ -67,32 +73,33 @@ fn l_cluster_ray_coverage_size(cluster: Vec<Crd>) -> i16 {
         Crd(bottom, left),
     ];
 
-    if let Some(i_empty_point) = corners.iter().position(|p| !cluster.contains(p)) {
-        let i_opposite_point = (i_empty_point + 2) % corners.len();
-        let Crd(e_ro, e_co) = corners[i_empty_point];
-        let Crd(o_ro, o_co) = corners[i_opposite_point];
-        let dro = (o_ro - e_ro).signum();
-        let dco = (o_co - e_co).signum();
+    corners
+        .iter()
+        .position(|p| !cluster.contains(p))
+        .map(|i_empty_point| {
+            let i_opposite_point = (i_empty_point + 2) % corners.len();
+            let Crd(e_ro, e_co) = corners[i_empty_point];
+            let Crd(o_ro, o_co) = corners[i_opposite_point];
+            let dro = (o_ro - e_ro).signum();
+            let dco = (o_co - e_co).signum();
 
-        let (mut ro, mut co) = (e_ro, e_co);
+            let (mut ro, mut co) = (e_ro, e_co);
 
-        while !cluster.contains(&Crd(ro, e_co)) {
-            ro += dro;
-        }
+            while !cluster.contains(&Crd(ro, e_co)) {
+                ro += dro;
+            }
 
-        while !cluster.contains(&Crd(e_ro, co)) {
-            co += dco;
-        }
+            while !cluster.contains(&Crd(e_ro, co)) {
+                co += dco;
+            }
 
-        let inner_height: i16 = ro.abs_diff(o_ro) as i16 + 1;
-        let inner_width: i16 = co.abs_diff(o_co) as i16 + 1;
+            let inner_height: i16 = ro.abs_diff(o_ro) as i16 + 1;
+            let inner_width: i16 = co.abs_diff(o_co) as i16 + 1;
 
-        (inner_width + inner_height)
-            .min(bottom - top + 1)
-            .min(right - left + 1)
-    } else {
-        (bottom - top).min(right - left) + 1
-    }
+            (inner_width + inner_height)
+                .min(bottom - top + 1)
+                .min(right - left + 1)
+        })
 }
 
 fn main() {
@@ -113,6 +120,12 @@ fn main() {
         .collect();
 
     let cs = clusters(magma);
-    let result: i16 = cs.into_iter().map(l_cluster_ray_coverage_size).sum();
+    let result: i16 = cs
+        .into_iter()
+        .map(|ctr| {
+            l_shaped_cluster_ray_coverage_size(&ctr)
+                .unwrap_or(rectangular_cluster_ray_coverage_size(&ctr))
+        })
+        .sum();
     println!("{result}");
 }
