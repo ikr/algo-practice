@@ -133,11 +133,7 @@ fn tor_cluster_ray_coverage_size(cluster: &[Crd]) -> Option<i16> {
                 inner_left - left,
             ];
             assert!(abcd.iter().all(|&x| x > 0));
-
-            abcd.into_iter()
-                .sum::<i16>()
-                .min(bottom - top + 1)
-                .min(right - left + 1)
+            abcd.into_iter().sum::<i16>()
         })
 }
 
