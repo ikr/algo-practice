@@ -126,14 +126,12 @@ fn tor_cluster_ray_coverage_size(cluster: &[Crd]) -> Option<i16> {
             let inner_space = flood_fill(&cluster, Crd(e_ro, e_co));
             let (inner_top, inner_bottom) = top_bottom(&inner_space);
             let (inner_left, inner_right) = left_right(&inner_space);
-            let abcd = [
+            let [a, b, c, d] = [
                 inner_top - top,
                 right - inner_right,
                 bottom - inner_bottom,
                 inner_left - left,
             ];
-            assert!(abcd.iter().all(|&x| x > 0));
-            abcd.into_iter().sum::<i16>()
         })
 }
 
