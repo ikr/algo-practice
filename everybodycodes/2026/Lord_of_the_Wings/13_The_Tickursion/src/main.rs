@@ -1,3 +1,4 @@
+use num_integer::lcm;
 use proconio::input;
 
 fn decode_colon_sparated_ints(s: String) -> [i32; 3] {
@@ -32,5 +33,19 @@ fn main() {
     let directions: Vec<i32> = directions_source.split(":").map(decode_direction).collect();
     let current_values = decode_colon_sparated_ints(current_values_source);
     let moves = decode_colon_sparated_ints(moves_source);
-    eprintln!("degs:{degrees:?} dirs:{directions:?} curs:{current_values:?} movs:{moves:?}");
+
+    let m: i32 = degrees.iter().fold(1, |agg, &x| lcm(agg, x));
+    let vs: Vec<i32> = degrees
+        .into_iter()
+        .zip(directions)
+        .map(|(x, sgn)| sgn * (m / x))
+        .collect();
+
+    let xs: Vec<i32> = current_values
+        .into_iter()
+        .zip(vs.iter())
+        .map(|(a, &v)| a * v.abs())
+        .collect();
+
+    eprintln!("m:{m} vs:{vs:?} xs:{xs:?}");
 }
