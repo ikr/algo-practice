@@ -3,23 +3,21 @@ use std::io::{BufWriter, Write, stdout};
 
 fn seqs_num(xs: Vec<usize>) -> usize {
     let mut fqs: Vec<usize> = vec![0; xs.len()];
-    fqs[xs[0]] = 1;
 
-    // dp[i] is the answer when xs[i] is moved left
-    let mut dp: Vec<usize> = vec![0; xs.len()];
-    dp[0] = 1;
+    // The number of *new* sequences when xs[i] is moved left
+    let mut result: usize = 1; // One original sequence
 
     for i in 1..xs.len() {
-        dp[i] = i - 1;
+        result += i;
 
         if xs[i] == xs[i - 1] {
-            dp[i] -= fqs[xs[i]];
+            result -= fqs[xs[i]];
         }
 
-        fqs[xs[i]] += 1;
+        fqs[xs[i - 1]] += 1;
     }
 
-    dp.into_iter().sum()
+    result
 }
 
 fn main() {
