@@ -2,7 +2,7 @@ use itertools::Itertools;
 use num_integer::lcm;
 use proconio::{input, is_stdin_empty};
 
-fn decode_colon_sparated_ints(s: String) -> [i32; 3] {
+fn decode_colon_sparated_ints(s: String) -> [i64; 3] {
     s.split(':')
         .map(|a| a.parse().unwrap())
         .collect::<Vec<_>>()
@@ -10,7 +10,7 @@ fn decode_colon_sparated_ints(s: String) -> [i32; 3] {
         .unwrap()
 }
 
-fn decode_direction(s: &str) -> i32 {
+fn decode_direction(s: &str) -> i64 {
     match s {
         "CW" => 1,
         "CCW" => -1,
@@ -18,7 +18,7 @@ fn decode_direction(s: &str) -> i32 {
     }
 }
 
-fn time_to_meet_before_next_tick(m: i32, x1: i32, v1: i32, x2: i32, v2: i32) -> Option<f64> {
+fn time_to_meet_before_next_tick(m: i64, x1: i64, v1: i64, x2: i64, v2: i64) -> Option<f64> {
     if x1 == x2 || v1 == v2 {
         None
     } else {
@@ -38,20 +38,20 @@ fn time_to_meet_before_next_tick(m: i32, x1: i32, v1: i32, x2: i32, v2: i32) -> 
 }
 
 fn calubration_value(
-    degrees: [i32; 3],
-    directions: [i32; 3],
-    initial_values: [i32; 3],
-    mut moves: [i32; 3],
-) -> i32 {
+    degrees: [i64; 3],
+    directions: [i64; 3],
+    initial_values: [i64; 3],
+    mut moves: [i64; 3],
+) -> i64 {
     let n = moves.len();
-    let m: i32 = degrees.iter().fold(1, |agg, &x| lcm(agg, x));
-    let mut vs: Vec<i32> = degrees
+    let m: i64 = degrees.iter().fold(1, |agg, &x| lcm(agg, x));
+    let mut vs: Vec<i64> = degrees
         .into_iter()
         .zip(directions)
         .map(|(x, sgn)| sgn * (m / x))
         .collect();
 
-    let mut xs: Vec<i32> = initial_values
+    let mut xs: Vec<i64> = initial_values
         .into_iter()
         .zip(vs.iter())
         .map(|(a, &v)| a * v.abs())
@@ -121,7 +121,7 @@ fn main() {
 
         let degrees = decode_colon_sparated_ints(degrees_source);
 
-        let directions: [i32; 3] = directions_source
+        let directions: [i64; 3] = directions_source
             .split(":")
             .map(decode_direction)
             .collect::<Vec<_>>()
