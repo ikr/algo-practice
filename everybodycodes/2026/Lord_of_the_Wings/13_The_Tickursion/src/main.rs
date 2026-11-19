@@ -68,7 +68,6 @@ fn main() {
         .map(|(a, &v)| a * v.abs())
         .collect();
 
-    eprintln!("m:{m} vs:{vs:?} xs:{xs:?}");
     let mut result = 0;
 
     while moves.iter().any(|&k| k > 0) {
@@ -82,9 +81,15 @@ fn main() {
             xs[i] += vs[i] + m;
             xs[i] %= m;
             moves[i] = (moves[i] - 1).max(0);
+        }
 
-            if moves[i] == 0 {
-                vs[i] = 0;
+        if vs.iter().all(|&v| v != 0) && xs.iter().unique().count() == 1 {
+            result += 3;
+        } else {
+            for [i, j] in (0..n).array_combinations() {
+                if (vs[i] != 0 || vs[j] != 0) && xs[i] == xs[j] {
+                    result += 1;
+                }
             }
         }
 
