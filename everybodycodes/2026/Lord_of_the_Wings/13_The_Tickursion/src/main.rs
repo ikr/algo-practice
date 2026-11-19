@@ -72,17 +72,22 @@ fn calubration_value(
             }
         }
 
+        let prev_xs = xs.clone();
+
         for i in 0..n {
             xs[i] += vs[i] + m;
             xs[i] %= m;
             moves[i] = (moves[i] - 1).max(0);
         }
 
-        if vs.iter().all(|&v| v != 0) && xs.iter().unique().count() == 1 {
+        if vs.iter().all(|&v| v != 0)
+            && xs.iter().unique().count() == 1
+            && prev_xs.iter().unique().count() == 3
+        {
             result += 3;
         } else {
             for [i, j] in (0..n).array_combinations() {
-                if (vs[i] != 0 || vs[j] != 0) && xs[i] == xs[j] {
+                if (vs[i] != 0 || vs[j] != 0) && xs[i] == xs[j] && prev_xs[i] != prev_xs[j] {
                     result += 1;
                 }
             }
