@@ -57,6 +57,12 @@ fn calubration_value(
         .map(|(a, &v)| a * v.abs())
         .collect();
 
+    for i in 0..n {
+        if moves[i] == 0 {
+            vs[i] = 0;
+        }
+    }
+
     let mut result = 0;
 
     while moves.iter().any(|&k| k > 0) {
