@@ -1,6 +1,22 @@
 use itertools::Itertools;
 use num_integer::lcm;
-use proconio::input;
+use proconio::{input, is_stdin_empty};
+
+fn decode_colon_sparated_ints(s: String) -> [i32; 3] {
+    s.split(':')
+        .map(|a| a.parse().unwrap())
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap()
+}
+
+fn decode_direction(s: &str) -> i32 {
+    match s {
+        "CW" => 1,
+        "CCW" => -1,
+        _ => unreachable!(),
+    }
+}
 
 fn time_to_meet_before_next_tick(m: i32, x1: i32, v1: i32, x2: i32, v2: i32) -> Option<f64> {
     if x1 == x2 || v1 == v2 {
@@ -21,39 +37,12 @@ fn time_to_meet_before_next_tick(m: i32, x1: i32, v1: i32, x2: i32, v2: i32) -> 
     }
 }
 
-fn decode_colon_sparated_ints(s: String) -> [i32; 3] {
-    s.split(':')
-        .map(|a| a.parse().unwrap())
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap()
-}
-
-fn decode_direction(s: &str) -> i32 {
-    match s {
-        "CW" => 1,
-        "CCW" => -1,
-        _ => unreachable!(),
-    }
-}
-
-fn main() {
-    input! {
-        _hands: String,
-        degrees_source: String,
-        _direction: String,
-        directions_source: String,
-        _current: String,
-        current_values_source: String,
-        _move: String,
-        moves_source: String,
-    }
-
-    let degrees = decode_colon_sparated_ints(degrees_source);
-    let directions: Vec<i32> = directions_source.split(":").map(decode_direction).collect();
-    let current_values = decode_colon_sparated_ints(current_values_source);
-    let mut moves = decode_colon_sparated_ints(moves_source);
-
+fn calubration_value(
+    degrees: [i32; 3],
+    directions: [i32; 3],
+    initial_values: [i32; 3],
+    mut moves: [i32; 3],
+) -> i32 {
     let n = moves.len();
     let m: i32 = degrees.iter().fold(1, |agg, &x| lcm(agg, x));
     let mut vs: Vec<i32> = degrees
@@ -62,7 +51,7 @@ fn main() {
         .map(|(x, sgn)| sgn * (m / x))
         .collect();
 
-    let mut xs: Vec<i32> = current_values
+    let mut xs: Vec<i32> = initial_values
         .into_iter()
         .zip(vs.iter())
         .map(|(a, &v)| a * v.abs())
@@ -98,6 +87,42 @@ fn main() {
                 vs[i] = 0;
             }
         }
+    }
+
+    result
+}
+
+fn main() {
+    let mut result = 0;
+    let mut i = 1;
+
+    while !is_stdin_empty() {
+        input! {
+            _hands: String,
+            degrees_source: String,
+            _direction: String,
+            directions_source: String,
+            _current: String,
+            current_values_source: String,
+            _move: String,
+            moves_source: String,
+        }
+
+        let degrees = decode_colon_sparated_ints(degrees_source);
+
+        let directions: [i32; 3] = directions_source
+            .split(":")
+            .map(decode_direction)
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
+
+        let initial_values = decode_colon_sparated_ints(current_values_source);
+        let moves = decode_colon_sparated_ints(moves_source);
+        let sub = calubration_value(degrees, directions, initial_values, moves);
+        eprintln!("Clock {:03}: {sub}", i);
+        result += sub;
+        i += 1;
     }
 
     println!("{result}");

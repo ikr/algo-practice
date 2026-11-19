@@ -2,3 +2,13 @@ hands 6:8:12
 direction CW:CCW:CW
 current 2:4:8
 move 9:7:4
+
+hands 6:8:12
+direction CW:CCW:CW
+current 1:2:2
+move 10:12:15
+
+hands 6:8:12
+direction CW:CCW:CW
+current 1:2:2
+move 10:12:20
