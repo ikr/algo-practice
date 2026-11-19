@@ -109,9 +109,43 @@ fn calubration_value(
     }
 
     let mut result = 0;
+    let mut seen: Vec<[i64; 3]> = vec![];
+    let mut signals: Vec<i64> = vec![];
 
     while moves.iter().any(|&k| k > 0) {
-        result += tick_return_signals(m, &mut xs, &mut vs, &mut moves);
+        let prev_active = moves.iter().filter(|&&k| k > 0).count();
+        let sub = tick_return_signals(m, &mut xs, &mut vs, &mut moves);
+        let active = moves.iter().filter(|&&k| k > 0).count();
+
+        if active != prev_active {
+            seen.clear();
+            signals.clear();
+        }
+
+        if let Some(i) = seen.iter().position(|&a| a == xs) {
+            let period = (seen.len() - i) as i64;
+            let period_signals: i64 = signals[i..].iter().sum();
+
+            eprintln!("period:{period} s:{period_signals}");
+
+            if let Some(lo) = moves.iter().copied().filter(|&k| k > 0).min() {
+                let q = lo / period;
+                result += q * period_signals;
+
+                for k in moves.iter_mut() {
+                    if *k > 0 {
+                        *k -= q * period;
+                    }
+                }
+
+                seen.clear();
+                signals.clear();
+            }
+        }
+
+        result += sub;
+        seen.push(xs);
+        signals.push(sub);
     }
 
     result
