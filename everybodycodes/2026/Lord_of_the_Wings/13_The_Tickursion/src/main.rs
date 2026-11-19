@@ -37,6 +37,46 @@ fn time_to_meet_before_next_tick(m: i64, x1: i64, v1: i64, x2: i64, v2: i64) -> 
     }
 }
 
+fn tick_return_signals(m: i64, xs: &mut [i64; 3], vs: &mut [i64; 3], moves: &mut [i64; 3]) -> i64 {
+    let n = moves.len();
+    let mut result = 0;
+
+    for [i, j] in (0..n).array_combinations() {
+        if time_to_meet_before_next_tick(m, xs[i], vs[i], xs[j], vs[j]).is_some() {
+            result += 1;
+        }
+    }
+
+    let prev_xs = xs.clone();
+
+    for i in 0..n {
+        xs[i] += vs[i] + m;
+        xs[i] %= m;
+        moves[i] = (moves[i] - 1).max(0);
+    }
+
+    if vs.iter().all(|&v| v != 0)
+        && xs.iter().unique().count() == 1
+        && prev_xs.iter().unique().count() == 3
+    {
+        result += 3;
+    } else {
+        for [i, j] in (0..n).array_combinations() {
+            if (vs[i] != 0 || vs[j] != 0) && xs[i] == xs[j] && prev_xs[i] != prev_xs[j] {
+                result += 1;
+            }
+        }
+    }
+
+    for i in 0..n {
+        if moves[i] == 0 {
+            vs[i] = 0;
+        }
+    }
+
+    result
+}
+
 fn calubration_value(
     degrees: [i64; 3],
     directions: [i64; 3],
@@ -45,17 +85,22 @@ fn calubration_value(
 ) -> i64 {
     let n = moves.len();
     let m: i64 = degrees.iter().fold(1, |agg, &x| lcm(agg, x));
-    let mut vs: Vec<i64> = degrees
+
+    let mut vs: [i64; 3] = degrees
         .into_iter()
         .zip(directions)
         .map(|(x, sgn)| sgn * (m / x))
-        .collect();
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap();
 
-    let mut xs: Vec<i64> = initial_values
+    let mut xs: [i64; 3] = initial_values
         .into_iter()
         .zip(vs.iter())
         .map(|(a, &v)| a * v.abs())
-        .collect();
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap();
 
     for i in 0..n {
         if moves[i] == 0 {
@@ -66,38 +111,7 @@ fn calubration_value(
     let mut result = 0;
 
     while moves.iter().any(|&k| k > 0) {
-        for [i, j] in (0..n).array_combinations() {
-            if time_to_meet_before_next_tick(m, xs[i], vs[i], xs[j], vs[j]).is_some() {
-                result += 1;
-            }
-        }
-
-        let prev_xs = xs.clone();
-
-        for i in 0..n {
-            xs[i] += vs[i] + m;
-            xs[i] %= m;
-            moves[i] = (moves[i] - 1).max(0);
-        }
-
-        if vs.iter().all(|&v| v != 0)
-            && xs.iter().unique().count() == 1
-            && prev_xs.iter().unique().count() == 3
-        {
-            result += 3;
-        } else {
-            for [i, j] in (0..n).array_combinations() {
-                if (vs[i] != 0 || vs[j] != 0) && xs[i] == xs[j] && prev_xs[i] != prev_xs[j] {
-                    result += 1;
-                }
-            }
-        }
-
-        for i in 0..n {
-            if moves[i] == 0 {
-                vs[i] = 0;
-            }
-        }
+        result += tick_return_signals(m, &mut xs, &mut vs, &mut moves);
     }
 
     result
