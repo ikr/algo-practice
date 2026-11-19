@@ -1,18 +1,17 @@
+use itertools::Itertools;
 use num_integer::lcm;
 use proconio::input;
 
-const EPS: f64 = 0.000_001;
-
-fn time_to_meet_within_next_tick(m: i32, a1: i32, v1: i32, a2: i32, v2: i32) -> Option<f64> {
-    if a1 == a2 || v1 == v2 {
+fn time_to_meet_before_next_tick(m: i32, x1: i32, v1: i32, x2: i32, v2: i32) -> Option<f64> {
+    if x1 == x2 || v1 == v2 {
         None
     } else {
-        let [a1, a2] = [a1 as f64, a2 as f64];
+        let [x1, x2] = [x1 as f64, x2 as f64];
         let [v1, v2] = [v1 as f64, v2 as f64];
         let m = m as f64;
 
         let q = v1 - v2;
-        let p = a2 - a1;
+        let p = x2 - x1;
 
         [(p - m) / q, p / q, (p + m) / q]
             .into_iter()
@@ -53,22 +52,50 @@ fn main() {
     let degrees = decode_colon_sparated_ints(degrees_source);
     let directions: Vec<i32> = directions_source.split(":").map(decode_direction).collect();
     let current_values = decode_colon_sparated_ints(current_values_source);
-    let moves = decode_colon_sparated_ints(moves_source);
+    let mut moves = decode_colon_sparated_ints(moves_source);
 
+    let n = moves.len();
     let m: i32 = degrees.iter().fold(1, |agg, &x| lcm(agg, x));
-    let vs: Vec<i32> = degrees
+    let mut vs: Vec<i32> = degrees
         .into_iter()
         .zip(directions)
         .map(|(x, sgn)| sgn * (m / x))
         .collect();
 
-    let xs: Vec<i32> = current_values
+    let mut xs: Vec<i32> = current_values
         .into_iter()
         .zip(vs.iter())
         .map(|(a, &v)| a * v.abs())
         .collect();
 
     eprintln!("m:{m} vs:{vs:?} xs:{xs:?}");
+    let mut result = 0;
+
+    while moves.iter().any(|&k| k > 0) {
+        for [i, j] in (0..n).array_combinations() {
+            if time_to_meet_before_next_tick(m, xs[i], vs[i], xs[j], vs[j]).is_some() {
+                result += 1;
+            }
+        }
+
+        for i in 0..n {
+            xs[i] += vs[i] + m;
+            xs[i] %= m;
+            moves[i] = (moves[i] - 1).max(0);
+
+            if moves[i] == 0 {
+                vs[i] = 0;
+            }
+        }
+
+        for i in 0..n {
+            if moves[i] == 0 {
+                vs[i] = 0;
+            }
+        }
+    }
+
+    println!("{result}");
 }
 
 #[cfg(test)]
@@ -78,19 +105,19 @@ mod tests {
     #[test]
     fn test_time_to_meet_within_next_tick() {
         let m = 12;
-        for (a1, v1, a2, v2, expected) in [
+        for (x1, v1, x2, v2, expected) in [
             (1, 1, 1, 1, false),
             (11, 4, 1, 1, true),
             (1, 2, 9, 1, false),
             (1, 2, 4, 2, false),
             (1, 6, 3, 2, true),
         ] {
-            let actual = time_to_meet_within_next_tick(m, a1, v1, a2, v2);
+            let actual = time_to_meet_before_next_tick(m, x1, v1, x2, v2);
 
             assert_eq!(
                 expected,
                 actual.is_some(),
-                "a1:{a1} v1:{v1} - a2:{a2} v2:{v2}"
+                "x1:{x1} v1:{v1} - x2:{x2} v2:{v2}"
             )
         }
     }
