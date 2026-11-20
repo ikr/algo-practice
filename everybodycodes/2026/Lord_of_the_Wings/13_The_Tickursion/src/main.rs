@@ -37,7 +37,12 @@ fn time_to_meet_before_next_tick(m: i64, x1: i64, v1: i64, x2: i64, v2: i64) -> 
     }
 }
 
-fn tick_return_signals(m: i64, xs: &mut [i64; 3], vs: &mut [i64; 3], moves: &mut [i64; 3]) -> i64 {
+fn tick_return_signals(
+    m: i64,
+    mut xs: [i64; 3],
+    mut vs: [i64; 3],
+    mut moves: [i64; 3],
+) -> ([i64; 3], [i64; 3], [i64; 3], i64) {
     let n = moves.len();
     let mut result = 0;
 
@@ -47,7 +52,7 @@ fn tick_return_signals(m: i64, xs: &mut [i64; 3], vs: &mut [i64; 3], moves: &mut
         }
     }
 
-    let prev_xs = xs.clone();
+    let prev_xs = xs;
 
     for i in 0..n {
         xs[i] += vs[i] + m;
@@ -74,7 +79,7 @@ fn tick_return_signals(m: i64, xs: &mut [i64; 3], vs: &mut [i64; 3], moves: &mut
         }
     }
 
-    result
+    (xs, vs, moves, result)
 }
 
 fn calubration_value(
@@ -114,22 +119,29 @@ fn calubration_value(
 
     while moves.iter().any(|&k| k > 0) {
         let prev_active = moves.iter().filter(|&&k| k > 0).count();
-        let sub = tick_return_signals(m, &mut xs, &mut vs, &mut moves);
-        let active = moves.iter().filter(|&&k| k > 0).count();
+        let (new_xs, new_vs, new_moves, sub) = tick_return_signals(m, xs, vs, moves);
+        let active = new_moves.iter().filter(|&&k| k > 0).count();
 
         if active != prev_active {
             seen.clear();
             signals.clear();
         }
 
-        if let Some(i) = seen.iter().position(|&a| a == xs) {
+        if let Some(i) = seen.iter().position(|&a| a == new_xs) {
             let period = (seen.len() - i) as i64;
             let period_signals: i64 = signals[i..].iter().sum();
+            eprintln!("period:{period}");
+            seen.clear();
+            signals.clear();
 
-            eprintln!("period:{period} s:{period_signals}");
+            let lo: i64 = moves.iter().copied().filter(|&k| k > 0).min().unwrap();
+            let q = lo / period;
 
-            if let Some(lo) = moves.iter().copied().filter(|&k| k > 0).min() {
-                let q = lo / period;
+            if q == 0 {
+                eprintln!("q is 0");
+                [xs, vs, moves] = [new_xs, new_vs, new_moves];
+                result += sub;
+            } else {
                 result += q * period_signals;
 
                 for k in moves.iter_mut() {
@@ -137,15 +149,14 @@ fn calubration_value(
                         *k -= q * period;
                     }
                 }
-
-                seen.clear();
-                signals.clear();
+                //[xs, vs] = [new_xs, new_vs];
             }
+        } else {
+            [xs, vs, moves] = [new_xs, new_vs, new_moves];
+            result += sub;
+            seen.push(xs);
+            signals.push(sub);
         }
-
-        result += sub;
-        seen.push(xs);
-        signals.push(sub);
     }
 
     result
