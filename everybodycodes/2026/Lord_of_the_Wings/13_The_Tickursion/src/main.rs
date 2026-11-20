@@ -127,10 +127,9 @@ fn calubration_value(
             signals.clear();
         }
 
-        if let Some(i) = seen.iter().position(|&a| a == new_xs) {
+        if let Some(i) = seen.iter().rposition(|&a| a == new_xs) {
             let period = (seen.len() - i) as i64;
-            let period_signals: i64 = signals[i..].iter().sum();
-            eprintln!("period:{period}");
+            let period_signals: i64 = result + sub - signals[i];
             seen.clear();
             signals.clear();
 
@@ -138,7 +137,6 @@ fn calubration_value(
             let q = lo / period;
 
             if q == 0 {
-                eprintln!("q is 0");
                 [xs, vs, moves] = [new_xs, new_vs, new_moves];
                 result += sub;
             } else {
@@ -149,13 +147,18 @@ fn calubration_value(
                         *k -= q * period;
                     }
                 }
-                //[xs, vs] = [new_xs, new_vs];
+
+                for i in 0..n {
+                    if moves[i] == 0 {
+                        vs[i] = 0;
+                    }
+                }
             }
         } else {
             [xs, vs, moves] = [new_xs, new_vs, new_moves];
             result += sub;
             seen.push(xs);
-            signals.push(sub);
+            signals.push(result);
         }
     }
 
