@@ -1,17 +1,20 @@
-use std::{
-    collections::HashSet,
-    io::{BufRead, stdin},
-};
-
 use ac_library::Dsu;
+use std::io::{BufRead, stdin};
 
-fn main() {
-    let grid: Vec<Vec<char>> = stdin()
-        .lock()
-        .lines()
-        .map(|line| line.unwrap().chars().collect())
-        .collect();
+fn wrap_into_frame(mut grid: Vec<Vec<char>>) -> Vec<Vec<char>> {
+    for row in &mut grid {
+        row.insert(0, '~');
+        row.push('~');
+    }
 
+    let width = grid[0].len();
+    grid.insert(0, vec!['~'; width]);
+    grid.push(vec!['~'; width]);
+
+    grid
+}
+
+fn connected_components(grid: &[Vec<char>]) -> Vec<Vec<usize>> {
     let height = grid.len();
     let width = grid[0].len();
     let mut dsu = Dsu::new(height * width);
@@ -38,48 +41,23 @@ fn main() {
         }
     }
 
-    let mut result: usize = 0;
-    let mut vert_covered: HashSet<(usize, usize)> = HashSet::new();
-    let mut horz_covered: HashSet<(usize, usize)> = HashSet::new();
+    dsu.groups()
+}
 
-    for group in dsu.groups() {
-        let mut sub: usize = 0;
+fn components_adjacency_graph(grid: &[Vec<char>], cs: Vec<Vec<usize>>) -> Vec<Vec<(usize, u8)>> {
+    let height = grid.len();
+    let width = grid[0].len();
+    todo!()
+}
 
-        for u in group {
-            let (i, j) = (u / width, u % width);
-            let cell = grid[i][j];
+fn main() {
+    let grid: Vec<Vec<char>> = wrap_into_frame(
+        stdin()
+            .lock()
+            .lines()
+            .map(|line| line.unwrap().chars().collect())
+            .collect(),
+    );
 
-            if i == 0 {
-                sub += 1;
-            } else if grid[i - 1][j] != cell && !horz_covered.contains(&(i, j)) {
-                horz_covered.insert((i, j));
-                sub += 1;
-            }
-
-            if j == width - 1 {
-                sub += 1;
-            } else if grid[i][j + 1] != cell && !vert_covered.contains(&(i, j + 1)) {
-                vert_covered.insert((i, j + 1));
-                sub += 1;
-            }
-
-            if i == height - 1 {
-                sub += 1
-            } else if grid[i + 1][j] != cell && !horz_covered.contains(&(i + 1, j)) {
-                horz_covered.insert((i + 1, j));
-                sub += 1;
-            }
-
-            if j == 0 {
-                sub += 1;
-            } else if grid[i][j - 1] != cell && !vert_covered.contains(&(i, j)) {
-                vert_covered.insert((i, j));
-                sub += 1;
-            }
-        }
-
-        result += sub;
-    }
-
-    println!("{result}");
+    let cs = connected_components(&grid);
 }
