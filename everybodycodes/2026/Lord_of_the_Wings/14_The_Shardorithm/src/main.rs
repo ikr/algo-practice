@@ -43,7 +43,6 @@ fn main() {
     let mut horz_covered: HashSet<(usize, usize)> = HashSet::new();
 
     for group in dsu.groups() {
-        eprintln!("{group:?}");
         let mut sub: usize = 0;
 
         for u in group {
@@ -73,15 +72,12 @@ fn main() {
 
             if j == 0 {
                 sub += 1;
-            } else if grid[i][j - 1] != cell && vert_covered.contains(&(i, j)) {
+            } else if grid[i][j - 1] != cell && !vert_covered.contains(&(i, j)) {
                 vert_covered.insert((i, j));
                 sub += 1;
             }
-
-            eprint!("({i}, {j}):{sub} ");
         }
 
-        eprintln!();
         result += sub;
     }
 
