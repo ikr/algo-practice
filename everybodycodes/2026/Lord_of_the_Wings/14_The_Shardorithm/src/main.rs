@@ -1,6 +1,7 @@
 use ac_library::Dsu;
 use std::{
-    collections::{HashMap, HashSet},
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap, HashSet},
     io::{BufRead, stdin},
 };
 
@@ -47,17 +48,15 @@ fn connected_components(grid: &[Vec<char>]) -> Vec<Vec<usize>> {
     dsu.groups()
 }
 
-fn components_adjacency_graph(
+fn components_edges(
     grid_height: usize,
     grid_width: usize,
     cs: Vec<Vec<usize>>,
-) -> Vec<Vec<(usize, u8)>> {
-    let mut graph: Vec<Vec<(usize, u8)>> = vec![vec![]; cs.len()];
-
+) -> BinaryHeap<Reverse<(u8, usize, usize)>> {
     let component_by_cell_id =
         |cell_id: usize| cs.iter().position(|c| c.contains(&cell_id)).unwrap();
 
-    let mut unique_edges: HashMap<(usize, usize), HashSet<(usize, usize)>> = HashMap::new();
+    let mut seams: HashMap<(usize, usize), HashSet<(usize, usize)>> = HashMap::new();
 
     for i in 0..grid_height {
         for j in 0..grid_width {
@@ -78,7 +77,7 @@ fn components_adjacency_graph(
                 let v_c = component_by_cell_id(v);
                 assert_ne!(v_c, u_c);
 
-                unique_edges
+                seams
                     .entry((u_c.min(v_c), u_c.max(v_c)))
                     .and_modify(|cell_edges| {
                         cell_edges.insert((u.min(v), u.max(v)));
@@ -88,8 +87,10 @@ fn components_adjacency_graph(
         }
     }
 
-    eprintln!("UQs:{unique_edges:?}");
-    graph
+    seams
+        .into_iter()
+        .map(|((u, v), u_cs)| Reverse((u_cs.len() as u8, u, v)))
+        .collect()
 }
 
 fn main() {
@@ -102,7 +103,17 @@ fn main() {
     );
 
     let cs = connected_components(&grid);
-    eprintln!("{cs:?}");
-    let g = components_adjacency_graph(grid.len(), grid[0].len(), cs);
-    eprintln!("{g:?}");
+    let n = cs.len();
+    let mut pq = components_edges(grid.len(), grid[0].len(), cs);
+    let mut dsu = Dsu::new(n);
+    let mut result: u16 = 0;
+
+    while let Some(Reverse((w, u, v))) = pq.pop() {
+        if !dsu.same(u, v) {
+            result += w as u16;
+            dsu.merge(u, v);
+        }
+    }
+
+    println!("{result}");
 }
