@@ -100,14 +100,20 @@ fn additional_bindings_num(
     mut pq: BinaryHeap<Reverse<(u8, usize, usize)>>,
 ) -> u16 {
     let mut dsu = Dsu::new(n);
+
+    for Reverse((_, u, v)) in &pq {
+        if charged.contains(u) || charged.contains(v) {
+            dsu.merge(*u, *v);
+        }
+    }
+
     let mut result: u16 = 0;
 
     while let Some(Reverse((w, u, v))) = pq.pop() {
-        if (!charged.contains(&u) && !charged.contains(&v)) && !dsu.same(u, v) {
+        if !dsu.same(u, v) {
             result += w as u16;
+            dsu.merge(u, v);
         }
-
-        dsu.merge(u, v);
     }
 
     result
