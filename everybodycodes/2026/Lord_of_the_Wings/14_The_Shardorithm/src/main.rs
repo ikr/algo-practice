@@ -1,5 +1,8 @@
 use ac_library::Dsu;
-use std::io::{BufRead, stdin};
+use std::{
+    collections::{HashMap, HashSet},
+    io::{BufRead, stdin},
+};
 
 fn wrap_into_frame(mut grid: Vec<Vec<char>>) -> Vec<Vec<char>> {
     for row in &mut grid {
@@ -44,10 +47,49 @@ fn connected_components(grid: &[Vec<char>]) -> Vec<Vec<usize>> {
     dsu.groups()
 }
 
-fn components_adjacency_graph(grid: &[Vec<char>], cs: Vec<Vec<usize>>) -> Vec<Vec<(usize, u8)>> {
-    let height = grid.len();
-    let width = grid[0].len();
-    todo!()
+fn components_adjacency_graph(
+    grid_height: usize,
+    grid_width: usize,
+    cs: Vec<Vec<usize>>,
+) -> Vec<Vec<(usize, u8)>> {
+    let mut graph: Vec<Vec<(usize, u8)>> = vec![vec![]; cs.len()];
+
+    let component_by_cell_id =
+        |cell_id: usize| cs.iter().position(|c| c.contains(&cell_id)).unwrap();
+
+    let mut unique_edges: HashMap<(usize, usize), HashSet<(usize, usize)>> = HashMap::new();
+
+    for i in 0..grid_height {
+        for j in 0..grid_width {
+            let u = i * grid_width + j;
+            let u_c = component_by_cell_id(u);
+
+            let vs: Vec<usize> = [
+                (i != 0, i.saturating_sub(1) * grid_width + j),
+                (j != grid_width - 1, i * grid_width + j + 1),
+                (i != grid_height - 1, (i + 1) * grid_width + j),
+                (j != 0, i * grid_width + j.saturating_sub(1)),
+            ]
+            .into_iter()
+            .filter_map(|(pred, v)| (pred && component_by_cell_id(v) != u_c).then_some(v))
+            .collect();
+
+            for v in vs {
+                let v_c = component_by_cell_id(v);
+                assert_ne!(v_c, u_c);
+
+                unique_edges
+                    .entry((u_c.min(v_c), u_c.max(v_c)))
+                    .and_modify(|cell_edges| {
+                        cell_edges.insert((u.min(v), u.max(v)));
+                    })
+                    .or_insert(HashSet::from([(u.min(v), u.max(v))]));
+            }
+        }
+    }
+
+    eprintln!("UQs:{unique_edges:?}");
+    graph
 }
 
 fn main() {
@@ -60,4 +102,7 @@ fn main() {
     );
 
     let cs = connected_components(&grid);
+    eprintln!("{cs:?}");
+    let g = components_adjacency_graph(grid.len(), grid[0].len(), cs);
+    eprintln!("{g:?}");
 }
