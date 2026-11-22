@@ -54,15 +54,22 @@ fn components_edges(
     grid_width: usize,
     cs: Vec<Vec<usize>>,
 ) -> BinaryHeap<Reverse<(u8, usize, usize)>> {
-    let component_by_cell_id =
-        |cell_id: usize| cs.iter().position(|c| c.contains(&cell_id)).unwrap();
+    let component_ids_by_cell_id: Vec<usize> = cs.iter().enumerate().fold(
+        vec![usize::MAX; grid_height * grid_width],
+        |mut agg, (component_id, component)| {
+            for &cell_id in component {
+                agg[cell_id] = component_id;
+            }
+            agg
+        },
+    );
 
     let mut seams: HashMap<(usize, usize), HashSet<(usize, usize)>> = HashMap::new();
 
     for i in 0..grid_height {
         for j in 0..grid_width {
             let u = i * grid_width + j;
-            let u_c = component_by_cell_id(u);
+            let u_c = component_ids_by_cell_id[u];
 
             let vs: Vec<usize> = [
                 (i != 0, i.saturating_sub(1) * grid_width + j),
@@ -71,11 +78,11 @@ fn components_edges(
                 (j != 0, i * grid_width + j.saturating_sub(1)),
             ]
             .into_iter()
-            .filter_map(|(pred, v)| (pred && component_by_cell_id(v) != u_c).then_some(v))
+            .filter_map(|(pred, v)| (pred && component_ids_by_cell_id[v] != u_c).then_some(v))
             .collect();
 
             for v in vs {
-                let v_c = component_by_cell_id(v);
+                let v_c = component_ids_by_cell_id[v];
                 assert_ne!(v_c, u_c);
 
                 seams
