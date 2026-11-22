@@ -1,10 +1,16 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet, VecDeque},
     io::{BufRead, stdin},
 };
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
+
+impl Crd {
+    fn from_indices(ro: usize, co: usize) -> Crd {
+        Crd(ro as i8, co as i8)
+    }
+}
 
 impl std::ops::Add<Crd> for Crd {
     type Output = Crd;
@@ -14,7 +20,7 @@ impl std::ops::Add<Crd> for Crd {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum Dir {
     N,
     E,
@@ -23,6 +29,14 @@ enum Dir {
 }
 
 impl Dir {
+    fn all() -> [Dir; 4] {
+        [Dir::N, Dir::E, Dir::S, Dir::W]
+    }
+
+    fn id(self) -> usize {
+        Dir::all().into_iter().position(|x| x == self).unwrap()
+    }
+
     fn delta(self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -32,27 +46,20 @@ impl Dir {
         }
     }
 
-    fn turn_ccw(self) -> Dir {
+    fn opposite(self) -> Dir {
         match self {
-            Dir::N => Dir::W,
-            Dir::E => Dir::N,
-            Dir::S => Dir::E,
-            Dir::W => Dir::S,
-        }
-    }
-
-    fn turn_cw(self) -> Dir {
-        match self {
-            Dir::N => Dir::E,
-            Dir::E => Dir::S,
-            Dir::S => Dir::W,
-            Dir::W => Dir::N,
+            Dir::N => Dir::S,
+            Dir::E => Dir::W,
+            Dir::S => Dir::N,
+            Dir::W => Dir::E,
         }
     }
 }
 
 #[derive(Debug)]
 struct Maze {
+    height: i8,
+    width: i8,
     source: Crd,
     sink: Crd,
     walls: HashSet<Crd>,
@@ -65,7 +72,7 @@ impl Maze {
             for (i, row) in grid.iter().enumerate() {
                 for (j, &cell) in row.iter().enumerate() {
                     if cell == a {
-                        return Crd(i as i8, j as i8);
+                        return Crd::from_indices(i, j);
                     }
                 }
             }
@@ -77,8 +84,8 @@ impl Maze {
             |[mut ws, mut ds], (i, row)| {
                 for (j, &cell) in row.iter().enumerate() {
                     match cell {
-                        '#' => ws.insert(Crd(i as i8, j as i8)),
-                        '@' => ds.insert(Crd(i as i8, j as i8)),
+                        '#' => ws.insert(Crd::from_indices(i, j)),
+                        '@' => ds.insert(Crd::from_indices(i, j)),
                         _ => false,
                     };
                 }
@@ -87,6 +94,8 @@ impl Maze {
         );
 
         Self {
+            height: grid.len() as i8,
+            width: grid[0].len() as i8,
             source: crd_of('S'),
             sink: crd_of('E'),
             walls,
@@ -95,9 +104,43 @@ impl Maze {
     }
 
     fn in_bounds(&self, crd: Crd) -> bool {
-        let left = self.source.1.min(self.sink.1);
-        let right = self.source.1.max(self.sink.1);
-        left <= crd.1 && crd.1 <= right
+        0 <= crd.0 && crd.0 < self.height && 0 <= crd.1 && crd.1 < self.width
+    }
+
+    fn adjacent(&self, u: (Crd, Dir)) -> Vec<(Crd, Dir)> {
+        let (u_crd, u_dir) = u;
+
+        let possible_directions: Vec<_> = Dir::all()
+            .into_iter()
+            .filter(|&x| x != u_dir.opposite())
+            .collect();
+
+        possible_directions
+            .into_iter()
+            .filter_map(|v_dir| {
+                let v_crd = u_crd + v_dir.delta();
+                (self.in_bounds(v_crd) && !self.walls.contains(&v_crd)).then_some((v_crd, v_dir))
+            })
+            .collect()
+    }
+
+    fn distances_from(&self, u0: (Crd, Dir)) -> HashMap<(Crd, Dir), u16> {
+        assert!(!self.walls.contains(&u0.0));
+        assert!(self.in_bounds(u0.0));
+
+        let mut dist: HashMap<(Crd, Dir), u16> = HashMap::from([(u0, 0)]);
+        let mut q: VecDeque<(Crd, Dir)> = VecDeque::from([u0]);
+
+        while let Some(u) = q.pop_front() {
+            for v in self.adjacent(u) {
+                if !dist.contains_key(&v) {
+                    dist.insert(v, *dist.get(&u).unwrap() + 1);
+                    q.push_back(v);
+                }
+            }
+        }
+
+        dist
     }
 }
 
@@ -109,5 +152,10 @@ fn main() {
         .collect();
 
     eprintln!("{grid:?}\n");
-    eprintln!("{:?}", Maze::new(grid));
+
+    let m = Maze::new(grid);
+    eprintln!("{:?}\n", m);
+
+    let dist = m.distances_from((m.source, Dir::E));
+    eprintln!("{dist:?}");
 }
