@@ -93,6 +93,12 @@ impl Maze {
             deposits,
         }
     }
+
+    fn in_bounds(&self, crd: Crd) -> bool {
+        let left = self.source.1.min(self.sink.1);
+        let right = self.source.1.max(self.sink.1);
+        left <= crd.1 && crd.1 <= right
+    }
 }
 
 fn main() {
