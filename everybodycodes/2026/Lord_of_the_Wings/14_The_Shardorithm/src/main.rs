@@ -1,4 +1,5 @@
 use ac_library::Dsu;
+use itertools::Itertools;
 use std::{
     cmp::Reverse,
     collections::{BinaryHeap, HashMap, HashSet},
@@ -93,6 +94,25 @@ fn components_edges(
         .collect()
 }
 
+fn additional_bindings_num(
+    n: usize,
+    charged: [usize; 2],
+    mut pq: BinaryHeap<Reverse<(u8, usize, usize)>>,
+) -> u16 {
+    let mut dsu = Dsu::new(n);
+    let mut result: u16 = 0;
+
+    while let Some(Reverse((w, u, v))) = pq.pop() {
+        if (!charged.contains(&u) && !charged.contains(&v)) && !dsu.same(u, v) {
+            result += w as u16;
+        }
+
+        dsu.merge(u, v);
+    }
+
+    result
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = wrap_into_frame(
         stdin()
@@ -103,17 +123,15 @@ fn main() {
     );
 
     let cs = connected_components(&grid);
+    assert!(cs[0].contains(&0));
     let n = cs.len();
-    let mut pq = components_edges(grid.len(), grid[0].len(), cs);
-    let mut dsu = Dsu::new(n);
-    let mut result: u16 = 0;
+    let pq = components_edges(grid.len(), grid[0].len(), cs);
 
-    while let Some(Reverse((w, u, v))) = pq.pop() {
-        if !dsu.same(u, v) {
-            result += w as u16;
-            dsu.merge(u, v);
-        }
-    }
+    let result: u16 = (1..n)
+        .array_combinations()
+        .map(|[u, v]| additional_bindings_num(n, [u, v], pq.clone()))
+        .min()
+        .unwrap();
 
     println!("{result}");
 }
