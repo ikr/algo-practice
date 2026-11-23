@@ -1,7 +1,10 @@
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     io::{BufRead, stdin},
+    iter::once,
 };
+
+use itertools::Itertools;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
@@ -56,14 +59,13 @@ impl Dir {
     }
 }
 
-#[derive(Debug)]
 struct Maze {
     height: i8,
     width: i8,
     source: Crd,
     sink: Crd,
     walls: HashSet<Crd>,
-    deposits: HashSet<Crd>,
+    deposits: Vec<Crd>,
 }
 
 impl Maze {
@@ -79,19 +81,23 @@ impl Maze {
             unreachable!()
         };
 
-        let [walls, deposits] = grid.iter().enumerate().fold(
-            [HashSet::new(), HashSet::new()],
-            |[mut ws, mut ds], (i, row)| {
-                for (j, &cell) in row.iter().enumerate() {
-                    match cell {
-                        '#' => ws.insert(Crd::from_indices(i, j)),
-                        '@' => ds.insert(Crd::from_indices(i, j)),
-                        _ => false,
-                    };
-                }
-                [ws, ds]
-            },
-        );
+        let (walls, deposits) =
+            grid.iter()
+                .enumerate()
+                .fold((HashSet::new(), vec![]), |(mut ws, mut ds), (i, row)| {
+                    for (j, &cell) in row.iter().enumerate() {
+                        match cell {
+                            '#' => {
+                                ws.insert(Crd::from_indices(i, j));
+                            }
+                            '@' => {
+                                ds.push(Crd::from_indices(i, j));
+                            }
+                            _ => {}
+                        };
+                    }
+                    (ws, ds)
+                });
 
         Self {
             height: grid.len() as i8,
@@ -144,6 +150,26 @@ impl Maze {
     }
 }
 
+struct Meter {
+    vs: Vec<Crd>,
+    distances_by_source: Vec<HashMap<(Crd, Dir), u16>>,
+}
+
+impl Meter {
+    fn measure_tour(&self, vertices_permutation: Vec<usize>) -> u16 {
+        let ii: Vec<usize> = vertices_permutation
+            .iter()
+            .copied()
+            .unique()
+            .sorted()
+            .collect();
+
+        assert_eq!(ii, (0..self.vs.len()).collect::<Vec<usize>>());
+
+        todo!()
+    }
+}
+
 fn main() {
     let grid: Vec<Vec<char>> = stdin()
         .lock()
@@ -151,11 +177,31 @@ fn main() {
         .map(|line| line.unwrap().chars().collect())
         .collect();
 
-    eprintln!("{grid:?}\n");
+    let maze = Maze::new(grid);
 
-    let m = Maze::new(grid);
-    eprintln!("{:?}\n", m);
+    let sources: Vec<(Crd, Dir)> = once(maze.source)
+        .chain(maze.deposits.iter().copied())
+        .flat_map(|u| {
+            Dir::all()
+                .into_iter()
+                .filter_map(|dir| {
+                    let v = u + dir.delta();
+                    (maze.in_bounds(v) && !maze.walls.contains(&v)).then_some((u, dir))
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect();
 
-    let dist = m.distances_from((m.source, Dir::E));
-    eprintln!("{dist:?}");
+    let distances_by_source: Vec<HashMap<(Crd, Dir), u16>> =
+        sources.iter().map(|&u| maze.distances_from(u)).collect();
+
+    let meter = Meter {
+        vs: once(maze.source)
+            .chain(maze.deposits.iter().copied())
+            .chain(once(maze.sink))
+            .collect(),
+        distances_by_source,
+    };
+
+    eprintln!("{}", meter.measure_tour((0..meter.vs.len()).collect()));
 }
