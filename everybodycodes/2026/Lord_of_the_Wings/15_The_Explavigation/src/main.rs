@@ -150,13 +150,15 @@ impl Maze {
     }
 }
 
-struct Meter {
+struct RouteEvaluator {
+    source_dir: Dir,
+    sink: (Crd, Dir),
     vs: Vec<Crd>,
     distances_by_source: Vec<HashMap<(Crd, Dir), u16>>,
 }
 
-impl Meter {
-    fn measure_tour(&self, vertices_permutation: Vec<usize>) -> u16 {
+impl RouteEvaluator {
+    fn measure_route(&self, vertices_permutation: Vec<usize>) -> u16 {
         let ii: Vec<usize> = vertices_permutation
             .iter()
             .copied()
@@ -165,8 +167,21 @@ impl Meter {
             .collect();
 
         assert_eq!(ii, (0..self.vs.len()).collect::<Vec<usize>>());
+        assert_eq!(vertices_permutation[0], 0);
+        assert_eq!(
+            *vertices_permutation.last().unwrap(),
+            vertices_permutation.len() - 1
+        );
 
-        todo!()
+        let mut dir: Dir = self.source_dir;
+        let mut result = 0;
+
+        for &[i_a, i_b] in vertices_permutation.array_windows() {
+            let dests = self.distances_by_source.get(i_a).unwrap();
+            todo!()
+        }
+
+        result
     }
 }
 
@@ -181,6 +196,7 @@ fn main() {
 
     let sources: Vec<(Crd, Dir)> = once(maze.source)
         .chain(maze.deposits.iter().copied())
+        .chain(once(maze.sink))
         .flat_map(|u| {
             Dir::all()
                 .into_iter()
@@ -195,13 +211,17 @@ fn main() {
     let distances_by_source: Vec<HashMap<(Crd, Dir), u16>> =
         sources.iter().map(|&u| maze.distances_from(u)).collect();
 
-    let meter = Meter {
+    let ev = RouteEvaluator {
+        source_dir: Dir::E,
+        sink: (maze.sink, Dir::E),
+
         vs: once(maze.source)
             .chain(maze.deposits.iter().copied())
             .chain(once(maze.sink))
             .collect(),
+
         distances_by_source,
     };
 
-    eprintln!("{}", meter.measure_tour((0..meter.vs.len()).collect()));
+    eprintln!("{}", ev.measure_route((0..ev.vs.len()).collect()));
 }
