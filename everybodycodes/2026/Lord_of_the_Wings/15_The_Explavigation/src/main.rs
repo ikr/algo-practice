@@ -1,12 +1,12 @@
-use itertools::Itertools;
-use rand::seq::SliceRandom;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     io::{BufRead, stdin},
     iter::once,
 };
 
-const INF: u16 = u16::MAX;
+use itertools::Itertools;
+
+const INF: u16 = 55_555;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
@@ -152,39 +152,50 @@ impl Maze {
     }
 }
 
-struct RouteEvaluator {
+struct Optimizer {
     source: (Crd, Dir),
-    sink: (Crd, Dir),
     vs: Vec<Crd>,
     adjacent_distances: HashMap<(Crd, Dir, Crd), [u16; 4]>,
+    memo: HashMap<(u32, usize, Dir), u16>,
 }
 
-impl RouteEvaluator {
-    fn measure_route(&self, vertices_permutation: Vec<usize>) -> u16 {
-        let ii: Vec<usize> = vertices_permutation
-            .iter()
-            .copied()
-            .unique()
-            .sorted()
-            .collect();
+impl Optimizer {
+    fn distance(&self, u: (Crd, Dir), v: (Crd, Dir)) -> u16 {
+        let (u_crd, u_dir) = u;
+        let (v_crd, v_dir) = v;
+        let ws = self.adjacent_distances.get(&(u_crd, u_dir, v_crd)).unwrap();
+        ws[v_dir.id()]
+    }
 
-        assert_eq!(ii, (0..self.vs.len()).collect::<Vec<usize>>());
+    fn recur(&mut self, vs_bits: u32, i_last_v: usize, last_dir: Dir) -> u16 {
+        assert_eq!(vs_bits & 1 << i_last_v, 1 << i_last_v);
 
-        let mut u_dir: Dir = self.source.1;
-        let mut result = 0;
+        if let Some(w) = self.memo.get(&(vs_bits, i_last_v, last_dir)) {
+            *w
+        } else {
+            let result = if vs_bits.count_ones() == 1 {
+                self.distance(self.source, (self.vs[i_last_v], last_dir))
+            } else {
+                let n = self.vs.len();
 
-        for [u_crd, v_crd] in once(self.source.0)
-            .chain(vertices_permutation.into_iter().map(|i| self.vs[i]))
-            .chain(once(self.sink.0))
-            .array_windows()
-        {
-            let ws = *self.adjacent_distances.get(&(u_crd, u_dir, v_crd)).unwrap();
-            let i = ws.iter().position_min().unwrap();
-            result += ws[i];
-            u_dir = Dir::all()[i];
+                eprintln!("vs_bits:{vs_bits:b} i_last_v:{i_last_v} last_dir:{last_dir:?}");
+                let uu: Vec<(usize, Dir)> = (0..n)
+                    .filter(|&i| ((1 << i) & vs_bits) == (1 << i))
+                    .cartesian_product(Dir::all())
+                    .collect();
+
+                uu.into_iter()
+                    .map(|(i, dir)| {
+                        let sub = self.recur(vs_bits ^ (1 << i), i, dir);
+                        sub + self.distance((self.vs[i], dir), (self.vs[i_last_v], last_dir))
+                    })
+                    .min()
+                    .unwrap()
+            };
+
+            self.memo.insert((vs_bits, i_last_v, last_dir), result);
+            result
         }
-
-        result
     }
 }
 
@@ -226,20 +237,22 @@ fn main() {
                 agg
             });
 
-    let ev = RouteEvaluator {
+    let mut opt = Optimizer {
         source: (maze.source, Dir::E),
-        sink: (maze.sink, Dir::E),
-        vs: maze.deposits.clone(),
+
+        vs: maze
+            .deposits
+            .iter()
+            .copied()
+            .chain(once(maze.sink))
+            .collect(),
+
         adjacent_distances,
+        memo: HashMap::new(),
     };
 
-    let mut perm: Vec<usize> = (0..ev.vs.len()).collect();
-    let mut result = INF;
+    let n = opt.vs.len();
 
-    for _ in 0..10_000 {
-        perm.shuffle(&mut rand::rng());
-        result = result.min(ev.measure_route(perm.clone()));
-    }
-
+    let result = opt.recur((1 << n) - 1, n - 1, Dir::E);
     println!("{result}");
 }
