@@ -168,7 +168,7 @@ impl Optimizer {
     }
 
     fn recur(&mut self, vs_bits: u32, i_last_v: usize, last_dir: Dir) -> u16 {
-        assert_eq!(vs_bits & 1 << i_last_v, 1 << i_last_v);
+        assert_eq!(vs_bits & (1 << i_last_v), 1 << i_last_v);
 
         if let Some(w) = self.memo.get(&(vs_bits, i_last_v, last_dir)) {
             *w
@@ -178,19 +178,20 @@ impl Optimizer {
             } else {
                 let n = self.vs.len();
 
-                eprintln!("vs_bits:{vs_bits:b} i_last_v:{i_last_v} last_dir:{last_dir:?}");
                 let uu: Vec<(usize, Dir)> = (0..n)
-                    .filter(|&i| ((1 << i) & vs_bits) == (1 << i))
+                    .filter(|&i| ((1 << i) & (vs_bits ^ (1 << i_last_v))) == (1 << i))
                     .cartesian_product(Dir::all())
                     .collect();
 
                 uu.into_iter()
-                    .map(|(i, dir)| {
-                        let sub = self.recur(vs_bits ^ (1 << i), i, dir);
-                        sub + self.distance((self.vs[i], dir), (self.vs[i_last_v], last_dir))
+                    .filter_map(|(i, dir)| {
+                        let last_leg =
+                            self.distance((self.vs[i], dir), (self.vs[i_last_v], last_dir));
+
+                        (last_leg < INF).then(|| self.recur(vs_bits ^ (1 << i_last_v), i, dir))
                     })
                     .min()
-                    .unwrap()
+                    .unwrap_or(INF)
             };
 
             self.memo.insert((vs_bits, i_last_v, last_dir), result);
