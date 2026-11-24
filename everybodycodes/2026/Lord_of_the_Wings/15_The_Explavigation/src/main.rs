@@ -1,10 +1,12 @@
+use itertools::Itertools;
+use rand::seq::SliceRandom;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     io::{BufRead, stdin},
     iter::once,
 };
 
-use itertools::Itertools;
+const INF: u16 = u16::MAX;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
@@ -151,10 +153,10 @@ impl Maze {
 }
 
 struct RouteEvaluator {
-    source_dir: Dir,
+    source: (Crd, Dir),
     sink: (Crd, Dir),
     vs: Vec<Crd>,
-    distances_by_source: Vec<HashMap<(Crd, Dir), u16>>,
+    adjacent_distances: HashMap<(Crd, Dir, Crd), [u16; 4]>,
 }
 
 impl RouteEvaluator {
@@ -167,18 +169,19 @@ impl RouteEvaluator {
             .collect();
 
         assert_eq!(ii, (0..self.vs.len()).collect::<Vec<usize>>());
-        assert_eq!(vertices_permutation[0], 0);
-        assert_eq!(
-            *vertices_permutation.last().unwrap(),
-            vertices_permutation.len() - 1
-        );
 
-        let mut dir: Dir = self.source_dir;
+        let mut u_dir: Dir = self.source.1;
         let mut result = 0;
 
-        for &[i_a, i_b] in vertices_permutation.array_windows() {
-            let dests = self.distances_by_source.get(i_a).unwrap();
-            todo!()
+        for [u_crd, v_crd] in once(self.source.0)
+            .chain(vertices_permutation.into_iter().map(|i| self.vs[i]))
+            .chain(once(self.sink.0))
+            .array_windows()
+        {
+            let ws = *self.adjacent_distances.get(&(u_crd, u_dir, v_crd)).unwrap();
+            let i = ws.iter().position_min().unwrap();
+            result += ws[i];
+            u_dir = Dir::all()[i];
         }
 
         result
@@ -196,32 +199,47 @@ fn main() {
 
     let sources: Vec<(Crd, Dir)> = once(maze.source)
         .chain(maze.deposits.iter().copied())
-        .chain(once(maze.sink))
         .flat_map(|u| {
             Dir::all()
                 .into_iter()
-                .filter_map(|dir| {
-                    let v = u + dir.delta();
-                    (maze.in_bounds(v) && !maze.walls.contains(&v)).then_some((u, dir))
-                })
+                .map(|dir| (u, dir))
                 .collect::<Vec<_>>()
         })
         .collect();
 
-    let distances_by_source: Vec<HashMap<(Crd, Dir), u16>> =
-        sources.iter().map(|&u| maze.distances_from(u)).collect();
+    let adjacent_distances: HashMap<(Crd, Dir, Crd), [u16; 4]> =
+        sources
+            .into_iter()
+            .fold(HashMap::new(), |mut agg, (u_crd, u_dir)| {
+                for ((v_crd, v_dir), w) in maze.distances_from((u_crd, u_dir)) {
+                    agg.entry((u_crd, u_dir, v_crd))
+                        .and_modify(|ws| {
+                            ws[v_dir.id()] = w;
+                        })
+                        .or_insert({
+                            let mut ws = [INF, INF, INF, INF];
+                            ws[v_dir.id()] = w;
+                            ws
+                        });
+                }
+
+                agg
+            });
 
     let ev = RouteEvaluator {
-        source_dir: Dir::E,
+        source: (maze.source, Dir::E),
         sink: (maze.sink, Dir::E),
-
-        vs: once(maze.source)
-            .chain(maze.deposits.iter().copied())
-            .chain(once(maze.sink))
-            .collect(),
-
-        distances_by_source,
+        vs: maze.deposits.clone(),
+        adjacent_distances,
     };
 
-    eprintln!("{}", ev.measure_route((0..ev.vs.len()).collect()));
+    let mut perm: Vec<usize> = (0..ev.vs.len()).collect();
+    let mut result = INF;
+
+    for _ in 0..10_000 {
+        perm.shuffle(&mut rand::rng());
+        result = result.min(ev.measure_route(perm.clone()));
+    }
+
+    println!("{result}");
 }
