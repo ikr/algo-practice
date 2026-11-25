@@ -1,10 +1,9 @@
+use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     io::{BufRead, stdin},
     iter::once,
 };
-
-use itertools::Itertools;
 
 const INF: u16 = 55_555;
 
@@ -240,7 +239,6 @@ fn main() {
     };
 
     let n = opt.vs.len();
-
     let result = opt.recur((1 << n) - 1, n - 1, Dir::E);
     println!("{result}");
 }
