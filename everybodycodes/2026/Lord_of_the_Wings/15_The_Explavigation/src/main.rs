@@ -38,10 +38,6 @@ impl Dir {
         [Dir::N, Dir::E, Dir::S, Dir::W]
     }
 
-    fn id(self) -> usize {
-        Dir::all().into_iter().position(|x| x == self).unwrap()
-    }
-
     fn delta(self) -> Crd {
         match self {
             Dir::N => Crd(-1, 0),
@@ -155,7 +151,7 @@ impl Maze {
 struct Optimizer {
     source: (Crd, Dir),
     vs: Vec<Crd>,
-    adjacent_distances: HashMap<(Crd, Dir, Crd), [u16; 4]>,
+    adjacent_distances: HashMap<(Crd, Dir, Crd, Dir), u16>,
     memo: HashMap<(u32, usize, Dir), u16>,
 }
 
@@ -163,8 +159,11 @@ impl Optimizer {
     fn distance(&self, u: (Crd, Dir), v: (Crd, Dir)) -> u16 {
         let (u_crd, u_dir) = u;
         let (v_crd, v_dir) = v;
-        let ws = self.adjacent_distances.get(&(u_crd, u_dir, v_crd)).unwrap();
-        ws[v_dir.id()]
+
+        *self
+            .adjacent_distances
+            .get(&(u_crd, u_dir, v_crd, v_dir))
+            .unwrap_or(&INF)
     }
 
     fn recur(&mut self, vs_bits: u32, i_last_v: usize, last_dir: Dir) -> u16 {
@@ -176,14 +175,9 @@ impl Optimizer {
             let result = if vs_bits.count_ones() == 1 {
                 self.distance(self.source, (self.vs[i_last_v], last_dir))
             } else {
-                let n = self.vs.len();
-
-                let uu: Vec<(usize, Dir)> = (0..n)
+                (0..self.vs.len())
                     .filter(|&i| ((1 << i) & (vs_bits ^ (1 << i_last_v))) == (1 << i))
                     .cartesian_product(Dir::all())
-                    .collect();
-
-                uu.into_iter()
                     .filter_map(|(i, dir)| {
                         let last_leg =
                             self.distance((self.vs[i], dir), (self.vs[i_last_v], last_dir));
@@ -220,20 +214,12 @@ fn main() {
         })
         .collect();
 
-    let adjacent_distances: HashMap<(Crd, Dir, Crd), [u16; 4]> =
+    let adjacent_distances: HashMap<(Crd, Dir, Crd, Dir), u16> =
         sources
             .into_iter()
             .fold(HashMap::new(), |mut agg, (u_crd, u_dir)| {
                 for ((v_crd, v_dir), w) in maze.distances_from((u_crd, u_dir)) {
-                    agg.entry((u_crd, u_dir, v_crd))
-                        .and_modify(|ws| {
-                            ws[v_dir.id()] = w;
-                        })
-                        .or_insert({
-                            let mut ws = [INF, INF, INF, INF];
-                            ws[v_dir.id()] = w;
-                            ws
-                        });
+                    agg.insert((u_crd, u_dir, v_crd, v_dir), w);
                 }
 
                 agg
