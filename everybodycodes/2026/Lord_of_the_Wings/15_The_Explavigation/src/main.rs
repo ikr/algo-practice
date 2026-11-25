@@ -1,11 +1,7 @@
-use itertools::Itertools;
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque, hash_map::Entry},
     io::{BufRead, stdin},
-    iter::once,
 };
-
-const INF: u16 = 55_555;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
@@ -127,70 +123,40 @@ impl Maze {
             .collect()
     }
 
-    fn distances_from(&self, u0: (Crd, Dir)) -> HashMap<(Crd, Dir), u16> {
-        assert!(!self.walls.contains(&u0.0));
-        assert!(self.in_bounds(u0.0));
+    fn shortest_path(&self, a: (Crd, Dir), b: (Crd, Dir)) -> Vec<(Crd, Dir)> {
+        assert!(!self.walls.contains(&a.0));
+        assert!(!self.walls.contains(&b.0));
 
-        let mut dist: HashMap<(Crd, Dir), u16> = HashMap::from([(u0, 0)]);
-        let mut q: VecDeque<(Crd, Dir)> = VecDeque::from([u0]);
+        let mut pre: HashMap<(Crd, Dir), (Crd, Dir)> = HashMap::from([(a, a)]);
+        let mut q: VecDeque<(Crd, Dir)> = VecDeque::from([a]);
 
         while let Some(u) = q.pop_front() {
+            if u == b {
+                break;
+            }
+
             for v in self.adjacent(u) {
-                if !dist.contains_key(&v) {
-                    dist.insert(v, *dist.get(&u).unwrap() + 1);
+                if let Entry::Vacant(e) = pre.entry(v) {
+                    e.insert(u);
                     q.push_back(v);
                 }
             }
         }
 
-        dist
-    }
-}
-
-struct Optimizer {
-    source: (Crd, Dir),
-    vs: Vec<Crd>,
-    adjacent_distances: HashMap<(Crd, Dir, Crd, Dir), u16>,
-    memo: HashMap<(u32, usize, Dir), u16>,
-}
-
-impl Optimizer {
-    fn distance(&self, u: (Crd, Dir), v: (Crd, Dir)) -> u16 {
-        let (u_crd, u_dir) = u;
-        let (v_crd, v_dir) = v;
-
-        *self
-            .adjacent_distances
-            .get(&(u_crd, u_dir, v_crd, v_dir))
-            .unwrap_or(&INF)
-    }
-
-    fn recur(&mut self, vs_bits: u32, i_last_v: usize, last_dir: Dir) -> u16 {
-        assert_eq!(vs_bits & (1 << i_last_v), 1 << i_last_v);
-
-        if let Some(w) = self.memo.get(&(vs_bits, i_last_v, last_dir)) {
-            *w
-        } else {
-            let result = if vs_bits.count_ones() == 1 {
-                self.distance(self.source, (self.vs[i_last_v], last_dir))
-            } else {
-                (0..self.vs.len())
-                    .filter(|&i| ((1 << i) & (vs_bits ^ (1 << i_last_v))) == (1 << i))
-                    .cartesian_product(Dir::all())
-                    .filter_map(|(i, dir)| {
-                        let last_leg =
-                            self.distance((self.vs[i], dir), (self.vs[i_last_v], last_dir));
-
-                        (last_leg < INF)
-                            .then(|| last_leg + self.recur(vs_bits ^ (1 << i_last_v), i, dir))
-                    })
-                    .min()
-                    .unwrap_or(INF)
-            };
-
-            self.memo.insert((vs_bits, i_last_v, last_dir), result);
-            result
+        if !pre.contains_key(&b) {
+            return vec![];
         }
+
+        let mut result = vec![b];
+        let mut cur = b;
+
+        while cur != a {
+            cur = pre[&cur];
+            result.push(cur);
+        }
+
+        result.reverse();
+        result
     }
 }
 
@@ -202,43 +168,6 @@ fn main() {
         .collect();
 
     let maze = Maze::new(grid);
-
-    let sources: Vec<(Crd, Dir)> = once(maze.source)
-        .chain(maze.deposits.iter().copied())
-        .flat_map(|u| {
-            Dir::all()
-                .into_iter()
-                .map(|dir| (u, dir))
-                .collect::<Vec<_>>()
-        })
-        .collect();
-
-    let adjacent_distances: HashMap<(Crd, Dir, Crd, Dir), u16> =
-        sources
-            .into_iter()
-            .fold(HashMap::new(), |mut agg, (u_crd, u_dir)| {
-                for ((v_crd, v_dir), w) in maze.distances_from((u_crd, u_dir)) {
-                    agg.insert((u_crd, u_dir, v_crd, v_dir), w);
-                }
-
-                agg
-            });
-
-    let mut opt = Optimizer {
-        source: (maze.source, Dir::E),
-
-        vs: maze
-            .deposits
-            .iter()
-            .copied()
-            .chain(once(maze.sink))
-            .collect(),
-
-        adjacent_distances,
-        memo: HashMap::new(),
-    };
-
-    let n = opt.vs.len();
-    let result = opt.recur((1 << n) - 1, n - 1, Dir::E);
-    println!("{result}");
+    let path = maze.shortest_path((Crd(5, 5), Dir::E), (Crd(5, 5), Dir::N));
+    eprintln!("{path:?}");
 }
