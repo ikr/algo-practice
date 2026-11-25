@@ -188,7 +188,8 @@ impl Optimizer {
                         let last_leg =
                             self.distance((self.vs[i], dir), (self.vs[i_last_v], last_dir));
 
-                        (last_leg < INF).then(|| self.recur(vs_bits ^ (1 << i_last_v), i, dir))
+                        (last_leg < INF)
+                            .then(|| last_leg + self.recur(vs_bits ^ (1 << i_last_v), i, dir))
                     })
                     .min()
                     .unwrap_or(INF)
