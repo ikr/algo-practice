@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet, VecDeque, hash_map::Entry},
     io::{BufRead, stdin},
@@ -168,6 +169,23 @@ fn main() {
         .collect();
 
     let maze = Maze::new(grid);
-    let path = maze.shortest_path((Crd(5, 5), Dir::E), (Crd(5, 5), Dir::N));
-    eprintln!("{path:?}");
+
+    let mut cycles: Vec<Vec<(Crd, Dir)>> = maze
+        .deposits
+        .iter()
+        .cartesian_product(Dir::all())
+        .filter_map(|(&crd, dir)| {
+            if maze.walls.contains(&(crd + dir.delta())) {
+                None
+            } else {
+                let u = (crd, dir.opposite());
+                let v = (crd + dir.delta(), dir.opposite());
+                let path = maze.shortest_path(u, v);
+                (!path.is_empty()).then_some(path)
+            }
+        })
+        .collect();
+
+    cycles.sort_by_key(|path| path.len());
+    eprintln!("{} cycles. First four:\n{:?}", cycles.len(), &cycles[..4]);
 }
