@@ -4,6 +4,8 @@ use std::{
     io::{BufRead, stdin},
 };
 
+const NUM_TARGET_DEPOSITS: usize = 2026;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
 
@@ -159,6 +161,32 @@ impl Maze {
         result.reverse();
         result
     }
+
+    fn path_yield(&self, path: &[(Crd, Dir)]) -> usize {
+        path.iter()
+            .filter(|(crd, _)| self.deposits.contains(crd))
+            .count()
+    }
+
+    fn min_time_to_collect_enough_deposits(&self, cycle: &[(Crd, Dir)]) -> usize {
+        let cycle_yield = self.path_yield(cycle);
+        let main_deposit = *cycle.first().unwrap();
+
+        let pre = self.shortest_path((self.source, Dir::E), main_deposit);
+        let pre_yield = self.path_yield(&pre);
+
+        let post = self.shortest_path(main_deposit, (self.sink, Dir::E));
+        let post_yield = self.path_yield(&post);
+
+        let total_time = |k: usize| -> usize { pre.len() - 1 + k * cycle.len() + post.len() - 1 };
+        let total_yield = |k: usize| -> usize { pre_yield + k * cycle_yield + post_yield };
+
+        let mut num_cycles: usize = 1;
+        while total_yield(num_cycles) < NUM_TARGET_DEPOSITS {
+            num_cycles += 1;
+        }
+        total_time(num_cycles)
+    }
 }
 
 fn main() {
@@ -170,7 +198,7 @@ fn main() {
 
     let maze = Maze::new(grid);
 
-    let mut cycles: Vec<Vec<(Crd, Dir)>> = maze
+    let cycles: Vec<Vec<(Crd, Dir)>> = maze
         .deposits
         .iter()
         .cartesian_product(Dir::all())
@@ -186,6 +214,11 @@ fn main() {
         })
         .collect();
 
-    cycles.sort_by_key(|path| path.len());
-    eprintln!("{} cycles. First four:\n{:?}", cycles.len(), &cycles[..4]);
+    let result = cycles
+        .into_iter()
+        .map(|cycle| maze.min_time_to_collect_enough_deposits(&cycle))
+        .min()
+        .unwrap();
+
+    println!("{result}");
 }
