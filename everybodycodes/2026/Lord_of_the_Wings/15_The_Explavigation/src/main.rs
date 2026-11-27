@@ -214,6 +214,11 @@ fn main() {
         })
         .collect();
 
+    let best_cycle = cycles
+        .iter()
+        .min_by_key(|cycle| maze.min_time_to_collect_enough_deposits(cycle))
+        .unwrap();
+
     let result = cycles
         .into_iter()
         .map(|cycle| maze.min_time_to_collect_enough_deposits(&cycle))
