@@ -218,6 +218,7 @@ fn main() {
         .iter()
         .min_by_key(|cycle| maze.min_time_to_collect_enough_deposits(cycle))
         .unwrap();
+    eprintln!("{best_cycle:?}");
 
     let result = cycles
         .into_iter()
