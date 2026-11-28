@@ -198,7 +198,6 @@ impl Optimizer {
                 dp[1][j][k] = self.distance(self.source, (v, d));
             }
         }
-        eprintln!("{:?}", dp[1]);
 
         for i in 1..dp.len() - 1 {
             for j in 0..n {
@@ -213,7 +212,7 @@ impl Optimizer {
                                     )
                                     && w < INF
                                 {
-                                    dp[i + 1][jj][kk] = dp[i][j][k] + w;
+                                    dp[i + 1][jj][kk] = dp[i + 1][jj][kk].min(dp[i][j][k] + w);
                                 }
                             }
                         }
