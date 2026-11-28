@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     io::{BufRead, stdin},
@@ -199,6 +198,7 @@ impl Optimizer {
                 dp[1][j][k] = self.distance(self.source, (v, d));
             }
         }
+        eprintln!("{:?}", dp[1]);
 
         for i in 1..dp.len() - 1 {
             for j in 0..n {
@@ -206,7 +206,7 @@ impl Optimizer {
                     if dp[i][j][k] < INF {
                         for jj in 0..n {
                             for kk in 0..4 {
-                                if (j != jj || k != kk)
+                                if !(j == jj && k == kk)
                                     && let w = self.distance(
                                         (self.vs[j], Dir::from_id(k)),
                                         (self.vs[jj], Dir::from_id(kk)),
