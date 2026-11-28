@@ -6,6 +6,7 @@ use std::{
 };
 
 const INF: u16 = 55_555;
+const NUM_TARGET_DEPOSITS: usize = 2026;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Crd(i8, i8);
@@ -35,6 +36,25 @@ enum Dir {
 impl Dir {
     fn all() -> [Dir; 4] {
         [Dir::N, Dir::E, Dir::S, Dir::W]
+    }
+
+    fn from_id(id: usize) -> Dir {
+        match id {
+            0 => Dir::N,
+            1 => Dir::E,
+            2 => Dir::S,
+            3 => Dir::W,
+            _ => unreachable!(),
+        }
+    }
+
+    fn id(self) -> usize {
+        match self {
+            Dir::N => 0,
+            Dir::E => 1,
+            Dir::S => 2,
+            Dir::W => 3,
+        }
     }
 
     fn delta(self) -> Crd {
@@ -127,7 +147,7 @@ impl Maze {
             .collect()
     }
 
-    fn distances_from(&self, u0: (Crd, Dir)) -> HashMap<(Crd, Dir), u16> {
+    fn immediate_distances_from(&self, u0: (Crd, Dir)) -> HashMap<(Crd, Dir), u16> {
         assert!(!self.walls.contains(&u0.0));
         assert!(self.in_bounds(u0.0));
 
@@ -138,7 +158,10 @@ impl Maze {
             for v in self.adjacent(u) {
                 if !dist.contains_key(&v) {
                     dist.insert(v, *dist.get(&u).unwrap() + 1);
-                    q.push_back(v);
+
+                    if !self.deposits.contains(&v.0) {
+                        q.push_back(v);
+                    }
                 }
             }
         }
@@ -150,8 +173,7 @@ impl Maze {
 struct Optimizer {
     source: (Crd, Dir),
     vs: Vec<Crd>,
-    adjacent_distances: HashMap<(Crd, Dir, Crd, Dir), u16>,
-    memo: HashMap<(u32, usize, Dir), u16>,
+    immediate_distances: HashMap<(Crd, Dir, Crd, Dir), u16>,
 }
 
 impl Optimizer {
@@ -160,37 +182,50 @@ impl Optimizer {
         let (v_crd, v_dir) = v;
 
         *self
-            .adjacent_distances
+            .immediate_distances
             .get(&(u_crd, u_dir, v_crd, v_dir))
             .unwrap_or(&INF)
     }
 
-    fn recur(&mut self, vs_bits: u32, i_last_v: usize, last_dir: Dir) -> u16 {
-        assert_eq!(vs_bits & (1 << i_last_v), 1 << i_last_v);
+    fn min_time_to_collect_enough_deposits(&self) -> u16 {
+        let n = self.vs.len();
 
-        if let Some(w) = self.memo.get(&(vs_bits, i_last_v, last_dir)) {
-            *w
-        } else {
-            let result = if vs_bits.count_ones() == 1 {
-                self.distance(self.source, (self.vs[i_last_v], last_dir))
-            } else {
-                (0..self.vs.len())
-                    .filter(|&i| ((1 << i) & (vs_bits ^ (1 << i_last_v))) == (1 << i))
-                    .cartesian_product(Dir::all())
-                    .filter_map(|(i, dir)| {
-                        let last_leg =
-                            self.distance((self.vs[i], dir), (self.vs[i_last_v], last_dir));
+        // dp[i][j][k] is the minimal time to collect i deposits ending up
+        // at the coordinate vs[j] facing in the direction k.
+        let mut dp: Vec<Vec<Vec<u16>>> = vec![vec![vec![INF; 4]; n]; NUM_TARGET_DEPOSITS + 10];
 
-                        (last_leg < INF)
-                            .then(|| last_leg + self.recur(vs_bits ^ (1 << i_last_v), i, dir))
-                    })
-                    .min()
-                    .unwrap_or(INF)
-            };
-
-            self.memo.insert((vs_bits, i_last_v, last_dir), result);
-            result
+        for (j, &v) in self.vs.iter().enumerate() {
+            for (k, d) in Dir::all().into_iter().enumerate() {
+                dp[1][j][k] = self.distance(self.source, (v, d));
+            }
         }
+
+        for i in 1..dp.len() - 1 {
+            for j in 0..n {
+                for k in 0..4 {
+                    if dp[i][j][k] < INF {
+                        for jj in 0..n {
+                            for kk in 0..4 {
+                                if (j != jj || k != kk)
+                                    && let w = self.distance(
+                                        (self.vs[j], Dir::from_id(k)),
+                                        (self.vs[jj], Dir::from_id(kk)),
+                                    )
+                                    && w < INF
+                                {
+                                    dp[i + 1][jj][kk] = dp[i][j][k] + w;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        (NUM_TARGET_DEPOSITS..dp.len())
+            .map(|i| dp[i][n - 1][Dir::E.id()])
+            .min()
+            .unwrap()
     }
 }
 
@@ -213,18 +248,18 @@ fn main() {
         })
         .collect();
 
-    let adjacent_distances: HashMap<(Crd, Dir, Crd, Dir), u16> =
+    let immediate_distances: HashMap<(Crd, Dir, Crd, Dir), u16> =
         sources
             .into_iter()
             .fold(HashMap::new(), |mut agg, (u_crd, u_dir)| {
-                for ((v_crd, v_dir), w) in maze.distances_from((u_crd, u_dir)) {
+                for ((v_crd, v_dir), w) in maze.immediate_distances_from((u_crd, u_dir)) {
                     agg.insert((u_crd, u_dir, v_crd, v_dir), w);
                 }
 
                 agg
             });
 
-    let mut opt = Optimizer {
+    let opt = Optimizer {
         source: (maze.source, Dir::E),
 
         vs: maze
@@ -234,11 +269,8 @@ fn main() {
             .chain(once(maze.sink))
             .collect(),
 
-        adjacent_distances,
-        memo: HashMap::new(),
+        immediate_distances,
     };
 
-    let n = opt.vs.len();
-    let result = opt.recur((1 << n) - 1, n - 1, Dir::E);
-    println!("{result}");
+    println!("{}", opt.min_time_to_collect_enough_deposits());
 }
