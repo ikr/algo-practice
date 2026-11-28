@@ -191,7 +191,7 @@ impl Optimizer {
 
         // dp[i][j][k] is the minimal time to collect i deposits ending up
         // at the coordinate vs[j] facing in the direction k.
-        let mut dp: Vec<Vec<Vec<u16>>> = vec![vec![vec![INF; 4]; n]; NUM_TARGET_DEPOSITS + 10];
+        let mut dp: Vec<Vec<Vec<u16>>> = vec![vec![vec![INF; 4]; n]; NUM_TARGET_DEPOSITS + 8];
 
         for (j, &v) in self.vs.iter().enumerate() {
             for (k, d) in Dir::all().into_iter().enumerate() {
@@ -200,10 +200,10 @@ impl Optimizer {
         }
 
         for i in 1..dp.len() - 1 {
-            for j in 0..n {
+            for j in 0..n - 1 {
                 for k in 0..4 {
                     if dp[i][j][k] < INF {
-                        for jj in 0..n {
+                        for jj in 0..n - 1 {
                             for kk in 0..4 {
                                 if !(j == jj && k == kk)
                                     && let w = self.distance(
@@ -216,6 +216,17 @@ impl Optimizer {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            for j in 0..n - 1 {
+                for k in 0..4 {
+                    let w = self.distance((self.vs[j], Dir::from_id(k)), (self.vs[n - 1], Dir::E));
+
+                    if w < INF {
+                        dp[i + 1][n - 1][Dir::E.id()] =
+                            dp[i + 1][n - 1][Dir::E.id()].min(dp[i + 1][j][k] + w);
                     }
                 }
             }
